@@ -1,5 +1,7 @@
 package com.unitedinternet.troilus.example;
 
+import com.unitedinternet.troilus.Tables;
+
 
 
 public interface HotelTable  {
@@ -12,12 +14,6 @@ public interface HotelTable  {
     public static final String CLASSIFICATION = "classification";
     
     
-    public static final String CREATE_STMT = "CREATE TABLE hotel (" + 
-                                             "                    id text, " +
-                                             "                    name text, " +
-                                             "                    description text, " +
-                                             "                    classification int, " +
-                                             "                    PRIMARY KEY  (id)" +    
-                                             "                   )";
+    public static final String CREATE_STMT = Tables.load("com/unitedinternet/troilus/example/hotels.ddl");
 
 }
