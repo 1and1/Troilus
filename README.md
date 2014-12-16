@@ -136,7 +136,7 @@ Mutating operations (insert, update, delete) can be executed in a batched manner
 ``` java
 Deletion deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
-hotelsDao.deleteWithKey("id", "BUP932432")
+hotelsDao.deleteWithKey("id", "BUP14334")
          .combinedWith(deletion)
          .withLockedBatchType()
          .execute();
