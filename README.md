@@ -8,7 +8,6 @@ It supports synchronous programming as well as asynchronous programming includin
 #Examples
 -------
 The examples are based on the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl)
-
 ##Create a Dao
 First a DataStax Java Driver [Session](https://github.com/datastax/java-driver) object has to be created
 ``` java
@@ -18,7 +17,7 @@ Cluster cluster = Cluster.builder()
 Session session = cluster.connect("hotel_reservation_system");
 ```
 
-This Session object will be used to create the DaoManager and fetching Dao's based on the table name. 
+This Session object will be used to create the DaoManager and fetching Dao's based on the table name. In the examples below the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl) is used
 ``` java
 DaoManager daoManager = new DaoManager(session);
 Dao hotelDao = daoManager.getDao("hotels")
