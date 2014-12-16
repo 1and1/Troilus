@@ -17,6 +17,8 @@ package com.unitedinternet.troilus;
 
 import java.util.Optional;
 
+import com.datastax.driver.core.querybuilder.Clause;
+
 
 
 
@@ -44,17 +46,11 @@ public interface Dao extends Configurable<Dao> {
     
     ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
    
-   
-    ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName, Object keyValue);
+    ReadListWithUnit<Result<Record>> readAll();
     
-    ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    ReadListWithUnit<Result<Record>> readWithCondition(Clause... clauses);
     
-    ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
-
-    ReadListWithUnit<Result<Record>> read();
-    
-    
-    
+  
     Deletion deleteWithKey(String keyName, Object keyValue);
     
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);

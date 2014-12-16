@@ -14,6 +14,6 @@ public interface HotelTable  {
     public static final String CLASSIFICATION = "classification";
     
     
-    public static final String CREATE_STMT = Tables.load("spacom/unitedinternet/troilus/example/hotels.ddl");
+    public static final String CREATE_STMT = Tables.load("com/unitedinternet/troilus/example/hotels.ddl");
 
 }

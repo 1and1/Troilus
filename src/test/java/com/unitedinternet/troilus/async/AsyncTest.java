@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
@@ -59,7 +60,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
         
-        ImmutableList<Record> recs = feeDao.readWithPartialKey(FeeTable.CUSTOMER_ID, "132")
+        ImmutableList<Record> recs = feeDao.readWithCondition(QueryBuilder.eq(FeeTable.CUSTOMER_ID, "132"))
                                            .column(FeeTable.CUSTOMER_ID)
                                            .executeAsync()
                                            .thenApply(result -> ImmutableList.of(result.next(), result.next(), result.next()))

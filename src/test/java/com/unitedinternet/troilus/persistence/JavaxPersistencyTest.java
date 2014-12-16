@@ -56,7 +56,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
     
         
         // get list 
-        Result<User> list = userDao.read()
+        Result<User> list = userDao.readWithCondition()
                                    .entity(User.class)
                                    .withLimit(3)
                                    .execute();

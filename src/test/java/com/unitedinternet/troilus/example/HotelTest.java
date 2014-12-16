@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
@@ -55,7 +56,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
    
         
         
-        hotelsDao.read()
+        hotelsDao.readAll()
                  .entity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
@@ -65,19 +66,27 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         MySubscriber<Hotel> mySubscriber = new MySubscriber<>();
-        hotelsDao.read()
+        hotelsDao.readWithCondition()
                  .entity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
                  .thenAccept(hotels -> hotels.subscribe(mySubscriber));
         
         
-        Iterator<Hotel> hotelIterator = hotelsDao.read()
+        Iterator<Hotel> hotelIterator = hotelsDao.readAll()
                                                  .entity(Hotel.class)
                                                  .withLimit(100)
                                                  .execute();
         hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
         
+        
+        
+        
+        hotelIterator = hotelsDao.readWithCondition(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+                                                 .entity(Hotel.class)
+                                                 .withAllowFiltering()
+                                                 .execute();
+        hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
         
         
         

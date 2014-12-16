@@ -134,15 +134,25 @@ optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> Sy
 
 ###Read a list of rows
 
+Read all of the table
 ``` java  
-Iterator<Hotel> hotelIterator = hotelsDao.read()
+Iterator<Hotel> hotelIterator = hotelsDao.readAll()
                                          .entity(Hotel.class)
-                                         .withLimit(100)
+                                         .withLimit(5000)
                                          .execute();
 hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 ```        
         
 
+Read specific ones by using conditions
+``` java  
+Iterator<Hotel> hotelIterator = hotelsDao.readWithCondition(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+                                         .entity(Hotel.class)
+                                         .withAllowFiltering()
+                                         .execute();
+hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));                
+```        
+        
 
         
 #Asynchronous Examples
@@ -162,9 +172,9 @@ CompletableFuture<Void> future = hotelsDao.insert()
 
 As already mentioned above the methods returns immediately without waiting for the database response. The consumer code within the thenAccept(...) method will be called as soon as the database response is received. However, the Iterator has still a blocking behavior.
 ``` java
-hotelsDao.read()
+hotelsDao.readAll()
          .entity(Hotel.class)
-         .withLimit(100)
+         .withLimit(5000)
          .executeAsync()
          .thenAccept(hotelIterator -> hotelIterator.forEachRemaining(hotel -> System.out.println(hotel)));
 ```
@@ -173,9 +183,9 @@ For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) 
 ``` java
 Subscriber<Hotel> mySubscriber = new MySubscriber();  
 
-hotelsDao.read()
+hotelsDao.readAll()
          .entity(Hotel.class)
-         .withLimit(100)
+         .withLimit(5000)
          .executeAsync()
          .thenAccept(publisher -> publisher.subscribe(mySubscriber));
 ```

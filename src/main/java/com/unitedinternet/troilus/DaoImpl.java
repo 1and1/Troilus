@@ -18,7 +18,6 @@ package com.unitedinternet.troilus;
 
 
 import java.time.Duration;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -515,50 +514,47 @@ class DaoImpl implements Dao {
     
     
     @Override
-    public ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName, Object keyValue) {
-        return new ListReadQuery(ctx, ImmutableMap.of(keyName, keyValue), Optional.of(ImmutableSet.of()), Optional.empty());
+    public ReadListWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
+        return new ListReadQuery(ctx, ImmutableSet.copyOf(clauses), Optional.of(ImmutableSet.of()), Optional.empty(), Optional.empty());
     }
+     
     
     @Override
-    public ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new ListReadQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), Optional.of(ImmutableSet.of()), Optional.empty());
+    public ReadListWithUnit<Result<Record>> readAll() {
+        return new ListReadQuery(ctx, ImmutableSet.of(), Optional.of(ImmutableSet.of()), Optional.empty(), Optional.empty());
+
     }
-    
-    @Override
-    public ReadListWithUnit<Result<Record>> readWithPartialKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new ListReadQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), Optional.of(ImmutableSet.of()), Optional.empty());
-    }
-    
-    @Override
-    public ReadListWithUnit<Result<Record>> read() {
-        return new ListReadQuery(ctx, ImmutableMap.of(), Optional.of(ImmutableSet.of()), Optional.empty());
-    }
-    
     
     
     
     private static class ListReadQuery extends QueryImpl<Result<Record>> implements ReadListWithUnit<Result<Record>> {
-        private final ImmutableMap<String, Object> keyNameValuePairs;
+        private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
-        private final Optional<Integer> limit;
+        private final Optional<Integer> optionalLimit;
+        private final Optional<Boolean> optionalAllowFiltering;
 
 
-        public ListReadQuery(DaoContext ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, Optional<Integer> limit) {
+        public ListReadQuery(DaoContext ctx, ImmutableSet<Clause> clauses, Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, Optional<Integer> optionalLimit, Optional<Boolean> optionalAllowFiltering) {
             super(ctx);
-            this.keyNameValuePairs = keyNameValuePairs;
+            this.clauses = clauses;
             this.columnsToFetch = columnsToFetch;
-            this.limit = limit;
+            this.optionalLimit = optionalLimit;
+            this.optionalAllowFiltering = optionalAllowFiltering;
         }
 
+        @Override
+        public ReadList<Result<Record>> withAllowFiltering() {
+            return new ListReadQuery(getContext(), clauses, columnsToFetch, optionalLimit, Optional.of(true));
+        }
         
         @Override
         public ReadList<Result<Record>> withLimit(int limit) {
-            return new ListReadQuery(getContext(), keyNameValuePairs, columnsToFetch, Optional.of(limit));
+            return new ListReadQuery(getContext(), clauses, columnsToFetch, Optional.of(limit), optionalAllowFiltering);
         }
         
         @Override
         public ReadList<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
-            return new ListReadQuery(getContext().withConsistency(consistencyLevel), keyNameValuePairs, columnsToFetch, limit);
+            return new ListReadQuery(getContext().withConsistency(consistencyLevel), clauses, columnsToFetch, optionalLimit, optionalAllowFiltering);
         }
         
       
@@ -574,7 +570,7 @@ class DaoImpl implements Dao {
 
         @Override
         public ReadListWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
-            return new ListReadQuery(getContext(), keyNameValuePairs,  Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), limit);
+            return new ListReadQuery(getContext(), clauses,  Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), optionalLimit, optionalAllowFiltering);
         }
         
         @Override
@@ -584,7 +580,7 @@ class DaoImpl implements Dao {
         
         @Override 
         public ReadListWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
-            return new ListReadQuery(getContext(), keyNameValuePairs, Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), limit);
+            return new ListReadQuery(getContext(), clauses, Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), optionalLimit, optionalAllowFiltering);
         }
         
 
@@ -602,19 +598,18 @@ class DaoImpl implements Dao {
             
             Select select = selection.from(getContext().getTable());
             Select.Where where = null;
-            for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
+            for (Clause clause : clauses) {
                 if (where == null) {
-                    where = select.where(whereClause);
+                    where = select.where(clause);
                 } else {
-                    where = where.and(whereClause);
+                    where = where.and(clause);
                 }
             }
+
+            optionalLimit.ifPresent(limit -> select.limit(limit));
+            optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
             
-            limit.ifPresent(limit -> select.limit(limit));
-            Statement statement = getContext().prepare(select).bind(keyNameValuePairs.values().toArray());
-            
-            
-            return getContext().performAsync(statement)
+            return getContext().performAsync(select)
                                .thenApply(resultSet -> new RecordsImpl(getContext().getProtocolVersion(), resultSet));
         }        
         
@@ -744,7 +739,11 @@ class DaoImpl implements Dao {
         public Read<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
             return new ListEntityReadQuery<E>(getContext().withConsistency(consistencyLevel), read, clazz);
         }
-        
+    
+        @Override
+        public ReadList<Result<E>> withAllowFiltering() {
+            return new ListEntityReadQuery<E>(getContext(), read.withAllowFiltering(), clazz);
+        }
         
         @Override
         public ReadList<Result<E>> withLimit(int limit) {

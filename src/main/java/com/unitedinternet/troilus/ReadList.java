@@ -28,7 +28,9 @@ package com.unitedinternet.troilus;
  */
 public interface ReadList<T> extends Read<T> {
     
-    public ReadList<T> withLimit(int limit);
+    ReadList<T> withLimit(int limit);
+    
+    ReadList<T> withAllowFiltering();
 }
 
 

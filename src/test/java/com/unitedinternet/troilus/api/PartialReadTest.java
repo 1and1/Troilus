@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
@@ -49,7 +50,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        Result<Record> list = feeDao.readWithPartialKey(FeeTable.CUSTOMER_ID, "132")
+        Result<Record> list = feeDao.readWithCondition(QueryBuilder.eq(FeeTable.CUSTOMER_ID, "132"))
                                     .column(FeeTable.CUSTOMER_ID)
                                     .execute();
         Assert.assertNotNull(list.next());
@@ -68,7 +69,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
        
 
         
-        list = feeDao.read()
+        list = feeDao.readWithCondition()
                      .column(FeeTable.CUSTOMER_ID)
                      .withLimit(2)
                      .execute();
@@ -78,7 +79,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
 
         
         
-        list = feeDao.read()
+        list = feeDao.readWithCondition()
                 .column(FeeTable.CUSTOMER_ID)
                 .withLimit(3)
                 .execute();
