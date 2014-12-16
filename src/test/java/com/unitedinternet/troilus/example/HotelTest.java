@@ -116,7 +116,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Deletion delition = hotelsDao.deleteWithKey("id", "BUP932432");
         
         
-        hotelsDao.deleteWithKey("id", "BUP932432")
+        hotelsDao.deleteWithKey("id", "BUP14334")
                  .combinedWith(delition)
                  .withLockedBatchType()
                  .execute();
