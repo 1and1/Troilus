@@ -2,7 +2,7 @@
 Troilus
 ======
 **Troilus** is a high level Cassandra Java8 client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
-It supports synchronous programming as well as asynchronous programming. Further more the [reactive streams](http://www.reactive-streams.org) interface is supported.
+It supports synchronous programming as well as asynchronous programming including the [reactive streams](http://www.reactive-streams.org) interface.
 
 
 #Examples
