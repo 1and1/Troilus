@@ -91,6 +91,26 @@ public class Hotel  {
 
 
 
+##Delete
+
+``` java
+hotelsDao.deleteWithKey("id", "BUP932432")
+         .execute();
+```
+
+
+##Batching        
+Mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
+``` java
+Deletion deletion = hotelsDao.deleteWithKey("id", "BUP932432");
+
+hotelsDao.deleteWithKey("id", "BUP14334")
+         .combinedWith(deletion)
+         .withLockedBatchType()
+         .execute();
+```
+
+
 ##Read
 ###Read a single row
 
@@ -123,24 +143,6 @@ hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 ```        
         
 
-##Delete
-
-``` java
-hotelsDao.deleteWithKey("id", "BUP932432")
-         .execute();
-```
-
-
-##Batching        
-Mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
-``` java
-Deletion deletion = hotelsDao.deleteWithKey("id", "BUP932432");
-
-hotelsDao.deleteWithKey("id", "BUP14334")
-         .combinedWith(deletion)
-         .withLockedBatchType()
-         .execute();
-```
 
         
 #Asynchronous Examples
