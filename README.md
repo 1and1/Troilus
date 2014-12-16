@@ -7,6 +7,7 @@ It supports synchronous programming as well as asynchronous programming includin
 
 #Examples
 -------
+The examples are based on the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl)
 
 ##Create a Dao
 First a DataStax Java Driver [Session](https://github.com/datastax/java-driver) object has to be created
