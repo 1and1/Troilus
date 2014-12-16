@@ -11,6 +11,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.Deletion;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.reactive.MySubscriber;
 
@@ -112,9 +113,13 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        hotelsDao.deleteWithKey("id", "BUP932432")
-                 .execute();
+        Deletion delition = hotelsDao.deleteWithKey("id", "BUP932432");
         
+        
+        hotelsDao.deleteWithKey("id", "BUP932432")
+                 .combinedWith(delition)
+                 .withLockedBatchType()
+                 .execute();
     }        
 }
 

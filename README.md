@@ -1,6 +1,4 @@
 
-
-
 Troilus
 ======
 **Troilus** is a high level Cassandra Java8 client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
@@ -131,7 +129,19 @@ hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 hotelsDao.deleteWithKey("id", "BUP932432")
          .execute();
 ```
-        
+
+
+##Batching        
+Mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
+``` java
+Deletion deletion = hotelsDao.deleteWithKey("id", "BUP932432");
+
+hotelsDao.deleteWithKey("id", "BUP932432")
+         .combinedWith(delition)
+         .withLockedBatchType()
+         .execute();
+```
+
         
 #Asynchronous Examples
 -------
@@ -201,4 +211,3 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
     }
 }
 ```
-
