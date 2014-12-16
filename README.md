@@ -7,7 +7,7 @@ It supports synchronous programming as well as asynchronous programming includin
 
 #Examples
 -------
-The examples are based on the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl)
+
 ##Create a Dao
 First a DataStax Java Driver [Session](https://github.com/datastax/java-driver) object has to be created
 ``` java
@@ -100,7 +100,7 @@ hotelsDao.deleteWithKey("id", "BUP932432")
 
 
 ##Batching        
-Mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
+Non conditional mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
 ``` java
 Deletion deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
