@@ -35,22 +35,25 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
     
         
         // insert
-        userDao.insertValues(UserTable.USER_ID, "342342", 
-                             UserTable.IS_CUSTOMER, true, 
-                             UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
-                             UserTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"), 
-                             UserTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
+        userDao.insert()
+               .values(UserTable.USER_ID, "342342", 
+                       UserTable.IS_CUSTOMER, true, 
+                       UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
+                       UserTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"), 
+                       UserTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
                .execute();
         
         
-        userDao.insertValues(UserTable.USER_ID, "2334233", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
+        userDao.insert()
+               .values(UserTable.USER_ID, "2334233", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
                .ifNotExits()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
                .execute();
         
         
-        userDao.insertValues(UserTable.USER_ID, "935434", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
+        userDao.insert()
+               .values(UserTable.USER_ID, "935434", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
                .ifNotExits()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
@@ -58,7 +61,8 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
 
 
         
-        userDao.insertValues(UserTable.USER_ID, "2323", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
+        userDao.insert()
+               .values(UserTable.USER_ID, "2323", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
                .ifNotExits()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)

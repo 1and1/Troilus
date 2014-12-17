@@ -19,7 +19,7 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -54,8 +54,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.Context.ValueToInsert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,13 +84,9 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
-        return newDao(getDefaultContext().withConsistency(consistencyLevel));
+        return new DaoImpl(getDefaultContext().withConsistency(consistencyLevel));
     }
     
-    
-    protected Dao newDao(Context ctx) {
-        return new DaoImpl(ctx); 
-    }
     
     
     ///////////////////////////////
@@ -98,50 +95,22 @@ public class DaoImpl implements Dao {
 
     @Override
     public InsertionWithUnit insert() {
-        return newInsertion(getDefaultContext(),  ImmutableMap.of());
-    }
-    
-    @Override
-    public Insertion insertObject(Object persistenceObject) {
-        return newInsertion(getDefaultContext(), getDefaultContext().getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
-    }
-    
-    @Override
-    public Insertion insertValues(String name1, Object value1, String name2, Object value2) {
-        return insert().values(ImmutableMap.of(name1, value1, name2, value2));
+        return newInsertion(getDefaultContext(),  ImmutableList.of());
     }
     
     
-    @Override
-    public Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3) {
-        return insert().values(ImmutableMap.of(name1, value1, name2, value2, name3, value3));
-    }
-    
-    
-    @Override
-    public Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4) {
-        return insert().values(ImmutableMap.of(name1, value1, name2, value2, name3, value3, name4, value4));
-    }
-    
-    
-    @Override
-    public Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5) {
-        return insert().values(ImmutableMap.of(name1, value1, name2, value2, name3, value3, name4, value4, name5, value5));
-    }
-  
-    
-    protected InsertionWithUnit newInsertion(Context ctx, ImmutableMap<String, Object> nameValuePairs) {
-        return new InsertQuery(ctx, nameValuePairs);
+    protected InsertionWithUnit newInsertion(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
+        return new InsertQuery(ctx, valuesToInsert);
     }
     
     
     private class InsertQuery implements InsertionWithUnit {
         private final Context ctx;
-        private final ImmutableMap<String, Object> nameValuePairs;
+        private final ImmutableList<ValueToInsert> valuesToInsert;
         
-        public InsertQuery(Context ctx, ImmutableMap<String, Object> nameValuePairs) {
+        public InsertQuery(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
             this.ctx = ctx;
-            this.nameValuePairs = nameValuePairs;
+            this.valuesToInsert = valuesToInsert;
         }
         
         @Override
@@ -149,64 +118,81 @@ public class DaoImpl implements Dao {
             return newInsertion(ctx, ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
         }
         
+        
+
         @Override
         public InsertionWithValues value(String name, Object value) {
-            if (value instanceof Optional) {
-                if (((Optional) value).isPresent()) {
-                    value = ((Optional) value).get();
-                } else {
-                    return this;
-                }
-            }
-            
-            return newInsertion(ctx, Immutables.merge(nameValuePairs, name, value));
+            return values(ImmutableList.of(new ValueToInsert(name, value)));
         }
 
         
-        @SuppressWarnings("unchecked")
         @Override
-        public InsertionWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
-            
-            // convert optional values
-            Map<String, Object> pairs = Maps.newHashMap();
-            nameValuePairsToAdd.forEach((name, value) -> {
-                                                            if (value instanceof Optional) {
-                                                                ((Optional) value).ifPresent(v -> pairs.put(name, v));
-                                                            } else {
-                                                                pairs.put(name, value);
-                                                            }
-                                                        });
-            
-            return newInsertion(ctx, Immutables.merge(nameValuePairs, ImmutableMap.copyOf(pairs)));
+        public InsertionWithValues values(String name1, Object value1, String name2, Object value2) {
+            return values(ImmutableList.of(new ValueToInsert(name1, value1),
+                                           new ValueToInsert(name2, value2)));
+        }
+        
+        @Override
+        public InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3) {
+            return values(ImmutableList.of(new ValueToInsert(name1, value1),
+                                           new ValueToInsert(name2, value2), 
+                                           new ValueToInsert(name3, value3)));
+        }
+        
+        @Override
+        public InsertionWithValues values(String name1, Object value1,String name2, Object value2, String name3, Object value3,String name4, Object value4) {
+            return values(ImmutableList.of(new ValueToInsert(name1, value1),
+                                           new ValueToInsert(name2, value2), 
+                                           new ValueToInsert(name3, value3), 
+                                           new ValueToInsert(name4, value4)));
+        }
+        
+        @Override
+        public InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5) {
+            return values(ImmutableList.of(new ValueToInsert(name1, value1),
+                                           new ValueToInsert(name2, value2), 
+                                           new ValueToInsert(name3, value3), 
+                                           new ValueToInsert(name4, value4), 
+                                           new ValueToInsert(name5, value5)));
         }
         
         
+        @Override
+        public InsertionWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
+            return values(nameValuePairsToAdd.keySet().stream().map(name -> new ValueToInsert(name, nameValuePairsToAdd.get(name))).collect(Immutables.toList()));
+        }
+        
+        
+        private InsertionWithValues values(ImmutableList<ValueToInsert> additionalValuesToInsert) {
+            return newInsertion(ctx, Immutables.merge(valuesToInsert, additionalValuesToInsert));
+        }
+           
         
         @Override
         public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withConsistency(consistencyLevel), nameValuePairs);
+            return newInsertion(ctx.withConsistency(consistencyLevel), valuesToInsert);
         }
         
         
         @Override
         public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withSerialConsistency(consistencyLevel), nameValuePairs);
+            return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToInsert);
         }
         
         
         @Override
         public Insertion ifNotExits() {
-            return newInsertion(ctx.ifNotExits(), nameValuePairs);
+            return newInsertion(ctx.ifNotExits(), valuesToInsert);
         }
         
         @Override
         public Insertion withTtl(Duration ttl) {
-            return newInsertion(ctx.withTtl(ttl), nameValuePairs);
+            return newInsertion(ctx.withTtl(ttl), valuesToInsert);
         }
 
         @Override
         public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
-            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), nameValuePairs);
+            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToInsert);
         }
         
         @Override
@@ -220,7 +206,12 @@ public class DaoImpl implements Dao {
             
             // statement
             Insert insert = insertInto(ctx.getTable());
-            nameValuePairs.keySet().forEach(name -> insert.value(name, bindMarker()));
+            
+            List<Object> values = Lists.newArrayList();
+            valuesToInsert.forEach(valueToInsert -> valueToInsert.getValue().ifPresent(value -> { 
+                                                                                                  insert.value(valueToInsert.getName(), bindMarker());
+                                                                                                  values.add(value);
+                                                                                                }));
             
             if (ctx.getIfNotExits()) {
                 insert.ifNotExists();
@@ -229,16 +220,10 @@ public class DaoImpl implements Dao {
 
             if (ctx.getTtl().isPresent())  {
                 insert.using(QueryBuilder.ttl(bindMarker()));
+                values.add((int) ctx.getTtl().get().getSeconds());
             }
 
             PreparedStatement stmt = ctx.prepare(insert);
-            
-            // bind variables
-            ImmutableList<Object> values = ImmutableList.copyOf(nameValuePairs.values());
-            if (ctx.getTtl().isPresent()) {
-                values = ImmutableList.<Object>builder().addAll(values).add((int) ctx.getTtl().get().getSeconds()).build();
-            }
-            
             return stmt.bind(values.toArray());
         }
         
@@ -267,6 +252,7 @@ public class DaoImpl implements Dao {
     }
 
 
+   
     
     
     ///////////////////////////////

@@ -40,15 +40,17 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        userDao.insertValues(UserTable.USER_ID, "95454", 
-                             UserTable.IS_CUSTOMER, true, 
-                             UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
-                             UserTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"), 
-                             UserTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
+        userDao.insert()
+               .values(UserTable.USER_ID, "95454", 
+                       UserTable.IS_CUSTOMER, true, 
+                       UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
+                       UserTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"), 
+                       UserTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
                .execute();
         
         
-        userDao.insertValues(UserTable.USER_ID, "8345345", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
+        userDao.insert()
+               .values(UserTable.USER_ID, "8345345", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
                .ifNotExits()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
@@ -144,7 +146,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                    .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Insertion insert2 = userDao.insertValues(UserTable.USER_ID, "2222", UserTable.IS_CUSTOMER, true, UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"), UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Insertion insert2 = userDao.insert() 
+                                   .values(UserTable.USER_ID, "2222", UserTable.IS_CUSTOMER, true, UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"), UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         userDao.insert()
                .value(UserTable.USER_ID, "222222")

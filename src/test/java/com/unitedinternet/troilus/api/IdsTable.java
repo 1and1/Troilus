@@ -1,7 +1,7 @@
 package com.unitedinternet.troilus.api;
 
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Tables;
+import com.unitedinternet.troilus.Schema;
 
 
 
@@ -14,5 +14,5 @@ public interface IdsTable  {
     
     public static final ImmutableSet<String> ALL = ImmutableSet.of(ID, IDS);
     
-    public static final String CREATE_STMT = Tables.load("com/unitedinternet/troilus/example/ids.ddl");
+    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/ids.ddl");
 }

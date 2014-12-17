@@ -28,8 +28,9 @@ public class WideRowTest extends AbstractCassandraBasedTest {
                                 .withConsistency(ConsistencyLevel.ONE);
         
         // insert
-        userDao.insertValues(IdsTable.ID, "GLOBAL", 
-                             IdsTable.IDS, ImmutableMap.of("ID_433433", 23, "ID_33434443", 556))
+        userDao.insert()
+               .values(IdsTable.ID, "GLOBAL", 
+                       IdsTable.IDS, ImmutableMap.of("ID_433433", 23, "ID_33434443", 556))
                 .execute();
         
         

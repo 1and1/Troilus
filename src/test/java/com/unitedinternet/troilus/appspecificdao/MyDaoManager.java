@@ -3,6 +3,7 @@ package com.unitedinternet.troilus.appspecificdao;
 
 
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.unitedinternet.troilus.Context;
 import com.unitedinternet.troilus.DaoImpl;
@@ -32,12 +33,13 @@ public class MyDaoManager {
         
         @Override
         public MyHotelDao withReferentialIntegrityCheck() {
-            return newDao(getDefaultContext());
+            return new MyHotelDaoImpl(getDefaultContext());
         }
         
+
         @Override
-        protected MyHotelDao newDao(Context ctx) {
-            return new MyHotelDaoImpl(ctx);
+        public MyHotelDao withConsistency(ConsistencyLevel consistencyLevel) {
+            return new MyHotelDaoImpl(getDefaultContext().withConsistency(consistencyLevel));
         }
     }
     

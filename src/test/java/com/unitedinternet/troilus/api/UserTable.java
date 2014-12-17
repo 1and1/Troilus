@@ -1,6 +1,6 @@
 package com.unitedinternet.troilus.api;
 
-import com.unitedinternet.troilus.Tables;
+import com.unitedinternet.troilus.Schema;
 
 
 
@@ -17,5 +17,5 @@ public interface UserTable  {
     public static final String PHONE_NUMBERS = "phone_numbers";
     
     
-    public static final String CREATE_STMT = Tables.load("com/unitedinternet/troilus/example/users.ddl");
+    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/users.ddl");
  }

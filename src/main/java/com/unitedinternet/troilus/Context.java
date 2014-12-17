@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +51,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -91,45 +93,45 @@ public class Context  {
    
 
     protected interface PropertiesMapper {
-        ImmutableMap<String, Object> toValues(Object persistenceObject);
+        ImmutableList<ValueToInsert> toValues(Object persistenceObject);
         
         <T> T fromValues(Record record);
     }   
     
-    protected Context withConsistency(ConsistencyLevel consistencyLevel) {
+    public Context withConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withConsistency(consistencyLevel));
     }
 
-    protected Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
+    public Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withSerialConsistency(consistencyLevel));
     }
 
-    protected Context withTtl(Duration ttl) {
+    public Context withTtl(Duration ttl) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withTtl(ttl));        
     }
 
-    protected Context withWritetime(long microsSinceEpoch) {
+    public Context withWritetime(long microsSinceEpoch) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withWritetime(microsSinceEpoch));        
     }
 
-    protected Context ifNotExits() {
+    public Context ifNotExits() {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.ifNotExits());        
     }
     
-    protected Optional<ConsistencyLevel> getConsistencyLevel() {
+    public Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
     }
 
-    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+    public Optional<ConsistencyLevel> getSerialConsistencyLevel() {
         return executionSpec.getSerialConsistencyLevel();
     }
 
 
-    protected Optional<Duration> getTtl() {
+    public Optional<Duration> getTtl() {
         return executionSpec.getTtl();
     }
 
-    protected boolean getIfNotExits() {
+    public boolean getIfNotExits() {
         return executionSpec.getIfNotExits();
     }
     
@@ -278,6 +280,29 @@ public class Context  {
     }
     
     
+    
+    static final class ValueToInsert {
+        private final String name;
+        private final Optional<Object> value;
+        
+        @SuppressWarnings("unchecked")
+        public ValueToInsert(String name, Object value) {
+            this.name = name;
+            if (value instanceof Optional) {
+                this.value = (Optional) value;
+            } else {
+                this.value = Optional.ofNullable(value);
+            }
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public Optional<Object> getValue() {
+            return value;
+        }
+    }
 
 
          
@@ -331,12 +356,12 @@ public class Context  {
                     this.clazz = clazz;
                 }
              
-                
+              
                 @Override
-                public ImmutableMap<String, Object> toValues(Object persistenceObject) {
-                    Map<String, Object> valueMap = Maps.newHashMap();
-                    valueReaderMap.forEach((name, reader) -> reader.apply(persistenceObject).ifPresent(value -> valueMap.put(name, value)));
-                    return ImmutableMap.copyOf(valueMap);
+                public ImmutableList<ValueToInsert> toValues( Object persistenceObject) {
+                    List<ValueToInsert> valuesToInsert = Lists.newArrayList();
+                    valueReaderMap.forEach((name, reader) -> reader.apply(persistenceObject).ifPresent(value -> valuesToInsert.add(new ValueToInsert(name, value))));
+                    return ImmutableList.copyOf(valuesToInsert);
                 }
                 
                 @SuppressWarnings("unchecked")

@@ -27,17 +27,7 @@ public interface Dao {
 
     InsertionWithUnit insert();
 
-    Insertion insertObject(Object persistenceObject);
-
-    Insertion insertValues(String name1, Object value1, String name2, Object value2);
     
-    Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3);
-    
-    Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4);
-    
-    Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5);
-
-
     SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
     
     SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);

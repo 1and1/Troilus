@@ -32,13 +32,16 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        CompletableFuture<Void> insert1 = feeDao.insertValues(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
+        CompletableFuture<Void> insert1 = feeDao.insert()
+                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
                                                 .executeAsync();
         
-        CompletableFuture<Void> insert2 = feeDao.insertValues(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
+        CompletableFuture<Void> insert2 = feeDao.insert()
+                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
                                                 .executeAsync();
 
-        CompletableFuture<Void> insert3 = feeDao.insertValues(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
+        CompletableFuture<Void> insert3 = feeDao.insert()
+                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
                                                 .executeAsync();
         
         CompletableFuture.allOf(insert1, insert2, insert3)

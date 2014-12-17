@@ -11,7 +11,7 @@ import com.google.common.io.Resources;
 
 
 
-public class Tables {
+public class Schema {
 
     public static final String load(String name) {
         try {

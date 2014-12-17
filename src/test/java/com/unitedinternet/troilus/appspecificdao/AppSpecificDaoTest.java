@@ -19,9 +19,12 @@ public class AppSpecificDaoTest extends AbstractCassandraBasedTest {
     public void testSimpleTable() throws Exception {
         MyDaoManager myDaoManager = new MyDaoManager(getSession());
 
-   /*     MyHotelDao hotelDao = myDaoManager.getMyHotelDao()
+        MyHotelDao hotelDao = myDaoManager.getMyHotelDao()
                                           .withReferentialIntegrityCheck()
-                                          .withConsistency(ConsistencyLevel.ONE);*/
+                                          .withConsistency(ConsistencyLevel.ONE);
+        
+        
+        
     }               
 }
 
