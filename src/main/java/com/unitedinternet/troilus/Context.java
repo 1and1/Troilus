@@ -96,40 +96,40 @@ public class Context  {
         <T> T fromValues(Record record);
     }   
     
-    protected Context withConsistency(ConsistencyLevel consistencyLevel) {
+    public Context withConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withConsistency(consistencyLevel));
     }
 
-    protected Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
+    public Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withSerialConsistency(consistencyLevel));
     }
 
-    protected Context withTtl(Duration ttl) {
+    public Context withTtl(Duration ttl) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withTtl(ttl));        
     }
 
-    protected Context withWritetime(long microsSinceEpoch) {
+    public Context withWritetime(long microsSinceEpoch) {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.withWritetime(microsSinceEpoch));        
     }
 
-    protected Context ifNotExits() {
+    public Context ifNotExits() {
         return new Context(session, propertiesMapperRegistry, table, executionSpec.ifNotExits());        
     }
     
-    protected Optional<ConsistencyLevel> getConsistencyLevel() {
+    public Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
     }
 
-    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+    public Optional<ConsistencyLevel> getSerialConsistencyLevel() {
         return executionSpec.getSerialConsistencyLevel();
     }
 
 
-    protected Optional<Duration> getTtl() {
+    public Optional<Duration> getTtl() {
         return executionSpec.getTtl();
     }
 
-    protected boolean getIfNotExits() {
+    public boolean getIfNotExits() {
         return executionSpec.getIfNotExits();
     }
     

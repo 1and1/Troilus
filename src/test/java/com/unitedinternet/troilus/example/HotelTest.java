@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
@@ -32,7 +33,11 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        hotelsDao.insertObject(new Hotel("BUP45544", "Corinthia Budapest", Optional.of(5), Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
+        hotelsDao.insertObject(new Hotel("BUP45544", 
+                                         "Corinthia Budapest",
+                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
+                                         Optional.of(5), 
+                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
                  .ifNotExits()
                  .withConsistency(ConsistencyLevel.QUORUM)      
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
@@ -41,13 +46,18 @@ public class HotelTest extends AbstractCassandraBasedTest {
         hotelsDao.insert()
                  .value("id", "BUP932432")
                  .value("name", "City Budapest")
+                 .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
                  .value("classification", 4)
                  .execute();
 
        
         // insert async
         CompletableFuture<Void> future = hotelsDao.insert()
-                                                  .entity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
+                                                  .entity(new Hotel("BUP14334", 
+                                                                    "Richter Panzio",
+                                                                    ImmutableSet.of("1", "2", "3"),
+                                                                    Optional.of(2), 
+                                                                    Optional.empty()))
                                                   .withConsistency(ConsistencyLevel.ANY)
                                                   .executeAsync();
         future.get(); // waits for completion

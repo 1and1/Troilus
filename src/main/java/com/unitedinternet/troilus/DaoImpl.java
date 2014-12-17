@@ -83,13 +83,9 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
-        return newDao(getDefaultContext().withConsistency(consistencyLevel));
+        return new DaoImpl(getDefaultContext().withConsistency(consistencyLevel));
     }
     
-    
-    protected Dao newDao(Context ctx) {
-        return new DaoImpl(ctx); 
-    }
     
     
     ///////////////////////////////

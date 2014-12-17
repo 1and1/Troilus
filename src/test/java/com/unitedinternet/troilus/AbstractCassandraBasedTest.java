@@ -14,6 +14,7 @@ import com.unitedinternet.troilus.api.FeeTable;
 import com.unitedinternet.troilus.api.IdsTable;
 import com.unitedinternet.troilus.api.UserTable;
 import com.unitedinternet.troilus.example.HotelTable;
+import com.unitedinternet.troilus.example.RoomTable;
 
 
 
@@ -65,6 +66,7 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(FeeTable.CREATE_STMT);
         session.execute(IdsTable.CREATE_STMT);
         session.execute(HotelTable.CREATE_STMT);
+        session.execute(RoomTable.CREATE_STMT);
     }
     
     

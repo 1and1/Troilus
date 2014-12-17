@@ -30,6 +30,7 @@ Insert a row in a column-oriented way
 hotelDao.insert()
         .value("id", "BUP932432")
         .value("name", "City Budapest")
+        .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
         .value("classification", 4)
         .withWritetime(microsSinceEpoch)
         .execute();
@@ -39,7 +40,7 @@ hotelDao.insert()
 Insert a row in an entity-oriented way.  
 ``` java
 hotelDao.insert()
-        .entity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
+        .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
         .ifNotExits()
         .execute();
 ```
@@ -48,6 +49,7 @@ The columns will be mapped by using [@Column](http://docs.oracle.com/javaee/7/ap
 import java.util.Optional;
 import javax.persistence.Column;
 
+
 public class Hotel  {
    
     @Column(name = "id")
@@ -55,19 +57,28 @@ public class Hotel  {
     
     @Column(name = "name")
     private String name = null;
-    
+
+    @Column(name = "room_ids")
+    private ImmutableSet<String> roomIds = ImmutableSet.of();
+
     @Column(name = "classification")
     private Optional<Integer> classification = Optional.empty();
     
     @Column(name = "description")
     private Optional<String> description = Optional.empty();
 
-    @SuppressWarnings("unused")  // empty constructor is required for deserializing purposes
-    private Hotel() {  } 
     
-    public Hotel(String id, String name, Optional<Integer> classification, Optional<String> description) {
+    @SuppressWarnings("unused")
+    private Hotel() { }
+    
+    public Hotel(String id, 
+                 String name, 
+                 ImmutableSet<String> roomIds,  
+                 Optional<Integer> classification, 
+                 Optional<String> description) {
         this.id = id;
         this.name = name;
+        this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
     }
@@ -79,6 +90,10 @@ public class Hotel  {
     public String getName() {
         return name;
     }
+    
+    public ImmutableSet<String> getRoomIds() {
+        return roomIds;
+    }
 
     public Optional<Integer> getClassification() {
         return classification;
@@ -86,7 +101,7 @@ public class Hotel  {
 
     public Optional<String> getDescription() {
         return description;
-    }  
+    }
 }
 ```
 
