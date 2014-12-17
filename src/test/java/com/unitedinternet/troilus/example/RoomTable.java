@@ -3,7 +3,6 @@ package com.unitedinternet.troilus.example;
 import com.unitedinternet.troilus.Schema;
 
 
-
 public interface RoomTable  {
    
     public static final String TABLE = "rooms";
