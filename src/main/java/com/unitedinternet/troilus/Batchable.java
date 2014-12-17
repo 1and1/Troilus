@@ -15,38 +15,19 @@
  */
 package com.unitedinternet.troilus;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import com.datastax.driver.core.Statement;
+
 
 
 
 /**
- * The Query
+ * BatchMutation
  *
  * @author grro
  */
-abstract class QueryImpl<T> implements Query<T> {    
- 
-    private final DaoContext ctx;
-
-    public QueryImpl(DaoContext ctx) {
-        this.ctx = ctx;
-    }
+interface Batchable {
     
-    protected DaoContext getContext() {
-        return ctx;
-    }
-
-       
-    @Override
-    public T execute() {
-      try {  
-          return executeAsync().get(10000, TimeUnit.SECONDS);
-      } catch (ExecutionException | InterruptedException | TimeoutException e) {
-          throw Exceptions.unwrapIfNecessary(e);
-      } 
-    }
+    Statement getStatement();
 }
 
 

@@ -55,7 +55,7 @@ import com.google.common.collect.Sets;
 
  
 
-class DaoContext {
+public class Context  {
     private final Cache<String, PreparedStatement> statementCache = CacheBuilder.newBuilder().maximumSize(100).build();
     
     private final String table;
@@ -64,12 +64,12 @@ class DaoContext {
     private final ExecutionSpec executionSpec;
 
     
-    public DaoContext(Session session, String table) {
+    public Context(Session session, String table) {
         this(session, new PropertiesMapperRegistry(), table, new ExecutionSpec());
     }
 
     
-    public DaoContext(Session session, PropertiesMapperRegistry propertiesMapperRegistry, String table, ExecutionSpec executionSpec) {
+    Context(Session session, PropertiesMapperRegistry propertiesMapperRegistry, String table, ExecutionSpec executionSpec) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
@@ -77,58 +77,65 @@ class DaoContext {
     }
  
     
-    String getTable() {
+    protected String getTable() {
         return table;
     }
   
-    ProtocolVersion getProtocolVersion() {
+    protected ProtocolVersion getProtocolVersion() {
         return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
     }
 
-    public PropertiesMapper getPropertiesMapper(Class<?> clazz) {
+    protected PropertiesMapper getPropertiesMapper(Class<?> clazz) {
         return propertiesMapperRegistry.getPropertiesMapper(clazz);
     }
-    
+   
 
-    public interface PropertiesMapper {
+    protected interface PropertiesMapper {
         ImmutableMap<String, Object> toValues(Object persistenceObject);
         
         <T> T fromValues(Record record);
     }   
- 
+    
+    protected Context withConsistency(ConsistencyLevel consistencyLevel) {
+        return new Context(session, propertiesMapperRegistry, table, executionSpec.withConsistency(consistencyLevel));
+    }
 
-    DaoContext withConsistency(ConsistencyLevel consistencyLevel) {
-        return new DaoContext(session, propertiesMapperRegistry, table, executionSpec.withConsistency(consistencyLevel));
+    protected Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
+        return new Context(session, propertiesMapperRegistry, table, executionSpec.withSerialConsistency(consistencyLevel));
+    }
+
+    protected Context withTtl(Duration ttl) {
+        return new Context(session, propertiesMapperRegistry, table, executionSpec.withTtl(ttl));        
+    }
+
+    protected Context withWritetime(long microsSinceEpoch) {
+        return new Context(session, propertiesMapperRegistry, table, executionSpec.withWritetime(microsSinceEpoch));        
+    }
+
+    protected Context ifNotExits() {
+        return new Context(session, propertiesMapperRegistry, table, executionSpec.ifNotExits());        
     }
     
-    DaoContext withTtl(Duration ttl) {
-        return new DaoContext(session, propertiesMapperRegistry, table, executionSpec.withTtl(ttl));        
-    }
-
-    DaoContext withWritetime(long microsSinceEpoch) {
-        return new DaoContext(session, propertiesMapperRegistry, table, executionSpec.withWritetime(microsSinceEpoch));        
-    }
-
-    DaoContext ifNotExits() {
-        return new DaoContext(session, propertiesMapperRegistry, table, executionSpec.ifNotExits());        
-    }
-    
-    public Optional<ConsistencyLevel> getConsistencyLevel() {
+    protected Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
     }
 
+    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+        return executionSpec.getSerialConsistencyLevel();
+    }
 
-    public Optional<Duration> getTtl() {
+
+    protected Optional<Duration> getTtl() {
         return executionSpec.getTtl();
     }
 
-    public boolean getIfNotExits() {
+    protected boolean getIfNotExits() {
         return executionSpec.getIfNotExits();
     }
     
   
     
-    PreparedStatement prepare(BuiltStatement statement) {
+    protected PreparedStatement prepare(BuiltStatement statement) {
         try {
             return statementCache.get(statement.getQueryString(), () -> session.prepare(statement));
         } catch (ExecutionException e) {
@@ -138,7 +145,7 @@ class DaoContext {
     
         
     
-    CompletableFuture<ResultSet> performAsync(Statement statement) {
+    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
         
         executionSpec.getConsistencyLevel().ifPresent(cl -> statement.setConsistencyLevel(cl));
         executionSpec.getWritetime().ifPresent(writetimeMicrosSinceEpoch -> statement.setDefaultTimestamp(writetimeMicrosSinceEpoch));
@@ -174,20 +181,27 @@ class DaoContext {
     private static class ExecutionSpec {
             
         private final Optional<ConsistencyLevel> consistencyLevel;
+        private final Optional<ConsistencyLevel> serialConsistencyLevel;
         private final Optional<Duration> ttl;
         private final Optional<Long> writetimeMicrosSinceEpoch;
         private final boolean ifNotExists;
     
         public ExecutionSpec() {
-            this(Optional.empty(), Optional.empty(), Optional.empty(), false);
+            this(Optional.empty(), 
+                 Optional.empty(),
+                 Optional.empty(),
+                 Optional.empty(), 
+                 false);
         }
     
         
         public ExecutionSpec(Optional<ConsistencyLevel> consistencyLevel, 
+                             Optional<ConsistencyLevel> serialConsistencyLevel,
                              Optional<Duration> ttl,
                              Optional<Long> writetimeMicrosSinceEpoch,
                              boolean ifNotExists) {
             this.consistencyLevel = consistencyLevel;
+            this.serialConsistencyLevel = serialConsistencyLevel;
             this.ttl = ttl;
             this.writetimeMicrosSinceEpoch = writetimeMicrosSinceEpoch;
             this.ifNotExists = ifNotExists;
@@ -196,6 +210,17 @@ class DaoContext {
     
         ExecutionSpec withConsistency(ConsistencyLevel consistencyLevel) {
             return new ExecutionSpec(Optional.of(consistencyLevel),
+                                     this.serialConsistencyLevel,
+                                     this.ttl,
+                                     this.writetimeMicrosSinceEpoch,
+                                     this.ifNotExists);
+        }
+    
+        
+
+        ExecutionSpec withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return new ExecutionSpec(this.consistencyLevel,
+                                     Optional.of(consistencyLevel),
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
                                      this.ifNotExists);
@@ -204,6 +229,7 @@ class DaoContext {
         
         ExecutionSpec withTtl(Duration ttl) {
             return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,
                                      Optional.of(ttl),
                                      this.writetimeMicrosSinceEpoch,
                                      this.ifNotExists);
@@ -212,6 +238,7 @@ class DaoContext {
         
         ExecutionSpec withWritetime(long microsSinceEpoch) {
             return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,
                                      this.ttl,
                                      Optional.of(microsSinceEpoch),
                                      this.ifNotExists);
@@ -219,6 +246,7 @@ class DaoContext {
     
         ExecutionSpec ifNotExits() {
             return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,                    
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
                                      true);
@@ -227,6 +255,11 @@ class DaoContext {
         
         public Optional<ConsistencyLevel> getConsistencyLevel() {
             return consistencyLevel;
+        }
+    
+        
+        public Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+            return serialConsistencyLevel;
         }
     
     

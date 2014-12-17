@@ -34,6 +34,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Dao userDao = daoManager.getDao(UserTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
 
+        
+
 
         
         ////////////////
@@ -84,8 +86,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                .execute();
 
-
-        
 
         
         ////////////////

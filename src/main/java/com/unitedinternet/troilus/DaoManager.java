@@ -27,6 +27,6 @@ public class DaoManager {
     }
     
     public Dao getDao(String tablename) {
-        return new DaoImpl(new DaoContext(session, tablename));
+        return new DaoImpl(new Context(session, tablename));
     }    
 }

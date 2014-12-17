@@ -23,7 +23,7 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface BatchMutation extends Query<Void> {
+public interface BatchMutation extends Query<Void>, Batchable {
     
     BatchMutation combinedWith(Mutation<?> other);
 

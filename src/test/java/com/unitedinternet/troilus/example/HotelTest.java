@@ -33,7 +33,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
         ////////////////
         // inserts
         hotelsDao.insertObject(new Hotel("BUP45544", "Corinthia Budapest", Optional.of(5), Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
-                 .withConsistency(ConsistencyLevel.ANY)          
+                 .ifNotExits()
+                 .withConsistency(ConsistencyLevel.QUORUM)      
+                 .withSerialConsistency(ConsistencyLevel.SERIAL)
                  .execute();
 
         hotelsDao.insert()

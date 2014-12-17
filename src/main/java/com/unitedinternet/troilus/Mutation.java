@@ -15,6 +15,9 @@
  */
 package com.unitedinternet.troilus;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
+
 
  
 
@@ -23,10 +26,14 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface Mutation<Q extends Mutation<?>> extends Query<Void>, Configurable<Q> {
+public interface Mutation<M extends Mutation<?>> extends Query<Void>, Configurable<M>, Batchable {
 
     @SuppressWarnings("rawtypes")
     BatchMutation combinedWith(Mutation other);
+    
+    M withSerialConsistency(ConsistencyLevel consistencyLevel);
+    
+    Statement getStatement();
 }
 
  

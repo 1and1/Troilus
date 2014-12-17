@@ -31,6 +31,7 @@ hotelDao.insert()
         .value("id", "BUP932432")
         .value("name", "City Budapest")
         .value("classification", 4)
+        .withWritetime(microsSinceEpoch)
         .execute();
 ```
 
