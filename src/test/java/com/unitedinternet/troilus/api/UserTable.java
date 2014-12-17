@@ -1,10 +1,12 @@
 package com.unitedinternet.troilus.api;
 
+import com.unitedinternet.troilus.Tables;
+
 
 
 public interface UserTable  {
    
-    public static final String TABLE = "user";
+    public static final String TABLE = "users";
     
     public static final String USER_ID = "user_id";
     public static final String NAME = "name";
@@ -15,15 +17,5 @@ public interface UserTable  {
     public static final String PHONE_NUMBERS = "phone_numbers";
     
     
-    public static final String CREATE_STMT = "CREATE TABLE user (" + 
-                                             "                   user_id text, " +
-                                             "                   name text, " +
-                                             "                   is_customer boolean, " +
-                                             "                   picture blob, " +
-                                             "                   modified bigint, " +
-                                             "                   phone_numbers set<text>, " + 
-                                             "                   addresses list<text>,"+
-                                             "                   PRIMARY KEY (user_id)" +    
-                                             "                  )";
-
-}
+    public static final String CREATE_STMT = Tables.load("com/unitedinternet/troilus/example/users.ddl");
+ }

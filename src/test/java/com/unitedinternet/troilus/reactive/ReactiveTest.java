@@ -25,7 +25,8 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         Dao feeDao = daoManager.getDao(FeeTable.TABLE);
 
         
-        // insert
+        ////////////////
+        // inserts
         CompletableFuture<Void> insert1 = feeDao.insertValues(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
                                                 .executeAsync();
         
@@ -39,7 +40,9 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
                          .get();  // waits for completion
         
         
-
+        
+        ////////////////
+        // reads
         MySubscriber<Record> testSubscriber = new MySubscriber<>();
         
         feeDao.readWithCondition()

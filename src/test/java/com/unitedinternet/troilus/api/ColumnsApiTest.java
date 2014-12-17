@@ -36,8 +36,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
 
         
-        
-        // insert
+        ////////////////
+        // inserts
         userDao.insertValues(UserTable.USER_ID, "95454", 
                              UserTable.IS_CUSTOMER, true, 
                              UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
@@ -78,7 +78,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
         
         
-        
         userDao.insert()
                .value(UserTable.USER_ID, "3434343")
                .value(UserTable.IS_CUSTOMER, Optional.of(true))
@@ -89,7 +88,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
 
         
-        // read single
+        ////////////////
+        // reads
         Optional<Record> optionalRecord = userDao.readWithKey(UserTable.USER_ID, "4545")
                                                  .column(UserTable.PICTURE)
                                                  .column(UserTable.ADDRESSES)
@@ -98,6 +98,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(optionalRecord.isPresent());
         optionalRecord.ifPresent(record -> System.out.println(record.getList(UserTable.ADDRESSES, String.class).get()));
         System.out.println(optionalRecord.get());
+        
         
         
         Optional<Record> optionalRecord2 = userDao.readWithKey(UserTable.USER_ID, "95454")
@@ -119,7 +120,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
        
         
 
-        // delete
+        ////////////////
+        // deletes
         userDao.deleteWithKey(UserTable.USER_ID, "4545")
                .execute();
         
@@ -132,7 +134,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        // batch insert
+        
+        ////////////////
+        // batch inserts
         Insertion insert1 = userDao.insert()
                                    .value(UserTable.USER_ID, "14323425")
                                    .value(UserTable.IS_CUSTOMER, true)

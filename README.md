@@ -61,8 +61,8 @@ public class Hotel  {
     @Column(name = "description")
     private Optional<String> description = Optional.empty();
 
-    
-    private Hotel() {  }  // empty constructor is required for deserializing purposes
+    @SuppressWarnings("unused")  // empty constructor is required for deserializing purposes
+    private Hotel() {  } 
     
     public Hotel(String id, String name, Optional<Integer> classification, Optional<String> description) {
         this.id = id;

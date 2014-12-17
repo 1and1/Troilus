@@ -30,8 +30,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                   .withConsistency(ConsistencyLevel.QUORUM);
         
         
-        
-        // insert sync
+        ////////////////
+        // inserts
         hotelsDao.insertObject(new Hotel("BUP45544", "Corinthia Budapest", Optional.of(5), Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
                  .withConsistency(ConsistencyLevel.ANY)          
                  .execute();
@@ -42,20 +42,20 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .value("classification", 4)
                  .execute();
 
-        
-        
+       
         // insert async
         CompletableFuture<Void> future = hotelsDao.insert()
                                                   .entity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
                                                   .withConsistency(ConsistencyLevel.ANY)
                                                   .executeAsync();
-
         future.get(); // waits for completion
         
         
    
         
         
+        ////////////////
+        // reads
         hotelsDao.readAll()
                  .entity(Hotel.class)
                  .withLimit(100)
@@ -71,6 +71,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .withLimit(100)
                  .executeAsync()
                  .thenAccept(hotels -> hotels.subscribe(mySubscriber));
+        
+        
         
         
         Iterator<Hotel> hotelIterator = hotelsDao.readAll()
@@ -89,12 +91,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
         hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
         
         
-        
-        
 
         
         
-        // read sync
         Optional<Hotel> optionalHotel = hotelsDao.readWithKey("id", "BUP45544")
                                                  .entity(Hotel.class)
                                                  .withConsistency(ConsistencyLevel.ONE)
@@ -109,7 +108,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
         optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
         
         
-        // read async
+        
+
         Hotel hotel = hotelsDao.readWithKey("id", "BUP932432")
                                .entity(Hotel.class)
                                .executeAsync()
@@ -121,7 +121,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
    
         
         
-        
+        ////////////////
+        // deletions
         Deletion delition = hotelsDao.deleteWithKey("id", "BUP932432");
         
         

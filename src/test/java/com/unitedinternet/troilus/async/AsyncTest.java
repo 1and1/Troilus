@@ -30,7 +30,8 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         Dao feeDao = daoManager.getDao(FeeTable.TABLE);
 
         
-        // insert
+        ////////////////
+        // inserts
         CompletableFuture<Void> insert1 = feeDao.insertValues(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
                                                 .executeAsync();
         
@@ -42,8 +43,6 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         CompletableFuture.allOf(insert1, insert2, insert3)
                          .get();  // waits for completion
-        
-        
         
         
         
@@ -60,6 +59,9 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
         
+        
+        ////////////////
+        // reads
         ImmutableList<Record> recs = feeDao.readWithCondition(QueryBuilder.eq(FeeTable.CUSTOMER_ID, "132"))
                                            .column(FeeTable.CUSTOMER_ID)
                                            .executeAsync()

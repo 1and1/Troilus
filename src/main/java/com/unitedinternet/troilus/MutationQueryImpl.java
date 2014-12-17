@@ -22,7 +22,7 @@ import com.datastax.driver.core.Statement;
 
 
 /**
- * The Query
+ * MutationQueryImpl
  *
  * @author grro
  */

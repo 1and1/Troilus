@@ -19,7 +19,7 @@ package com.unitedinternet.troilus;
 
 
 /**
- * The Query
+ * BatchMutation
  *
  * @author grro
  */

@@ -25,7 +25,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 
 /**
- * configurable
+ * Configurable
  *
  * @author grro
  */

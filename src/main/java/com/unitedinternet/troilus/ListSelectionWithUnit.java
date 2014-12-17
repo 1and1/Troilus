@@ -20,7 +20,7 @@ package com.unitedinternet.troilus;
 
 
 /**
- * ReadList
+ * ListSelectionWithUnit
  *
  * @author grro
  */

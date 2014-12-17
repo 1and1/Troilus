@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableCollection;
 
 
 /**
- * ReadList
+ * ListSelectionWithColumns
  *
  * @author grro
  */

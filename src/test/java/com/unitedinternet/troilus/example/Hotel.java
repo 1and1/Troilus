@@ -23,6 +23,7 @@ public class Hotel  {
     private Optional<String> description = Optional.empty();
 
     
+    @SuppressWarnings("unused")
     private Hotel() { }
     
     public Hotel(String id, String name, Optional<Integer> classification, Optional<String> description) {
