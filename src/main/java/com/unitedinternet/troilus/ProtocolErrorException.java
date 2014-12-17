@@ -18,19 +18,12 @@ package com.unitedinternet.troilus;
 
 
 
+public class ProtocolErrorException extends RuntimeException {
 
+    private static final long serialVersionUID = 4270476820995364200L;
 
+    public ProtocolErrorException(String message) {
+        super(message);
+    }
 
-
-
-/**
- * The Query
- *
- * @author grro
- */
-public interface Read<T> extends Query<T>, Configurable<Read<T>> {
-    
 }
-
-
-

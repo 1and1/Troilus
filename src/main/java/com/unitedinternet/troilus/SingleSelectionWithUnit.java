@@ -15,6 +15,9 @@
  */
 package com.unitedinternet.troilus;
 
+import java.util.Optional;
+
+
 
 
 
@@ -26,12 +29,11 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface ReadList<T> extends Read<T> {
+public interface SingleSelectionWithUnit<T> extends SingleSelectionWithColumns<T> {
     
-    ReadList<T> withLimit(int limit);
-    
-    ReadList<T> withAllowFiltering();
+    <E> SingleSelection<Optional<E>> entity(Class<E> objectClass);
 }
+
 
 
 

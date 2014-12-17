@@ -15,7 +15,6 @@
  */
 package com.unitedinternet.troilus;
 
-import java.util.Optional;
 
 
 
@@ -29,11 +28,9 @@ import java.util.Optional;
  *
  * @author grro
  */
-public interface ReadWithUnit<T> extends ReadWithColumns<T> {
+public interface SingleSelection<T> extends Query<T>, Configurable<SingleSelection<T>> {
     
-    <E> Read<Optional<E>> entity(Class<E> objectClass);
 }
-
 
 
 

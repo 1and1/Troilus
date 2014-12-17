@@ -2,18 +2,12 @@ package com.unitedinternet.troilus.reactive;
 
 
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
@@ -56,7 +50,6 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         
         ImmutableList<Record> records = testSubscriber.getAll();
         Assert.assertEquals(3,  records.size());
-        
     }        
 }
 

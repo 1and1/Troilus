@@ -62,59 +62,66 @@ public class Record {
         return row.getColumnDefinitions();
     }
     
+    private boolean isNull(String name) {
+        return row.isNull(name);
+    }
      
+    Optional<Object> get(String name) {
+        return isNull(name) ? Optional.empty() : Optional.of(row.getColumnDefinitions().getType(name).deserialize(row.getBytesUnsafe(name), protocolVersion));
+    }
+    
     public Optional<Long> getLong(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getLong(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getLong(name));
     }
     
      
     public Optional<String> getString(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getString(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getString(name));
     }
     
      
     public Optional<Boolean> getBool(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getBool(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getBool(name));
     }
     
      
     public Optional<ByteBuffer> getBytes(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getBytes(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getBytes(name));
     }
     
      
     public Optional<ByteBuffer> getBytesUnsafe(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getBytesUnsafe(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getBytesUnsafe(name));
     }
     
      
     public Optional<Float> getFloat(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getFloat(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getFloat(name));
     }
     
      
     public Optional<Date> getDate(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getDate(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getDate(name));
     }
     
      
     public Optional<BigDecimal> getDecimal(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getDecimal(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getDecimal(name));
     }
     
      
     public Optional<Integer> getInt(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getInt(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getInt(name));
     }
     
      
     public <T> Optional<Set<T>> getSet(String name, Class<T> elementsClass) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, elementsClass));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, elementsClass));
     }
     
      
     public Optional<InetAddress> getInet(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getInet(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getInet(name));
     }
     
      
@@ -124,17 +131,17 @@ public class Record {
     
      
     public Optional<BigInteger> getVarint(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getVarint(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getVarint(name));
     }
     
      
     public Optional<TupleValue> getTupleValue(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getTupleValue(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getTupleValue(name));
     }
     
      
     public Optional<UUID> getUUID(String name) {
-        return row.isNull(name) ? Optional.empty() : Optional.of(row.getUUID(name));
+        return isNull(name) ? Optional.empty() : Optional.of(row.getUUID(name));
     }
     
      
@@ -149,7 +156,7 @@ public class Record {
     
     
     private Optional<String> toString(String name, DataType dataType) {
-        if (row.isNull(name)) {
+        if (isNull(name)) {
             return Optional.empty();
         } else {
             StringBuilder builder = new StringBuilder();

@@ -38,17 +38,17 @@ public interface Dao extends Configurable<Dao> {
     Insertion insertValues(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5);
 
 
-    ReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
+    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
     
-    ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
     
-    ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
     
-    ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
    
-    ReadListWithUnit<Result<Record>> readAll();
+    ListSelectionWithUnit<Result<Record>> readAll();
     
-    ReadListWithUnit<Result<Record>> readWithCondition(Clause... clauses);
+    ListSelectionWithUnit<Result<Record>> readWithCondition(Clause... clauses);
     
   
     Deletion deleteWithKey(String keyName, Object keyValue);

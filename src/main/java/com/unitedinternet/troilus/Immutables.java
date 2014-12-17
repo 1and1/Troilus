@@ -57,6 +57,16 @@ class Immutables {
         return ImmutableMap.<K, V>builder().putAll(map).put(key, value).build();
     }
 
+    
+    public static <K, V> Optional<ImmutableMap<K, V>> merge(Optional<ImmutableMap<K, V>> map, K key, V value) {
+        if (map.isPresent()) {
+            return Optional.of(merge(map.get(), key, value));
+        } else {
+            return Optional.of(ImmutableMap.of(key, value));
+        }
+    }
+
+   
     public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map1, ImmutableMap<K, V> map2) {
         return ImmutableMap.<K, V>builder().putAll(map1).putAll(map2).build();
     }
@@ -85,6 +95,8 @@ class Immutables {
             return col2;
         }
     }  
+    
+    
     
     public static <T> Collector<T, ?, ImmutableList<T>> toList() {
         Collector<T, ?, List<T>> collector = Collectors.toList();

@@ -24,9 +24,9 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface ReadListWithUnit<T> extends ReadListWithColumns<T> {
+public interface ListSelectionWithUnit<T> extends ListSelectionWithColumns<T> {
     
-    <E> ReadList<Result<E>> entity(Class<E> objectClass);
+    <E> ListSelection<Result<E>> entity(Class<E> objectClass);
 }
 
 

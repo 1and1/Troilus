@@ -80,12 +80,12 @@ class DaoImpl implements Dao {
 
     @Override
     public InsertionWithUnit insert() {
-        return new InsertQuery(ctx, ImmutableMap.of());
+        return newInsertion(ctx, ImmutableMap.of());
     }
     
     @Override
     public Insertion insertObject(Object persistenceObject) {
-        return new InsertQuery(ctx, persistenceObject);
+        return newInsertion(ctx, ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
     }
     
     @Override
@@ -112,14 +112,14 @@ class DaoImpl implements Dao {
     }
   
     
-    private static class InsertQuery extends MutationQueryImpl implements InsertionWithUnit {
+    protected InsertionWithUnit newInsertion(DaoContext ctx, ImmutableMap<String, Object> nameValuePairs) {
+        return new InsertQuery(ctx, nameValuePairs);
+    }
+    
+    
+    private class InsertQuery extends MutationQueryImpl implements InsertionWithUnit {
         private final ImmutableMap<String, Object> nameValuePairs;
         
-        public InsertQuery(DaoContext ctx, Object persistenceObject) {
-           this(ctx, ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
-        }
-       
-         
         public InsertQuery(DaoContext ctx, ImmutableMap<String, Object> nameValuePairs) {
             super(ctx);
             this.nameValuePairs = nameValuePairs;
@@ -127,7 +127,7 @@ class DaoImpl implements Dao {
         
         @Override
         public Insertion entity(Object persistenceObject) {
-            return new InsertQuery(getContext(), persistenceObject);
+            return newInsertion(getContext(), getContext().getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
         }
         
         @Override
@@ -140,7 +140,7 @@ class DaoImpl implements Dao {
                 }
             }
             
-            return new InsertQuery(getContext(), Immutables.merge(nameValuePairs, name, value));
+            return newInsertion(getContext(), Immutables.merge(nameValuePairs, name, value));
         }
 
         
@@ -148,7 +148,7 @@ class DaoImpl implements Dao {
         @Override
         public InsertionWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
             
-            // convert optional
+            // convert optional values
             Map<String, Object> pairs = Maps.newHashMap();
             nameValuePairsToAdd.forEach((name, value) -> {
                                                             if (value instanceof Optional) {
@@ -158,34 +158,34 @@ class DaoImpl implements Dao {
                                                             }
                                                         });
             
-            return new InsertQuery(getContext(), Immutables.merge(nameValuePairs, ImmutableMap.copyOf(pairs)));
+            return newInsertion(getContext(), Immutables.merge(nameValuePairs, ImmutableMap.copyOf(pairs)));
         }
         
         
         
         @Override
         public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
-            return new InsertQuery(getContext().withConsistency(consistencyLevel), nameValuePairs);
+            return newInsertion(getContext().withConsistency(consistencyLevel), nameValuePairs);
         }
         
         @Override
         public Insertion ifNotExits() {
-            return new InsertQuery(getContext().ifNotExits(), nameValuePairs);
+            return newInsertion(getContext().ifNotExits(), nameValuePairs);
         }
         
         @Override
         public Insertion withTtl(Duration ttl) {
-            return new InsertQuery(getContext().withTtl(ttl), nameValuePairs);
+            return newInsertion(getContext().withTtl(ttl), nameValuePairs);
         }
 
         @Override
         public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
-            return new InsertQuery(getContext().withWritetime(writetimeMicrosSinceEpoch), nameValuePairs);
+            return newInsertion(getContext().withWritetime(writetimeMicrosSinceEpoch), nameValuePairs);
         }
         
         @Override
         public BatchMutation combinedWith(Mutation other) {
-            return new MutationBatch(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+            return newBatchMutation(getContext(), Type.LOGGED, ImmutableList.of(this, other));
         }
       
         
@@ -240,26 +240,29 @@ class DaoImpl implements Dao {
     
     @Override
     public Deletion deleteWithKey(String keyName, Object keyValue) {
-        return new DeleteQuery(ctx, ImmutableMap.of(keyName, keyValue));
+        return newDeletion(ctx, ImmutableMap.of(keyName, keyValue));
     }
 
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new DeleteQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
+        return newDeletion(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
     }
     
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new DeleteQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
+        return newDeletion(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
     }
     
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return new DeleteQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
+        return newDeletion(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
     }
     
+    protected Deletion newDeletion(DaoContext ctx, ImmutableMap<String, Object> keyNameValuePairs) {
+        return new DeleteQuery(ctx, keyNameValuePairs);
+    }
     
-    private static class DeleteQuery extends MutationQueryImpl implements Deletion {
+    private class DeleteQuery extends MutationQueryImpl implements Deletion {
         private final ImmutableMap<String, Object> keyNameValuePairs;
         
         public DeleteQuery(DaoContext ctx, ImmutableMap<String, Object> keyNameValuePairs) {
@@ -269,13 +272,13 @@ class DaoImpl implements Dao {
         
         @Override
         public Deletion withConsistency(ConsistencyLevel consistencyLevel) {
-            return new DeleteQuery(getContext().withConsistency(consistencyLevel), keyNameValuePairs);
+            return newDeletion(getContext().withConsistency(consistencyLevel), keyNameValuePairs);
         }
         
         
         @Override
         public BatchMutation combinedWith(Mutation other) {
-            return new MutationBatch(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+            return newBatchMutation(getContext(), Type.LOGGED, ImmutableList.of(this, other));
         }
         
         
@@ -296,12 +299,17 @@ class DaoImpl implements Dao {
         }
     }
 
+    
+    protected BatchMutation newBatchMutation(DaoContext ctx, Type type, ImmutableList<Mutation<?>> mutations) {
+        return new MutationBatchQuery(ctx, type, mutations);
+    }
+    
      
-    private static final class MutationBatch extends MutationQueryImpl implements BatchMutation {
+    private final class MutationBatchQuery extends MutationQueryImpl implements BatchMutation {
         private final ImmutableList<Mutation<?>> mutations;
         private final Type type;  
         
-        public MutationBatch(DaoContext ctx, Type type, ImmutableList<Mutation<?>> mutations) {
+        public MutationBatchQuery(DaoContext ctx, Type type, ImmutableList<Mutation<?>> mutations) {
             super(ctx);
             this.type = type;
             this.mutations = mutations;
@@ -310,18 +318,18 @@ class DaoImpl implements Dao {
         
         @Override
         public Query<Void> withLockedBatchType() {
-            return new MutationBatch(getContext(), Type.LOGGED, mutations);
+            return newBatchMutation(getContext(), Type.LOGGED, mutations);
         }
         
         @Override
         public Query<Void> withUnlockedBatchType() {
-            return new MutationBatch(getContext(), Type.UNLOGGED, mutations);
+            return newBatchMutation(getContext(), Type.UNLOGGED, mutations);
         }
         
          
         @Override
         public BatchMutation combinedWith(Mutation<?> other) {
-            return new MutationBatch(getContext(), type, Immutables.merge(mutations, other));
+            return newBatchMutation(getContext(), type, Immutables.merge(mutations, other));
         }
         
         @Override
@@ -347,79 +355,93 @@ class DaoImpl implements Dao {
     
 
     @Override
-    public ReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
-        return new SingleReadQuery(ctx, ImmutableMap.of(keyName, keyValue), Optional.empty());
+    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
+        return newSingleSelection(ctx, ImmutableMap.of(keyName, keyValue), Optional.empty());
     }
     
     @Override
-    public ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new SingleReadQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), Optional.of(ImmutableSet.of()));
+    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+        return newSingleSelection(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), Optional.of(ImmutableSet.of()));
     }
     
     @Override
-    public ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new SingleReadQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), Optional.of(ImmutableSet.of()));
+    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+        return newSingleSelection(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), Optional.of(ImmutableSet.of()));
     }
     
     @Override
-    public ReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return new SingleReadQuery(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), Optional.of(ImmutableSet.of()));
+    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+        return newSingleSelection(ctx, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), Optional.of(ImmutableSet.of()));
+    }
+    
+    
+    protected SingleSelectionWithUnit<Optional<Record>> newSingleSelection(DaoContext ctx, 
+                                                                           ImmutableMap<String, Object> keyNameValuePairs, 
+                                                                           Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+        return new SingleSelectionQuery(ctx, keyNameValuePairs, optionalColumnsToFetch);
     }
     
 
-    private static class SingleReadQuery extends QueryImpl<Optional<Record>> implements ReadWithUnit<Optional<Record>> {
+    private class SingleSelectionQuery extends QueryImpl<Optional<Record>> implements SingleSelectionWithUnit<Optional<Record>> {
         private final ImmutableMap<String, Object> keyNameValuePairs;
-        private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
+        private final Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch;
          
         
-        public SingleReadQuery(DaoContext ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> columnsToFetch) {
+        public SingleSelectionQuery(DaoContext ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
             super(ctx);
             this.keyNameValuePairs = keyNameValuePairs;
-            this.columnsToFetch = columnsToFetch;
+            this.optionalColumnsToFetch = optionalColumnsToFetch;
         }
          
         
         
         @Override
-        public <E> Read<Optional<E>> entity(Class<E> objectClass) {
-            return new SingleEntityReadQuery<E>(getContext(), this, objectClass);
+        public <E> SingleSelection<Optional<E>> entity(Class<E> objectClass) {
+            return newSingleSelection(getContext(), this, objectClass);
         }
         
         @Override
-        public ReadWithUnit<Optional<Record>> column(String name) {
+        public SingleSelectionWithUnit<Optional<Record>> column(String name) {
             return column(name, false, false);
         }
 
         @Override
-        public ReadWithUnit<Optional<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)));
+        public SingleSelectionWithUnit<Optional<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
+            return newSingleSelection(getContext(), keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)));
         }
         
         @Override
-        public ReadWithUnit<Optional<Record>> columns(String... names) {
+        public SingleSelectionWithUnit<Optional<Record>> columns(String... names) {
             return columns(ImmutableSet.copyOf(names));
         }
         
         @Override 
-        public ReadWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)));
+        public SingleSelectionWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
+            return newSingleSelection(getContext(), keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(namesToRead)));
         }
         
         @Override
-        public Read<Optional<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
-            return new SingleReadQuery(getContext().withConsistency(consistencyLevel), keyNameValuePairs, columnsToFetch);
+        public SingleSelection<Optional<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
+            return newSingleSelection(getContext().withConsistency(consistencyLevel), keyNameValuePairs, optionalColumnsToFetch);
         }
        
         
         @Override
         public CompletableFuture<Optional<Record>> executeAsync() {
+            
             Selection selection = select();
             
-            if (columnsToFetch.isPresent()) {
-                columnsToFetch.get().forEach(column -> column.accept(selection));
+            if (optionalColumnsToFetch.isPresent()) {
+                optionalColumnsToFetch.get().forEach(column -> column.accept(selection));
+
+                // add key columns for paranoia checks
+                keyNameValuePairs.keySet().forEach(name -> { if(!optionalColumnsToFetch.get().contains(name))  ColumnToFetch.create(name, false, false).accept(selection); });  
+                
             } else {
                 selection.all();
             }
+            
+            
             
             Select select = selection.from(getContext().getTable());
             Select.Where where = null;
@@ -436,37 +458,47 @@ class DaoImpl implements Dao {
             
             return getContext().performAsync(statement)
                                .thenApply(resultSet -> {
-                                                            Record record = null; 
                                                             Row row = resultSet.one();
-                                                            if (row != null) {
-                                                                record = new Record(getContext().getProtocolVersion(), row);
+                                                            if (row == null) {
+                                                                return Optional.empty();
+                                                                
+                                                            } else {
+                                                                Record record = new Record(getContext().getProtocolVersion(), row);
+
+                                                                // paranioa check
+                                                                keyNameValuePairs.forEach((name, value) -> { if (record.get(name).equals(value)) throw new ProtocolErrorException("Dataswap error for " + name); } );
                                                                 
                                                                 if (!resultSet.isExhausted()) {
                                                                     throw new TooManyResultsException("more than one record exists");
                                                                 }
+                                                                
+                                                                return Optional.of(record); 
                                                             }
-                                            
-                                                            return Optional.ofNullable(record);
                                            });
         }
     }
      
     
     
-    private static class SingleEntityReadQuery<E> extends QueryImpl<Optional<E>> implements Read<Optional<E>> {
+    protected <E> SingleSelection<Optional<E>> newSingleSelection(DaoContext ctx, SingleSelection<Optional<Record>> read, Class<?> clazz) {
+        return new SingleEntitySelectionQuery<E>(ctx, read, clazz);
+    }
+
+    
+    private class SingleEntitySelectionQuery<E> extends QueryImpl<Optional<E>> implements SingleSelection<Optional<E>> {
    
-        private final Read<Optional<Record>> read;
+        private final SingleSelection<Optional<Record>> read;
         private final Class<?> clazz;
         
-        public SingleEntityReadQuery(DaoContext ctx, Read<Optional<Record>> read, Class<?> clazz) {
+        public SingleEntitySelectionQuery(DaoContext ctx, SingleSelection<Optional<Record>> read, Class<?> clazz) {
             super(ctx);
             this.read = read;
             this.clazz = clazz;
         }
         
         @Override
-        public Read<Optional<E>> withConsistency(ConsistencyLevel consistencyLevel) {
-            return new SingleEntityReadQuery<E>(getContext(), read.withConsistency(consistencyLevel), clazz);
+        public SingleSelection<Optional<E>> withConsistency(ConsistencyLevel consistencyLevel) {
+            return newSingleSelection(getContext(), read.withConsistency(consistencyLevel), clazz);
         }
         
         @Override
@@ -478,7 +510,7 @@ class DaoImpl implements Dao {
    
 
     
-    private static class ColumnToFetch implements Consumer<Selection> {
+    private static class ColumnToFetch implements Consumer<Select.Selection> {
         private final String name;
         private final boolean isFetchWritetime;
         private final boolean isFetchTtl;
@@ -498,7 +530,7 @@ class DaoImpl implements Dao {
         }
 
         @Override
-        public void accept(Selection selection) {
+        public void accept(Select.Selection selection) {
              selection.column(name);
 
              if (isFetchTtl) {
@@ -514,81 +546,175 @@ class DaoImpl implements Dao {
     
     
     @Override
-    public ReadListWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
-        return new ListReadQuery(ctx, ImmutableSet.copyOf(clauses), Optional.of(ImmutableSet.of()), Optional.empty(), Optional.empty());
+    public ListSelectionWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
+        return newListSelection(ctx, 
+                                     ImmutableSet.copyOf(clauses), 
+                                     Optional.of(ImmutableSet.of()), 
+                                     Optional.empty(), 
+                                     Optional.empty(), 
+                                     Optional.empty(),
+                                     Optional.empty());
     }
      
     
     @Override
-    public ReadListWithUnit<Result<Record>> readAll() {
-        return new ListReadQuery(ctx, ImmutableSet.of(), Optional.of(ImmutableSet.of()), Optional.empty(), Optional.empty());
-
+    public ListSelectionWithUnit<Result<Record>> readAll() {
+        return newListSelection(ctx, 
+                                     ImmutableSet.of(), 
+                                     Optional.of(ImmutableSet.of()), 
+                                     Optional.empty(), 
+                                     Optional.empty(), 
+                                     Optional.empty(),
+                                     Optional.empty());
     }
     
+    protected ListSelectionWithUnit<Result<Record>> newListSelection(DaoContext ctx, 
+                                                                     ImmutableSet<Clause> clauses, 
+                                                                     Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                                                     Optional<Integer> optionalLimit, 
+                                                                     Optional<Boolean> optionalAllowFiltering,
+                                                                     Optional<Integer> optionalFetchSize,    
+                                                                     Optional<Boolean> optionalDistinct) {
+        return new ListSelectionQuery(ctx, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+
     
     
-    private static class ListReadQuery extends QueryImpl<Result<Record>> implements ReadListWithUnit<Result<Record>> {
+    private class ListSelectionQuery extends QueryImpl<Result<Record>> implements ListSelectionWithUnit<Result<Record>> {
         private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
         private final Optional<Integer> optionalLimit;
         private final Optional<Boolean> optionalAllowFiltering;
+        private final Optional<Integer> optionalFetchSize;
+        private final Optional<Boolean> optionalDistinct;
 
 
-        public ListReadQuery(DaoContext ctx, ImmutableSet<Clause> clauses, Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, Optional<Integer> optionalLimit, Optional<Boolean> optionalAllowFiltering) {
+        public ListSelectionQuery(DaoContext ctx, 
+                                  ImmutableSet<Clause> clauses, 
+                                  Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                  Optional<Integer> optionalLimit, 
+                                  Optional<Boolean> optionalAllowFiltering,
+                                  Optional<Integer> optionalFetchSize,
+                                  Optional<Boolean> optionalDistinct) {
             super(ctx);
             this.clauses = clauses;
             this.columnsToFetch = columnsToFetch;
             this.optionalLimit = optionalLimit;
             this.optionalAllowFiltering = optionalAllowFiltering;
-        }
-
-        @Override
-        public ReadList<Result<Record>> withAllowFiltering() {
-            return new ListReadQuery(getContext(), clauses, columnsToFetch, optionalLimit, Optional.of(true));
+            this.optionalFetchSize = optionalFetchSize;
+            this.optionalDistinct = optionalDistinct;
         }
         
-        @Override
-        public ReadList<Result<Record>> withLimit(int limit) {
-            return new ListReadQuery(getContext(), clauses, columnsToFetch, Optional.of(limit), optionalAllowFiltering);
-        }
         
         @Override
-        public ReadList<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
-            return new ListReadQuery(getContext().withConsistency(consistencyLevel), clauses, columnsToFetch, optionalLimit, optionalAllowFiltering);
-        }
-        
-      
-        @Override
-        public <E> ReadList<Result<E>> entity(Class<E> objectClass) {
-            return new ListEntityReadQuery<E>(getContext(), this, objectClass) ;
-        }
-        
-        @Override
-        public ReadListWithUnit<Result<Record>> column(String name) {
-            return column(name, false, false);
-        }
-
-        @Override
-        public ReadListWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
-            return new ListReadQuery(getContext(), clauses,  Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), optionalLimit, optionalAllowFiltering);
-        }
-        
-        @Override
-        public ReadListWithUnit<Result<Record>> columns(String... names) {
-            return columns(ImmutableSet.copyOf(names));
+        public ListSelection<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
+            return newListSelection(getContext().withConsistency(consistencyLevel), 
+                                         clauses, 
+                                         columnsToFetch, 
+                                         optionalLimit, 
+                                         optionalAllowFiltering, 
+                                         optionalFetchSize,
+                                         optionalDistinct);
         }
         
         @Override 
-        public ReadListWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
-            return new ListReadQuery(getContext(), clauses, Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), optionalLimit, optionalAllowFiltering);
+        public ListSelectionWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
+            return newListSelection(getContext(), 
+                                         clauses, 
+                                         Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
+                                         optionalLimit, 
+                                         optionalAllowFiltering, 
+                                         optionalFetchSize,
+                                         optionalDistinct);
+        }
+        
+        @Override
+        public ListSelectionWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
+            return newListSelection(getContext(), 
+                                         clauses,  
+                                         Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), 
+                                         optionalLimit, 
+                                         optionalAllowFiltering,
+                                         optionalFetchSize,
+                                         optionalDistinct);
         }
         
 
+        @Override
+        public ListSelection<Result<Record>> withLimit(int limit) {
+            return newListSelection(getContext(),
+                                         clauses, 
+                                         columnsToFetch, 
+                                         Optional.of(limit), 
+                                         optionalAllowFiltering, 
+                                         optionalFetchSize,
+                                         optionalDistinct);
+        }
         
+        @Override
+        public ListSelection<Result<Record>> withAllowFiltering() {
+            return newListSelection(getContext(), 
+                                         clauses, 
+                                         columnsToFetch, 
+                                         optionalLimit, 
+                                         Optional.of(true), 
+                                         optionalFetchSize,
+                                         optionalDistinct);
+        }
+
+        @Override
+        public ListSelection<Result<Record>> withFetchSize(int fetchSize) {
+            return newListSelection(getContext(), 
+                                         clauses, 
+                                         columnsToFetch, 
+                                         optionalLimit, 
+                                         optionalAllowFiltering, 
+                                         Optional.of(fetchSize),
+                                         optionalDistinct);
+        }
+        
+        @Override
+        public ListSelection<Result<Record>> withDistinct() {
+            return newListSelection(getContext(), 
+                                         clauses, 
+                                         columnsToFetch, 
+                                         optionalLimit, 
+                                         optionalAllowFiltering, 
+                                         optionalFetchSize,
+                                         Optional.of(true));
+        }
+        
+     
+        @Override
+        public Result<Record> execute() {
+            return super.execute();
+        }
+       
+      
+        @Override
+        public <E> ListSelection<Result<E>> entity(Class<E> objectClass) {
+            return newListSelection(getContext(), this, objectClass) ;
+        }
+        
+        @Override
+        public ListSelectionWithUnit<Result<Record>> column(String name) {
+            return column(name, false, false);
+        }
+
+        
+        @Override
+        public ListSelectionWithUnit<Result<Record>> columns(String... names) {
+            return columns(ImmutableSet.copyOf(names));
+        }
+        
+   
         @Override
         public CompletableFuture<Result<Record>> executeAsync() {
    
-            Selection selection = select();
+            Select.Selection selection = select();
+
+            optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });
+
             
             if (columnsToFetch.isPresent()) {
                 columnsToFetch.get().forEach(column -> column.accept(selection));
@@ -608,13 +734,14 @@ class DaoImpl implements Dao {
 
             optionalLimit.ifPresent(limit -> select.limit(limit));
             optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
+            optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
             
             return getContext().performAsync(select)
                                .thenApply(resultSet -> new RecordsImpl(getContext().getProtocolVersion(), resultSet));
         }        
         
         
-        private static final class RecordsImpl implements Result<Record> {
+        private final class RecordsImpl implements Result<Record> {
             private final ProtocolVersion protocolVersion;
             private final Iterator<Row> iterator;
             private final ResultSet rs;
@@ -724,11 +851,16 @@ class DaoImpl implements Dao {
     
     
     
-    private static class ListEntityReadQuery<E> extends QueryImpl<Result<E>> implements ReadList<Result<E>> {
-        private final ReadList<Result<Record>> read;
+    protected <E> ListSelection<Result<E>> newListSelection(DaoContext ctx, ListSelection<Result<Record>> read, Class<?> clazz) {
+        return new ListEntitySelectionQuery<>(ctx, read, clazz);
+    }
+    
+    
+    private class ListEntitySelectionQuery<E> extends QueryImpl<Result<E>> implements ListSelection<Result<E>> {
+        private final ListSelection<Result<Record>> read;
         private final Class<?> clazz;
         
-        public ListEntityReadQuery(DaoContext ctx, ReadList<Result<Record>> read, Class<?> clazz) {
+        public ListEntitySelectionQuery(DaoContext ctx, ListSelection<Result<Record>> read, Class<?> clazz) {
             super(ctx);
             this.read = read;
             this.clazz = clazz;
@@ -736,18 +868,28 @@ class DaoImpl implements Dao {
     
     
         @Override
-        public Read<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
-            return new ListEntityReadQuery<E>(getContext().withConsistency(consistencyLevel), read, clazz);
+        public SingleSelection<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
+            return newListSelection(getContext().withConsistency(consistencyLevel), read, clazz);
         }
     
         @Override
-        public ReadList<Result<E>> withAllowFiltering() {
-            return new ListEntityReadQuery<E>(getContext(), read.withAllowFiltering(), clazz);
+        public ListSelection<Result<E>> withDistinct() {
+            return newListSelection(getContext(), read.withDistinct(), clazz);
         }
         
         @Override
-        public ReadList<Result<E>> withLimit(int limit) {
-            return new ListEntityReadQuery<E>(getContext(), read.withLimit(limit), clazz);
+        public ListSelection<Result<E>> withFetchSize(int fetchSize) {
+            return newListSelection(getContext(), read.withFetchSize(fetchSize), clazz);
+        }
+        
+        @Override
+        public ListSelection<Result<E>> withAllowFiltering() {
+            return newListSelection(getContext(), read.withAllowFiltering(), clazz);
+        }
+        
+        @Override
+        public ListSelection<Result<E>> withLimit(int limit) {
+            return newListSelection(getContext(), read.withLimit(limit), clazz);
         }
 
         
@@ -758,7 +900,7 @@ class DaoImpl implements Dao {
         
         
         
-        private static final class ResultIteratorImpl<E> implements Result<E> {
+        private final class ResultIteratorImpl<F> implements Result<F> {
             private final DaoContext ctx;
             private final Result<Record> recordIterator;
             private final Class<?> clazz;
@@ -778,23 +920,23 @@ class DaoImpl implements Dao {
         
             
             @Override
-            public E next() {
+            public F next() {
                 return ctx.getPropertiesMapper(clazz).fromValues(recordIterator.next());
             }
             
           
             @Override
-            public void subscribe(Subscriber<? super E> subscriber) {
-                recordIterator.subscribe(new MappingSubscriber<E>(ctx, clazz, subscriber));
+            public void subscribe(Subscriber<? super F> subscriber) {
+                recordIterator.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));
             }
             
-            private static final class MappingSubscriber<E> implements Subscriber<Record> {
+            private final class MappingSubscriber<G> implements Subscriber<Record> {
                 private final DaoContext ctx;
                 private final Class<?> clazz;
                 
-                private Subscriber<? super E> subscriber;
+                private Subscriber<? super G> subscriber;
                 
-                public MappingSubscriber(DaoContext ctx, Class<?> clazz, Subscriber<? super E> subscriber) {
+                public MappingSubscriber(DaoContext ctx, Class<?> clazz, Subscriber<? super G> subscriber) {
                     this.ctx = ctx;
                     this.clazz = clazz;
                     this.subscriber = subscriber;
