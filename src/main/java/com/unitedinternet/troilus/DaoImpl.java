@@ -65,9 +65,11 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class DaoImpl implements Dao {
+    
     private static final Logger LOG = LoggerFactory.getLogger(DaoImpl.class);
     private final Context defaultContext;
 
+    
     public DaoImpl(Context defaultContext) {
         this.defaultContext = defaultContext;
     }

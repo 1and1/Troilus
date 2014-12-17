@@ -17,14 +17,14 @@ package com.unitedinternet.troilus;
 
 import java.util.Optional;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.Clause;
 
 
 
 
-public interface Dao extends Configurable<Dao> {
+public interface Dao {
 
-    
     InsertionWithUnit insert();
 
     Insertion insertObject(Object persistenceObject);
@@ -58,4 +58,7 @@ public interface Dao extends Configurable<Dao> {
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
     
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+
+    
+    Dao withConsistency(ConsistencyLevel consistencyLevel);
 }

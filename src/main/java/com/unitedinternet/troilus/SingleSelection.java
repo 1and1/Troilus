@@ -15,6 +15,8 @@
  */
 package com.unitedinternet.troilus;
 
+import com.datastax.driver.core.ConsistencyLevel;
+
 
 
 
@@ -28,8 +30,9 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface SingleSelection<T> extends Query<T>, Configurable<SingleSelection<T>> {
+public interface SingleSelection<T> extends Query<T> {
     
+    SingleSelection<T> withConsistency(ConsistencyLevel consistencyLevel); 
 }
 
 
