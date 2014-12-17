@@ -21,7 +21,8 @@ public class AppSpecificDaoTest extends AbstractCassandraBasedTest {
 
 /*        MyHotelDao hotelDao = myDaoManager.getMyHotelDao()
                                           .withReferentialIntegrityCheck()
-                                          .withConsistency(ConsistencyLevel.ONE);*/
+                                          .withConsistency(ConsistencyLevel.ONE);
+                                          */
     }               
 }
 

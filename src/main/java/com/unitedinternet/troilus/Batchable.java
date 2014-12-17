@@ -21,11 +21,12 @@ import com.datastax.driver.core.Statement;
 
 
 /**
- * BatchMutation
+ * Batchable
  *
  * @author grro
  */
 interface Batchable {
+
     
     Statement getStatement();
 }
