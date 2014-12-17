@@ -29,7 +29,7 @@ import com.datastax.driver.core.Statement;
 abstract class MutationQueryImpl extends QueryImpl<Void> {    
 
 
-    public MutationQueryImpl(DaoContext ctx) {
+    public MutationQueryImpl(Context ctx) {
         super(ctx);
     }
  

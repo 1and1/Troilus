@@ -26,7 +26,7 @@ public class DaoManager {
         this.session = session;
     }
     
-    public Dao getDao(String tablename) {
-        return new DaoImpl(new DaoContext(session, tablename));
+    public DaoImpl getDao(String tablename) {
+        return new DaoImpl(new Context(session, tablename));
     }    
 }

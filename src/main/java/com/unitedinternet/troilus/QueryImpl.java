@@ -28,13 +28,13 @@ import java.util.concurrent.TimeoutException;
  */
 abstract class QueryImpl<T> implements Query<T> {    
  
-    private final DaoContext ctx;
+    private final Context ctx;
 
-    public QueryImpl(DaoContext ctx) {
+    public QueryImpl(Context ctx) {
         this.ctx = ctx;
     }
     
-    protected DaoContext getContext() {
+    protected Context getContext() {
         return ctx;
     }
 
