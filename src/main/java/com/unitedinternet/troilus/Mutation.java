@@ -16,8 +16,6 @@
 package com.unitedinternet.troilus;
 
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Statement;
-
 
  
 
@@ -32,8 +30,6 @@ public interface Mutation<M extends Mutation<?>> extends Query<Void>, Configurab
     BatchMutation combinedWith(Mutation other);
     
     M withSerialConsistency(ConsistencyLevel consistencyLevel);
-    
-    Statement getStatement();
 }
 
  

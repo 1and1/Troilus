@@ -15,20 +15,38 @@
  */
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.Statement;
-
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 
 /**
- * BatchMutation
+ * The Query
  *
  * @author grro
  */
-interface Batchable {
+abstract class QueryImpl<T> implements Query<T> {    
+ 
+    private final Context ctx;
 
+    public QueryImpl(Context ctx) {
+        this.ctx = ctx;
+    }
     
-    Statement getStatement();
+    protected Context getContext() {
+        return ctx;
+    }
+
+       
+    @Override
+    public T execute() {
+      try {  
+          return executeAsync().get(10000, TimeUnit.SECONDS);
+      } catch (ExecutionException | InterruptedException | TimeoutException e) {
+          throw Exceptions.unwrapIfNecessary(e);
+      } 
+    }
 }
 
 
