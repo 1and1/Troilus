@@ -27,19 +27,19 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author grro
  */
-public interface InsertionWithValues extends Insertion {
+public interface WriteWithValues extends Write {
     
-    InsertionWithValues value(String name, Object value);
+    WriteWithValues value(String name, Object value);
     
-    InsertionWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
     
-    InsertionWithValues values(String name1, Object value1, String name2, Object value2);
+    WriteWithValues values(String name1, Object value1, String name2, Object value2);
     
-    InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3);
+    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3);
     
-    InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4);
+    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4);
     
-    InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5);
+    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5);
 }
 
 

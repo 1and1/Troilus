@@ -15,28 +15,24 @@
  */
 package com.unitedinternet.troilus;
 
-import java.time.Duration;
-
 import com.datastax.driver.core.ConsistencyLevel;
 
 
 
 
 
+
+
+
+
 /**
- * Insertion
+ * The Query
  *
  * @author grro
  */
-public interface Insertion extends Mutation<Insertion> {
+public interface SingleRead<T> extends Query<T> {
     
-    Insertion withConsistency(ConsistencyLevel consistencyLevel);
-
-    Insertion withTtl(Duration ttl);
-
-    Insertion withWritetime(long microsSinceEpoch);
-    
-    Insertion ifNotExits();
+    SingleRead<T> withConsistency(ConsistencyLevel consistencyLevel); 
 }
 
 

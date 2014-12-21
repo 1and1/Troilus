@@ -18,7 +18,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.AlreadyExistsConflictException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Insertion;
+import com.unitedinternet.troilus.Write;
 import com.unitedinternet.troilus.Record;
 
 
@@ -40,7 +40,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        userDao.insert()
+        userDao.write()
                .values(UserTable.USER_ID, "95454", 
                        UserTable.IS_CUSTOMER, true, 
                        UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
@@ -49,7 +49,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                .execute();
         
         
-        userDao.insert()
+        userDao.write()
                .values(UserTable.USER_ID, "8345345", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
                .ifNotExits()
                .withTtl(Duration.ofMinutes(2))
@@ -57,7 +57,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                .execute();
 
         
-        userDao.insert()
+        userDao.write()
                .value(UserTable.USER_ID, "4545")
                .value(UserTable.IS_CUSTOMER, true)
                .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
@@ -68,7 +68,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
 
         try {   // insert twice!
-            userDao.insert()
+            userDao.write()
                    .value(UserTable.USER_ID, "4545")
                    .value(UserTable.IS_CUSTOMER, true)
                    .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
@@ -82,7 +82,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
         
         
-        userDao.insert()
+        userDao.write()
                .value(UserTable.USER_ID, "3434343")
                .value(UserTable.IS_CUSTOMER, Optional.of(true))
                .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
@@ -139,17 +139,17 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // batch inserts
-        Insertion insert1 = userDao.insert()
+        Write insert1 = userDao.write()
                                    .value(UserTable.USER_ID, "14323425")
                                    .value(UserTable.IS_CUSTOMER, true)
                                    .value(UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                    .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Insertion insert2 = userDao.insert() 
+        Write insert2 = userDao.write() 
                                    .values(UserTable.USER_ID, "2222", UserTable.IS_CUSTOMER, true, UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"), UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        userDao.insert()
+        userDao.write()
                .value(UserTable.USER_ID, "222222")
                .value(UserTable.IS_CUSTOMER, true)
                .value(UserTable.ADDRESSES, ImmutableList.of("hamburg"))

@@ -15,25 +15,19 @@
  */
 package com.unitedinternet.troilus;
 
-import java.util.Optional;
-
-
-
-
 
 
 
 
 /**
- * The Query
+ * The Insertation
  *
  * @author grro
  */
-public interface SingleSelectionWithUnit<T> extends SingleSelectionWithColumns<T> {
+public interface WriteWithUnit extends WriteWithValues {
     
-    <E> SingleSelection<Optional<E>> entity(Class<E> objectClass);
+    Write entity(Object persistenceObject);
 }
-
 
 
 

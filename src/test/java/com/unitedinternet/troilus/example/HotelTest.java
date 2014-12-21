@@ -34,7 +34,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        hotelsDao.insert()
+        hotelsDao.write()
                  .entity(new Hotel("BUP45544", 
                                    "Corinthia Budapest",
                                    ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
@@ -45,7 +45,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
                  .execute();
 
-        hotelsDao.insert()
+        hotelsDao.write()
                  .value("id", "BUP932432")
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
@@ -54,7 +54,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
        
         // insert async
-        CompletableFuture<Void> future = hotelsDao.insert()
+        CompletableFuture<Void> future = hotelsDao.write()
                                                   .entity(new Hotel("BUP14334", 
                                                                     "Richter Panzio",
                                                                     ImmutableSet.of("1", "2", "3"),

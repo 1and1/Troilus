@@ -15,25 +15,28 @@
  */
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.ConsistencyLevel;
-
-
-
-
+import com.google.common.collect.ImmutableCollection;
 
 
 
 
 
 /**
- * The Query
+ * ListSelectionWithColumns
  *
  * @author grro
  */
-public interface SingleSelection<T> extends Query<T> {
+public interface ListReadWithColumns<T> extends ListRead<T> {
     
-    SingleSelection<T> withConsistency(ConsistencyLevel consistencyLevel); 
+    ListReadWithColumns<T> column(String name);
+    
+    ListReadWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
+     
+    ListReadWithColumns<T> columns(String... names);
+    
+    ListReadWithColumns<T> columns(ImmutableCollection<String> nameToRead);
 }
+
 
 
 

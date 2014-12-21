@@ -15,20 +15,29 @@
  */
 package com.unitedinternet.troilus;
 
+import java.time.Duration;
+
+import com.datastax.driver.core.ConsistencyLevel;
+
 
 
 
 
 /**
- * ListSelectionWithUnit
+ * Insertion
  *
  * @author grro
  */
-public interface ListSelectionWithUnit<T> extends ListSelectionWithColumns<T> {
+public interface Write extends Mutation<Write> {
     
-    <E> ListSelection<Result<E>> entity(Class<E> objectClass);
-}
+    Write withConsistency(ConsistencyLevel consistencyLevel);
 
+    Write withTtl(Duration ttl);
+
+    Write withWritetime(long microsSinceEpoch);
+    
+    Write ifNotExits();
+}
 
 
 

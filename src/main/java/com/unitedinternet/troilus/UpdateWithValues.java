@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author grro
  */
-public interface UpdateWithValues extends Insertion {
+public interface UpdateWithValues extends Write {
     
     UpdateWithValues value(String name, Object value);
     

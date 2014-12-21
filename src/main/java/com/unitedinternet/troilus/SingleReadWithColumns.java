@@ -29,15 +29,15 @@ import com.google.common.collect.ImmutableCollection;
  *
  * @author grro
  */
-public interface SingleSelectionWithColumns<T> extends SingleSelection<T> {
+public interface SingleReadWithColumns<T> extends SingleRead<T> {
     
-    SingleSelectionWithColumns<T> column(String name);
+    SingleReadWithColumns<T> column(String name);
     
-    SingleSelectionWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
+    SingleReadWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
      
-    SingleSelectionWithColumns<T> columns(String... names);
+    SingleReadWithColumns<T> columns(String... names);
     
-    SingleSelectionWithColumns<T> columns(ImmutableCollection<String> nameToRead);
+    SingleReadWithColumns<T> columns(ImmutableCollection<String> nameToRead);
 }
 
 

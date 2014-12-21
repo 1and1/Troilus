@@ -27,15 +27,15 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        CompletableFuture<Void> insert1 = feeDao.insert()
+        CompletableFuture<Void> insert1 = feeDao.write()
                                                 .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
                                                 .executeAsync();
         
-        CompletableFuture<Void> insert2 = feeDao.insert()
+        CompletableFuture<Void> insert2 = feeDao.write()
                                                 .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
                                                 .executeAsync();
 
-        CompletableFuture<Void> insert3 = feeDao.insert()
+        CompletableFuture<Void> insert3 = feeDao.write()
                                                 .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
                                                 .executeAsync();
         

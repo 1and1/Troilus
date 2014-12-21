@@ -15,28 +15,27 @@
  */
 package com.unitedinternet.troilus;
 
-import com.google.common.collect.ImmutableCollection;
+
 
 
 
 
 
 /**
- * ListSelectionWithColumns
+ * The Query
  *
  * @author grro
  */
-public interface ListSelectionWithColumns<T> extends ListSelection<T> {
+public interface ListRead<T> extends SingleRead<T> {
     
-    ListSelectionWithColumns<T> column(String name);
+    ListRead<T> withLimit(int limit);
     
-    ListSelectionWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
-     
-    ListSelectionWithColumns<T> columns(String... names);
-    
-    ListSelectionWithColumns<T> columns(ImmutableCollection<String> nameToRead);
-}
+    ListRead<T> withFetchSize(int fetchSize);
 
+    ListRead<T> withDistinct();
+    
+    ListRead<T> withAllowFiltering();
+}
 
 
 

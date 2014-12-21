@@ -25,20 +25,20 @@ import com.datastax.driver.core.querybuilder.Clause;
 
 public interface Dao {
 
-    InsertionWithUnit insert();
+    WriteWithUnit write();
 
     
-    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
     
-    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
     
-    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
     
-    SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
    
-    ListSelectionWithUnit<Result<Record>> readAll();
+    ListReadWithUnit<Result<Record>> readAll();
     
-    ListSelectionWithUnit<Result<Record>> readWithCondition(Clause... clauses);
+    ListReadWithUnit<Result<Record>> readWithCondition(Clause... clauses);
     
   
     Deletion deleteWithKey(String keyName, Object keyValue);

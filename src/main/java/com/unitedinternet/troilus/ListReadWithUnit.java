@@ -20,14 +20,15 @@ package com.unitedinternet.troilus;
 
 
 /**
- * The Insertation
+ * ListSelectionWithUnit
  *
  * @author grro
  */
-public interface InsertionWithUnit extends InsertionWithValues {
+public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
     
-    Insertion entity(Object persistenceObject);
+    <E> ListRead<Result<E>> entity(Class<E> objectClass);
 }
+
 
 
 

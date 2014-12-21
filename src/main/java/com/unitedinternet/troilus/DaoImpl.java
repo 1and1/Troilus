@@ -94,53 +94,61 @@ public class DaoImpl implements Dao {
     
 
     @Override
-    public InsertionWithUnit insert() {
+    public WriteWithUnit write() {
         return newInsertion(getDefaultContext(),  ImmutableList.of());
     }
     
     
-    protected InsertionWithUnit newInsertion(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
-        return new InsertQuery(ctx, valuesToInsert);
+    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
+        return new WriteQuery(ctx, valuesToInsert);
     }
     
+
+
     
-    private class InsertQuery implements InsertionWithUnit {
+    private class WriteQuery implements WriteWithUnit {
         private final Context ctx;
         private final ImmutableList<ValueToInsert> valuesToInsert;
         
-        public InsertQuery(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
+        public WriteQuery(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
             this.ctx = ctx;
             this.valuesToInsert = valuesToInsert;
         }
         
         @Override
-        public Insertion entity(Object persistenceObject) {
-            return newInsertion(ctx, ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject));
+        public final Write entity(Object persistenceObject) {
+            return serialize(ctx, this, persistenceObject);
+        }
+
+        @Deprecated
+        private WriteWithValues serialize(Context ctx, WriteQuery writeQuery, Object persistenceObject) {
+            ImmutableList<ValueToInsert> values = ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject);
+            return writeQuery.values(values);
         }
         
         
 
         @Override
-        public InsertionWithValues value(String name, Object value) {
+        public final WriteWithValues value(String name, Object value) {
             return values(ImmutableList.of(new ValueToInsert(name, value)));
         }
 
         
         @Override
-        public InsertionWithValues values(String name1, Object value1, String name2, Object value2) {
+        public final WriteWithValues values(String name1, Object value1, String name2, Object value2) {
             return values(ImmutableList.of(new ValueToInsert(name1, value1),
                                            new ValueToInsert(name2, value2)));
         }
         
         @Override
-        public InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3) {
+        public final WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3) {
             return values(ImmutableList.of(new ValueToInsert(name1, value1),
                                            new ValueToInsert(name2, value2), 
                                            new ValueToInsert(name3, value3)));
         }
         
         @Override
-        public InsertionWithValues values(String name1, Object value1,String name2, Object value2, String name3, Object value3,String name4, Object value4) {
+        public final WriteWithValues values(String name1, Object value1,String name2, Object value2, String name3, Object value3,String name4, Object value4) {
             return values(ImmutableList.of(new ValueToInsert(name1, value1),
                                            new ValueToInsert(name2, value2), 
                                            new ValueToInsert(name3, value3), 
@@ -148,7 +156,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public InsertionWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5) {
+        public final WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5) {
             return values(ImmutableList.of(new ValueToInsert(name1, value1),
                                            new ValueToInsert(name2, value2), 
                                            new ValueToInsert(name3, value3), 
@@ -158,40 +166,40 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public InsertionWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
+        public final  WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
             return values(nameValuePairsToAdd.keySet().stream().map(name -> new ValueToInsert(name, nameValuePairsToAdd.get(name))).collect(Immutables.toList()));
         }
         
         
-        private InsertionWithValues values(ImmutableList<ValueToInsert> additionalValuesToInsert) {
+        protected WriteWithValues values(ImmutableList<ValueToInsert> additionalValuesToInsert) {
             return newInsertion(ctx, Immutables.merge(valuesToInsert, additionalValuesToInsert));
         }
            
         
         @Override
-        public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
+        public Write withConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withConsistency(consistencyLevel), valuesToInsert);
         }
         
         
         @Override
-        public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
+        public Write withSerialConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToInsert);
         }
         
         
         @Override
-        public Insertion ifNotExits() {
+        public Write ifNotExits() {
             return newInsertion(ctx.ifNotExits(), valuesToInsert);
         }
         
         @Override
-        public Insertion withTtl(Duration ttl) {
+        public Write withTtl(Duration ttl) {
             return newInsertion(ctx.withTtl(ttl), valuesToInsert);
         }
 
         @Override
-        public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
+        public Write withWritetime(long writetimeMicrosSinceEpoch) {
             return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToInsert);
         }
         
@@ -218,10 +226,10 @@ public class DaoImpl implements Dao {
                 ctx.getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
             }
 
-            if (ctx.getTtl().isPresent())  {
-                insert.using(QueryBuilder.ttl(bindMarker()));
-                values.add((int) ctx.getTtl().get().getSeconds());
-            }
+            ctx.getTtl().ifPresent(ttl-> {
+                                            insert.using(QueryBuilder.ttl(bindMarker()));
+                                            values.add((int) ttl.getSeconds());
+                                         });
 
             PreparedStatement stmt = ctx.prepare(insert);
             return stmt.bind(values.toArray());
@@ -264,18 +272,30 @@ public class DaoImpl implements Dao {
     }
 
     @Override
-    public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
+    public Deletion deleteWithKey(String keyName1, Object keyValue1, 
+                                  String keyName2, Object keyValue2) {
+        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1,
+                                                                keyName2, keyValue2));
     }
     
     @Override
-    public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
+    public Deletion deleteWithKey(String keyName1, Object keyValue1, 
+                                  String keyName2, Object keyValue2, 
+                                  String keyName3, Object keyValue3) {
+        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, 
+                                                                keyName2, keyValue2, 
+                                                                keyName3, keyValue3));
     }
     
     @Override
-    public Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
+    public Deletion deleteWithKey(String keyName1, Object keyValue1, 
+                                  String keyName2, Object keyValue2, 
+                                  String keyName3, Object keyValue3,
+                                  String keyName4, Object keyValue4) {
+        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, 
+                                                                keyName2, keyValue2, 
+                                                                keyName3, keyValue3, 
+                                                                keyName4, keyValue4));
     }
     
     protected Deletion newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
@@ -404,40 +424,40 @@ public class DaoImpl implements Dao {
     
 
     @Override
-    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
         return newSingleSelection(getDefaultContext(), ImmutableMap.of(keyName, keyValue), Optional.empty());
     }
     
     @Override
-    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
         return newSingleSelection(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), Optional.of(ImmutableSet.of()));
     }
     
     @Override
-    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
         return newSingleSelection(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), Optional.of(ImmutableSet.of()));
     }
     
     @Override
-    public SingleSelectionWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
         return newSingleSelection(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), Optional.of(ImmutableSet.of()));
     }
     
     
-    protected SingleSelectionWithUnit<Optional<Record>> newSingleSelection(Context ctx, 
+    protected SingleReadWithUnit<Optional<Record>> newSingleSelection(Context ctx, 
                                                                            ImmutableMap<String, Object> keyNameValuePairs, 
                                                                            Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
-        return new SingleSelectionQuery(ctx, keyNameValuePairs, optionalColumnsToFetch);
+        return new SingleReadQuery(ctx, keyNameValuePairs, optionalColumnsToFetch);
     }
     
 
-    private class SingleSelectionQuery implements SingleSelectionWithUnit<Optional<Record>> {
+    private class SingleReadQuery implements SingleReadWithUnit<Optional<Record>> {
         private final Context ctx;
         private final ImmutableMap<String, Object> keyNameValuePairs;
         private final Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch;
          
         
-        public SingleSelectionQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+        public SingleReadQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
             this.ctx = ctx;
             this.keyNameValuePairs = keyNameValuePairs;
             this.optionalColumnsToFetch = optionalColumnsToFetch;
@@ -446,32 +466,32 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public <E> SingleSelection<Optional<E>> entity(Class<E> objectClass) {
+        public <E> SingleRead<Optional<E>> entity(Class<E> objectClass) {
             return newSingleSelection(ctx, this, objectClass);
         }
         
         @Override
-        public SingleSelectionWithUnit<Optional<Record>> column(String name) {
+        public SingleReadWithUnit<Optional<Record>> column(String name) {
             return column(name, false, false);
         }
 
         @Override
-        public SingleSelectionWithUnit<Optional<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
+        public SingleReadWithUnit<Optional<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
             return newSingleSelection(ctx, keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)));
         }
         
         @Override
-        public SingleSelectionWithUnit<Optional<Record>> columns(String... names) {
+        public SingleReadWithUnit<Optional<Record>> columns(String... names) {
             return columns(ImmutableSet.copyOf(names));
         }
         
         @Override 
-        public SingleSelectionWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
+        public SingleReadWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
             return newSingleSelection(ctx, keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(namesToRead)));
         }
         
         @Override
-        public SingleSelection<Optional<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
+        public SingleRead<Optional<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
             return newSingleSelection(ctx.withConsistency(consistencyLevel), keyNameValuePairs, optionalColumnsToFetch);
         }
        
@@ -545,25 +565,25 @@ public class DaoImpl implements Dao {
      
     
     
-    protected <E> SingleSelection<Optional<E>> newSingleSelection(Context ctx, SingleSelection<Optional<Record>> read, Class<?> clazz) {
-        return new SingleEntitySelectionQuery<E>(ctx, read, clazz);
+    protected <E> SingleRead<Optional<E>> newSingleSelection(Context ctx, SingleRead<Optional<Record>> read, Class<?> clazz) {
+        return new SingleEntityReadQuery<E>(ctx, read, clazz);
     }
 
     
     
-    private class SingleEntitySelectionQuery<E> implements SingleSelection<Optional<E>> {
+    private class SingleEntityReadQuery<E> implements SingleRead<Optional<E>> {
         private final Context ctx;
-        private final SingleSelection<Optional<Record>> read;
+        private final SingleRead<Optional<Record>> read;
         private final Class<?> clazz;
         
-        public SingleEntitySelectionQuery(Context ctx, SingleSelection<Optional<Record>> read, Class<?> clazz) {
+        public SingleEntityReadQuery(Context ctx, SingleRead<Optional<Record>> read, Class<?> clazz) {
             this.ctx = ctx;
             this.read = read;
             this.clazz = clazz;
         }
         
         @Override
-        public SingleSelection<Optional<E>> withConsistency(ConsistencyLevel consistencyLevel) {
+        public SingleRead<Optional<E>> withConsistency(ConsistencyLevel consistencyLevel) {
             return newSingleSelection(ctx, read.withConsistency(consistencyLevel), clazz);
         }
 
@@ -623,7 +643,7 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListSelectionWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
+    public ListReadWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
         return newListSelection(getDefaultContext(), 
                                 ImmutableSet.copyOf(clauses), 
                                 Optional.of(ImmutableSet.of()), 
@@ -635,7 +655,7 @@ public class DaoImpl implements Dao {
      
     
     @Override
-    public ListSelectionWithUnit<Result<Record>> readAll() {
+    public ListReadWithUnit<Result<Record>> readAll() {
         return newListSelection(getDefaultContext(), 
                                 ImmutableSet.of(), 
                                 Optional.of(ImmutableSet.of()), 
@@ -645,19 +665,19 @@ public class DaoImpl implements Dao {
                                 Optional.empty());
     }
     
-    protected ListSelectionWithUnit<Result<Record>> newListSelection(Context ctx, 
+    protected ListReadWithUnit<Result<Record>> newListSelection(Context ctx, 
                                                                      ImmutableSet<Clause> clauses, 
                                                                      Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
                                                                      Optional<Integer> optionalLimit, 
                                                                      Optional<Boolean> optionalAllowFiltering,
                                                                      Optional<Integer> optionalFetchSize,    
                                                                      Optional<Boolean> optionalDistinct) {
-        return new ListSelectionQuery(ctx, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+        return new ListReadQuery(ctx, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
 
     
     
-    private class ListSelectionQuery implements ListSelectionWithUnit<Result<Record>> {
+    private class ListReadQuery implements ListReadWithUnit<Result<Record>> {
         private final Context ctx;
         private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
@@ -667,7 +687,7 @@ public class DaoImpl implements Dao {
         private final Optional<Boolean> optionalDistinct;
 
 
-        public ListSelectionQuery(Context ctx, 
+        public ListReadQuery(Context ctx, 
                                   ImmutableSet<Clause> clauses, 
                                   Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
                                   Optional<Integer> optionalLimit, 
@@ -685,7 +705,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public ListSelection<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
+        public ListRead<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
             return newListSelection(ctx.withConsistency(consistencyLevel), 
                                     clauses, 
                                     columnsToFetch, 
@@ -696,7 +716,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override 
-        public ListSelectionWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
+        public ListReadWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
             return newListSelection(ctx, 
                                     clauses, 
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
@@ -707,7 +727,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListSelectionWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
+        public ListReadWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
             return newListSelection(ctx, 
                                     clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), 
@@ -719,7 +739,7 @@ public class DaoImpl implements Dao {
         
 
         @Override
-        public ListSelection<Result<Record>> withLimit(int limit) {
+        public ListRead<Result<Record>> withLimit(int limit) {
             return newListSelection(ctx,
                                     clauses, 
                                     columnsToFetch, 
@@ -730,7 +750,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListSelection<Result<Record>> withAllowFiltering() {
+        public ListRead<Result<Record>> withAllowFiltering() {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -741,7 +761,7 @@ public class DaoImpl implements Dao {
         }
 
         @Override
-        public ListSelection<Result<Record>> withFetchSize(int fetchSize) {
+        public ListRead<Result<Record>> withFetchSize(int fetchSize) {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -752,7 +772,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListSelection<Result<Record>> withDistinct() {
+        public ListRead<Result<Record>> withDistinct() {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -765,18 +785,18 @@ public class DaoImpl implements Dao {
        
       
         @Override
-        public <E> ListSelection<Result<E>> entity(Class<E> objectClass) {
+        public <E> ListRead<Result<E>> entity(Class<E> objectClass) {
             return newListSelection(ctx, this, objectClass) ;
         }
         
         @Override
-        public ListSelectionWithUnit<Result<Record>> column(String name) {
+        public ListReadWithUnit<Result<Record>> column(String name) {
             return column(name, false, false);
         }
 
         
         @Override
-        public ListSelectionWithUnit<Result<Record>> columns(String... names) {
+        public ListReadWithUnit<Result<Record>> columns(String... names) {
             return columns(ImmutableSet.copyOf(names));
         }
         
@@ -934,17 +954,17 @@ public class DaoImpl implements Dao {
     
     
     
-    protected <E> ListSelection<Result<E>> newListSelection(Context ctx, ListSelection<Result<Record>> read, Class<?> clazz) {
-        return new ListEntitySelectionQuery<>(ctx, read, clazz);
+    protected <E> ListRead<Result<E>> newListSelection(Context ctx, ListRead<Result<Record>> read, Class<?> clazz) {
+        return new ListEntityReadQuery<>(ctx, read, clazz);
     }
     
     
-    private class ListEntitySelectionQuery<E> implements ListSelection<Result<E>> {
+    private class ListEntityReadQuery<E> implements ListRead<Result<E>> {
         private final Context ctx;
-        private final ListSelection<Result<Record>> read;
+        private final ListRead<Result<Record>> read;
         private final Class<?> clazz;
         
-        public ListEntitySelectionQuery(Context ctx, ListSelection<Result<Record>> read, Class<?> clazz) {
+        public ListEntityReadQuery(Context ctx, ListRead<Result<Record>> read, Class<?> clazz) {
             this.ctx = ctx;
             this.read = read;
             this.clazz = clazz;
@@ -952,27 +972,27 @@ public class DaoImpl implements Dao {
     
     
         @Override
-        public SingleSelection<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
+        public SingleRead<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
             return newListSelection(ctx.withConsistency(consistencyLevel), read, clazz);
         }
     
         @Override
-        public ListSelection<Result<E>> withDistinct() {
+        public ListRead<Result<E>> withDistinct() {
             return newListSelection(ctx, read.withDistinct(), clazz);
         }
         
         @Override
-        public ListSelection<Result<E>> withFetchSize(int fetchSize) {
+        public ListRead<Result<E>> withFetchSize(int fetchSize) {
             return newListSelection(ctx, read.withFetchSize(fetchSize), clazz);
         }
         
         @Override
-        public ListSelection<Result<E>> withAllowFiltering() {
+        public ListRead<Result<E>> withAllowFiltering() {
             return newListSelection(ctx, read.withAllowFiltering(), clazz);
         }
         
         @Override
-        public ListSelection<Result<E>> withLimit(int limit) {
+        public ListRead<Result<E>> withLimit(int limit) {
             return newListSelection(ctx, read.withLimit(limit), clazz);
         }
 

@@ -24,8 +24,8 @@ Dao hotelDao = daoManager.getDao("hotels")
                          .withConsistency(ConsistencyLevel.QUORUM);
 ```
 
-##Insert
-Insert a row in a column-oriented way
+##Write
+Write a row in a column-oriented way
 ``` java
 hotelDao.insert()
         .value("id", "BUP932432")
@@ -37,7 +37,7 @@ hotelDao.insert()
 ```
 
 
-Insert a row in an entity-oriented way.  
+Write a row in an entity-oriented way.  
 ``` java
 hotelDao.insert()
         .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
