@@ -22,62 +22,51 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import com.datastax.driver.core.ColumnDefinitions.Definition;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ProtocolVersion;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.BuiltStatement;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.unitedinternet.troilus.Context.ValueToInsert;
 
  
 
-public class PropertiesMapperRegistry {
+class EntityMapper {
     private final LoadingCache<Class<?>, PropertiesMapper> propertiesMapperCache;
     
     
-
-    protected interface PropertiesMapper {
-        ImmutableList<ValueToInsert> toValues(Object persistenceObject);
-
-        
-        <T> T fromValues(Record record);
-    }   
     
-    public PropertiesMapperRegistry() {        
+    
+    public EntityMapper() {        
         this.propertiesMapperCache = CacheBuilder.newBuilder()
                                                  .maximumSize(200)
                                                  .build(new PropertiesMapperLoader());
     }
     
     
-    public PropertiesMapper getPropertiesMapper(Class<?> clazz) {
+    public WriteWithValues readPropertiesAndEnhanceWrite(WriteWithValues writer, Object entity) {
+        return getPropertiesMapper(entity.getClass()).write(writer, entity);
+    }
+
+    
+    public <T> T fromValues(Class<?> clazz, Record record) {
+        return getPropertiesMapper(clazz).fromValues(record);
+    }
+    
+    
+    
+    private PropertiesMapper getPropertiesMapper(Class<?> clazz) {
         try {
             return propertiesMapperCache.get(clazz);
         } catch (ExecutionException e) {
@@ -87,8 +76,15 @@ public class PropertiesMapperRegistry {
     
     
 
-    public interface RecordValueMapper extends BiFunction<Record, String, Optional<Object>> {
+    private interface PropertiesMapper {
+        WriteWithValues write(WriteWithValues write, Object entity);
         
+        <T> T fromValues(Record record);
+    }   
+
+    
+
+    public interface RecordValueMapper extends BiFunction<Record, String, Optional<Object>> {
         boolean isSupport(Class<?> type);
         
     }
@@ -108,21 +104,23 @@ public class PropertiesMapperRegistry {
             private final Class<?> clazz;
             private final ImmutableSet<BiConsumer<Object, Record>> propertyWriters;
             
-            private final ImmutableMap<String, Function<Object, Optional<Object>>> valueReaderMap;
+            private final ImmutableMap<String ,BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders;
             
         
-            public PropertiesMapperImpl(ImmutableMap<String, Function<Object, Optional<Object>>> valueReaderMap, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
-                this.valueReaderMap = valueReaderMap;
+            public PropertiesMapperImpl(ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
+                this.valueReaders = valueReaders;
                 this.propertyWriters = propertyWriters;
                 this.clazz = clazz;
             }
          
           
             @Override
-            public ImmutableList<ValueToInsert> toValues( Object persistenceObject) {
-                List<ValueToInsert> valuesToInsert = Lists.newArrayList();
-                valueReaderMap.forEach((name, reader) -> reader.apply(persistenceObject).ifPresent(value -> valuesToInsert.add(new ValueToInsert(name, value))));
-                return ImmutableList.copyOf(valuesToInsert);
+            public WriteWithValues write(WriteWithValues writer, Object entity) {
+                for (BiFunction<WriteWithValues, Object, WriteWithValues> valueReader : valueReaders.values()) {
+                    writer = valueReader.apply(writer,entity);
+                }
+
+                return writer;
             }
             
             @SuppressWarnings("unchecked")
@@ -157,7 +155,7 @@ public class PropertiesMapperRegistry {
         
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
-            Map<String, Function<Object, Optional<Object>>> valueReaders = Maps.newHashMap();
+            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
             
             // check attributes
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
@@ -178,8 +176,8 @@ public class PropertiesMapperRegistry {
         
         
         
-        private static ImmutableMap<String, Function<Object, Optional<Object>>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
-            Map<String, Function<Object, Optional<Object>>> valueReaders = Maps.newHashMap();
+        private static ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
+            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -189,7 +187,8 @@ public class PropertiesMapperRegistry {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    valueReaders.put(columnName, persistenceObject -> readBeanField(beanField, persistenceObject));
+                                    valueReaders.put(columnName, (WriteWithValues writer, Object entity) -> writer.value(columnName, readBeanField(beanField, entity)));
+                                    
                                     break;
 
                                 } catch (ReflectiveOperationException ignore) { }
@@ -220,8 +219,8 @@ public class PropertiesMapperRegistry {
             
     
      
-        private static ImmutableMap<String, Function<Object, Optional<Object>>> fetchMethodReaders(ImmutableSet<Method> beanMethods) {
-            Map<String, Function<Object, Optional<Object>>> valueReaders = Maps.newHashMap();
+        private static ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> fetchMethodReaders(ImmutableSet<Method> beanMethods) {
+            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
             
             for (Method beanMethod : beanMethods) {
                 for (Annotation annotation : beanMethod.getAnnotations()) {
@@ -232,7 +231,8 @@ public class PropertiesMapperRegistry {
                                 if ((beanMethod.getParameterTypes().length == 0) && (beanMethod.getReturnType() != null)) {
                                     try {
                                         String columnName = (String) attributeMethod.invoke(annotation);
-                                        valueReaders.put(columnName, persistenceObject -> readBeanMethod(beanMethod, persistenceObject));
+                                        valueReaders.put(columnName, (WriteWithValues writer, Object entity) -> writer.value(columnName, readBeanMethod(beanMethod, entity)));
+
                                         break;
     
                                     } catch (ReflectiveOperationException ignore) { }

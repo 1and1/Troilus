@@ -26,7 +26,7 @@ package com.unitedinternet.troilus;
  */
 public interface WriteWithUnit extends WriteWithValues {
     
-    Write entity(Object persistenceObject);
+    Write entity(Object entity);
 }
 
 

@@ -56,7 +56,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.Context.ValueToInsert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +89,7 @@ public class DaoImpl implements Dao {
     
     
     ///////////////////////////////
-    // INSERT
+    // Write
     
 
     @Override
@@ -116,16 +115,9 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public final Write entity(Object persistenceObject) {
-            return serialize(ctx, this, persistenceObject);
+        public final Write entity(Object entity) {
+            return  ctx.readPropertiesAndEnhanceWrite(this, entity);
         }
-
-        @Deprecated
-        private WriteWithValues serialize(Context ctx, WriteQuery writeQuery, Object persistenceObject) {
-            ImmutableList<ValueToInsert> values = ctx.getPropertiesMapper(persistenceObject.getClass()).toValues(persistenceObject);
-            return writeQuery.values(values);
-        }
-        
         
 
         @Override
@@ -216,10 +208,8 @@ public class DaoImpl implements Dao {
             Insert insert = insertInto(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToInsert.forEach(valueToInsert -> valueToInsert.getValue().ifPresent(value -> { 
-                                                                                                  insert.value(valueToInsert.getName(), bindMarker());
-                                                                                                  values.add(value);
-                                                                                                }));
+            valuesToInsert.forEach(valueToInsert -> { insert.value(valueToInsert.getName(), bindMarker()); values.add(valueToInsert.getValue()); });
+            
             
             if (ctx.getIfNotExits()) {
                 insert.ifNotExists();
@@ -260,6 +250,35 @@ public class DaoImpl implements Dao {
     }
 
 
+    
+    
+    private static final class ValueToInsert {
+        private final String name;
+        private final Object value;
+        
+        @SuppressWarnings("unchecked")
+        public ValueToInsert(String name, Object value) {
+            this.name = name;
+            if (value instanceof Optional) {
+                this.value = ((Optional) value).orElse(null);
+            } else {
+                this.value = value;
+            }
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public Object getValue() {
+            return value;
+        }
+        
+        @Override
+        public String toString() {
+            return name + "=" + value;
+        }
+    }
    
     
     
@@ -600,7 +619,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> ctx.getPropertiesMapper(clazz).fromValues(record)));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> ctx.fromValues(clazz, record)));
         }        
     }
      
@@ -1035,7 +1054,7 @@ public class DaoImpl implements Dao {
             
             @Override
             public F next() {
-                return ctx.getPropertiesMapper(clazz).fromValues(recordIterator.next());
+                return ctx.fromValues(clazz, recordIterator.next());
             }
             
           
@@ -1063,7 +1082,7 @@ public class DaoImpl implements Dao {
                 
                 @Override
                 public void onNext(Record record) {
-                    subscriber.onNext(ctx.getPropertiesMapper(clazz).fromValues(record));
+                    subscriber.onNext(ctx.fromValues(clazz, record));
                 }
 
                 @Override

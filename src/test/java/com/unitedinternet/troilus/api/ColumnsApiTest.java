@@ -32,7 +32,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         DaoManager daoManager = new DaoManager(getSession());
 
         Dao userDao = daoManager.getDao(UserTable.TABLE)
-                                .withConsistency(ConsistencyLevel.ONE);
+                                .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         
 
@@ -86,6 +86,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                .value(UserTable.USER_ID, "3434343")
                .value(UserTable.IS_CUSTOMER, Optional.of(true))
                .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+               .value(UserTable.ADDRESSES, null)
                .execute();
 
 

@@ -17,25 +17,14 @@ package com.unitedinternet.troilus;
 
 
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import com.datastax.driver.core.ColumnDefinitions.Definition;
+
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
@@ -46,15 +35,6 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.unitedinternet.troilus.PropertiesMapperRegistry.PropertiesMapper;
 
  
 
@@ -63,20 +43,20 @@ public class Context  {
     
     private final String table;
     private final Session session;
-    private final PropertiesMapperRegistry propertiesMapperRegistry;
+    private final EntityMapper entityMapper;
     private final ExecutionSpec executionSpec;
 
     
     public Context(Session session, String table) {
-        this(session, new PropertiesMapperRegistry(), table, new ExecutionSpec());
+        this(session, new EntityMapper(), table, new ExecutionSpec());
     }
 
     
-    Context(Session session, PropertiesMapperRegistry propertiesMapperRegistry, String table, ExecutionSpec executionSpec) {
+    Context(Session session, EntityMapper entityMapper, String table, ExecutionSpec executionSpec) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
-        this.propertiesMapperRegistry = propertiesMapperRegistry;
+        this.entityMapper = entityMapper;
     }
  
     
@@ -88,29 +68,35 @@ public class Context  {
         return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
     }
 
-    protected PropertiesMapper getPropertiesMapper(Class<?> clazz) {
-        return propertiesMapperRegistry.getPropertiesMapper(clazz);
+
+    protected WriteWithValues readPropertiesAndEnhanceWrite(WriteWithValues write, Object entity) {
+        return entityMapper.readPropertiesAndEnhanceWrite(write, entity);
     }
-   
+
+    
+    protected <T> T fromValues(Class<?> clazz, Record record) {
+        return entityMapper.fromValues(clazz, record);
+    }
+    
     
     public Context withConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, propertiesMapperRegistry, table, executionSpec.withConsistency(consistencyLevel));
+        return new Context(session, entityMapper, table, executionSpec.withConsistency(consistencyLevel));
     }
 
     public Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, propertiesMapperRegistry, table, executionSpec.withSerialConsistency(consistencyLevel));
+        return new Context(session, entityMapper, table, executionSpec.withSerialConsistency(consistencyLevel));
     }
 
     public Context withTtl(Duration ttl) {
-        return new Context(session, propertiesMapperRegistry, table, executionSpec.withTtl(ttl));        
+        return new Context(session, entityMapper, table, executionSpec.withTtl(ttl));        
     }
 
     public Context withWritetime(long microsSinceEpoch) {
-        return new Context(session, propertiesMapperRegistry, table, executionSpec.withWritetime(microsSinceEpoch));        
+        return new Context(session, entityMapper, table, executionSpec.withWritetime(microsSinceEpoch));        
     }
 
     public Context ifNotExits() {
-        return new Context(session, propertiesMapperRegistry, table, executionSpec.ifNotExits());        
+        return new Context(session, entityMapper, table, executionSpec.ifNotExits());        
     }
     
     public Optional<ConsistencyLevel> getConsistencyLevel() {
@@ -276,28 +262,7 @@ public class Context  {
     
     
     
-    static final class ValueToInsert {
-        private final String name;
-        private final Optional<Object> value;
-        
-        @SuppressWarnings("unchecked")
-        public ValueToInsert(String name, Object value) {
-            this.name = name;
-            if (value instanceof Optional) {
-                this.value = (Optional) value;
-            } else {
-                this.value = Optional.ofNullable(value);
-            }
-        }
-        
-        public String getName() {
-            return name;
-        }
-        
-        public Optional<Object> getValue() {
-            return value;
-        }
-    }
+  
 }
 
 

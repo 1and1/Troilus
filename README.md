@@ -21,13 +21,13 @@ This Session object will be used to create the DaoManager and fetching Dao's bas
 ``` java
 DaoManager daoManager = new DaoManager(session);
 Dao hotelDao = daoManager.getDao("hotels")
-                         .withConsistency(ConsistencyLevel.QUORUM);
+                         .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 ```
 
 ##Write
 Write a row in a column-oriented way
 ``` java
-hotelDao.insert()
+hotelDao.write()
         .value("id", "BUP932432")
         .value("name", "City Budapest")
         .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
@@ -39,7 +39,7 @@ hotelDao.insert()
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelDao.insert()
+hotelDao.write()
         .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
         .ifNotExits()
         .execute();
@@ -174,10 +174,10 @@ hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 #Asynchronous Examples
 -------
 
-##Async Insert
+##Async Write
 By calling ***executeAsync()*** instead *execute()* the method returns immediately without waiting for the database response. Further more the executeAsync() returns a Java8 [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) object which can be used for async processing
 ``` java
-CompletableFuture<Void> future = hotelsDao.insert()
+CompletableFuture<Void> future = hotelsDao.write()
                                           .entity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
                                           .withConsistency(ConsistencyLevel.ANY)
                                           .executeAsync();

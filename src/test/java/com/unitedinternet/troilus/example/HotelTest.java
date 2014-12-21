@@ -29,7 +29,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         // create dao
         Dao hotelsDao = daoManager.getDao(HotelTable.TABLE)
-                                  .withConsistency(ConsistencyLevel.QUORUM);
+                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
         ////////////////
