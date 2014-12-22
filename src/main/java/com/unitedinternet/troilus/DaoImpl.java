@@ -93,23 +93,23 @@ public class DaoImpl implements Dao {
     
 
     @Override
-    public WriteWithUnit write() {
+    public InsertWithUnit write() {
         return newInsertion(getDefaultContext(),  ImmutableList.of());
     }
     
     
-    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new WriteQuery(ctx, valuesToInsert);
+    protected InsertWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
+        return new InsertQuery(ctx, valuesToInsert);
     }
     
 
 
     
-    private class WriteQuery implements WriteWithUnit {
+    private class InsertQuery implements InsertWithUnit {
         private final Context ctx;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
         
-        public WriteQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+        public InsertQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
             this.ctx = ctx;
             this.valuesToMutate = valuesToMutate;
         }
@@ -121,8 +121,8 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public final  WriteWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
-            WriteWithValues write = this;
+        public final  InsertWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+            InsertWithValues write = this;
             for (String name : additionalvaluesToMutate.keySet()) {
                 write = write.value(name, additionalvaluesToMutate.get(name));
             }
@@ -131,18 +131,18 @@ public class DaoImpl implements Dao {
         
      
         @Override
-        public WriteWithValues value(String name1, String name2, Object value) {
+        public InsertWithValues value(String name1, String name2, Object value) {
             return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
         }
 
 
         @Override
-        public final WriteWithValues value(String name, Object value) {
+        public final InsertWithValues value(String name, Object value) {
             return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
         }
 
         
-        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
+        protected InsertWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
             ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
             return newInsertion(ctx, newValuesToInsert);
         }
@@ -236,7 +236,139 @@ public class DaoImpl implements Dao {
 
     
     
+
+    protected UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
+        return new UpdateQuery(ctx, valuesToInsert);
+    }
+
     
+    private class UpdateQuery implements UpdateWithValues {
+        private final Context ctx;
+        private final ImmutableList<? extends ValueToMutate> valuesToMutate;
+        
+        public UpdateQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+            this.ctx = ctx;
+            this.valuesToMutate = valuesToMutate;
+        }
+        
+        
+        @Override
+        public Update onlyIf(Clause... conditions) {
+            return null;
+        }
+        
+        @Override
+        public final  UpdateWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+            UpdateWithValues write = this;
+            for (String name : additionalvaluesToMutate.keySet()) {
+                write = write.value(name, additionalvaluesToMutate.get(name));
+            }
+            return write;
+        }
+        
+     
+        @Override
+        public UpdateWithValues value(String name1, String name2, Object value) {
+            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
+        }
+
+
+        @Override
+        public final UpdateWithValues value(String name, Object value) {
+            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
+        }
+
+        
+        protected UpdateWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
+            return newUpdate(ctx, newValuesToInsert);
+        }
+           
+        
+        @Override
+        public Update withConsistency(ConsistencyLevel consistencyLevel) {
+            return newUpdate(ctx.withConsistency(consistencyLevel), valuesToMutate);
+        }
+        
+        
+        @Override
+        public Update withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return newUpdate(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
+        }
+        
+        
+        @Override
+        public Update withTtl(Duration ttl) {
+            return newUpdate(ctx.withTtl(ttl), valuesToMutate);
+        }
+
+        @Override
+        public Update withWritetime(long writetimeMicrosSinceEpoch) {
+            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
+        }
+        
+        @Override
+        public BatchMutation combinedWith(Mutation other) {
+            return newBatchMutation(ctx, Type.LOGGED, ImmutableList.of(this, other));
+        }
+      
+        
+        @Override
+        public Statement getStatement() {
+            
+            // statement
+            Insert insert = insertInto(ctx.getTable());
+            
+            List<Object> values = Lists.newArrayList();
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
+            
+            
+            if (ctx.getIfNotExits()) {
+                insert.ifNotExists();
+                ctx.getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
+            }
+
+            ctx.getTtl().ifPresent(ttl-> {
+                                            insert.using(QueryBuilder.ttl(bindMarker()));
+                                            values.add((int) ttl.getSeconds());
+                                         });
+
+            PreparedStatement stmt = ctx.prepare(insert);
+            return stmt.bind(values.toArray());
+        }
+        
+        
+        public Void execute() {
+            try {
+                return executeAsync().get(10000, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            } 
+        }
+        
+        
+        @Override
+        public CompletableFuture<Void> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> {
+                    if (ctx.getIfNotExits()) {
+                        // check cas result column '[applied]'
+                        if (!resultSet.wasApplied()) {
+                            throw new AlreadyExistsConflictException("duplicated entry");  
+                        }
+                    } 
+                    return null;
+                });
+        }
+        
+        @Override
+        public String toString() {
+            return getStatement().toString();
+        }
+    }
+
+    
+    
+
 
   
     
