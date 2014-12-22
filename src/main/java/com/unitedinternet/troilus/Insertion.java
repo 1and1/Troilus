@@ -21,7 +21,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 
 
-
 /**
  * Insertion
  *
