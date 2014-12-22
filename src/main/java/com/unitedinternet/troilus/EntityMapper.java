@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.google.common.cache.CacheBuilder;
@@ -53,30 +54,32 @@ class EntityMapper {
                                                  .maximumSize(200)
                                                  .build(new PropertiesMapperLoader());
     }
-    
+     
     
     
     private static final class PropertiesMapper {
         private final Class<?> clazz;
         private final ImmutableSet<BiConsumer<Object, Record>> propertyWriters;
         
-        private final ImmutableMap<String ,BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders;
+        private final ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> valueReaders;
         
     
-        public PropertiesMapper(ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
+        public PropertiesMapper(ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
             this.valueReaders = valueReaders;
             this.propertyWriters = propertyWriters;
             this.clazz = clazz;
         }
      
       
-        public WriteWithValues write(WriteWithValues writer, Object entity) {
+        public ImmutableMap<String, Object> toValues(Object entity) {
+            Map<String, Object> values = Maps.newHashMap();
             
-            for (BiFunction<WriteWithValues, Object, WriteWithValues> valueReader : valueReaders.values()) {
-                writer = valueReader.apply(writer, entity);
+            for (Function<Object, Map.Entry<String, Object>> valueReader : valueReaders.values()) {
+                Map.Entry<String, Object> pair = valueReader.apply(entity); 
+                values.put(pair.getKey(), pair.getValue());
             }
 
-            return writer;
+            return ImmutableMap.copyOf(values);
         }
 
         
@@ -110,9 +113,8 @@ class EntityMapper {
   
 
     
-    
-    public WriteWithValues readPropertiesAndEnhanceWrite(WriteWithValues writer, Object entity) {
-        return getPropertiesMapper(entity.getClass()).write(writer, entity);
+    public ImmutableMap<String, Object> toValues(Object entity) {
+        return getPropertiesMapper(entity.getClass()).toValues(entity);
     }
 
     
@@ -153,7 +155,7 @@ class EntityMapper {
         
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
-            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
+            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
             
             // check attributes
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
@@ -174,8 +176,8 @@ class EntityMapper {
         
         
         
-        private static ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
-            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
+            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -185,7 +187,7 @@ class EntityMapper {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    valueReaders.put(columnName, (WriteWithValues writer, Object entity) -> writer.value(columnName, readBeanField(beanField, entity)));
+                                    valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
                                     
                                     break;
 
@@ -214,11 +216,10 @@ class EntityMapper {
                 return Optional.ofNullable(value);
             }
         }
-            
     
      
-        private static ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> fetchMethodReaders(ImmutableSet<Method> beanMethods) {
-            Map<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders = Maps.newHashMap();
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchMethodReaders(ImmutableSet<Method> beanMethods) {
+            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
             
             for (Method beanMethod : beanMethods) {
                 for (Annotation annotation : beanMethod.getAnnotations()) {
@@ -229,8 +230,7 @@ class EntityMapper {
                                 if ((beanMethod.getParameterTypes().length == 0) && (beanMethod.getReturnType() != null)) {
                                     try {
                                         String columnName = (String) attributeMethod.invoke(annotation);
-                                        valueReaders.put(columnName, (WriteWithValues writer, Object entity) -> writer.value(columnName, readBeanMethod(beanMethod, entity)));
-
+                                        valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanMethod(beanMethod, entity)));
                                         break;
     
                                     } catch (ReflectiveOperationException ignore) { }

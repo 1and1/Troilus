@@ -19,7 +19,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.AlreadyExistsConflictException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Write;
+import com.unitedinternet.troilus.Insertion;
 import com.unitedinternet.troilus.Record;
 
 
@@ -143,14 +143,14 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // batch inserts
-        Write insert1 = usersDao.write()
+        Insertion insert1 = usersDao.write()
                                 .value(UsersTable.USER_ID, "14323425")
                                 .value(UsersTable.IS_CUSTOMER, true)
                                 .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Write insert2 = usersDao.write() 
+        Insertion insert2 = usersDao.write() 
                                 .value(UsersTable.USER_ID, "2222")
                                 .value(UsersTable.IS_CUSTOMER, true)
                                 .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))

@@ -93,85 +93,86 @@ public class DaoImpl implements Dao {
     
 
     @Override
-    public WriteWithUnit write() {
+    public InsertionWithUnit write() {
         return newInsertion(getDefaultContext(),  ImmutableList.of());
     }
     
     
-    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToInsert> valuesToInsert) {
+    protected InsertionWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
         return new WriteQuery(ctx, valuesToInsert);
     }
     
 
 
     
-    private class WriteQuery implements WriteWithUnit {
+    private class WriteQuery implements InsertionWithUnit {
         private final Context ctx;
-        private final ImmutableList<? extends ValueToInsert> valuesToInsert;
+        private final ImmutableList<? extends ValueToMutate> valuesToMutate;
         
-        public WriteQuery(Context ctx, ImmutableList<? extends ValueToInsert> valuesToInsert) {
+        public WriteQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
             this.ctx = ctx;
-            this.valuesToInsert = valuesToInsert;
+            this.valuesToMutate = valuesToMutate;
         }
         
         @Override
-        public final Write entity(Object entity) {
-            return  ctx.readPropertiesAndEnhanceWrite(this, entity);
+        public final Insertion entity(Object entity) {
+            return values(ctx.toValues(entity));
         }
         
+        
         @Override
-        public final  WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
-            WriteWithValues write = this;
-            for (String name : nameValuePairsToAdd.keySet()) {
-                write = value(name, nameValuePairsToAdd.get(name));
+        public final  InsertionWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+            InsertionWithValues write = this;
+            for (String name : additionalvaluesToMutate.keySet()) {
+                write = write.value(name, additionalvaluesToMutate.get(name));
             }
             return write;
         }
         
      
         @Override
-        public WriteWithValues value(String name1, String name2, Object value) {
-            return valuesInternal(ImmutableList.of(new UDTValueToInsert(ImmutableList.of(name1, name2), value)));
+        public InsertionWithValues value(String name1, String name2, Object value) {
+            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
         }
 
 
         @Override
-        public final WriteWithValues value(String name, Object value) {
-            return valuesInternal(ImmutableList.of(new SimpleValueToInsert(name, value)));
+        public final InsertionWithValues value(String name, Object value) {
+            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
         }
 
         
-        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToInsert> additionalValuesToInsert) {
-            ImmutableList<? extends ValueToInsert> newValuesToInsert = ImmutableList.<ValueToInsert>builder().addAll(valuesToInsert).addAll(additionalValuesToInsert).build();
+        protected InsertionWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
             return newInsertion(ctx, newValuesToInsert);
         }
            
         
         @Override
-        public Write withConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withConsistency(consistencyLevel), valuesToInsert);
+        public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
+            return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Write withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToInsert);
+        public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Write ifNotExits() {
-            return newInsertion(ctx.ifNotExits(), valuesToInsert);
+        public Insertion ifNotExits() {
+            return newInsertion(ctx.ifNotExits(), valuesToMutate);
         }
         
         @Override
-        public Write withTtl(Duration ttl) {
-            return newInsertion(ctx.withTtl(ttl), valuesToInsert);
+        public Insertion withTtl(Duration ttl) {
+            return newInsertion(ctx.withTtl(ttl), valuesToMutate);
         }
 
         @Override
-        public Write withWritetime(long writetimeMicrosSinceEpoch) {
-            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToInsert);
+        public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
+            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
         }
         
         @Override
@@ -187,7 +188,7 @@ public class DaoImpl implements Dao {
             Insert insert = insertInto(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToInsert.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
             
             
             if (ctx.getIfNotExits()) {
@@ -226,22 +227,30 @@ public class DaoImpl implements Dao {
                     return null;
                 });
         }
+        
+        @Override
+        public String toString() {
+            return getStatement().toString();
+        }
     }
 
+    
+    
+    
 
   
     
-    private static interface ValueToInsert {
+    private static interface ValueToMutate {
         Object addToStatement(Insert insert);
     }
   
     
-    private static final class SimpleValueToInsert implements ValueToInsert {
+    private static final class SimpleValueToMutate implements ValueToMutate {
         private final String name;
         private final Object value;
         
         @SuppressWarnings("unchecked")
-        public SimpleValueToInsert(String name, Object value) {
+        public SimpleValueToMutate(String name, Object value) {
             this.name = name;
             if (value instanceof Optional) {
                 this.value = ((Optional) value).orElse(null);
@@ -266,11 +275,11 @@ public class DaoImpl implements Dao {
    
     
     
-    private static final class UDTValueToInsert implements ValueToInsert {
+    private static final class UDTValueToMutate implements ValueToMutate {
         private final ImmutableList<String> name;
         private final Object value;
         
-        public UDTValueToInsert(ImmutableList<String> name, Object value) {
+        public UDTValueToMutate(ImmutableList<String> name, Object value) {
             this.name = name;
             this.value = value;
         }

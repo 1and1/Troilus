@@ -15,28 +15,25 @@
  */
 package com.unitedinternet.troilus;
 
-import java.time.Duration;
 
-import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.collect.ImmutableMap;
 
 
 
 
 
 /**
- * Insertion
+ * T
  *
  * @author grro
  */
-public interface Write extends Mutation<Write> {
+public interface ValueModifier<T extends Mutation<?>> {
     
-    Write withConsistency(ConsistencyLevel consistencyLevel);
-
-    Write withTtl(Duration ttl);
-
-    Write withWritetime(long microsSinceEpoch);
+    T value(String name, Object value);
     
-    Write ifNotExits();
+    T values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    
+    T value(String name1, String name2, Object value);
 }
 
 

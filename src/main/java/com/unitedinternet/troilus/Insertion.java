@@ -16,24 +16,16 @@
 package com.unitedinternet.troilus;
 
 
-import com.google.common.collect.ImmutableMap;
-
-
-
 
 
 /**
- * The Insertation
+ * Insertion
  *
  * @author grro
  */
-public interface WriteWithValues extends Write {
-    
-    WriteWithValues value(String name, Object value);
-    
-    WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
-    
-    WriteWithValues value(String name1, String name2, Object value);
+public interface Insertion extends Write<Insertion> {
+
+    Insertion ifNotExits();
 }
 
 

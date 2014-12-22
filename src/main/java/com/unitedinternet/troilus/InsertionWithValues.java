@@ -19,14 +19,15 @@ package com.unitedinternet.troilus;
 
 
 
+
 /**
  * The Insertation
  *
  * @author grro
  */
-public interface WriteWithUnit extends WriteWithValues {
+public interface InsertionWithValues extends Insertion, ValueModifier<InsertionWithValues> {
     
-    Write entity(Object entity);
+ 
 }
 
 
