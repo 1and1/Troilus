@@ -32,6 +32,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
          .value("classification", 4)
+         .ifNotExits()
          .withWritetime(microsSinceEpoch)
          .execute();
 ```
@@ -40,7 +41,6 @@ hotelsDao.writeWithKey("id", "BUP932432")
 Write a row in an entity-oriented way.  
 ``` java
 hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
-         .ifNotExits()
          .execute();
 ```
 The columns will be mapped by using [@Column](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotated fields and setter/getter method. The annotation attribute *name* is supported only. Setting a  @Entity or @Table annotation is not necessary and will be ignored

@@ -50,6 +50,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
                  .value("classification", 4)
+                 .ifNotExits()
                  .execute();
 
        
