@@ -15,6 +15,8 @@
  */
 package com.unitedinternet.troilus;
 
+import com.google.common.collect.ImmutableMap;
+
 
 
 
@@ -25,9 +27,13 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface WriteWithValues extends Write, ValueModifier<WriteWithValues> {
+public interface WriteWithValues extends Insertion {
     
- 
+    WriteWithValues value(String name, Object value);
+    
+    WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    
+    WriteWithValues value(String name1, String name2, Object value);
 }
 
 

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 
 
 
+
 /**
  * The Insertation
  *
@@ -28,6 +29,13 @@ import com.google.common.collect.ImmutableMap;
  */
 public interface UpdateWithValues extends Update {
     
+    UpdateWithValues value(String name, Object value);
+    
+    UpdateWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    
+    UpdateWithValues value(String name1, String name2, Object value);
+
+    /*
     UpdateWithValues removeValue(String name, Object value);
     
     UpdateWithValues addSetValue(String name, Object value);
@@ -40,7 +48,7 @@ public interface UpdateWithValues extends Update {
 
     UpdateWithValues discardListValue(String name, Object value);
 
-    UpdateWithValues putMapValue(String name, Object key, Object value);
+    UpdateWithValues putMapValue(String name, Object key, Object value);*/
 }
 
 

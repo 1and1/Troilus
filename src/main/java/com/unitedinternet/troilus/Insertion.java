@@ -26,15 +26,15 @@ import com.datastax.driver.core.ConsistencyLevel;
  *
  * @author grro
  */
-public interface Write extends Mutation<Write> {
+public interface Insertion extends Mutation<Insertion> {
 
-    Write withConsistency(ConsistencyLevel consistencyLevel);
+    Insertion withConsistency(ConsistencyLevel consistencyLevel);
 
-    Write withTtl(Duration ttl);
+    Insertion withTtl(Duration ttl);
 
-    Write withWritetime(long microsSinceEpoch);
+    Insertion withWritetime(long microsSinceEpoch);
     
-    Write ifNotExits();
+    Insertion ifNotExits();
 }
 
 

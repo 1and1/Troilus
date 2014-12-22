@@ -15,6 +15,9 @@
  */
 package com.unitedinternet.troilus;
 
+import java.time.Duration;
+
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.Clause;
 
 
@@ -26,9 +29,15 @@ import com.datastax.driver.core.querybuilder.Clause;
  *
  * @author grro
  */
-public interface Update  {
+public interface Update extends Mutation<Update> {
+
+    Update withConsistency(ConsistencyLevel consistencyLevel);
+
+    Update withTtl(Duration ttl);
+
+    Update withWritetime(long microsSinceEpoch);
     
-   Update where(Clause... condition);
+    Update onlyIf(Clause... conditions);
 }
 
 

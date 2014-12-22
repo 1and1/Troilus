@@ -115,7 +115,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public final Write entity(Object entity) {
+        public final Insertion entity(Object entity) {
             return values(ctx.toValues(entity));
         }
         
@@ -149,29 +149,29 @@ public class DaoImpl implements Dao {
            
         
         @Override
-        public Write withConsistency(ConsistencyLevel consistencyLevel) {
+        public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Write withSerialConsistency(ConsistencyLevel consistencyLevel) {
+        public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Write ifNotExits() {
+        public Insertion ifNotExits() {
             return newInsertion(ctx.ifNotExits(), valuesToMutate);
         }
         
         @Override
-        public Write withTtl(Duration ttl) {
+        public Insertion withTtl(Duration ttl) {
             return newInsertion(ctx.withTtl(ttl), valuesToMutate);
         }
 
         @Override
-        public Write withWritetime(long writetimeMicrosSinceEpoch) {
+        public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
             return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
         }
         
