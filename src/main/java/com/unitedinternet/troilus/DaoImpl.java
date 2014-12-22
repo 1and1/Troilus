@@ -98,7 +98,7 @@ public class DaoImpl implements Dao {
     }
     
     
-    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
+    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToInsert> valuesToInsert) {
         return new WriteQuery(ctx, valuesToInsert);
     }
     
@@ -107,9 +107,9 @@ public class DaoImpl implements Dao {
     
     private class WriteQuery implements WriteWithUnit {
         private final Context ctx;
-        private final ImmutableList<ValueToInsert> valuesToInsert;
+        private final ImmutableList<? extends ValueToInsert> valuesToInsert;
         
-        public WriteQuery(Context ctx, ImmutableList<ValueToInsert> valuesToInsert) {
+        public WriteQuery(Context ctx, ImmutableList<? extends ValueToInsert> valuesToInsert) {
             this.ctx = ctx;
             this.valuesToInsert = valuesToInsert;
         }
@@ -119,52 +119,31 @@ public class DaoImpl implements Dao {
             return  ctx.readPropertiesAndEnhanceWrite(this, entity);
         }
         
+        @Override
+        public final  WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
+            WriteWithValues write = this;
+            for (String name : nameValuePairsToAdd.keySet()) {
+                write = value(name, nameValuePairsToAdd.get(name));
+            }
+            return write;
+        }
+        
+     
+        @Override
+        public WriteWithValues value(String name1, String name2, Object value) {
+            return valuesInternal(ImmutableList.of(new UDTValueToInsert(ImmutableList.of(name1, name2), value)));
+        }
+
 
         @Override
         public final WriteWithValues value(String name, Object value) {
-            return values(ImmutableList.of(new ValueToInsert(name, value)));
+            return valuesInternal(ImmutableList.of(new SimpleValueToInsert(name, value)));
         }
 
         
-        @Override
-        public final WriteWithValues values(String name1, Object value1, String name2, Object value2) {
-            return values(ImmutableList.of(new ValueToInsert(name1, value1),
-                                           new ValueToInsert(name2, value2)));
-        }
-        
-        @Override
-        public final WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3) {
-            return values(ImmutableList.of(new ValueToInsert(name1, value1),
-                                           new ValueToInsert(name2, value2), 
-                                           new ValueToInsert(name3, value3)));
-        }
-        
-        @Override
-        public final WriteWithValues values(String name1, Object value1,String name2, Object value2, String name3, Object value3,String name4, Object value4) {
-            return values(ImmutableList.of(new ValueToInsert(name1, value1),
-                                           new ValueToInsert(name2, value2), 
-                                           new ValueToInsert(name3, value3), 
-                                           new ValueToInsert(name4, value4)));
-        }
-        
-        @Override
-        public final WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5) {
-            return values(ImmutableList.of(new ValueToInsert(name1, value1),
-                                           new ValueToInsert(name2, value2), 
-                                           new ValueToInsert(name3, value3), 
-                                           new ValueToInsert(name4, value4), 
-                                           new ValueToInsert(name5, value5)));
-        }
-        
-        
-        @Override
-        public final  WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd) {
-            return values(nameValuePairsToAdd.keySet().stream().map(name -> new ValueToInsert(name, nameValuePairsToAdd.get(name))).collect(Immutables.toList()));
-        }
-        
-        
-        protected WriteWithValues values(ImmutableList<ValueToInsert> additionalValuesToInsert) {
-            return newInsertion(ctx, Immutables.merge(valuesToInsert, additionalValuesToInsert));
+        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToInsert> additionalValuesToInsert) {
+            ImmutableList<? extends ValueToInsert> newValuesToInsert = ImmutableList.<ValueToInsert>builder().addAll(valuesToInsert).addAll(additionalValuesToInsert).build();
+            return newInsertion(ctx, newValuesToInsert);
         }
            
         
@@ -208,7 +187,7 @@ public class DaoImpl implements Dao {
             Insert insert = insertInto(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToInsert.forEach(valueToInsert -> { insert.value(valueToInsert.getName(), bindMarker()); values.add(valueToInsert.getValue()); });
+            valuesToInsert.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
             
             
             if (ctx.getIfNotExits()) {
@@ -250,14 +229,19 @@ public class DaoImpl implements Dao {
     }
 
 
+  
     
+    private static interface ValueToInsert {
+        Object addToStatement(Insert insert);
+    }
+  
     
-    private static final class ValueToInsert {
+    private static final class SimpleValueToInsert implements ValueToInsert {
         private final String name;
         private final Object value;
         
         @SuppressWarnings("unchecked")
-        public ValueToInsert(String name, Object value) {
+        public SimpleValueToInsert(String name, Object value) {
             this.name = name;
             if (value instanceof Optional) {
                 this.value = ((Optional) value).orElse(null);
@@ -266,20 +250,37 @@ public class DaoImpl implements Dao {
             }
         }
         
-        public String getName() {
-            return name;
-        }
-        
-        public Object getValue() {
-            return value;
-        }
         
         @Override
         public String toString() {
             return name + "=" + value;
         }
+        
+        
+        public Object addToStatement(Insert insert) {
+            insert.value(name, bindMarker());
+            return value;
+        }
     }
    
+   
+    
+    
+    private static final class UDTValueToInsert implements ValueToInsert {
+        private final ImmutableList<String> name;
+        private final Object value;
+        
+        public UDTValueToInsert(ImmutableList<String> name, Object value) {
+            this.name = name;
+            this.value = value;
+        }
+        
+        public Object addToStatement(Insert insert) {
+            return null;
+        }
+    }
+   
+    
     
     
     ///////////////////////////////

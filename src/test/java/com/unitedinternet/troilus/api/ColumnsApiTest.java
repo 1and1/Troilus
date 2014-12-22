@@ -6,6 +6,7 @@ package com.unitedinternet.troilus.api;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -31,8 +32,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
     public void testSimpleTable() throws Exception {
         DaoManager daoManager = new DaoManager(getSession());
 
-        Dao userDao = daoManager.getDao(UserTable.TABLE)
-                                .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+        Dao usersDao = daoManager.getDao(UsersTable.TABLE)
+                                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         
 
@@ -40,82 +41,84 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        userDao.write()
-               .values(UserTable.USER_ID, "95454", 
-                       UserTable.IS_CUSTOMER, true, 
-                       UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}), 
-                       UserTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"), 
-                       UserTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
-               .execute();
+        usersDao.write()
+                .value(UsersTable.USER_ID, "95454")
+                .value(UsersTable.IS_CUSTOMER, true) 
+                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3})) 
+                .value(UsersTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden")) 
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("34234243", "9345324"))
+                .execute();
         
         
-        userDao.write()
-               .values(UserTable.USER_ID, "8345345", UserTable.PHONE_NUMBERS, ImmutableSet.of("24234244"), UserTable.IS_CUSTOMER, true)
-               .ifNotExits()
-               .withTtl(Duration.ofMinutes(2))
-               .withWritetime(Instant.now().toEpochMilli() * 1000)
-               .execute();
+        usersDao.write()
+                .value(UsersTable.USER_ID, "8345345")
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
+                .value(UsersTable.IS_CUSTOMER, true)
+                .ifNotExits()
+                .withTtl(Duration.ofMinutes(2))
+                .withWritetime(Instant.now().toEpochMilli() * 1000)
+                .execute();
 
         
-        userDao.write()
-               .value(UserTable.USER_ID, "4545")
-               .value(UserTable.IS_CUSTOMER, true)
-               .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
-               .value(UserTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
-               .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-               .ifNotExits()       
-               .execute();
+        usersDao.write()
+                .value(UsersTable.USER_ID, "4545")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
+                .ifNotExits()       
+                .execute();
 
 
         try {   // insert twice!
-            userDao.write()
-                   .value(UserTable.USER_ID, "4545")
-                   .value(UserTable.IS_CUSTOMER, true)
-                   .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
-                   .value(UserTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
-                   .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                   .ifNotExits()       
-                   .execute();
+            usersDao.write()
+                    .value(UsersTable.USER_ID, "4545")
+                    .value(UsersTable.IS_CUSTOMER, true)
+                    .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                    .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
+                    .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
+                    .ifNotExits()       
+                    .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
         } catch (AlreadyExistsConflictException expected) { }  
 
         
         
-        userDao.write()
-               .value(UserTable.USER_ID, "3434343")
-               .value(UserTable.IS_CUSTOMER, Optional.of(true))
-               .value(UserTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
-               .value(UserTable.ADDRESSES, null)
-               .execute();
+        usersDao.write()
+                .value(UsersTable.USER_ID, "3434343")
+                .value(UsersTable.IS_CUSTOMER, Optional.of(true))
+                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                .value(UsersTable.ADDRESSES, null)
+                .execute();
 
 
         
         ////////////////
         // reads
-        Optional<Record> optionalRecord = userDao.readWithKey(UserTable.USER_ID, "4545")
-                                                 .column(UserTable.PICTURE)
-                                                 .column(UserTable.ADDRESSES)
-                                                 .column(UserTable.PHONE_NUMBERS)
-                                                 .execute();
+        Optional<Record> optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "4545")
+                                                  .column(UsersTable.PICTURE)
+                                                  .column(UsersTable.ADDRESSES)
+                                                  .column(UsersTable.PHONE_NUMBERS)
+                                                  .execute();
         Assert.assertTrue(optionalRecord.isPresent());
-        optionalRecord.ifPresent(record -> System.out.println(record.getList(UserTable.ADDRESSES, String.class).get()));
+        optionalRecord.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class).get()));
         System.out.println(optionalRecord.get());
         
         
         
-        Optional<Record> optionalRecord2 = userDao.readWithKey(UserTable.USER_ID, "95454")
-                                                  .columns(ImmutableList.of(UserTable.PICTURE, UserTable.ADDRESSES, UserTable.PHONE_NUMBERS))
-                                                  .execute();
+        Optional<Record> optionalRecord2 = usersDao.readWithKey(UsersTable.USER_ID, "95454")
+                                                   .columns(ImmutableList.of(UsersTable.PICTURE, UsersTable.ADDRESSES, UsersTable.PHONE_NUMBERS))
+                                                   .execute();
         Assert.assertTrue(optionalRecord2.isPresent());
-        optionalRecord2.ifPresent(record -> System.out.println(record.getList(UserTable.ADDRESSES, String.class).get()));
+        optionalRecord2.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class).get()));
 
  
         
-        Optional<Record> optionalRecord3 = userDao.readWithKey(UserTable.USER_ID, "8345345")
-                                                  .column(UserTable.IS_CUSTOMER, true, true)
-                                                  .column(UserTable.PICTURE)
-                                                  .execute();
+        Optional<Record> optionalRecord3 = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                                                   .column(UsersTable.IS_CUSTOMER, true, true)
+                                                   .column(UsersTable.PICTURE)
+                                                   .execute();
         Assert.assertTrue(optionalRecord3.isPresent());
         optionalRecord3.ifPresent(record -> System.out.println(record));
 
@@ -125,13 +128,13 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
         ////////////////
         // deletes
-        userDao.deleteWithKey(UserTable.USER_ID, "4545")
+        usersDao.deleteWithKey(UsersTable.USER_ID, "4545")
                .execute();
         
         // check
-        optionalRecord = userDao.readWithKey(UserTable.USER_ID, "4545")
-                                .column(UserTable.USER_ID)
-                                .execute();
+        optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "4545")
+                                 .column(UsersTable.USER_ID)
+                                 .execute();
         Assert.assertFalse(optionalRecord.isPresent());
         
         
@@ -140,34 +143,73 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // batch inserts
-        Write insert1 = userDao.write()
-                                   .value(UserTable.USER_ID, "14323425")
-                                   .value(UserTable.IS_CUSTOMER, true)
-                                   .value(UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                   .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Write insert1 = usersDao.write()
+                                .value(UsersTable.USER_ID, "14323425")
+                                .value(UsersTable.IS_CUSTOMER, true)
+                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Write insert2 = userDao.write() 
-                                   .values(UserTable.USER_ID, "2222", UserTable.IS_CUSTOMER, true, UserTable.ADDRESSES, ImmutableList.of("berlin", "budapest"), UserTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Write insert2 = usersDao.write() 
+                                .value(UsersTable.USER_ID, "2222")
+                                .value(UsersTable.IS_CUSTOMER, true)
+                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        userDao.write()
-               .value(UserTable.USER_ID, "222222")
-               .value(UserTable.IS_CUSTOMER, true)
-               .value(UserTable.ADDRESSES, ImmutableList.of("hamburg"))
-               .value(UserTable.PHONE_NUMBERS, ImmutableSet.of("945453", "23432234"))
-               .combinedWith(insert1)
-               .combinedWith(insert2)
-               .withLockedBatchType()
-               .execute();
+        usersDao.write()
+                .value(UsersTable.USER_ID, "222222")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.ADDRESSES, ImmutableList.of("hamburg"))
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("945453", "23432234"))
+                .combinedWith(insert1)
+                .combinedWith(insert2)
+                .withLockedBatchType()
+                .execute();
         
         
         // check
-        optionalRecord = userDao.readWithKey(UserTable.USER_ID, "14323425")
-                                .execute();
+        optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "14323425")
+                                 .execute();
         System.out.println(optionalRecord);
         Assert.assertTrue(optionalRecord.isPresent());
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        Record record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                                .execute()
+                                .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertEquals(true, record.getBool(UsersTable.IS_CUSTOMER).get());
+        
+        Iterator<String> phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().iterator();
+        Assert.assertEquals("24234244", phoneNumbers.next());
+        Assert.assertFalse(phoneNumbers.hasNext());
+        
+        
+        // remove value
+        usersDao.write()
+                .value(UsersTable.USER_ID, "8345345")
+                .value(UsersTable.IS_CUSTOMER, null)
+                .execute();
+        
+    
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
 
-    }               
+        phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().iterator();
+        Assert.assertEquals("24234244", phoneNumbers.next());
+        Assert.assertFalse(phoneNumbers.hasNext());
+    }   
+    
 }
 
 

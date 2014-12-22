@@ -14,7 +14,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Result;
-import com.unitedinternet.troilus.api.UserTable;
+import com.unitedinternet.troilus.api.UsersTable;
 
 
 public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
@@ -25,7 +25,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
         DaoManager daoManager = new DaoManager(getSession());
 
 
-        Dao userDao = daoManager.getDao(UserTable.TABLE)
+        Dao userDao = daoManager.getDao(UsersTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
 
         

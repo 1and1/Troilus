@@ -25,27 +25,33 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
     public void testPartialKey() throws Exception {
         DaoManager daoManager = new DaoManager(getSession());
 
-        Dao feeDao = daoManager.getDao(FeeTable.TABLE);
+        Dao feeDao = daoManager.getDao(FeesTable.TABLE);
 
 
         
         // insert
         feeDao.write()
-              .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
+              .value(FeesTable.CUSTOMER_ID, "132")
+              .value(FeesTable.YEAR, 3)
+              .value(FeesTable.AMOUNT, 23433)
               .execute();
         
         feeDao.write()
-              .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
+              .value(FeesTable.CUSTOMER_ID, "132")
+              .value(FeesTable.YEAR, 4)
+              .value(FeesTable.AMOUNT, 1223)
               .execute();
 
         feeDao.write()
-              .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
+              .value(FeesTable.CUSTOMER_ID, "132")
+              .value(FeesTable.YEAR, 8)
+              .value(FeesTable.AMOUNT, 23233)
               .execute();
         
         
         try {
-            feeDao.readWithKey(FeeTable.CUSTOMER_ID, "132")
-                  .columns(FeeTable.ALL)
+            feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132")
+                  .columns(FeesTable.ALL)
                   .execute();
             
             Assert.fail("TooManyResultsException expected");
@@ -53,8 +59,8 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        Result<Record> list = feeDao.readWithCondition(QueryBuilder.eq(FeeTable.CUSTOMER_ID, "132"))
-                                    .column(FeeTable.CUSTOMER_ID)
+        Result<Record> list = feeDao.readWithCondition(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+                                    .column(FeesTable.CUSTOMER_ID)
                                     .execute();
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
@@ -65,15 +71,15 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         ImmutableList.of(list).forEach(record -> System.out.println(record));
         
 
-        Optional<Record> feeRecord = feeDao.readWithKey(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4)
-                                           .columns(FeeTable.ALL)
+        Optional<Record> feeRecord = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+                                           .columns(FeesTable.ALL)
                                            .execute();
         Assert.assertTrue(feeRecord.isPresent());
        
 
         
         list = feeDao.readWithCondition()
-                     .column(FeeTable.CUSTOMER_ID)
+                     .column(FeesTable.CUSTOMER_ID)
                      .withLimit(2)
                      .execute();
         Assert.assertNotNull(list.next());
@@ -83,7 +89,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         list = feeDao.readWithCondition()
-                .column(FeeTable.CUSTOMER_ID)
+                .column(FeesTable.CUSTOMER_ID)
                 .withLimit(3)
                 .execute();
         Assert.assertNotNull(list.next());

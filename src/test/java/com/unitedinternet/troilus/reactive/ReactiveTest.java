@@ -12,7 +12,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.api.FeeTable;
+import com.unitedinternet.troilus.api.FeesTable;
 
 
 public class ReactiveTest extends AbstractCassandraBasedTest {
@@ -22,21 +22,27 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
     public void testAsync() throws Exception {
         DaoManager daoManager = new DaoManager(getSession());
 
-        Dao feeDao = daoManager.getDao(FeeTable.TABLE);
+        Dao feeDao = daoManager.getDao(FeesTable.TABLE);
 
         
         ////////////////
         // inserts
         CompletableFuture<Void> insert1 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 3)
+                                                .value(FeesTable.AMOUNT, 23433)
                                                 .executeAsync();
         
         CompletableFuture<Void> insert2 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 4)
+                                                .value(FeesTable.AMOUNT, 1223)
                                                 .executeAsync();
 
         CompletableFuture<Void> insert3 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 8)
+                                                .value(FeesTable.AMOUNT, 23233)
                                                 .executeAsync();
         
         CompletableFuture.allOf(insert1, insert2, insert3)
@@ -49,7 +55,7 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         MySubscriber<Record> testSubscriber = new MySubscriber<>();
         
         feeDao.readWithCondition()
-              .columns(FeeTable.ALL)
+              .columns(FeesTable.ALL)
               .executeAsync()
               .thenAccept(result -> result.subscribe(testSubscriber));
         

@@ -5,7 +5,7 @@ import com.unitedinternet.troilus.Schema;
 
 
 
-public interface FeeTable  {
+public interface FeesTable  {
    
     public static final String TABLE = "fees";
     

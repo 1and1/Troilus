@@ -15,7 +15,7 @@ import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.TooManyResultsException;
-import com.unitedinternet.troilus.api.FeeTable;
+import com.unitedinternet.troilus.api.FeesTable;
 
 
 public class AsyncTest extends AbstractCassandraBasedTest {
@@ -27,21 +27,27 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         DaoManager daoManager = new DaoManager(getSession());
 
         
-        Dao feeDao = daoManager.getDao(FeeTable.TABLE);
+        Dao feeDao = daoManager.getDao(FeesTable.TABLE);
 
         
         ////////////////
         // inserts
         CompletableFuture<Void> insert1 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 3, FeeTable.AMOUNT, 23433)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 3)
+                                                .value(FeesTable.AMOUNT, 23433)
                                                 .executeAsync();
         
         CompletableFuture<Void> insert2 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4, FeeTable.AMOUNT, 1223)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 4)
+                                                .value(FeesTable.AMOUNT, 1223)
                                                 .executeAsync();
 
         CompletableFuture<Void> insert3 = feeDao.write()
-                                                .values(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 8, FeeTable.AMOUNT, 23233)
+                                                .value(FeesTable.CUSTOMER_ID, "132")
+                                                .value(FeesTable.YEAR, 8)
+                                                .value(FeesTable.AMOUNT, 23233)
                                                 .executeAsync();
         
         CompletableFuture.allOf(insert1, insert2, insert3)
@@ -50,8 +56,8 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
         try {
-            feeDao.readWithKey(FeeTable.CUSTOMER_ID, "132")
-                  .columns(FeeTable.ALL)
+            feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132")
+                  .columns(FeesTable.ALL)
                   .executeAsync()
                   .get();   // waits for completion
             
@@ -65,8 +71,8 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // reads
-        ImmutableList<Record> recs = feeDao.readWithCondition(QueryBuilder.eq(FeeTable.CUSTOMER_ID, "132"))
-                                           .column(FeeTable.CUSTOMER_ID)
+        ImmutableList<Record> recs = feeDao.readWithCondition(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+                                           .column(FeesTable.CUSTOMER_ID)
                                            .executeAsync()
                                            .thenApply(result -> ImmutableList.of(result.next(), result.next(), result.next()))
                                            .get();   // waits for completion
@@ -75,12 +81,12 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
 
-        Record record = feeDao.readWithKey(FeeTable.CUSTOMER_ID, "132", FeeTable.YEAR, 4)
-                              .columns(FeeTable.ALL)
+        Record record = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+                              .columns(FeesTable.ALL)
                               .executeAsync()
                               .thenApply(optionalRecord -> optionalRecord.<RuntimeException>orElseThrow(RuntimeException::new))
                               .get();   // waits for completion;
-        Assert.assertEquals((Integer) 4, record.getInt(FeeTable.YEAR).get());
+        Assert.assertEquals((Integer) 4, record.getInt(FeesTable.YEAR).get());
     }        
 }
 

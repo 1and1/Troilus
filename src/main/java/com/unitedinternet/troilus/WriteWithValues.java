@@ -33,13 +33,7 @@ public interface WriteWithValues extends Write {
     
     WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
     
-    WriteWithValues values(String name1, Object value1, String name2, Object value2);
-    
-    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3);
-    
-    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4);
-    
-    WriteWithValues values(String name1, Object value1, String name2, Object value2, String name3, Object value3, String name4, Object value4, String name5, Object value5);
+    WriteWithValues value(String name1, String name2, Object value);
 }
 
 

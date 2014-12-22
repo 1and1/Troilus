@@ -8,6 +8,8 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Assert;
 import org.junit.Test;
 
+import sun.awt.HToolkit;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +30,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
         
         // create dao
-        Dao hotelsDao = daoManager.getDao(HotelTable.TABLE)
+        Dao hotelsDao = daoManager.getDao(HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
@@ -110,21 +112,13 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         Optional<Hotel> optionalHotel = hotelsDao.readWithKey("id", "BUP45544")
                                                  .entity(Hotel.class)
-                                                 .withConsistency(ConsistencyLevel.ONE)
+                                                 .withConsistency(ConsistencyLevel.LOCAL_ONE)
                                                  .execute();
         optionalHotel.ifPresent(hotel -> System.out.println(hotel.getName()));
         Assert.assertEquals(8, optionalHotel.get().getRoomIds().size());
         
         
-        Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
-                                                   .column("id")
-                                                   .column("name")
-                                                   .execute();
-        optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
-        
-        
-        
-
+       
         Hotel hotel = hotelsDao.readWithKey("id", "BUP932432")
                                .entity(Hotel.class)
                                .executeAsync()
@@ -132,8 +126,54 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                .get();  // waits for completion
         System.out.println(hotel);
 
-        
+
    
+        
+        
+        Record record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
+                                 .column(HotelsTable.NAME)
+                                 .column(HotelsTable.DESCRIPTION)
+                                 .execute()
+                                 .get();
+        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
+        Assert.assertFalse(record.getString(HotelsTable.DESCRIPTION).isPresent());
+        
+        
+        ////////////////
+        // updates
+        
+        hotelsDao.write()
+                 .value(HotelsTable.ID,"BUP932432")
+                 .value(HotelsTable.DESCRIPTION, "The City Budapest is in the business district on the Pest side of the river.")
+                 .execute();
+                 
+        
+        record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
+                          .column(HotelsTable.NAME)
+                          .column(HotelsTable.DESCRIPTION)
+                          .execute()
+                          .get();
+        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
+        Assert.assertEquals("The City Budapest is in the business district on the Pest side of the river.", record.getString(HotelsTable.DESCRIPTION).get());
+               
+        
+        
+        hotelsDao.write()
+                 .value(HotelsTable.ID,"BUP932432")
+                 .value(HotelsTable.DESCRIPTION, null)
+                 .execute();
+        
+
+        record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
+                          .column(HotelsTable.NAME)
+                          .column(HotelsTable.DESCRIPTION)
+                          .execute()
+                          .get();
+        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
+        Assert.assertFalse(record.getString(HotelsTable.DESCRIPTION).isPresent());
+
+        
+        
         
         
         ////////////////
@@ -145,6 +185,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .combinedWith(delition)
                  .withLockedBatchType()
                  .execute();
+        
+        
+        
     }        
 }
 

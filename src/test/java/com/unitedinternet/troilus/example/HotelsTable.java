@@ -4,7 +4,7 @@ import com.unitedinternet.troilus.Schema;
 
 
 
-public interface HotelTable  {
+public interface HotelsTable  {
    
     public static final String TABLE = "hotels";
     

@@ -10,12 +10,13 @@ import org.junit.BeforeClass;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.api.FeeTable;
+import com.unitedinternet.troilus.api.FeesTable;
 import com.unitedinternet.troilus.api.IdsTable;
-import com.unitedinternet.troilus.api.UserTable;
-import com.unitedinternet.troilus.example.AddressType;
-import com.unitedinternet.troilus.example.HotelTable;
-import com.unitedinternet.troilus.example.RoomTable;
+import com.unitedinternet.troilus.api.UsersTable;
+import com.unitedinternet.troilus.example.AddressesType;
+import com.unitedinternet.troilus.example.HotelsTable;
+import com.unitedinternet.troilus.example.RoomsTable;
+import com.unitedinternet.troilus.udt.CustomersTable;
 
 
 
@@ -63,12 +64,13 @@ public abstract class AbstractCassandraBasedTest {
     
     
     private static void createTables(Session session)  {
-        session.execute(AddressType.CREATE_STMT);
-        session.execute(UserTable.CREATE_STMT);
-        session.execute(FeeTable.CREATE_STMT);
+        session.execute(AddressesType.CREATE_STMT);
+        session.execute(UsersTable.CREATE_STMT);
+        session.execute(FeesTable.CREATE_STMT);
         session.execute(IdsTable.CREATE_STMT);
-        session.execute(HotelTable.CREATE_STMT);
-        session.execute(RoomTable.CREATE_STMT);
+        session.execute(HotelsTable.CREATE_STMT);
+        session.execute(RoomsTable.CREATE_STMT);
+        session.execute(CustomersTable.CREATE_STMT);
     }
     
     

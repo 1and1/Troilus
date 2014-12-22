@@ -55,6 +55,62 @@ class EntityMapper {
     }
     
     
+    
+    private static final class PropertiesMapper {
+        private final Class<?> clazz;
+        private final ImmutableSet<BiConsumer<Object, Record>> propertyWriters;
+        
+        private final ImmutableMap<String ,BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders;
+        
+    
+        public PropertiesMapper(ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
+            this.valueReaders = valueReaders;
+            this.propertyWriters = propertyWriters;
+            this.clazz = clazz;
+        }
+     
+      
+        public WriteWithValues write(WriteWithValues writer, Object entity) {
+            
+            for (BiFunction<WriteWithValues, Object, WriteWithValues> valueReader : valueReaders.values()) {
+                writer = valueReader.apply(writer, entity);
+            }
+
+            return writer;
+        }
+
+        
+        @SuppressWarnings("unchecked")
+        public <T> T fromValues(Record record) {
+            try {
+                T persistenceObject = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
+                propertyWriters.forEach(writer -> writer.accept(persistenceObject, record)); 
+                
+                return persistenceObject;
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        
+        private <T> T newInstance(Constructor<T> constructor) {
+            try {
+                return (T) constructor.newInstance();
+            } catch (ReflectiveOperationException e) {
+                constructor.setAccessible(true);
+                try {
+                    return (T) constructor.newInstance();
+                } catch (ReflectiveOperationException e2) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+    
+  
+
+    
+    
     public WriteWithValues readPropertiesAndEnhanceWrite(WriteWithValues writer, Object entity) {
         return getPropertiesMapper(entity.getClass()).write(writer, entity);
     }
@@ -76,21 +132,13 @@ class EntityMapper {
     
     
 
-    private interface PropertiesMapper {
-        WriteWithValues write(WriteWithValues write, Object entity);
-        
-        <T> T fromValues(Record record);
-    }   
-
-    
 
     public interface RecordValueMapper extends BiFunction<Record, String, Optional<Object>> {
         boolean isSupport(Class<?> type);
         
     }
 
-  
-
+ 
     
     private static final class PropertiesMapperLoader extends CacheLoader<Class<?>, PropertiesMapper> {
         private final ImmutableList<RecordValueMapper> recordValueMappers = ImmutableList.of(new OptionalRecordValueMapper(), 
@@ -100,57 +148,7 @@ class EntityMapper {
                                                                                              new DefaultRecordValueMapper());
     
         
-        private static final class PropertiesMapperImpl implements PropertiesMapper {
-            private final Class<?> clazz;
-            private final ImmutableSet<BiConsumer<Object, Record>> propertyWriters;
-            
-            private final ImmutableMap<String ,BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders;
-            
-        
-            public PropertiesMapperImpl(ImmutableMap<String, BiFunction<WriteWithValues, Object, WriteWithValues>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
-                this.valueReaders = valueReaders;
-                this.propertyWriters = propertyWriters;
-                this.clazz = clazz;
-            }
-         
-          
-            @Override
-            public WriteWithValues write(WriteWithValues writer, Object entity) {
-                for (BiFunction<WriteWithValues, Object, WriteWithValues> valueReader : valueReaders.values()) {
-                    writer = valueReader.apply(writer,entity);
-                }
-
-                return writer;
-            }
-            
-            @SuppressWarnings("unchecked")
-            @Override
-            public <T> T fromValues(Record record) {
-                try {
-                    T persistenceObject = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
-                    propertyWriters.forEach(writer -> writer.accept(persistenceObject, record)); 
-                    
-                    return persistenceObject;
-                } catch (ReflectiveOperationException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            
-            
-            private <T> T newInstance(Constructor<T> constructor) {
-                try {
-                    return (T) constructor.newInstance();
-                } catch (ReflectiveOperationException e) {
-                    constructor.setAccessible(true);
-                    try {
-                        return (T) constructor.newInstance();
-                    } catch (ReflectiveOperationException e2) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
-        
+     
         
         
         @Override
@@ -170,7 +168,7 @@ class EntityMapper {
             propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             propertyWriters.addAll(fetchMethodWriters(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
                    
-            return new PropertiesMapperImpl(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
+            return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
         }
         
         

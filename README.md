@@ -20,29 +20,29 @@ Session session = cluster.connect("hotel_reservation_system");
 This Session object will be used to create the DaoManager and fetching Dao's based on the table name. In the examples below the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl) is used
 ``` java
 DaoManager daoManager = new DaoManager(session);
-Dao hotelDao = daoManager.getDao("hotels")
-                         .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+Dao hotelsDao = daoManager.getDao("hotels")
+                          .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 ```
 
 ##Write
 Write a row in a column-oriented way
 ``` java
-hotelDao.write()
-        .value("id", "BUP932432")
-        .value("name", "City Budapest")
-        .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
-        .value("classification", 4)
-        .withWritetime(microsSinceEpoch)
-        .execute();
+hotelsDao.write()
+         .value("id", "BUP932432")
+         .value("name", "City Budapest")
+         .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
+         .value("classification", 4)
+         .withWritetime(microsSinceEpoch)
+         .execute();
 ```
 
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelDao.write()
-        .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
-        .ifNotExits()
-        .execute();
+hotelsDao.write()
+         .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
+         .ifNotExits()
+         .execute();
 ```
 The columns will be mapped by using [@Column](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotated fields and setter/getter method. The annotation attribute *name* is supported only. Setting a  @Entity or @Table annotation is not necessary and will be ignored
 ``` java
@@ -105,8 +105,23 @@ public class Hotel  {
 }
 ```
 
+### updating values
+``` java
+hotelsDao.write()
+         .value("id","BUP932432")
+         .value("description", "The City Budapest is in the business district on the Pest side of the river.")
+         .execute();
+  ```               
 
-
+### removing values
+``` java
+hotelsDao.write()
+         .value("id","BUP932432")
+         .value("description", null)
+         .execute();
+  ```             
+        
+        
 ##Delete
 
 ``` java
@@ -143,7 +158,7 @@ Read a row in a column-oriented way
 Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
                                            .column("id")
                                            .column("name")
-                                           .withConsistency(ConsistencyLevel.ONE)
+                                           .withConsistency(ConsistencyLevel.LOCAL_ONE)
                                            .execute();
 optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
 ```        

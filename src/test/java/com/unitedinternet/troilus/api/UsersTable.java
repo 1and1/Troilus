@@ -4,7 +4,7 @@ import com.unitedinternet.troilus.Schema;
 
 
 
-public interface UserTable  {
+public interface UsersTable  {
    
     public static final String TABLE = "users";
     
