@@ -30,7 +30,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         // create dao
         Dao hotelsDao = daoManager.getDao(HotelsTable.TABLE)
-                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                                  .withSerialConsistency(ConsistencyLevel.SERIAL);
         
         
         ////////////////
@@ -161,13 +162,31 @@ public class HotelTest extends AbstractCassandraBasedTest {
         record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
                           .column(HotelsTable.NAME)
                           .column(HotelsTable.DESCRIPTION)
+                          .column(HotelsTable.CLASSIFICATION)
                           .execute()
                           .get();
+        
+        Assert.assertEquals((Integer) 4, record.getInt(HotelsTable.CLASSIFICATION).get());
         Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
         Assert.assertFalse(record.getString(HotelsTable.DESCRIPTION).isPresent());
+        
+        
+        hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
+                 .value(HotelsTable.CLASSIFICATION, 5)
+                 .onlyIf(QueryBuilder.eq(HotelsTable.CLASSIFICATION, 4))
+                 .withSerialConsistency(ConsistencyLevel.SERIAL)
+                 .execute();
 
-        
-        
+
+        record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
+                .column(HotelsTable.NAME)
+                .column(HotelsTable.DESCRIPTION)
+                .column(HotelsTable.CLASSIFICATION)
+                .execute()
+                .get();
+
+        Assert.assertEquals((Integer) 5, record.getInt(HotelsTable.CLASSIFICATION).get());
+    
         
         
         ////////////////

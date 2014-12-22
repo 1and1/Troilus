@@ -21,7 +21,8 @@ This Session object will be used to create the DaoManager and fetching Dao's bas
 ``` java
 DaoManager daoManager = new DaoManager(session);
 Dao hotelsDao = daoManager.getDao("hotels")
-                          .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+                          .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                          .withSerialConsistency(ConsistencyLevel.SERIAL);
 ```
 
 ##Write
@@ -116,6 +117,15 @@ hotelsDao.writeWithKey("id","BUP932432")
          .value("description", null)
          .execute();
   ```             
+
+
+### conditional value update 
+``` java
+hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
+         .value(HotelsTable.CLASSIFICATION, 5)
+	     .onlyIf(QueryBuilder.eq(HotelsTable.CLASSIFICATION, 4))
+         .execute();
+  ```               
         
         
 ##Delete

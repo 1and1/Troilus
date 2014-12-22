@@ -60,4 +60,6 @@ public interface Dao {
     
     
     Dao withConsistency(ConsistencyLevel consistencyLevel);
+    
+    Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
 }
