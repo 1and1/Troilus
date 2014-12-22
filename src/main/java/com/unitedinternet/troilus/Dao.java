@@ -25,8 +25,7 @@ import com.datastax.driver.core.querybuilder.Clause;
 
 public interface Dao {
 
-    InsertionWithUnit write();
-
+    WriteWithUnit write();
     
     SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
     

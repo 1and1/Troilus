@@ -15,19 +15,26 @@
  */
 package com.unitedinternet.troilus;
 
+import java.time.Duration;
 
-
+import com.datastax.driver.core.ConsistencyLevel;
 
 
 
 /**
- * The Insertation
+ * Insertion
  *
  * @author grro
  */
-public interface InsertionWithValues extends Insertion, ValueModifier<InsertionWithValues> {
+public interface Write extends Mutation<Write> {
+
+    Write withConsistency(ConsistencyLevel consistencyLevel);
+
+    Write withTtl(Duration ttl);
+
+    Write withWritetime(long microsSinceEpoch);
     
- 
+    Write ifNotExits();
 }
 
 

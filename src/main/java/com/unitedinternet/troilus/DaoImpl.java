@@ -93,19 +93,19 @@ public class DaoImpl implements Dao {
     
 
     @Override
-    public InsertionWithUnit write() {
+    public WriteWithUnit write() {
         return newInsertion(getDefaultContext(),  ImmutableList.of());
     }
     
     
-    protected InsertionWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
+    protected WriteWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
         return new WriteQuery(ctx, valuesToInsert);
     }
     
 
 
     
-    private class WriteQuery implements InsertionWithUnit {
+    private class WriteQuery implements WriteWithUnit {
         private final Context ctx;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
         
@@ -115,14 +115,14 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public final Insertion entity(Object entity) {
+        public final Write entity(Object entity) {
             return values(ctx.toValues(entity));
         }
         
         
         @Override
-        public final  InsertionWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
-            InsertionWithValues write = this;
+        public final  WriteWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+            WriteWithValues write = this;
             for (String name : additionalvaluesToMutate.keySet()) {
                 write = write.value(name, additionalvaluesToMutate.get(name));
             }
@@ -131,47 +131,47 @@ public class DaoImpl implements Dao {
         
      
         @Override
-        public InsertionWithValues value(String name1, String name2, Object value) {
+        public WriteWithValues value(String name1, String name2, Object value) {
             return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
         }
 
 
         @Override
-        public final InsertionWithValues value(String name, Object value) {
+        public final WriteWithValues value(String name, Object value) {
             return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
         }
 
         
-        protected InsertionWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
+        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
             ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
             return newInsertion(ctx, newValuesToInsert);
         }
            
         
         @Override
-        public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
+        public Write withConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
+        public Write withSerialConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
         }
         
         
         @Override
-        public Insertion ifNotExits() {
+        public Write ifNotExits() {
             return newInsertion(ctx.ifNotExits(), valuesToMutate);
         }
         
         @Override
-        public Insertion withTtl(Duration ttl) {
+        public Write withTtl(Duration ttl) {
             return newInsertion(ctx.withTtl(ttl), valuesToMutate);
         }
 
         @Override
-        public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
+        public Write withWritetime(long writetimeMicrosSinceEpoch) {
             return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
         }
         
