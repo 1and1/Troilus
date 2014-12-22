@@ -29,8 +29,7 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        customersDao.write()
-                    .value(CustomersTable.ID, "95453543534")
+        customersDao.writeWithKey(CustomersTable.ID, "95453543534")
                     .value("name", "peter")
       //              .value("address", "street", "brauerstrasse")
                     .execute();

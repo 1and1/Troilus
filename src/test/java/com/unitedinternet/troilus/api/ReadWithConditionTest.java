@@ -35,8 +35,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
     
         
         // insert
-        userDao.write()
-               .value(UsersTable.USER_ID, "342342")
+        userDao.writeWithKey(UsersTable.USER_ID, "342342")
                .value(UsersTable.IS_CUSTOMER, true)
                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3}))
                .value(UsersTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden"))
@@ -44,8 +43,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
                .execute();
         
         
-        userDao.write()
-               .value(UsersTable.USER_ID, "2334233")
+        userDao.writeWithKey(UsersTable.USER_ID, "2334233")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
                .ifNotExits()
@@ -54,8 +52,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
                .execute();
         
         
-        userDao.write()
-               .value(UsersTable.USER_ID, "935434")
+        userDao.writeWithKey(UsersTable.USER_ID, "935434")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
                .ifNotExits()
@@ -65,8 +62,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
 
 
         
-        userDao.write()
-               .value(UsersTable.USER_ID, "2323")
+        userDao.writeWithKey(UsersTable.USER_ID, "2323")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
                .ifNotExits()

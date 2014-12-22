@@ -15,15 +15,32 @@
  */
 package com.unitedinternet.troilus;
 
+import java.time.Duration;
+
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.querybuilder.Clause;
 
 
 
-public class AlreadyExistsConflictException extends RuntimeException {
 
-    private static final long serialVersionUID = 4270476820995364200L;
 
-    public AlreadyExistsConflictException(String message) {
-        super(message);
-    }
+/**
+ * Insertion
+ *
+ * @author grro
+ */
+public interface Write extends Mutation<Write> {
 
+    Write withConsistency(ConsistencyLevel consistencyLevel);
+
+    Write withTtl(Duration ttl);
+
+    Write withWritetime(long microsSinceEpoch);
+    
+    Update onlyIf(Clause... conditions);
+    
+    Insertion ifNotExits();
 }
+
+
+

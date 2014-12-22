@@ -97,10 +97,7 @@ public class Context  {
         return new Context(session, entityMapper, table, executionSpec.withWritetime(microsSinceEpoch));        
     }
 
-    public Context ifNotExits() {
-        return new Context(session, entityMapper, table, executionSpec.ifNotExits());        
-    }
-    
+
     public Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
     }
@@ -114,10 +111,6 @@ public class Context  {
         return executionSpec.getTtl();
     }
 
-    public boolean getIfNotExits() {
-        return executionSpec.getIfNotExits();
-    }
-    
   
     
     protected PreparedStatement prepare(BuiltStatement statement) {
@@ -169,27 +162,23 @@ public class Context  {
         private final Optional<ConsistencyLevel> serialConsistencyLevel;
         private final Optional<Duration> ttl;
         private final Optional<Long> writetimeMicrosSinceEpoch;
-        private final boolean ifNotExists;
     
         public ExecutionSpec() {
             this(Optional.empty(), 
                  Optional.empty(),
                  Optional.empty(),
-                 Optional.empty(), 
-                 false);
+                 Optional.empty());
         }
     
         
         public ExecutionSpec(Optional<ConsistencyLevel> consistencyLevel, 
                              Optional<ConsistencyLevel> serialConsistencyLevel,
                              Optional<Duration> ttl,
-                             Optional<Long> writetimeMicrosSinceEpoch,
-                             boolean ifNotExists) {
+                             Optional<Long> writetimeMicrosSinceEpoch) {
             this.consistencyLevel = consistencyLevel;
             this.serialConsistencyLevel = serialConsistencyLevel;
             this.ttl = ttl;
             this.writetimeMicrosSinceEpoch = writetimeMicrosSinceEpoch;
-            this.ifNotExists = ifNotExists;
         }
         
     
@@ -197,8 +186,7 @@ public class Context  {
             return new ExecutionSpec(Optional.of(consistencyLevel),
                                      this.serialConsistencyLevel,
                                      this.ttl,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.ifNotExists);
+                                     this.writetimeMicrosSinceEpoch);
         }
     
         
@@ -207,8 +195,7 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      Optional.of(consistencyLevel),
                                      this.ttl,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.ifNotExists);
+                                     this.writetimeMicrosSinceEpoch);
         }
     
         
@@ -216,8 +203,7 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      Optional.of(ttl),
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.ifNotExists);
+                                     this.writetimeMicrosSinceEpoch);
         }
     
         
@@ -225,18 +211,9 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      this.ttl,
-                                     Optional.of(microsSinceEpoch),
-                                     this.ifNotExists);
+                                     Optional.of(microsSinceEpoch));
         }
-    
-        ExecutionSpec ifNotExits() {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,                    
-                                     this.ttl,
-                                     this.writetimeMicrosSinceEpoch,
-                                     true);
-        }
-    
+
         
         public Optional<ConsistencyLevel> getConsistencyLevel() {
             return consistencyLevel;
@@ -256,15 +233,7 @@ public class Context  {
         public Optional<Long> getWritetime() {
             return writetimeMicrosSinceEpoch;
         }
-        
-        public boolean getIfNotExits() {
-            return ifNotExists;
-        }
     }
-    
-    
-    
-  
 }
 
 

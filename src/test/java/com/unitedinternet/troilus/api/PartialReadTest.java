@@ -30,21 +30,15 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
 
         
         // insert
-        feeDao.write()
-              .value(FeesTable.CUSTOMER_ID, "132")
-              .value(FeesTable.YEAR, 3)
+        feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 3)
               .value(FeesTable.AMOUNT, 23433)
               .execute();
         
-        feeDao.write()
-              .value(FeesTable.CUSTOMER_ID, "132")
-              .value(FeesTable.YEAR, 4)
+        feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
               .value(FeesTable.AMOUNT, 1223)
               .execute();
 
-        feeDao.write()
-              .value(FeesTable.CUSTOMER_ID, "132")
-              .value(FeesTable.YEAR, 8)
+        feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 8)
               .value(FeesTable.AMOUNT, 23233)
               .execute();
         

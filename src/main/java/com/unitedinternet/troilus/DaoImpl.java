@@ -91,34 +91,34 @@ public class DaoImpl implements Dao {
     ///////////////////////////////
     // Write
     
+    
+    public Insertion writeEntity(Object entity) {
+        return newInsertion(getDefaultContext(), ImmutableList.of()).values(getDefaultContext().toValues(entity));
+    }
 
-    @Override
-    public InsertWithUnit write() {
-        return newInsertion(getDefaultContext(),  ImmutableList.of());
+    private InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+        return newInsertion(ctx, valuesToMutate, false);
+    }
+ 
+    protected InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists) {
+        return new InsertQuery(ctx, valuesToMutate, ifNotExists);
     }
     
-    
-    protected InsertWithUnit newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new InsertQuery(ctx, valuesToInsert);
-    }
-    
 
 
     
-    private class InsertQuery implements InsertWithUnit {
+    private class InsertQuery implements InsertWithValues {
         private final Context ctx;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
+        private final boolean ifNotExists;
+
         
-        public InsertQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+        public InsertQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists) {
             this.ctx = ctx;
             this.valuesToMutate = valuesToMutate;
+            this.ifNotExists = ifNotExists;
         }
-        
-        @Override
-        public final Insertion entity(Object entity) {
-            return values(ctx.toValues(entity));
-        }
-        
+                
         
         @Override
         public final  InsertWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
@@ -144,35 +144,35 @@ public class DaoImpl implements Dao {
         
         protected InsertWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
             ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
-            return newInsertion(ctx, newValuesToInsert);
+            return newInsertion(ctx, newValuesToInsert, ifNotExists);
         }
            
         
         @Override
         public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate);
+            return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate, ifNotExists);
         }
         
         
         @Override
         public Insertion withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
+            return newInsertion(ctx.withSerialConsistency(consistencyLevel), valuesToMutate, ifNotExists);
         }
         
         
         @Override
         public Insertion ifNotExits() {
-            return newInsertion(ctx.ifNotExits(), valuesToMutate);
+            return newInsertion(ctx, valuesToMutate, true);
         }
         
         @Override
         public Insertion withTtl(Duration ttl) {
-            return newInsertion(ctx.withTtl(ttl), valuesToMutate);
+            return newInsertion(ctx.withTtl(ttl), valuesToMutate, ifNotExists);
         }
 
         @Override
         public Insertion withWritetime(long writetimeMicrosSinceEpoch) {
-            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
+            return newInsertion(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate, ifNotExists);
         }
         
         @Override
@@ -191,7 +191,7 @@ public class DaoImpl implements Dao {
             valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
             
             
-            if (ctx.getIfNotExits()) {
+            if (ifNotExists) {
                 insert.ifNotExists();
                 ctx.getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
             }
@@ -218,10 +218,10 @@ public class DaoImpl implements Dao {
         @Override
         public CompletableFuture<Void> executeAsync() {
             return ctx.performAsync(getStatement()).thenApply(resultSet -> {
-                    if (ctx.getIfNotExits()) {
+                    if (ifNotExists) {
                         // check cas result column '[applied]'
                         if (!resultSet.wasApplied()) {
-                            throw new AlreadyExistsConflictException("duplicated entry");  
+                            throw new IfConditionException("duplicated entry");  
                         }
                     } 
                     return null;
@@ -235,26 +235,33 @@ public class DaoImpl implements Dao {
     }
 
     
-    
 
-    protected UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new UpdateQuery(ctx, valuesToInsert);
+    private UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
+        return new UpdateQuery(ctx, keys, valuesToInsert, ImmutableList.of());
+    }
+
+    protected UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert, ImmutableList<Clause> ifConditions) {
+        return new UpdateQuery(ctx, keys, valuesToInsert, ifConditions);
     }
 
     
     private class UpdateQuery implements UpdateWithValues {
         private final Context ctx;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
+        private final ImmutableMap<String, Object> keys;
+        private final ImmutableList<Clause> ifConditions;
         
-        public UpdateQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+        public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
             this.ctx = ctx;
             this.valuesToMutate = valuesToMutate;
+            this.keys = keys;
+            this.ifConditions = ifConditions;
         }
         
         
         @Override
         public Update onlyIf(Clause... conditions) {
-            return null;
+            return newUpdate(ctx, keys, valuesToMutate, ImmutableList.copyOf(conditions)) ;
         }
         
         @Override
@@ -281,30 +288,30 @@ public class DaoImpl implements Dao {
         
         protected UpdateWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
             ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
-            return newUpdate(ctx, newValuesToInsert);
+            return newUpdate(ctx, keys, newValuesToInsert, ifConditions);
         }
            
         
         @Override
         public Update withConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withConsistency(consistencyLevel), valuesToMutate);
+            return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
         }
         
         
         @Override
         public Update withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withSerialConsistency(consistencyLevel), valuesToMutate);
+            return newUpdate(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
         }
         
         
         @Override
         public Update withTtl(Duration ttl) {
-            return newUpdate(ctx.withTtl(ttl), valuesToMutate);
+            return newUpdate(ctx.withTtl(ttl), keys, valuesToMutate, ifConditions);
         }
 
         @Override
         public Update withWritetime(long writetimeMicrosSinceEpoch) {
-            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate);
+            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate, ifConditions);
         }
         
         @Override
@@ -317,23 +324,21 @@ public class DaoImpl implements Dao {
         public Statement getStatement() {
             
             // statement
-            Insert insert = insertInto(ctx.getTable());
+            com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(update)));
             
+            keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
-            if (ctx.getIfNotExits()) {
-                insert.ifNotExists();
-                ctx.getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
-            }
-
+            ifConditions.forEach(condition -> update.onlyIf(condition));
+   
             ctx.getTtl().ifPresent(ttl-> {
-                                            insert.using(QueryBuilder.ttl(bindMarker()));
+                                            update.using(QueryBuilder.ttl(bindMarker()));
                                             values.add((int) ttl.getSeconds());
                                          });
 
-            PreparedStatement stmt = ctx.prepare(insert);
+            PreparedStatement stmt = ctx.prepare(update);
             return stmt.bind(values.toArray());
         }
         
@@ -350,14 +355,166 @@ public class DaoImpl implements Dao {
         @Override
         public CompletableFuture<Void> executeAsync() {
             return ctx.performAsync(getStatement()).thenApply(resultSet -> {
-                    if (ctx.getIfNotExits()) {
-                        // check cas result column '[applied]'
-                        if (!resultSet.wasApplied()) {
-                            throw new AlreadyExistsConflictException("duplicated entry");  
-                        }
-                    } 
-                    return null;
-                });
+                if (!ifConditions.isEmpty()) {
+                    // check cas result column '[applied]'
+                    if (!resultSet.wasApplied()) {
+                        throw new IfConditionException("if condition does not match");  
+                    }
+                } 
+                return null;
+            });
+
+        }
+        
+        @Override
+        public String toString() {
+            return getStatement().toString();
+        }
+    }
+
+    
+    
+
+    
+    @Override
+    public WriteWithValues writeWithKey(String keyName, Object keyValue) {
+        return newWrite(getDefaultContext(), ImmutableMap.of(keyName, keyValue), ImmutableList.of());
+    }
+    
+    @Override
+    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), ImmutableList.of());
+    }
+    
+    @Override
+    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), ImmutableList.of());
+    }
+
+
+    @Override
+    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), ImmutableList.of());
+    }
+
+    
+    protected WriteWithValues newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
+        return new WriteQuery(ctx, keys, valuesToInsert);
+    }
+
+    
+    private class WriteQuery implements WriteWithValues {
+        private final Context ctx;
+        private final ImmutableMap<String, Object> keys;
+        private final ImmutableList<? extends ValueToMutate> valuesToMutate;
+        
+        public WriteQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+            this.ctx = ctx;
+            this.keys = keys;
+            this.valuesToMutate = valuesToMutate;
+        }
+        
+        
+        @Override
+        public Update onlyIf(Clause... conditions) {
+            return newUpdate(ctx, keys, valuesToMutate).onlyIf(conditions); 
+        }
+
+        @Override
+        public Insertion ifNotExits() {
+            return newInsertion(ctx, valuesToMutate, false).values(keys).ifNotExits();
+        }
+        
+        @Override
+        public final  WriteWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+            WriteWithValues write = this;
+            for (String name : additionalvaluesToMutate.keySet()) {
+                write = write.value(name, additionalvaluesToMutate.get(name));
+            }
+            return write;
+        }
+        
+     
+        @Override
+        public WriteWithValues value(String name1, String name2, Object value) {
+            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
+        }
+
+
+        @Override
+        public final WriteWithValues value(String name, Object value) {
+            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
+        }
+
+        
+        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
+            return newWrite(ctx, keys, newValuesToInsert);
+        }
+           
+        
+        @Override
+        public Write withConsistency(ConsistencyLevel consistencyLevel) {
+            return newWrite(ctx.withConsistency(consistencyLevel), keys, valuesToMutate);
+        }
+        
+        
+        @Override
+        public Write withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return newWrite(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate);
+        }
+        
+        
+        @Override
+        public Write withTtl(Duration ttl) {
+            return newWrite(ctx.withTtl(ttl), keys, valuesToMutate);
+        }
+
+        @Override
+        public Write withWritetime(long writetimeMicrosSinceEpoch) {
+            return newWrite(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate);
+        }
+        
+        @Override
+        public BatchMutation combinedWith(Mutation other) {
+            return newBatchMutation(ctx, Type.LOGGED, ImmutableList.of(this, other));
+        }
+      
+        
+        @Override
+        public Statement getStatement() {
+            
+            // statement
+            com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
+            
+            List<Object> values = Lists.newArrayList();
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(update)));
+            
+            keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
+            
+    
+            ctx.getTtl().ifPresent(ttl-> {
+                                            update.using(QueryBuilder.ttl(bindMarker()));
+                                            values.add((int) ttl.getSeconds());
+                                         });
+
+            PreparedStatement stmt = ctx.prepare(update);
+            return stmt.bind(values.toArray());
+        }
+        
+        
+        public Void execute() {
+            try {
+                return executeAsync().get(10000, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            } 
+        }
+        
+        
+        @Override
+        public CompletableFuture<Void> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> null);
         }
         
         @Override
@@ -374,6 +531,8 @@ public class DaoImpl implements Dao {
     
     private static interface ValueToMutate {
         Object addToStatement(Insert insert);
+        
+        Object addToStatement(com.datastax.driver.core.querybuilder.Update update);
     }
   
     
@@ -402,6 +561,12 @@ public class DaoImpl implements Dao {
             insert.value(name, bindMarker());
             return value;
         }
+        
+        @Override
+        public Object addToStatement(com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(name, bindMarker()));
+            return value;
+        }
     }
    
    
@@ -417,6 +582,11 @@ public class DaoImpl implements Dao {
         }
         
         public Object addToStatement(Insert insert) {
+            return null;
+        }
+        
+        @Override
+        public Object addToStatement(com.datastax.driver.core.querybuilder.Update update) {
             return null;
         }
     }

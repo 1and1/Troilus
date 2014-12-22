@@ -27,8 +27,7 @@ Dao hotelsDao = daoManager.getDao("hotels")
 ##Write
 Write a row in a column-oriented way
 ``` java
-hotelsDao.write()
-         .value("id", "BUP932432")
+hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
          .value("classification", 4)
@@ -39,8 +38,7 @@ hotelsDao.write()
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelsDao.write()
-         .entity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
+hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
          .ifNotExits()
          .execute();
 ```
@@ -107,16 +105,14 @@ public class Hotel  {
 
 ### updating values
 ``` java
-hotelsDao.write()
-         .value("id","BUP932432")
+hotelsDao.writeWithKey("id","BUP932432")
          .value("description", "The City Budapest is in the business district on the Pest side of the river.")
          .execute();
   ```               
 
 ### removing values
 ``` java
-hotelsDao.write()
-         .value("id","BUP932432")
+hotelsDao.writeWithKey("id","BUP932432")
          .value("description", null)
          .execute();
   ```             

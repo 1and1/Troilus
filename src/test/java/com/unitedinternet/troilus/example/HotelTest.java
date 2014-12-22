@@ -35,19 +35,17 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        hotelsDao.write()
-                 .entity(new Hotel("BUP45544", 
-                                   "Corinthia Budapest",
-                                   ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
-                                   Optional.of(5), 
-                                   Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
+        hotelsDao.writeEntity(new Hotel("BUP45544", 
+                                        "Corinthia Budapest",
+                                        ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
+                                        Optional.of(5), 
+                                        Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
                  .ifNotExits()
                  .withConsistency(ConsistencyLevel.QUORUM)      
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
                  .execute();
 
-        hotelsDao.write()
-                 .value("id", "BUP932432")
+        hotelsDao.writeWithKey("id", "BUP932432")
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
                  .value("classification", 4)
@@ -55,12 +53,11 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
        
         // insert async
-        CompletableFuture<Void> future = hotelsDao.write()
-                                                  .entity(new Hotel("BUP14334", 
-                                                                    "Richter Panzio",
-                                                                    ImmutableSet.of("1", "2", "3"),
-                                                                    Optional.of(2), 
-                                                                    Optional.empty()))
+        CompletableFuture<Void> future = hotelsDao.writeEntity(new Hotel("BUP14334", 
+                                                                         "Richter Panzio",
+                                                                         ImmutableSet.of("1", "2", "3"),
+                                                                         Optional.of(2), 
+                                                                         Optional.empty()))
                                                   .withConsistency(ConsistencyLevel.ANY)
                                                   .executeAsync();
         future.get(); // waits for completion
@@ -141,8 +138,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         ////////////////
         // updates
         
-        hotelsDao.write()
-                 .value(HotelsTable.ID,"BUP932432")
+        hotelsDao.writeWithKey(HotelsTable.ID,"BUP932432")
                  .value(HotelsTable.DESCRIPTION, "The City Budapest is in the business district on the Pest side of the river.")
                  .execute();
                  
@@ -157,8 +153,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                
         
         
-        hotelsDao.write()
-                 .value(HotelsTable.ID,"BUP932432")
+        hotelsDao.writeWithKey(HotelsTable.ID,"BUP932432")
                  .value(HotelsTable.DESCRIPTION, null)
                  .execute();
         

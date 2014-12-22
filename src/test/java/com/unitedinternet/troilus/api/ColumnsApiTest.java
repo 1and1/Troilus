@@ -13,13 +13,15 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
-import com.unitedinternet.troilus.AlreadyExistsConflictException;
+import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Insertion;
+import com.unitedinternet.troilus.Mutation;
 import com.unitedinternet.troilus.Record;
 
 
@@ -41,8 +43,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        usersDao.write()
-                .value(UsersTable.USER_ID, "95454")
+        usersDao.writeWithKey(UsersTable.USER_ID, "95454")
                 .value(UsersTable.IS_CUSTOMER, true) 
                 .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3})) 
                 .value(UsersTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden")) 
@@ -50,8 +51,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute();
         
         
-        usersDao.write()
-                .value(UsersTable.USER_ID, "8345345")
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                 .value(UsersTable.IS_CUSTOMER, true)
                 .ifNotExits()
@@ -60,8 +60,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute();
 
         
-        usersDao.write()
-                .value(UsersTable.USER_ID, "4545")
+        usersDao.writeWithKey(UsersTable.USER_ID, "4545")
                 .value(UsersTable.IS_CUSTOMER, true)
                 .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                 .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
@@ -71,8 +70,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
 
         try {   // insert twice!
-            usersDao.write()
-                    .value(UsersTable.USER_ID, "4545")
+            usersDao.writeWithKey(UsersTable.USER_ID, "4545")
                     .value(UsersTable.IS_CUSTOMER, true)
                     .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                     .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
@@ -81,12 +79,11 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
-        } catch (AlreadyExistsConflictException expected) { }  
+        } catch (IfConditionException expected) { }  
 
         
         
-        usersDao.write()
-                .value(UsersTable.USER_ID, "3434343")
+        usersDao.writeWithKey(UsersTable.USER_ID, "3434343")
                 .value(UsersTable.IS_CUSTOMER, Optional.of(true))
                 .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                 .value(UsersTable.ADDRESSES, null)
@@ -143,21 +140,18 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // batch inserts
-        Insertion insert1 = usersDao.write()
-                                .value(UsersTable.USER_ID, "14323425")
-                                .value(UsersTable.IS_CUSTOMER, true)
-                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Mutation<?> insert1 = usersDao.writeWithKey(UsersTable.USER_ID, "14323425")
+                                      .value(UsersTable.IS_CUSTOMER, true)
+                                      .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                      .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Insertion insert2 = usersDao.write() 
-                                .value(UsersTable.USER_ID, "2222")
-                                .value(UsersTable.IS_CUSTOMER, true)
-                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Mutation<?> insert2 = usersDao.writeWithKey(UsersTable.USER_ID, "2222")
+                                      .value(UsersTable.IS_CUSTOMER, true)
+                                      .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                      .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        usersDao.write()
-                .value(UsersTable.USER_ID, "222222")
+        usersDao.writeWithKey(UsersTable.USER_ID, "222222")
                 .value(UsersTable.IS_CUSTOMER, true)
                 .value(UsersTable.ADDRESSES, ImmutableList.of("hamburg"))
                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("945453", "23432234"))
@@ -193,8 +187,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         // remove value
-        usersDao.write()
-                .value(UsersTable.USER_ID, "8345345")
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
                 .value(UsersTable.IS_CUSTOMER, null)
                 .execute();
         
@@ -217,12 +210,30 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////////
         // conditional update
-    /*    
-        usersDao.write()
-                .value(UsersTable.USER_ID, "2222")
-                .value(UsersTable.IS_CUSTOMER, true)
+
+        
+        try {
+            usersDao.writeWithKey(UsersTable.USER_ID, "2222")
+                    .value(UsersTable.ADDRESSES, ImmutableList.of("nürnberg"))
+                    .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
+                    .withSerialConsistency(ConsistencyLevel.SERIAL)
+                    .execute();
+            Assert.fail("IfConditionException expected");
+        } catch (IfConditionException expected) {  }
+
+        record = usersDao.readWithKey(UsersTable.USER_ID, "2222")
+                .execute()
+                .get();
+        
+        Iterator<String> addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("berlin", addresses.next());
+        Assert.assertEquals("budapest", addresses.next());
+        Assert.assertFalse(addresses.hasNext());        
+
+        
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "2222")
                 .value(UsersTable.ADDRESSES, ImmutableList.of("nürnberg"))
-                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"))
                 .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, true))
                 .execute();
 
@@ -230,11 +241,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        Iterator<String> addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
         Assert.assertEquals("nürnberg", addresses.next());
-        Assert.assertFalse(addresses.hasNext());
-*/
-        
+        Assert.assertFalse(addresses.hasNext());        
     }    
 }
 

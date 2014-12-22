@@ -18,16 +18,12 @@ package com.unitedinternet.troilus;
 
 
 
+public class IfConditionException extends RuntimeException {
 
-/**
- * The Insertation
- *
- * @author grro
- */
-public interface InsertWithUnit extends InsertWithValues {
-    
-    Insertion entity(Object entity);
+    private static final long serialVersionUID = 4270476820995364200L;
+
+    public IfConditionException(String message) {
+        super(message);
+    }
+
 }
-
-
-

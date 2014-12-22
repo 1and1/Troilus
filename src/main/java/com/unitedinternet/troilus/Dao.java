@@ -25,7 +25,16 @@ import com.datastax.driver.core.querybuilder.Clause;
 
 public interface Dao {
 
-    InsertWithUnit write();
+    Insertion writeEntity(Object entity);
+   
+    WriteWithValues writeWithKey(String keyName, Object keyValue);
+
+    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    
+    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    
+    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+
     
     SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
     
@@ -48,6 +57,7 @@ public interface Dao {
     
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
+    
     
     Dao withConsistency(ConsistencyLevel consistencyLevel);
 }
