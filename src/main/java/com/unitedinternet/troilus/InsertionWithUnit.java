@@ -15,8 +15,6 @@
  */
 package com.unitedinternet.troilus;
 
-import com.google.common.collect.ImmutableMap;
-
 
 
 
@@ -26,21 +24,10 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author grro
  */
-public interface UpdateWithValues extends Update {
+public interface InsertionWithUnit extends InsertionWithValues {
     
-    UpdateWithValues removeValue(String name, Object value);
-    
-    UpdateWithValues addSetValue(String name, Object value);
-    
-    UpdateWithValues removeSetValue(String name, Object value);
-
-    UpdateWithValues appendListValue(String name, Object value);
-
-    UpdateWithValues prependListValue(String name, Object value);
-
-    UpdateWithValues discardListValue(String name, Object value);
-
-    UpdateWithValues putMapValue(String name, Object key, Object value);
+    Insertion entity(Object entity);
 }
+
 
 

@@ -25,6 +25,7 @@ import java.util.concurrent.ForkJoinPool;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
@@ -35,6 +36,7 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 
  
 
@@ -69,8 +71,8 @@ public class Context  {
     }
 
 
-    protected WriteWithValues readPropertiesAndEnhanceWrite(WriteWithValues write, Object entity) {
-        return entityMapper.readPropertiesAndEnhanceWrite(write, entity);
+    protected ImmutableMap<String, Object> toValues(Object entity) {
+        return entityMapper.toValues(entity);
     }
 
     

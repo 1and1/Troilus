@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Assert;
 import org.junit.Test;
 
-import sun.awt.HToolkit;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;

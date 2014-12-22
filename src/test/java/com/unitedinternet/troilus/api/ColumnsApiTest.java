@@ -19,7 +19,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.AlreadyExistsConflictException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Write;
+import com.unitedinternet.troilus.Insertion;
 import com.unitedinternet.troilus.Record;
 
 
@@ -143,14 +143,14 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // batch inserts
-        Write insert1 = usersDao.write()
+        Insertion insert1 = usersDao.write()
                                 .value(UsersTable.USER_ID, "14323425")
                                 .value(UsersTable.IS_CUSTOMER, true)
                                 .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Write insert2 = usersDao.write() 
+        Insertion insert2 = usersDao.write() 
                                 .value(UsersTable.USER_ID, "2222")
                                 .value(UsersTable.IS_CUSTOMER, true)
                                 .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
@@ -208,8 +208,34 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().iterator();
         Assert.assertEquals("24234244", phoneNumbers.next());
         Assert.assertFalse(phoneNumbers.hasNext());
-    }   
-    
+        
+        
+        
+        
+        
+
+        
+        ////////////////////
+        // conditional update
+    /*    
+        usersDao.write()
+                .value(UsersTable.USER_ID, "2222")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.ADDRESSES, ImmutableList.of("nürnberg"))
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"))
+                .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, true))
+                .execute();
+
+        record = usersDao.readWithKey(UsersTable.USER_ID, "2222")
+                .execute()
+                .get();
+        
+        Iterator<String> addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("nürnberg", addresses.next());
+        Assert.assertFalse(addresses.hasNext());
+*/
+        
+    }    
 }
 
 

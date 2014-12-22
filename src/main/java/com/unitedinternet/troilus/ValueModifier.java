@@ -23,17 +23,17 @@ import com.google.common.collect.ImmutableMap;
 
 
 /**
- * The Insertation
+ * T
  *
  * @author grro
  */
-public interface WriteWithValues extends Write {
+public interface ValueModifier<T extends Mutation<?>> {
     
-    WriteWithValues value(String name, Object value);
+    T value(String name, Object value);
     
-    WriteWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    T values(ImmutableMap<String , Object> nameValuePairsToAdd);
     
-    WriteWithValues value(String name1, String name2, Object value);
+    T value(String name1, String name2, Object value);
 }
 
 
