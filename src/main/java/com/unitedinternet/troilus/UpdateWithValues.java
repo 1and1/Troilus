@@ -32,8 +32,6 @@ public interface UpdateWithValues extends Update {
     UpdateWithValues value(String name, Object value);
     
     UpdateWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
-    
-    UpdateWithValues value(String name1, String name2, Object value);
 
     /*
     UpdateWithValues removeValue(String name, Object value);

@@ -1,4 +1,4 @@
-package com.unitedinternet.troilus.udt;
+package com.unitedinternet.troilus.userdefinieddatatypes;
 
 import com.unitedinternet.troilus.Schema;
 

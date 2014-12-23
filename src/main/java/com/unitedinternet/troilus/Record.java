@@ -34,6 +34,7 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
+import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
@@ -96,7 +97,7 @@ public class Record {
         return isNull(name) ? Optional.empty() : Optional.of(row.getString(name));
     }
     
-     
+
     public Optional<Boolean> getBool(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getBool(name));
     }
@@ -182,7 +183,12 @@ public class Record {
             return Optional.of(builder.toString());
         }
     }
+
     
+    public Optional<UDTValue> getUDTValue(String name) {
+        return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
+    }
+
      
     public String toString() {
         ToStringHelper toStringHelper = MoreObjects.toStringHelper(this);

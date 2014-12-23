@@ -32,7 +32,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        userDao.writeWithEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExits()
                .execute();
 
@@ -61,7 +61,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
         
         
         Result<User> list = userDao.readWhere()
-                                   .entity(User.class)
+                                   .asEntity(User.class)
                                    .withLimit(3)
                                    .execute();
         Assert.assertNotNull(list.next());

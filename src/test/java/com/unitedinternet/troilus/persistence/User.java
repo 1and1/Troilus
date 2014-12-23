@@ -4,27 +4,33 @@ package com.unitedinternet.troilus.persistence;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-import javax.persistence.Column;
 
+import com.datastax.driver.mapping.annotations.Field;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class User {
 
+    @Field(name = "user_id")
     private String userId;
     
-    @Column(name = "name")
+    @Field(name = "name")
     private String name;
+ 
     
-    @Column(name = "is_customer")
+    @Field(name = "is_customer")
     private Optional<Boolean> isCustomer;
     
+    @Field(name = "picture")
     private Optional<ByteBuffer> picture;  
     
+    @Field(name = "modified")
     private Long modified;
+    
+    @Field(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
     
-    @Column(name = "addresses")
+    @Field(name = "addresses")
     private ImmutableList<String> addresses;
 
     
@@ -45,7 +51,6 @@ public class User {
     }
 
 
-    @Column(name = "user_id")
     public String getUserId() {
         return userId;
     }
@@ -60,23 +65,18 @@ public class User {
         return isCustomer;
     }
 
-    @Column(name = "picture")
     public ByteBuffer getPicture() {
         return picture.get();
     }
-    
-    @Column(name = "picture")
+
     public void setPicture(Optional<ByteBuffer> data) {
         this.picture = data;
     }
 
-    @Column(name = "modified")
     public Optional<Long> getModified() {
         return Optional.ofNullable(modified);
     }
 
-
-    @Column(name = "phone_numbers")
     public Optional<ImmutableSet<String>> getPhoneNumbers() {
         return Optional.ofNullable(phoneNumbers);
     }

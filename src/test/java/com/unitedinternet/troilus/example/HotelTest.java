@@ -38,7 +38,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        hotelsDao.writeWithEntity(new Hotel("BUP45544", 
+        hotelsDao.writeEntity(new Hotel("BUP45544", 
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
                                         Optional.of(5), 
@@ -59,7 +59,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
        
         // insert async
-        CompletableFuture<Void> future = hotelsDao.writeWithEntity(new Hotel("BUP14334", 
+        CompletableFuture<Void> future = hotelsDao.writeEntity(new Hotel("BUP14334", 
                                                                          "Richter Panzio",
                                                                          ImmutableSet.of("1", "2", "3"),
                                                                          Optional.of(2), 
@@ -75,7 +75,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         ////////////////
         // reads
         hotelsDao.readAll()
-                 .entity(Hotel.class)
+                 .asEntity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
                  .thenAccept(hotelIterator -> hotelIterator.forEachRemaining(hotel -> System.out.println(hotel)));
@@ -85,7 +85,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         MySubscriber<Hotel> mySubscriber = new MySubscriber<>();
         hotelsDao.readWhere()
-                 .entity(Hotel.class)
+                 .asEntity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
                  .thenAccept(hotels -> hotels.subscribe(mySubscriber));
@@ -94,7 +94,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         Iterator<Hotel> hotelIterator = hotelsDao.readAll()
-                                                 .entity(Hotel.class)
+                                                 .asEntity(Hotel.class)
                                                  .withLimit(100)
                                                  .execute();
         hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
@@ -103,7 +103,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
-                                                 .entity(Hotel.class)
+                                                 .asEntity(Hotel.class)
                                                  .withAllowFiltering()
                                                  .execute();
         hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));

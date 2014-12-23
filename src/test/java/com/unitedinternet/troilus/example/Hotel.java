@@ -2,8 +2,7 @@ package com.unitedinternet.troilus.example;
 
 import java.util.Optional;
 
-import javax.persistence.Column;
-
+import com.datastax.driver.mapping.annotations.Field;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
@@ -11,19 +10,19 @@ import com.google.common.collect.ImmutableSet;
 
 public class Hotel  {
    
-    @Column(name = "id")
+    @Field(name = "id")
     private String id = null;
     
-    @Column(name = "name")
+    @Field(name = "name")
     private String name = null;
 
-    @Column(name = "room_ids")
+    @Field(name = "room_ids")
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
-    @Column(name = "classification")
+    @Field(name = "classification")
     private Optional<Integer> classification = Optional.empty();
     
-    @Column(name = "description")
+    @Field(name = "description")
     private Optional<String> description = Optional.empty();
 
     
