@@ -112,7 +112,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
  
         
         Optional<Record> optionalRecord3 = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
-                                                   .column(UsersTable.IS_CUSTOMER, true, true)
+                                                   .columnWithMetadata(UsersTable.IS_CUSTOMER)
                                                    .column(UsersTable.PICTURE)
                                                    .execute();
         Assert.assertTrue(optionalRecord3.isPresent());
