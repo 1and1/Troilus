@@ -189,6 +189,29 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Assert.assertEquals((Integer) 5, record.getInt(HotelsTable.CLASSIFICATION).get());
     
         
+
+
+        
+        
+        hotelsDao.writeWithCondition(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
+                 .value(HotelsTable.CLASSIFICATION, 4)
+                 .execute();
+
+
+        record = hotelsDao.readWithKey(HotelsTable.ID, "BUP932432")
+                .column(HotelsTable.NAME)
+                .column(HotelsTable.DESCRIPTION)
+                .column(HotelsTable.CLASSIFICATION)
+                .execute()
+                .get();
+
+        Assert.assertEquals((Integer) 4, record.getInt(HotelsTable.CLASSIFICATION).get());
+        
+        
+        
+        
+        
+        
         
         ////////////////
         // deletions

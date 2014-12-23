@@ -20,7 +20,6 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Insertion;
 import com.unitedinternet.troilus.Mutation;
 import com.unitedinternet.troilus.Record;
 
@@ -243,8 +242,28 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
         Assert.assertEquals("nürnberg", addresses.next());
+        Assert.assertFalse(addresses.hasNext());   
+        
+        
+        
+        
+        
+        usersDao.writeWithCondition(QueryBuilder.in(UsersTable.USER_ID, "2222"))
+                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                .execute();
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "2222")
+                .execute()
+                .get();
+        
+        addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("berlin", addresses.next());
+        Assert.assertEquals("budapest", addresses.next());
         Assert.assertFalse(addresses.hasNext());        
     }    
+    
+    
+    
 }
 
 

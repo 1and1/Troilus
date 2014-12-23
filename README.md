@@ -32,7 +32,6 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
          .value("classification", 4)
-         .ifNotExits()
          .withWritetime(microsSinceEpoch)
          .execute();
 ```
@@ -121,12 +120,32 @@ hotelsDao.writeWithKey("id","BUP932432")
 
 ### conditional value update 
 ``` java
+hotelsDao.writeWithCondition(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
+         .value(HotelsTable.CLASSIFICATION, 4)
+         .execute();
+  ```               
+        
+
+### lightweight transactions 
+unique insert with `ifNotExits()`(performs the insertion only if the row does not already exist)        
+``` java
+hotelsDao.writeWithKey("id", "BUP932432")
+         .value("name", "City Budapest")
+         .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
+         .value("classification", 4)
+         .withWritetime(microsSinceEpoch)
+         .ifNotExits()
+         .execute();
+  ```  
+        
+safe update with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
+``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
          .value(HotelsTable.CLASSIFICATION, 5)
 	     .onlyIf(QueryBuilder.eq(HotelsTable.CLASSIFICATION, 4))
          .execute();
-  ```               
-        
+  ```  
+       
         
 ##Delete
 

@@ -240,13 +240,18 @@ public class DaoImpl implements Dao {
     }
 
     
+    @Override
+    public UpdateWithValues writeWithCondition(Clause... clauses) {
+        return newUpdate(getDefaultContext(), ImmutableMap.of(), ImmutableList.of(), ImmutableList.copyOf(clauses), ImmutableList.of());
+    }
+    
 
     private UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new UpdateQuery(ctx, keys, valuesToInsert, ImmutableList.of());
+        return new UpdateQuery(ctx, keys, valuesToInsert, ImmutableList.of(), ImmutableList.of());
     }
 
-    protected UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert, ImmutableList<Clause> ifConditions) {
-        return new UpdateQuery(ctx, keys, valuesToInsert, ifConditions);
+    protected UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+        return new UpdateQuery(ctx, keys, valuesToInsert, whereConditions, ifConditions);
     }
 
     
@@ -255,18 +260,20 @@ public class DaoImpl implements Dao {
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
         private final ImmutableMap<String, Object> keys;
         private final ImmutableList<Clause> ifConditions;
+        private final ImmutableList<Clause> whereConditions;
         
-        public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
+        public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
             this.ctx = ctx;
             this.valuesToMutate = valuesToMutate;
             this.keys = keys;
+            this.whereConditions = whereConditions;
             this.ifConditions = ifConditions;
         }
         
         
         @Override
         public Update onlyIf(Clause... conditions) {
-            return newUpdate(ctx, keys, valuesToMutate, ImmutableList.copyOf(conditions)) ;
+            return newUpdate(ctx, keys, valuesToMutate, whereConditions, ImmutableList.copyOf(conditions)) ;
         }
         
         @Override
@@ -293,30 +300,30 @@ public class DaoImpl implements Dao {
         
         protected UpdateWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
             ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
-            return newUpdate(ctx, keys, newValuesToInsert, ifConditions);
+            return newUpdate(ctx, keys, newValuesToInsert, whereConditions, ifConditions);
         }
            
         
         @Override
         public Update withConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
+            return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, whereConditions, ifConditions);
         }
         
         
         @Override
         public Update withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
+            return newUpdate(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate, whereConditions, ifConditions);
         }
         
         
         @Override
         public Update withTtl(Duration ttl) {
-            return newUpdate(ctx.withTtl(ttl), keys, valuesToMutate, ifConditions);
+            return newUpdate(ctx.withTtl(ttl), keys, valuesToMutate, whereConditions, ifConditions);
         }
 
         @Override
         public Update withWritetime(long writetimeMicrosSinceEpoch) {
-            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate, ifConditions);
+            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate, whereConditions, ifConditions);
         }
         
         @Override
@@ -335,6 +342,9 @@ public class DaoImpl implements Dao {
             valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
+            
+            
+            whereConditions.forEach(condition -> update.where(condition));
             
             ifConditions.forEach(condition -> update.onlyIf(condition));
    
@@ -419,7 +429,7 @@ public class DaoImpl implements Dao {
             this.valuesToMutate = valuesToMutate;
         }
         
-        
+   
         @Override
         public Update onlyIf(Clause... conditions) {
             return newUpdate(ctx, keys, valuesToMutate).onlyIf(conditions); 

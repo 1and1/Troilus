@@ -25,6 +25,8 @@ import com.datastax.driver.core.querybuilder.Clause;
 
 public interface Dao {
 
+    UpdateWithValues writeWithCondition(Clause... clauses);
+
     Insertion writeEntity(Object entity);
    
     WriteWithValues writeWithKey(String keyName, Object keyValue);
