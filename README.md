@@ -39,7 +39,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
+hotelsDao.writeWithEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
          .execute();
 ```
 The columns will be mapped by using [@Column](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotated fields and setter/getter method. The annotation attribute *name* is supported only. Setting a  @Entity or @Table annotation is not necessary and will be ignored
@@ -188,6 +188,22 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
 optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
 ```        
 
+
+Read with meta data (ttl, writetime)
+``` java        
+Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
+                                           .column("id")
+                                           .column("name")
+                                           .columnWithMetadata("description")
+                                           .withConsistency(ConsistencyLevel.LOCAL_ONE)
+                                           .execute();
+                                           
+optionalRecord.ifPresent(record -> record.getTtl("description").ifPresent(ttl -> System.out.println("ttl=" + ttl)));
+optionalRecord.ifPresent(record -> record.getWritetime("description").ifPresent(writetime -> System.out.println("writetime=" + writetime)));
+```        
+
+  
+
 ###Read a list of rows
 
 Read all of the table
@@ -215,7 +231,7 @@ hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 -------
 
 ##Async Write
-By calling ***executeAsync()*** instead *execute()* the method returns immediately without waiting for the database response. Further more the executeAsync() returns a Java8 [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) object which can be used for async processing
+By calling `executeAsync()` instead `execute()` the method returns immediately without waiting for the database response. Further more the `executeAsync()` returns a Java8 [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) object which can be used for async processing
 ``` java
 CompletableFuture<Void> future = hotelsDao.write()
                                           .entity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
@@ -226,7 +242,7 @@ CompletableFuture<Void> future = hotelsDao.write()
 
 ##Async Read
 
-As already mentioned above the methods returns immediately without waiting for the database response. The consumer code within the thenAccept(...) method will be called as soon as the database response is received. However, the Iterator has still a blocking behavior.
+As already mentioned above the methods returns immediately without waiting for the database response. The consumer code within the `thenAccept(...)` method will be called as soon as the database response is received. However, the Iterator has still a blocking behavior.
 ``` java
 hotelsDao.readAll()
          .entity(Hotel.class)
@@ -246,7 +262,7 @@ hotelsDao.readAll()
          .thenAccept(publisher -> publisher.subscribe(mySubscriber));
 ```
 
-The Subscriber implements call back methods such as onNext(...) or onError(...) to process the result stream in a reactive way. By calling the hotels.subscribe(subscriber) above the onSubscribe(...) method of the subscriber below will be called.
+The Subscriber implements call back methods such as `onNext(...)` or `onError(...)` to process the result stream in a reactive way. By calling the hotels.subscribe(subscriber) above the `onSubscribe(...)` method of the subscriber below will be called.
 ``` java
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;

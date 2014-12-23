@@ -97,7 +97,7 @@ public class DaoImpl implements Dao {
     // Write
     
     
-    public Insertion writeEntity(Object entity) {
+    public Insertion writeWithEntity(Object entity) {
         return newInsertion(getDefaultContext(), ImmutableList.of()).values(getDefaultContext().toValues(entity));
     }
 

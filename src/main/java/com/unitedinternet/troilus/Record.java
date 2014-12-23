@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -58,6 +59,22 @@ public class Record {
         return protocolVersion;
     }
 
+    public Optional<Long> getWritetime(String name) {
+        try {
+            return row.isNull("WRITETIME(" + name + ")") ? Optional.empty() : Optional.of(row.getLong("WRITETIME(" + name + ")"));
+        } catch (IllegalArgumentException iae) {
+            return Optional.empty();
+        }
+    }
+  
+    public Optional<Duration> getTtl(String name) {
+        try {
+            return row.isNull("TTL(" + name + ")") ? Optional.empty() : Optional.of(Duration.ofSeconds(row.getInt("TTL(" + name + ")")));
+        } catch (IllegalArgumentException iae) {
+            return Optional.empty();
+        }
+    }
+    
     public ColumnDefinitions getColumnDefinitions() {
         return row.getColumnDefinitions();
     }
@@ -161,6 +178,7 @@ public class Record {
         } else {
             StringBuilder builder = new StringBuilder();
             builder.append(dataType.deserialize(row.getBytesUnsafe(name), protocolVersion));
+
             return Optional.of(builder.toString());
         }
     }
