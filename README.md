@@ -200,7 +200,6 @@ Record record = hotelsDao.readWithKey("id", "BUP14334")
                          .get();
                                            
 record.getTtl("description").ifPresent(ttl -> System.out.println("ttl=" + ttl)));
-record.getWritetime("description").ifPresent(writetime -> System.out.println("writetime=" + writetime)));
 ```        
 
   
