@@ -48,7 +48,7 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         // reads
         MySubscriber<Record> testSubscriber = new MySubscriber<>();
         
-        feeDao.readWithCondition()
+        feeDao.readWhere()
               .columns(FeesTable.ALL)
               .executeAsync()
               .thenAccept(result -> result.subscribe(testSubscriber));

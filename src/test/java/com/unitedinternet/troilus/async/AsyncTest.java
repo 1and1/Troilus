@@ -65,7 +65,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // reads
-        ImmutableList<Record> recs = feeDao.readWithCondition(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+        ImmutableList<Record> recs = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
                                            .column(FeesTable.CUSTOMER_ID)
                                            .executeAsync()
                                            .thenApply(result -> ImmutableList.of(result.next(), result.next(), result.next()))

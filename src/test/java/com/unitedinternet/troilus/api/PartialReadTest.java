@@ -53,7 +53,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        Result<Record> list = feeDao.readWithCondition(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+        Result<Record> list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
                                     .column(FeesTable.CUSTOMER_ID)
                                     .execute();
         Assert.assertNotNull(list.next());
@@ -72,7 +72,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
        
 
         
-        list = feeDao.readWithCondition()
+        list = feeDao.readWhere()
                      .column(FeesTable.CUSTOMER_ID)
                      .withLimit(2)
                      .execute();
@@ -82,7 +82,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
 
         
         
-        list = feeDao.readWithCondition()
+        list = feeDao.readWhere()
                 .column(FeesTable.CUSTOMER_ID)
                 .withLimit(3)
                 .execute();

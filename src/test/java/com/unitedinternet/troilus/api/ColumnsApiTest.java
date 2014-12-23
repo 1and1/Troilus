@@ -112,7 +112,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
  
         
         Optional<Record> optionalRecord3 = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
-                                                   .column(UsersTable.IS_CUSTOMER, true, true)
+                                                   .columnWithMetadata(UsersTable.IS_CUSTOMER)
                                                    .column(UsersTable.PICTURE)
                                                    .execute();
         Assert.assertTrue(optionalRecord3.isPresent());
@@ -248,7 +248,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        usersDao.writeWithCondition(QueryBuilder.in(UsersTable.USER_ID, "2222"))
+        usersDao.writeWhere(QueryBuilder.in(UsersTable.USER_ID, "2222"))
                 .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                 .execute();
         

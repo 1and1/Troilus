@@ -33,7 +33,7 @@ public interface SingleReadWithColumns<T> extends SingleRead<T> {
     
     SingleReadWithColumns<T> column(String name);
     
-    SingleReadWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
+    SingleReadWithColumns<T> columnWithMetadata(String name);
      
     SingleReadWithColumns<T> columns(String... names);
     

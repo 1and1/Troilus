@@ -241,7 +241,7 @@ public class DaoImpl implements Dao {
 
     
     @Override
-    public UpdateWithValues writeWithCondition(Clause... clauses) {
+    public UpdateWithValues writeWhere(Clause... clauses) {
         return newUpdate(getDefaultContext(), ImmutableMap.of(), ImmutableList.of(), ImmutableList.copyOf(clauses), ImmutableList.of());
     }
     
@@ -818,12 +818,12 @@ public class DaoImpl implements Dao {
         
         @Override
         public SingleReadWithUnit<Optional<Record>> column(String name) {
-            return column(name, false, false);
+            return newSingleSelection(ctx, keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, false, false)));
         }
 
         @Override
-        public SingleReadWithUnit<Optional<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
-            return newSingleSelection(ctx, keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)));
+        public SingleReadWithColumns<Optional<Record>> columnWithMetadata(String name) {
+            return newSingleSelection(ctx, keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, true, true)));
         }
         
         @Override
@@ -989,7 +989,7 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListReadWithUnit<Result<Record>> readWithCondition(Clause... clauses) {
+    public ListReadWithUnit<Result<Record>> readWhere(Clause... clauses) {
         return newListSelection(getDefaultContext(), 
                                 ImmutableSet.copyOf(clauses), 
                                 Optional.of(ImmutableSet.of()), 
@@ -1072,11 +1072,25 @@ public class DaoImpl implements Dao {
                                     optionalDistinct);
         }
         
+        
+        
         @Override
-        public ListReadWithUnit<Result<Record>> column(String name, boolean isFetchWritetime, boolean isFetchTtl) {
+        public ListReadWithUnit<Result<Record>> column(String name) {
             return newListSelection(ctx, 
                                     clauses,  
-                                    Immutables.merge(columnsToFetch, ColumnToFetch.create(name, isFetchWritetime, isFetchTtl)), 
+                                    Immutables.merge(columnsToFetch, ColumnToFetch.create(name, false, false)), 
+                                    optionalLimit, 
+                                    optionalAllowFiltering,
+                                    optionalFetchSize,
+                                    optionalDistinct);
+        }
+
+        
+        @Override
+        public ListReadWithColumns<Result<Record>> columnWithMetadata(String name) {
+            return newListSelection(ctx, 
+                                    clauses,  
+                                    Immutables.merge(columnsToFetch, ColumnToFetch.create(name, true, true)), 
                                     optionalLimit, 
                                     optionalAllowFiltering,
                                     optionalFetchSize,
@@ -1133,11 +1147,6 @@ public class DaoImpl implements Dao {
         @Override
         public <E> ListRead<Result<E>> entity(Class<E> objectClass) {
             return newListSelection(ctx, this, objectClass) ;
-        }
-        
-        @Override
-        public ListReadWithUnit<Result<Record>> column(String name) {
-            return column(name, false, false);
         }
 
         

@@ -60,7 +60,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
     
         
         
-        Result<User> list = userDao.readWithCondition()
+        Result<User> list = userDao.readWhere()
                                    .entity(User.class)
                                    .withLimit(3)
                                    .execute();

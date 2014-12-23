@@ -25,7 +25,7 @@ import com.datastax.driver.core.querybuilder.Clause;
 
 public interface Dao {
 
-    UpdateWithValues writeWithCondition(Clause... clauses);
+    UpdateWithValues writeWhere(Clause... clauses);
 
     Insertion writeEntity(Object entity);
    
@@ -48,7 +48,7 @@ public interface Dao {
    
     ListReadWithUnit<Result<Record>> readAll();
     
-    ListReadWithUnit<Result<Record>> readWithCondition(Clause... clauses);
+    ListReadWithUnit<Result<Record>> readWhere(Clause... clauses);
     
   
     Deletion deleteWithKey(String keyName, Object keyValue);

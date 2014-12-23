@@ -30,7 +30,7 @@ public interface ListReadWithColumns<T> extends ListRead<T> {
     
     ListReadWithColumns<T> column(String name);
     
-    ListReadWithColumns<T> column(String name, boolean isFetchWritetime, boolean isFetchTtl);
+    ListReadWithColumns<T> columnWithMetadata(String name);
      
     ListReadWithColumns<T> columns(String... names);
     

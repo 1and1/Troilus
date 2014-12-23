@@ -80,7 +80,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         MySubscriber<Hotel> mySubscriber = new MySubscriber<>();
-        hotelsDao.readWithCondition()
+        hotelsDao.readWhere()
                  .entity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
@@ -98,7 +98,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        hotelIterator = hotelsDao.readWithCondition(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+        hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
                                                  .entity(Hotel.class)
                                                  .withAllowFiltering()
                                                  .execute();
@@ -193,7 +193,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
         
         
-        hotelsDao.writeWithCondition(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
+        hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
                  .value(HotelsTable.CLASSIFICATION, 4)
                  .execute();
 

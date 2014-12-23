@@ -120,7 +120,7 @@ hotelsDao.writeWithKey("id","BUP932432")
 
 ### conditional value update 
 ``` java
-hotelsDao.writeWithCondition(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
+hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
          .value(HotelsTable.CLASSIFICATION, 4)
          .execute();
   ```               
@@ -202,7 +202,7 @@ hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
 
 Read specific ones by using conditions
 ``` java  
-Iterator<Hotel> hotelIterator = hotelsDao.readWithCondition(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+Iterator<Hotel> hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
                                          .entity(Hotel.class)
                                          .withAllowFiltering()
                                          .execute();
