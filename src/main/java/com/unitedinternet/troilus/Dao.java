@@ -27,7 +27,7 @@ public interface Dao {
 
     UpdateWithValues writeWhere(Clause... clauses);
 
-    Insertion writeEntity(Object entity);
+    Insertion writeWithEntity(Object entity);
    
     WriteWithValues writeWithKey(String keyName, Object keyValue);
 

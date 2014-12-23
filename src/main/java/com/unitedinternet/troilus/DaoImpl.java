@@ -97,7 +97,7 @@ public class DaoImpl implements Dao {
     // Write
     
     
-    public Insertion writeEntity(Object entity) {
+    public Insertion writeWithEntity(Object entity) {
         return newInsertion(getDefaultContext(), ImmutableList.of()).values(getDefaultContext().toValues(entity));
     }
 
@@ -213,7 +213,7 @@ public class DaoImpl implements Dao {
         
         public Void execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -360,7 +360,7 @@ public class DaoImpl implements Dao {
         
         public Void execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -520,7 +520,7 @@ public class DaoImpl implements Dao {
         
         public Void execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -692,7 +692,7 @@ public class DaoImpl implements Dao {
         
         public Void execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -748,7 +748,7 @@ public class DaoImpl implements Dao {
         
         public Void execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -845,7 +845,7 @@ public class DaoImpl implements Dao {
         @Override
         public Optional<Record> execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             }
@@ -937,7 +937,7 @@ public class DaoImpl implements Dao {
         @Override
         public Optional<E> execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             } 
@@ -1159,7 +1159,7 @@ public class DaoImpl implements Dao {
                 @Override
         public Result<Record> execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             }
@@ -1355,7 +1355,7 @@ public class DaoImpl implements Dao {
         @Override
         public Result<E> execute() {
             try {
-                return executeAsync().get(10000, TimeUnit.SECONDS);
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw Exceptions.unwrapIfNecessary(e);
             }
