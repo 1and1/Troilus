@@ -26,6 +26,7 @@ import java.util.concurrent.ForkJoinPool;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
@@ -33,6 +34,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -69,7 +71,10 @@ public class Context  {
     protected ProtocolVersion getProtocolVersion() {
         return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
     }
-
+    
+    protected UserType getUserType(String name) {
+        return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(name);
+    }
 
     protected ImmutableMap<String, Object> toValues(Object entity) {
         return entityMapper.toValues(entity);

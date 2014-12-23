@@ -41,15 +41,19 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
+import com.datastax.driver.core.schemabuilder.UDTType;
 import com.datastax.driver.core.ConsistencyLevel;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.UDTValue;
+import com.datastax.driver.core.UserType;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -134,13 +138,7 @@ public class DaoImpl implements Dao {
             return write;
         }
         
-     
-        @Override
-        public InsertWithValues value(String name1, String name2, Object value) {
-            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
-        }
-
-
+          
         @Override
         public final InsertWithValues value(String name, Object value) {
             return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
@@ -193,7 +191,7 @@ public class DaoImpl implements Dao {
             Insert insert = insertInto(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(insert)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, insert)));
             
             
             if (ifNotExists) {
@@ -287,12 +285,6 @@ public class DaoImpl implements Dao {
         
      
         @Override
-        public UpdateWithValues value(String name1, String name2, Object value) {
-            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
-        }
-
-
-        @Override
         public final UpdateWithValues value(String name, Object value) {
             return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
         }
@@ -339,7 +331,7 @@ public class DaoImpl implements Dao {
             com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(update)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
@@ -451,12 +443,6 @@ public class DaoImpl implements Dao {
         
      
         @Override
-        public WriteWithValues value(String name1, String name2, Object value) {
-            return valuesInternal(ImmutableList.of(new UDTValueToMutate(ImmutableList.of(name1, name2), value)));
-        }
-
-
-        @Override
         public final WriteWithValues value(String name, Object value) {
             return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
         }
@@ -502,8 +488,10 @@ public class DaoImpl implements Dao {
             // statement
             com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
+            
+            
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(update)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
@@ -545,9 +533,9 @@ public class DaoImpl implements Dao {
   
     
     private static interface ValueToMutate {
-        Object addToStatement(Insert insert);
+        Object addToStatement(Context ctx, Insert insert);
         
-        Object addToStatement(com.datastax.driver.core.querybuilder.Update update);
+        Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
     }
   
     
@@ -572,42 +560,20 @@ public class DaoImpl implements Dao {
         }
         
         
-        public Object addToStatement(Insert insert) {
+        @Override
+        public Object addToStatement(Context ctx, Insert insert) {
             insert.value(name, bindMarker());
             return value;
         }
-        
-        @Override
-        public Object addToStatement(com.datastax.driver.core.querybuilder.Update update) {
+
+        public Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
             update.with(set(name, bindMarker()));
             return value;
         }
     }
    
    
-    
-    
-    private static final class UDTValueToMutate implements ValueToMutate {
-        private final ImmutableList<String> name;
-        private final Object value;
-        
-        public UDTValueToMutate(ImmutableList<String> name, Object value) {
-            this.name = name;
-            this.value = value;
-        }
-        
-        public Object addToStatement(Insert insert) {
-            return null;
-        }
-        
-        @Override
-        public Object addToStatement(com.datastax.driver.core.querybuilder.Update update) {
-            return null;
-        }
-    }
    
-    
-    
     
     ///////////////////////////////
     // DELETE

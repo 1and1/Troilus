@@ -141,8 +141,8 @@ hotelsDao.writeWithKey("id", "BUP932432")
 safe update with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
-         .value(HotelsTable.CLASSIFICATION, 5)
-	     .onlyIf(QueryBuilder.eq(HotelsTable.CLASSIFICATION, 4))
+         .value("classification", 5)
+	     .onlyIf(QueryBuilder.eq("classification", 4))
          .execute();
   ```  
        
@@ -243,6 +243,17 @@ CompletableFuture<Void> future = hotelsDao.write()
 ##Async Read
 
 As already mentioned above the methods returns immediately without waiting for the database response. The consumer code within the `thenAccept(...)` method will be called as soon as the database response is received. However, the Iterator has still a blocking behavior.
+
+read single row
+``` java
+hotelsDao.readWithKey("id", "BUP45544")
+         .entity(Hotel.class)
+	     .executeAsync()
+         .thenAccept(optionalHotel.ifPresent(hotel -> System.out.println(hotel));
+```
+
+
+read a list of rows
 ``` java
 hotelsDao.readAll()
          .entity(Hotel.class)

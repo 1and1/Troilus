@@ -16,7 +16,7 @@ import com.unitedinternet.troilus.api.UsersTable;
 import com.unitedinternet.troilus.example.AddressesType;
 import com.unitedinternet.troilus.example.HotelsTable;
 import com.unitedinternet.troilus.example.RoomsTable;
-import com.unitedinternet.troilus.udt.CustomersTable;
+import com.unitedinternet.troilus.userdefinieddatatypes.CustomersTable;
 
 
 

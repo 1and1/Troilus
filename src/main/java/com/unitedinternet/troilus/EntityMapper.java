@@ -17,11 +17,7 @@ package com.unitedinternet.troilus;
 
 
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.datastax.driver.core.ColumnDefinitions.Definition;
+import com.datastax.driver.mapping.annotations.Field;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -159,16 +156,12 @@ class EntityMapper {
             
             // check attributes
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            valueReaders.putAll(fetchMethodReaders(ImmutableSet.copyOf(clazz.getMethods())));
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            valueReaders.putAll(fetchMethodReaders(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
      
             
             Set<BiConsumer<Object, Record>> propertyWriters = Sets.newHashSet();
             propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.addAll(fetchMethodWriters(ImmutableSet.copyOf(clazz.getMethods())));
             propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.addAll(fetchMethodWriters(ImmutableSet.copyOf(clazz.getDeclaredMethods())));
                    
             return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
         }
@@ -176,25 +169,14 @@ class EntityMapper {
         
         
         
-        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
             Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
             
-            for (Field beanField : beanFields) {
-                for (Annotation annotation : beanField.getAnnotations()) {
-                    
-                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
-                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
-                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                try {
-                                    String columnName = (String) attributeMethod.invoke(annotation);
-                                    valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
-                                    
-                                    break;
-
-                                } catch (ReflectiveOperationException ignore) { }
-                            }
-                        }
-                    }
+            for (java.lang.reflect.Field beanField : beanFields) {
+                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
+                String columnName = annotation.name();    
+                if (columnName != null) {
+                    valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
                 }
             }
             
@@ -203,7 +185,7 @@ class EntityMapper {
         
             
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        private static Optional<Object> readBeanField(Field field, Object persistenceObject) {
+        private static Optional<Object> readBeanField(java.lang.reflect.Field field, Object persistenceObject) {
             Object value = null;
             try {
                 field.setAccessible(true);
@@ -217,80 +199,21 @@ class EntityMapper {
             }
         }
     
-     
-        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchMethodReaders(ImmutableSet<Method> beanMethods) {
-            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
-            
-            for (Method beanMethod : beanMethods) {
-                for (Annotation annotation : beanMethod.getAnnotations()) {
-                    
-                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
-                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
-                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                if ((beanMethod.getParameterTypes().length == 0) && (beanMethod.getReturnType() != null)) {
-                                    try {
-                                        String columnName = (String) attributeMethod.invoke(annotation);
-                                        valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanMethod(beanMethod, entity)));
-                                        break;
-    
-                                    } catch (ReflectiveOperationException ignore) { }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return ImmutableMap.copyOf(valueReaders);
-        }
-
-         
-     
-        
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        private static Optional<Object> readBeanMethod(Method meth, Object persistenceObject) {
-            Object value = null;
-            try {
-                value = meth.invoke(persistenceObject);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) { 
-                System.out.println("errro occured by executing getter-method " + meth + " for object " + persistenceObject + " "  + e.toString());
-            }
-            
-            if (value instanceof Optional) {
-                return (Optional) value;
-            } else {
-                return Optional.ofNullable(value);
-            }
-        }
-            
-   
         
         
         
-        private ImmutableSet<BiConsumer<Object, Record>> fetchFieldWriters(ImmutableSet<Field> beanFields) {
+        private ImmutableSet<BiConsumer<Object, Record>> fetchFieldWriters(ImmutableSet<java.lang.reflect.Field> beanFields) {
             Set<BiConsumer<Object, Record>> valueWriters = Sets.newHashSet();
             
-            for (Field beanField : beanFields) {
-                for (Annotation annotation : beanField.getAnnotations()) {
-                    
-                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
-                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
-                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                try {
-                                    String columnName = (String) attributeMethod.invoke(annotation);
-                                    Class<?> beanFieldClass = beanField.getType();
+            for (java.lang.reflect.Field beanField : beanFields) {
+                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
+                String columnName = annotation.name();
+                Class<?> beanFieldClass = beanField.getType();
                                   
-                                    for (RecordValueMapper valueMapper : recordValueMappers) {
-                                        if (valueMapper.isSupport(beanFieldClass)) {
-                                            valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
-                                            break;
-                                        }
-                                    }
-                                    
-                                    break;
-                                } catch (ReflectiveOperationException ignore) { }
-                            }
-                        }
+                for (RecordValueMapper valueMapper : recordValueMappers) {
+                    if (valueMapper.isSupport(beanFieldClass)) {
+                        valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
+                        break;
                     }
                 }
             }
@@ -299,7 +222,7 @@ class EntityMapper {
         }
         
         
-        private static void writeBeanField(Field field, Object persistenceObject, Object value) {
+        private static void writeBeanField(java.lang.reflect.Field field, Object persistenceObject, Object value) {
             try {
                 field.setAccessible(true);
                 field.set(persistenceObject, value);
@@ -309,53 +232,7 @@ class EntityMapper {
         }
     
     
-        
-        
-        private ImmutableSet<BiConsumer<Object, Record>> fetchMethodWriters(ImmutableSet<Method> beanMethods) {
-            Set<BiConsumer<Object, Record>> valueWriters = Sets.newHashSet();
             
-            for (Method beanMethod : beanMethods) {
-                for (Annotation annotation : beanMethod.getAnnotations()) {
-                    
-                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
-                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
-                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                try {
-                                    String columnName = (String) attributeMethod.invoke(annotation);
-                                    if (beanMethod.getParameterTypes().length == 1) {
-                                        Class<?> beanFieldClass = beanMethod.getParameterTypes()[0];
-                                      
-                                        for (RecordValueMapper valueMapper : recordValueMappers) {
-                                            if (valueMapper.isSupport(beanFieldClass)) {
-                                                valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanMethod(beanMethod, persistenceObject, value)));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    
-                                    break;
-                                } catch (ReflectiveOperationException ignore) { }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return ImmutableSet.copyOf(valueWriters);
-        }
-        
-            
-        private static void writeBeanMethod(Method meth, Object persistenceObject, Object value) {
-            try {
-                meth.setAccessible(true);
-                meth.invoke(persistenceObject, value);
-            } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-        
-        
-        
       
         
      
