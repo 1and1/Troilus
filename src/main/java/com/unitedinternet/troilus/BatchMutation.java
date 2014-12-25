@@ -23,13 +23,17 @@ package com.unitedinternet.troilus;
  *
  * @author grro
  */
-public interface BatchMutation extends Query<Void>, Batchable {
+public interface BatchMutation extends Query<Result>, Batchable {
     
     BatchMutation combinedWith(Mutation<?> other);
-
-    Query<Void> withLockedBatchType();
     
-    Query<Void> withUnlockedBatchType();
+    BatchMutation withEnableTracking();
+    
+    BatchMutation withDisableTracking();
+
+    Query<Result> withLockedBatchType();
+    
+    Query<Result> withUnlockedBatchType();
 }
 
 

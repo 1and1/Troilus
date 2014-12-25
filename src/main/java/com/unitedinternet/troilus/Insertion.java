@@ -29,6 +29,10 @@ import com.datastax.driver.core.ConsistencyLevel;
 public interface Insertion extends Mutation<Insertion> {
 
     Insertion withConsistency(ConsistencyLevel consistencyLevel);
+    
+    Insertion withEnableTracking();
+    
+    Insertion withDisableTracking();
 
     Insertion withTtl(Duration ttl);
 

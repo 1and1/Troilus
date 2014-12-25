@@ -147,7 +147,15 @@ public class Context  {
     public Context withWritetime(long microsSinceEpoch) {
         return new Context(session, entityMapper, table, executionSpec.withWritetime(microsSinceEpoch));        
     }
-
+    
+    public Context withEnableTracking() {
+        return new Context(session, entityMapper, table, executionSpec.withEnableTracking());        
+    }
+    
+    public Context withDisableTracking() {
+        return new Context(session, entityMapper, table, executionSpec.withDisableTracking());        
+    }
+    
 
     public Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
@@ -178,6 +186,14 @@ public class Context  {
         
         executionSpec.getConsistencyLevel().ifPresent(cl -> statement.setConsistencyLevel(cl));
         executionSpec.getWritetime().ifPresent(writetimeMicrosSinceEpoch -> statement.setDefaultTimestamp(writetimeMicrosSinceEpoch));
+        executionSpec.getEnableTracing().ifPresent(enable -> {
+                                                                if (enable) {
+                                                                    statement.enableTracing();
+                                                                } else {
+                                                                    statement.disableTracing(); 
+                                                                }
+                                                             });
+        
         
         
         ResultSetFuture rsFuture = session.executeAsync(statement);
@@ -213,9 +229,12 @@ public class Context  {
         private final Optional<ConsistencyLevel> serialConsistencyLevel;
         private final Optional<Duration> ttl;
         private final Optional<Long> writetimeMicrosSinceEpoch;
+        private final Optional<Boolean> enableTracing;
+        
     
         public ExecutionSpec() {
             this(Optional.empty(), 
+                 Optional.empty(),
                  Optional.empty(),
                  Optional.empty(),
                  Optional.empty());
@@ -225,11 +244,13 @@ public class Context  {
         public ExecutionSpec(Optional<ConsistencyLevel> consistencyLevel, 
                              Optional<ConsistencyLevel> serialConsistencyLevel,
                              Optional<Duration> ttl,
-                             Optional<Long> writetimeMicrosSinceEpoch) {
+                             Optional<Long> writetimeMicrosSinceEpoch,
+                             Optional<Boolean> enableTracking) {
             this.consistencyLevel = consistencyLevel;
             this.serialConsistencyLevel = serialConsistencyLevel;
             this.ttl = ttl;
             this.writetimeMicrosSinceEpoch = writetimeMicrosSinceEpoch;
+            this.enableTracing = enableTracking;
         }
         
     
@@ -237,7 +258,8 @@ public class Context  {
             return new ExecutionSpec(Optional.of(consistencyLevel),
                                      this.serialConsistencyLevel,
                                      this.ttl,
-                                     this.writetimeMicrosSinceEpoch);
+                                     this.writetimeMicrosSinceEpoch,
+                                     this.enableTracing);
         }
     
         
@@ -246,7 +268,8 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      Optional.of(consistencyLevel),
                                      this.ttl,
-                                     this.writetimeMicrosSinceEpoch);
+                                     this.writetimeMicrosSinceEpoch,
+                                     this.enableTracing);
         }
     
         
@@ -254,7 +277,8 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      Optional.of(ttl),
-                                     this.writetimeMicrosSinceEpoch);
+                                     this.writetimeMicrosSinceEpoch,
+                                     this.enableTracing);
         }
     
         
@@ -262,10 +286,27 @@ public class Context  {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      this.ttl,
-                                     Optional.of(microsSinceEpoch));
+                                     Optional.of(microsSinceEpoch),
+                                     this.enableTracing);
         }
 
         
+        ExecutionSpec withEnableTracking() {
+            return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,
+                                     this.ttl,
+                                     this.writetimeMicrosSinceEpoch,
+                                     Optional.of(true));
+        }
+
+        ExecutionSpec withDisableTracking() {
+            return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,
+                                     this.ttl,
+                                     this.writetimeMicrosSinceEpoch,
+                                     Optional.of(false));
+        }
+
         public Optional<ConsistencyLevel> getConsistencyLevel() {
             return consistencyLevel;
         }
@@ -283,6 +324,11 @@ public class Context  {
     
         public Optional<Long> getWritetime() {
             return writetimeMicrosSinceEpoch;
+        }
+
+
+        public Optional<Boolean> getEnableTracing() {
+            return enableTracing;
         }
     }
     

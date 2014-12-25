@@ -32,6 +32,10 @@ import com.datastax.driver.core.querybuilder.Clause;
 public interface Update extends Mutation<Update> {
 
     Update withConsistency(ConsistencyLevel consistencyLevel);
+    
+    Update withEnableTracking();
+    
+    Update withDisableTracking();
 
     Update withTtl(Duration ttl);
 

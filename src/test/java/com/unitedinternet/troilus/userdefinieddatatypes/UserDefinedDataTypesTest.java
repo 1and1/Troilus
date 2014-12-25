@@ -46,7 +46,9 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
                                     .execute()
                                     .get();
         
-        Assert.assertEquals("peter", record.getString("name").get());
+        Assert.assertEquals("peter", record.getString(CustomersTable.NAME).get());
+        Assert.assertTrue(record.getSet(CustomersTable.PHONE_NUMBERS, String.class).get().contains("454545"));
+        
     }               
 }
 

@@ -12,7 +12,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.Result;
+import com.unitedinternet.troilus.ListResult;
 import com.unitedinternet.troilus.TooManyResultsException;
 
 
@@ -53,7 +53,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        Result<Record> list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+        ListResult<Record> list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
                                     .column(FeesTable.CUSTOMER_ID)
                                     .execute();
         Assert.assertNotNull(list.next());

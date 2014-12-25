@@ -31,12 +31,14 @@ import java.util.UUID;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.ImmutableList;
 
 
 
@@ -45,16 +47,29 @@ import com.google.common.base.MoreObjects.ToStringHelper;
  *
  * @author grro
  */
-public class Record {
+public class Record implements Result {
    
     private final ProtocolVersion protocolVersion;
+    private final Result result;
     private final Row row;
     
     
-    Record(ProtocolVersion protocolVersion, Row row) {
+    Record(ProtocolVersion protocolVersion, Result result, Row row) {
         this.protocolVersion = protocolVersion;
+        this.result = result;
         this.row = row;
     }
+    
+    @Override
+    public ExecutionInfo getExecutionInfo() {
+        return result.getExecutionInfo();
+    }
+    
+    @Override
+    public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+        return result.getAllExecutionInfo();
+    }
+    
     
     public ProtocolVersion getProtocolVersion() {
         return protocolVersion;
@@ -183,13 +198,14 @@ public class Record {
             return Optional.of(builder.toString());
         }
     }
-
+    
     
     public Optional<UDTValue> getUDTValue(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
     }
 
-     
+
+    
     public String toString() {
         ToStringHelper toStringHelper = MoreObjects.toStringHelper(this);
         row.getColumnDefinitions().asList()

@@ -28,6 +28,10 @@ import com.datastax.driver.core.ConsistencyLevel;
 public interface Deletion extends Mutation<Deletion> {
  
     Deletion withConsistency(ConsistencyLevel consistencyLevel);
+
+    Deletion withEnableTracking();
+    
+    Deletion withDisableTracking();
     
  // Deletion if(condition ... condition);
 }

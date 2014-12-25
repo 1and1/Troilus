@@ -24,7 +24,7 @@ import com.datastax.driver.core.ConsistencyLevel;
  *
  * @author grro
  */
-public interface Mutation<M extends Mutation<?>> extends Query<Void>, Batchable {
+public interface Mutation<M extends Mutation<?>> extends Query<Result>, Batchable {
 
     @SuppressWarnings("rawtypes")
     BatchMutation combinedWith(Mutation other);

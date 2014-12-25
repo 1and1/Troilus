@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -22,6 +23,7 @@ import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Mutation;
 import com.unitedinternet.troilus.Record;
+import com.unitedinternet.troilus.Result;
 
 
 public class ColumnsApiTest extends AbstractCassandraBasedTest {
@@ -50,22 +52,28 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute();
         
         
-        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
-                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
-                .value(UsersTable.IS_CUSTOMER, true)
-                .ifNotExits()
-                .withTtl(Duration.ofMinutes(2))
-                .withWritetime(Instant.now().toEpochMilli() * 1000)
-                .execute();
+        ExecutionInfo info =  usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                                      .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
+                                      .value(UsersTable.IS_CUSTOMER, true)
+                                      .ifNotExits()
+                                      .withTtl(Duration.ofMinutes(2))
+                                      .withWritetime(Instant.now().toEpochMilli() * 1000)
+                                      .withEnableTracking()
+                                      .execute()
+                                      .getExecutionInfo();
 
+        Assert.assertNotNull(info.getQueryTrace());
         
-        usersDao.writeWithKey(UsersTable.USER_ID, "4545")
-                .value(UsersTable.IS_CUSTOMER, true)
-                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
-                .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
-                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                .ifNotExits()       
-                .execute();
+        
+        
+        Result result = usersDao.writeWithKey(UsersTable.USER_ID, "4545")
+                                .value(UsersTable.IS_CUSTOMER, true)
+                                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                                .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
+                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
+                                .ifNotExits()
+                                .withEnableTracking()
+                                .execute();
 
 
         try {   // insert twice!

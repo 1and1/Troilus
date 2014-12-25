@@ -28,7 +28,7 @@ import org.reactivestreams.Publisher;
  *
  * @author grro
  */
-public interface Result<T> extends Iterator<T>, Publisher<T> {
+public interface ListResult<T> extends Iterator<T>, Publisher<T>, Result {
 
     default void remove() {
         throw new UnsupportedOperationException();

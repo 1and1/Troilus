@@ -49,6 +49,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -56,6 +57,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -158,6 +160,16 @@ public class DaoImpl implements Dao {
            
         
         @Override
+        public Insertion withEnableTracking() {
+            return newInsertion(ctx.withEnableTracking(), valuesToMutate, ifNotExists);
+        }
+        
+        @Override
+        public Insertion withDisableTracking() {
+            return newInsertion(ctx.withDisableTracking(), valuesToMutate, ifNotExists);
+        }
+        
+        @Override
         public Insertion withConsistency(ConsistencyLevel consistencyLevel) {
             return newInsertion(ctx.withConsistency(consistencyLevel), valuesToMutate, ifNotExists);
         }
@@ -215,7 +227,7 @@ public class DaoImpl implements Dao {
         }
         
         
-        public Void execute() {
+        public Result execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -225,7 +237,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public CompletableFuture<Void> executeAsync() {
+        public CompletableFuture<Result> executeAsync() {
             return ctx.performAsync(getStatement()).thenApply(resultSet -> {
                     if (ifNotExists) {
                         // check cas result column '[applied]'
@@ -233,7 +245,7 @@ public class DaoImpl implements Dao {
                             throw new IfConditionException("duplicated entry");  
                         }
                     } 
-                    return null;
+                    return new ResultImpl(resultSet);
                 });
         }
         
@@ -305,6 +317,17 @@ public class DaoImpl implements Dao {
            
         
         @Override
+        public Update withEnableTracking() {
+            return newUpdate(ctx.withEnableTracking(), keys, valuesToMutate, whereConditions, ifConditions);
+        }
+        
+        @Override
+        public Update withDisableTracking() {
+            return newUpdate(ctx.withDisableTracking(), keys, valuesToMutate, whereConditions, ifConditions);
+        }
+        
+        
+        @Override
         public Update withConsistency(ConsistencyLevel consistencyLevel) {
             return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, whereConditions, ifConditions);
         }
@@ -360,7 +383,7 @@ public class DaoImpl implements Dao {
         }
         
         
-        public Void execute() {
+        public Result execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -370,7 +393,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public CompletableFuture<Void> executeAsync() {
+        public CompletableFuture<Result> executeAsync() {
             return ctx.performAsync(getStatement()).thenApply(resultSet -> {
                 if (!ifConditions.isEmpty()) {
                     // check cas result column '[applied]'
@@ -378,7 +401,7 @@ public class DaoImpl implements Dao {
                         throw new IfConditionException("if condition does not match");  
                     }
                 } 
-                return null;
+                return new ResultImpl(resultSet);
             });
 
         }
@@ -466,6 +489,15 @@ public class DaoImpl implements Dao {
             return newWrite(ctx, keys, newValuesToInsert);
         }
 
+        @Override
+        public Write withEnableTracking() {
+            return newWrite(ctx.withEnableTracking(), keys, valuesToMutate);
+        }
+        
+        @Override
+        public Write withDisableTracking() {
+            return newWrite(ctx.withDisableTracking(), keys, valuesToMutate);
+        }
         
         
         @Override
@@ -520,7 +552,7 @@ public class DaoImpl implements Dao {
         }
         
         
-        public Void execute() {
+        public Result execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -530,8 +562,8 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public CompletableFuture<Void> executeAsync() {
-            return ctx.performAsync(getStatement()).thenApply(resultSet -> null);
+        public CompletableFuture<Result> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
         }
         
         @Override
@@ -541,7 +573,45 @@ public class DaoImpl implements Dao {
     }
 
     
-    
+    private static class ResultImpl implements Result {
+        private final ResultSet rs;
+        
+        public ResultImpl(ResultSet rs) {
+            this.rs = rs;
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return rs.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return ImmutableList.copyOf(rs.getAllExecutionInfo());
+        }
+        
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder(); 
+            for (ExecutionInfo info : getAllExecutionInfo())  {
+
+                builder.append("queried=" + info.getQueriedHost());
+                builder.append("\r\ntried=")
+                       .append(Joiner.on(",").join(info.getTriedHosts()));
+
+
+                if (info.getAchievedConsistencyLevel() != null) {
+                    builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
+                }
+                
+                if (info.getQueryTrace() != null) {
+                    builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
+                    builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
+                }
+            }
+            return builder.toString();
+        }
+    }
 
 
   
@@ -746,6 +816,17 @@ public class DaoImpl implements Dao {
         }
         
         @Override
+        public Deletion withEnableTracking() {
+            return newDeletion(ctx.withEnableTracking(), keyNameValuePairs);
+        }
+        
+        @Override
+        public Deletion withDisableTracking() {
+            return newDeletion(ctx.withDisableTracking(), keyNameValuePairs);
+        }
+        
+        
+        @Override
         public Deletion withConsistency(ConsistencyLevel consistencyLevel) {
             return newDeletion(ctx.withConsistency(consistencyLevel), keyNameValuePairs);
         }
@@ -778,7 +859,7 @@ public class DaoImpl implements Dao {
         }
         
         
-        public Void execute() {
+        public Result execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -787,8 +868,8 @@ public class DaoImpl implements Dao {
         }
         
         
-        public CompletableFuture<Void> executeAsync() {
-            return ctx.performAsync(getStatement()).thenApply(resultSet -> null);
+        public CompletableFuture<Result> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
         }
     }
 
@@ -810,14 +891,24 @@ public class DaoImpl implements Dao {
             this.mutations = mutations;
         }
                 
+        @Override
+        public BatchMutation withEnableTracking() {
+            return newBatchMutation(ctx.withEnableTracking(), type, mutations);
+        }
         
         @Override
-        public Query<Void> withLockedBatchType() {
+        public BatchMutation withDisableTracking() {
+            return newBatchMutation(ctx.withDisableTracking(), type, mutations);
+        }
+        
+        
+        @Override
+        public Query<Result> withLockedBatchType() {
             return newBatchMutation(ctx, Type.LOGGED, mutations);
         }
         
         @Override
-        public Query<Void> withUnlockedBatchType() {
+        public Query<Result> withUnlockedBatchType() {
             return newBatchMutation(ctx, Type.UNLOGGED, mutations);
         }
         
@@ -834,7 +925,7 @@ public class DaoImpl implements Dao {
             return batchStmt;
         }
         
-        public Void execute() {
+        public Result execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -842,8 +933,8 @@ public class DaoImpl implements Dao {
             } 
         }
         
-        public CompletableFuture<Void> executeAsync() {
-            return ctx.performAsync(getStatement()).thenApply(resultSet -> null);
+        public CompletableFuture<Result> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
         }
     }
     
@@ -925,6 +1016,16 @@ public class DaoImpl implements Dao {
         }
         
         @Override
+        public SingleRead<Optional<Record>> withEnableTracking() {
+            return newSingleSelection(ctx.withEnableTracking(), keyNameValuePairs, optionalColumnsToFetch);
+        }
+        
+        @Override
+        public SingleRead<Optional<Record>> withDisableTracking() {
+            return newSingleSelection(ctx.withDisableTracking(), keyNameValuePairs, optionalColumnsToFetch);
+        }
+        
+        @Override
         public SingleRead<Optional<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
             return newSingleSelection(ctx.withConsistency(consistencyLevel), keyNameValuePairs, optionalColumnsToFetch);
         }
@@ -977,7 +1078,7 @@ public class DaoImpl implements Dao {
                                                       return Optional.empty();
                                                       
                                                   } else {
-                                                      Record record = new Record(ctx.getProtocolVersion(), row);
+                                                      Record record = new Record(ctx.getProtocolVersion(), new ResultImpl(resultSet), row);
                         
                                                       // paranioa check
                                                       keyNameValuePairs.forEach((name, value) -> { 
@@ -1015,6 +1116,19 @@ public class DaoImpl implements Dao {
             this.read = read;
             this.clazz = clazz;
         }
+        
+        
+        @Override
+        public SingleRead<Optional<E>> withEnableTracking() {
+            return newSingleSelection(ctx, read.withEnableTracking(), clazz);
+        }
+        
+        
+        @Override
+        public SingleRead<Optional<E>> withDisableTracking() {
+            return newSingleSelection(ctx, read.withDisableTracking(), clazz);
+        }
+        
         
         @Override
         public SingleRead<Optional<E>> withConsistency(ConsistencyLevel consistencyLevel) {
@@ -1077,7 +1191,7 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListReadWithUnit<Result<Record>> readWhere(Clause... clauses) {
+    public ListReadWithUnit<ListResult<Record>> readWhere(Clause... clauses) {
         return newListSelection(getDefaultContext(), 
                                 ImmutableSet.copyOf(clauses), 
                                 Optional.of(ImmutableSet.of()), 
@@ -1089,7 +1203,7 @@ public class DaoImpl implements Dao {
      
     
     @Override
-    public ListReadWithUnit<Result<Record>> readAll() {
+    public ListReadWithUnit<ListResult<Record>> readAll() {
         return newListSelection(getDefaultContext(), 
                                 ImmutableSet.of(), 
                                 Optional.of(ImmutableSet.of()), 
@@ -1099,7 +1213,7 @@ public class DaoImpl implements Dao {
                                 Optional.empty());
     }
     
-    protected ListReadWithUnit<Result<Record>> newListSelection(Context ctx, 
+    protected ListReadWithUnit<ListResult<Record>> newListSelection(Context ctx, 
                                                                      ImmutableSet<Clause> clauses, 
                                                                      Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
                                                                      Optional<Integer> optionalLimit, 
@@ -1111,7 +1225,7 @@ public class DaoImpl implements Dao {
 
     
     
-    private class ListReadQuery implements ListReadWithUnit<Result<Record>> {
+    private class ListReadQuery implements ListReadWithUnit<ListResult<Record>> {
         private final Context ctx;
         private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
@@ -1139,7 +1253,30 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public ListRead<Result<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
+        public SingleRead<ListResult<Record>> withEnableTracking() {
+            return newListSelection(ctx.withEnableTracking(), 
+                                    clauses, 
+                                    columnsToFetch,
+                                    optionalLimit, 
+                                    optionalAllowFiltering, 
+                                    optionalFetchSize,
+                                    optionalDistinct);
+        }
+        
+        @Override
+        public SingleRead<ListResult<Record>> withDisableTracking() {
+            return newListSelection(ctx.withDisableTracking(), 
+                                    clauses, 
+                                    columnsToFetch, 
+                                    optionalLimit, 
+                                    optionalAllowFiltering, 
+                                    optionalFetchSize,
+                                    optionalDistinct);
+        }
+        
+        
+        @Override
+        public ListRead<ListResult<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
             return newListSelection(ctx.withConsistency(consistencyLevel), 
                                     clauses, 
                                     columnsToFetch, 
@@ -1150,7 +1287,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override 
-        public ListReadWithUnit<Result<Record>> columns(ImmutableCollection<String> namesToRead) {
+        public ListReadWithUnit<ListResult<Record>> columns(ImmutableCollection<String> namesToRead) {
             return newListSelection(ctx, 
                                     clauses, 
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
@@ -1163,7 +1300,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public ListReadWithUnit<Result<Record>> column(String name) {
+        public ListReadWithUnit<ListResult<Record>> column(String name) {
             return newListSelection(ctx, 
                                     clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, false, false)), 
@@ -1175,7 +1312,7 @@ public class DaoImpl implements Dao {
 
         
         @Override
-        public ListReadWithColumns<Result<Record>> columnWithMetadata(String name) {
+        public ListReadWithColumns<ListResult<Record>> columnWithMetadata(String name) {
             return newListSelection(ctx, 
                                     clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, true, true)), 
@@ -1187,7 +1324,7 @@ public class DaoImpl implements Dao {
         
 
         @Override
-        public ListRead<Result<Record>> withLimit(int limit) {
+        public ListRead<ListResult<Record>> withLimit(int limit) {
             return newListSelection(ctx,
                                     clauses, 
                                     columnsToFetch, 
@@ -1198,7 +1335,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListRead<Result<Record>> withAllowFiltering() {
+        public ListRead<ListResult<Record>> withAllowFiltering() {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -1209,7 +1346,7 @@ public class DaoImpl implements Dao {
         }
 
         @Override
-        public ListRead<Result<Record>> withFetchSize(int fetchSize) {
+        public ListRead<ListResult<Record>> withFetchSize(int fetchSize) {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -1220,7 +1357,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListRead<Result<Record>> withDistinct() {
+        public ListRead<ListResult<Record>> withDistinct() {
             return newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
@@ -1233,19 +1370,19 @@ public class DaoImpl implements Dao {
        
       
         @Override
-        public <E> ListRead<Result<E>> asEntity(Class<E> objectClass) {
+        public <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass) {
             return newListSelection(ctx, this, objectClass) ;
         }
 
         
         @Override
-        public ListReadWithUnit<Result<Record>> columns(String... names) {
+        public ListReadWithUnit<ListResult<Record>> columns(String... names) {
             return columns(ImmutableSet.copyOf(names));
         }
         
         
                 @Override
-        public Result<Record> execute() {
+        public ListResult<Record> execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -1255,7 +1392,7 @@ public class DaoImpl implements Dao {
 
    
         @Override
-        public CompletableFuture<Result<Record>> executeAsync() {
+        public CompletableFuture<ListResult<Record>> executeAsync() {
    
             Select.Selection selection = select();
 
@@ -1287,19 +1424,19 @@ public class DaoImpl implements Dao {
         }        
         
         
-        private final class RecordsImpl implements Result<Record> {
+        private final class RecordsImpl extends ResultImpl implements ListResult<Record> {
             private final ProtocolVersion protocolVersion;
             private final Iterator<Row> iterator;
             private final ResultSet rs;
             private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
             
             public RecordsImpl(ProtocolVersion protocolVersion, ResultSet rs) {
+                super(rs);
                 this.protocolVersion = protocolVersion;
                 this.rs = rs;
                 this.iterator = rs.iterator();
             }
-            
-          
+       
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -1307,7 +1444,7 @@ public class DaoImpl implements Dao {
             
             @Override
             public Record next() {
-                return new Record(protocolVersion, iterator.next());
+                return new Record(protocolVersion, this, iterator.next());
             }
             
             @Override
@@ -1397,51 +1534,61 @@ public class DaoImpl implements Dao {
     
     
     
-    protected <E> ListRead<Result<E>> newListSelection(Context ctx, ListRead<Result<Record>> read, Class<?> clazz) {
+    protected <E> ListRead<ListResult<E>> newListSelection(Context ctx, ListRead<ListResult<Record>> read, Class<?> clazz) {
         return new ListEntityReadQuery<>(ctx, read, clazz);
     }
     
     
-    private class ListEntityReadQuery<E> implements ListRead<Result<E>> {
+    private class ListEntityReadQuery<E> implements ListRead<ListResult<E>> {
         private final Context ctx;
-        private final ListRead<Result<Record>> read;
+        private final ListRead<ListResult<Record>> read;
         private final Class<?> clazz;
         
-        public ListEntityReadQuery(Context ctx, ListRead<Result<Record>> read, Class<?> clazz) {
+        public ListEntityReadQuery(Context ctx, ListRead<ListResult<Record>> read, Class<?> clazz) {
             this.ctx = ctx;
             this.read = read;
             this.clazz = clazz;
         }
     
+        @Override
+        public SingleRead<ListResult<E>> withEnableTracking() {
+            return newListSelection(ctx.withEnableTracking(), read, clazz);
+        }
+        
+        @Override
+        public SingleRead<ListResult<E>> withDisableTracking() {
+            return newListSelection(ctx.withDisableTracking(), read, clazz);
+        }
+        
     
         @Override
-        public SingleRead<Result<E>> withConsistency( ConsistencyLevel consistencyLevel) {
+        public SingleRead<ListResult<E>> withConsistency( ConsistencyLevel consistencyLevel) {
             return newListSelection(ctx.withConsistency(consistencyLevel), read, clazz);
         }
     
         @Override
-        public ListRead<Result<E>> withDistinct() {
+        public ListRead<ListResult<E>> withDistinct() {
             return newListSelection(ctx, read.withDistinct(), clazz);
         }
         
         @Override
-        public ListRead<Result<E>> withFetchSize(int fetchSize) {
+        public ListRead<ListResult<E>> withFetchSize(int fetchSize) {
             return newListSelection(ctx, read.withFetchSize(fetchSize), clazz);
         }
         
         @Override
-        public ListRead<Result<E>> withAllowFiltering() {
+        public ListRead<ListResult<E>> withAllowFiltering() {
             return newListSelection(ctx, read.withAllowFiltering(), clazz);
         }
         
         @Override
-        public ListRead<Result<E>> withLimit(int limit) {
+        public ListRead<ListResult<E>> withLimit(int limit) {
             return newListSelection(ctx, read.withLimit(limit), clazz);
         }
 
         
         @Override
-        public Result<E> execute() {
+        public ListResult<E> execute() {
             try {
                 return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -1451,22 +1598,32 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public CompletableFuture<Result<E>> executeAsync() {
+        public CompletableFuture<ListResult<E>> executeAsync() {
             return read.executeAsync().thenApply(recordIterator -> new ResultIteratorImpl<>(ctx, recordIterator, clazz));
         }
         
         
         
-        private final class ResultIteratorImpl<F> implements Result<F> {
+        private final class ResultIteratorImpl<F>implements ListResult<F> {
             private final Context ctx;
-            private final Result<Record> recordIterator;
+            private final ListResult<Record> recordIterator;
             private final Class<?> clazz;
 
             
-            public ResultIteratorImpl(Context ctx, Result<Record> recordIterator, Class<?> clazz) {
+            public ResultIteratorImpl(Context ctx, ListResult<Record> recordIterator, Class<?> clazz) {
                 this.ctx = ctx;
                 this.recordIterator = recordIterator;
                 this.clazz = clazz;
+            }
+
+            @Override
+            public ExecutionInfo getExecutionInfo() {
+                return recordIterator.getExecutionInfo();
+            }
+            
+            @Override
+            public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+                return recordIterator.getAllExecutionInfo();
             }
             
             

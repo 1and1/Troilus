@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Result;
+import com.unitedinternet.troilus.ListResult;
 import com.unitedinternet.troilus.api.UsersTable;
 
 
@@ -60,7 +60,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
     
         
         
-        Result<User> list = userDao.readWhere()
+        ListResult<User> list = userDao.readWhere()
                                    .asEntity(User.class)
                                    .withLimit(3)
                                    .execute();

@@ -26,7 +26,7 @@ package com.unitedinternet.troilus;
  */
 public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
     
-    <E> ListRead<Result<E>> asEntity(Class<E> objectClass);
+    <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass);
 }
 
 

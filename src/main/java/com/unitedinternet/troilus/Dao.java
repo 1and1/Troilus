@@ -46,9 +46,9 @@ public interface Dao {
     
     SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
    
-    ListReadWithUnit<Result<Record>> readAll();
+    ListReadWithUnit<ListResult<Record>> readAll();
     
-    ListReadWithUnit<Result<Record>> readWhere(Clause... clauses);
+    ListReadWithUnit<ListResult<Record>> readWhere(Clause... clauses);
     
   
     Deletion deleteWithKey(String keyName, Object keyValue);

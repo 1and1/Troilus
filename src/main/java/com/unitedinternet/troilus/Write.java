@@ -32,6 +32,10 @@ import com.datastax.driver.core.querybuilder.Clause;
 public interface Write extends Mutation<Write> {
 
     Write withConsistency(ConsistencyLevel consistencyLevel);
+    
+    Write withEnableTracking();
+    
+    Write withDisableTracking();
 
     Write withTtl(Duration ttl);
 

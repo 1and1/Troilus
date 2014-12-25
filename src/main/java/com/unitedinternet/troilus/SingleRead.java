@@ -32,6 +32,10 @@ import com.datastax.driver.core.ConsistencyLevel;
  */
 public interface SingleRead<T> extends Query<T> {
     
+    SingleRead<T> withEnableTracking();
+    
+    SingleRead<T> withDisableTracking();
+    
     SingleRead<T> withConsistency(ConsistencyLevel consistencyLevel); 
 }
 

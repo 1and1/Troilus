@@ -11,6 +11,7 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
@@ -19,6 +20,7 @@ import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Deletion;
 import com.unitedinternet.troilus.Record;
+import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
 
 
@@ -59,13 +61,13 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
        
         // insert async
-        CompletableFuture<Void> future = hotelsDao.writeEntity(new Hotel("BUP14334", 
-                                                                         "Richter Panzio",
-                                                                         ImmutableSet.of("1", "2", "3"),
-                                                                         Optional.of(2), 
-                                                                         Optional.empty()))
-                                                  .withConsistency(ConsistencyLevel.ANY)
-                                                  .executeAsync();
+        CompletableFuture<Result> future = hotelsDao.writeEntity(new Hotel("BUP14334", 
+                                                                           "Richter Panzio",
+                                                                           ImmutableSet.of("1", "2", "3"),
+                                                                           Optional.of(2), 
+                                                                           Optional.empty()))
+                                                    .withConsistency(ConsistencyLevel.ANY)
+                                                    .executeAsync();
         future.get(); // waits for completion
         
         
