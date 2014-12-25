@@ -7,6 +7,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
@@ -28,24 +31,22 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
 
         
 
-/*
-        
-        ////////////////
+        //////////////// 
         // inserts
         customersDao.writeWithKey(CustomersTable.ID, "95453543534")
-                    .value("name", "peter")
-                    .value("address", "street", "brauerstrasse")
-                    .value("address", "zip_code", "76244")
+                    .value(CustomersTable.NAME, "peter")
+                    .value(CustomersTable.PHONE_NUMBERS, ImmutableSet.of("454545", "2354234324"))
+                    .value(CustomersTable.CURRENT_ADDRESS, new Address(ImmutableList.of(new Addressline("brauerstrasse")), 76336))
+                    .value(CustomersTable.OLD_ADDRESSES, ImmutableSet.of(ImmutableList.of(new Addressline("frankfurter ring")), 80123))
+                    .value(CustomersTable.CLASSIFICATION, ImmutableMap.of(new Classifier("reliability"), new Score(23)))
                     .execute();
 
         
         Record record = customersDao.readWithKey(CustomersTable.ID, "95453543534")
                                     .execute()
                                     .get();
-
-        Assert.assertEquals("brauerstrasse", record.getString("address", "street").get());
-        Assert.assertEquals("76244", record.getString("address", "zip_code").get());
-    */    
+        
+        Assert.assertEquals("peter", record.getString("name").get());
     }               
 }
 

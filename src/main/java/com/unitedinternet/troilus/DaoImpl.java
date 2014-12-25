@@ -20,7 +20,10 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -41,7 +44,6 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
-import com.datastax.driver.core.schemabuilder.UDTType;
 import com.datastax.driver.core.ConsistencyLevel;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
@@ -59,6 +61,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import org.slf4j.Logger;
@@ -130,7 +134,7 @@ public class DaoImpl implements Dao {
                 
         
         @Override
-        public final  InsertWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+        public final  InsertWithValues values(ImmutableMap<String, ? extends Object> additionalvaluesToMutate) {
             InsertWithValues write = this;
             for (String name : additionalvaluesToMutate.keySet()) {
                 write = write.value(name, additionalvaluesToMutate.get(name));
@@ -140,13 +144,15 @@ public class DaoImpl implements Dao {
         
           
         @Override
-        public final InsertWithValues value(String name, Object value) {
-            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
-        }
-
-        
-        protected InsertWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
-            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
+        public InsertWithValues value(String name, Object value) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert;
+            
+            if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
+            } else {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
+            }
+            
             return newInsertion(ctx, newValuesToInsert, ifNotExists);
         }
            
@@ -275,7 +281,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public final  UpdateWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+        public final  UpdateWithValues values(ImmutableMap<String, ? extends Object> additionalvaluesToMutate) {
             UpdateWithValues write = this;
             for (String name : additionalvaluesToMutate.keySet()) {
                 write = write.value(name, additionalvaluesToMutate.get(name));
@@ -285,13 +291,15 @@ public class DaoImpl implements Dao {
         
      
         @Override
-        public final UpdateWithValues value(String name, Object value) {
-            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
-        }
-
-        
-        protected UpdateWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
-            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
+        public UpdateWithValues value(String name, Object value) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert;
+            
+            if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
+            } else {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
+            }
+            
             return newUpdate(ctx, keys, newValuesToInsert, whereConditions, ifConditions);
         }
            
@@ -336,8 +344,6 @@ public class DaoImpl implements Dao {
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
             
-            whereConditions.forEach(condition -> update.where(condition));
-            
             ifConditions.forEach(condition -> update.onlyIf(condition));
    
             ctx.getTtl().ifPresent(ttl-> {
@@ -345,6 +351,10 @@ public class DaoImpl implements Dao {
                                             values.add((int) ttl.getSeconds());
                                          });
 
+            
+            whereConditions.forEach(condition -> update.where(condition));
+
+            
             PreparedStatement stmt = ctx.prepare(update);
             return stmt.bind(values.toArray());
         }
@@ -433,26 +443,30 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public final  WriteWithValues values(ImmutableMap<String , Object> additionalvaluesToMutate) {
+        public final  WriteWithValues values(ImmutableMap<String, ? extends Object> valuesToMutate) {
             WriteWithValues write = this;
-            for (String name : additionalvaluesToMutate.keySet()) {
-                write = write.value(name, additionalvaluesToMutate.get(name));
+            for (String name : valuesToMutate.keySet()) {
+                write = write.value(name, valuesToMutate.get(name));
             }
             return write;
         }
         
      
         @Override
-        public final WriteWithValues value(String name, Object value) {
-            return valuesInternal(ImmutableList.of(new SimpleValueToMutate(name, value)));
+        public WriteWithValues value(String name, Object value) {
+            
+            ImmutableList<? extends ValueToMutate> newValuesToInsert;
+            
+            if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
+            } else {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
+            }
+            
+            return newWrite(ctx, keys, newValuesToInsert);
         }
 
         
-        protected WriteWithValues valuesInternal(ImmutableList<? extends ValueToMutate> additionalValuesToInsert) {
-            ImmutableList<? extends ValueToMutate> newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(additionalValuesToInsert).build();
-            return newWrite(ctx, keys, newValuesToInsert);
-        }
-           
         
         @Override
         public Write withConsistency(ConsistencyLevel consistencyLevel) {
@@ -539,12 +553,12 @@ public class DaoImpl implements Dao {
     }
   
     
-    private static final class SimpleValueToMutate implements ValueToMutate {
+    private static final class BuildinValueToMutate implements ValueToMutate {
         private final String name;
         private final Object value;
         
         @SuppressWarnings("unchecked")
-        public SimpleValueToMutate(String name, Object value) {
+        public BuildinValueToMutate(String name, Object value) {
             this.name = name;
             if (value instanceof Optional) {
                 this.value = ((Optional) value).orElse(null);
@@ -572,8 +586,116 @@ public class DaoImpl implements Dao {
         }
     }
    
+    
+    
+    private static final class UDTValueToMutate implements ValueToMutate {
+        private final String columnName;
+        private final Object value;
+        
+        @SuppressWarnings("unchecked")
+        public UDTValueToMutate(String columnName, Object value) {
+            this.columnName = columnName;
+            if (value instanceof Optional) {
+                this.value = ((Optional) value).orElse(null);
+            } else {
+                this.value = value;
+            }
+        }
+        
+        
+        @Override
+        public String toString() {
+            return columnName + "=" + value;
+        }
+        
+        
+        @Override
+        public Object addToStatement(Context ctx, Insert insert) {
+            insert.value(columnName, bindMarker());
+            return toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
+        }
+
+        public Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(columnName, bindMarker()));
+            return toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
+        }
+        
+        
+        
+        @SuppressWarnings("unchecked")
+        private static Object toUdtValue(Context ctx, DataType datatype, Object value) {
+            
+            // build-in type (will not be converted)
+            if (ctx.isBuildInType(datatype)) {
+                return value;
+                
+            // udt collection
+            } else if (datatype.isCollection()) {
+               
+               if (Set.class.isAssignableFrom(value.getClass())) {
+                   DataType elementDataType = datatype.getTypeArguments().get(0);
+                   
+                   Set<Object> udt = Sets.newHashSet();
+                   for (Object element : (Set<Object>) value) {
+                       udt.add(toUdtValue(ctx, ctx.getUserType(((UserType) elementDataType).getTypeName()), element));
+                   }
+                   
+                   return ImmutableSet.copyOf(udt);
+                   
+               } else if (List.class.isAssignableFrom(value.getClass())) {
+                   DataType elementDataType = datatype.getTypeArguments().get(0);
+                   
+                   List<Object> udt = Lists.newArrayList();
+                   for (Object element : (List<Object>) value) {
+                       udt.add(toUdtValue(ctx, ctx.getUserType(((UserType) elementDataType).getTypeName()), element));
+                   }
+                   
+                   return ImmutableList.copyOf(udt);
+                   
+               } else {
+                   DataType keyDataType = datatype.getTypeArguments().get(0);
+                   DataType valueDataType = datatype.getTypeArguments().get(1);
+                   
+                   Map<Object, Object> udt = Maps.newHashMap();
+                   for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
+                       udt.put(toUdtValue(ctx, ctx.getUserType(((UserType) keyDataType).getTypeName()), entry.getKey()), 
+                               toUdtValue(ctx, ctx.getUserType(((UserType) valueDataType).getTypeName()), entry.getValue()));
+                   }
+                   
+                   return ImmutableMap.copyOf(udt);  
+               }
+        
+            // udt
+            } else {
+                return toUdtValue(ctx, ctx.getUserType(((UserType) datatype).getTypeName()), value);
+            }
+        }
+        
+        
+        
+        private static Object toUdtValue(Context ctx, UserType usertype, Object entity) {
+            UDTValue udtValue = usertype.newValue();
+            
+            for (Entry<String, Optional<Object>> entry : ctx.toValues(entity).entrySet()) {
+                DataType fieldType = usertype.getFieldType(entry.getKey());
+                        
+                if (entry.getValue().isPresent()) {
+                    Object value = entry.getValue().get();
+                    
+                    if (!ctx.isBuildInType(usertype.getFieldType(entry.getKey()))) {
+                        value = toUdtValue(ctx, fieldType, value);
+                    }
+                    
+                    udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(value, ctx.getProtocolVersion()));
+                }
+            }
+            
+            return udtValue;
+        }
+    }
    
    
+    
     
     ///////////////////////////////
     // DELETE

@@ -5,32 +5,33 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 
-import com.datastax.driver.mapping.annotations.Field;
+
+import javax.persistence.Column;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class User {
 
-    @Field(name = "user_id")
+    @Column(name = "user_id")
     private String userId;
     
-    @Field(name = "name")
+    @Column(name = "name")
     private String name;
  
-    
-    @Field(name = "is_customer")
+    @Column(name = "is_customer")
     private Optional<Boolean> isCustomer;
     
-    @Field(name = "picture")
+    @Column(name = "picture")
     private Optional<ByteBuffer> picture;  
     
-    @Field(name = "modified")
+    @Column(name = "modified")
     private Long modified;
     
-    @Field(name = "phone_numbers")
+    @Column(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
     
-    @Field(name = "addresses")
+    @Column(name = "addresses")
     private ImmutableList<String> addresses;
 
     

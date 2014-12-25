@@ -23,11 +23,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
-
-
-
-
+import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -38,12 +36,17 @@ import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 
  
 
 public class Context  {
     private final Cache<String, PreparedStatement> statementCache = CacheBuilder.newBuilder().maximumSize(100).build();
+    private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
+    private final LoadingCache<String, UserType> userTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader());
+    
     
     private final String table;
     private final Session session;
@@ -63,6 +66,10 @@ public class Context  {
         this.entityMapper = entityMapper;
     }
  
+    @Deprecated
+    protected Session getSession() {
+        return session;
+    }
     
     protected String getTable() {
         return table;
@@ -72,14 +79,53 @@ public class Context  {
         return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
     }
     
-    protected UserType getUserType(String name) {
-        return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(name);
+    protected ColumnMetadata getColumnMetadata(String columnName) {
+        try {
+            return columnMetadataCache.get(columnName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e.getCause());
+        }
     }
 
-    protected ImmutableMap<String, Object> toValues(Object entity) {
+    
+    protected UserType getUserType(String usertypeName) {
+        try {
+            return userTypeCache.get(usertypeName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e.getCause());
+        }
+    }
+
+ 
+    
+
+    public boolean isBuildInType(DataType dataType) {
+        
+        if (dataType.isCollection()) {
+            for (DataType type : dataType.getTypeArguments()) {
+                if (!isBuildinType(type)) {
+                    return false;
+                }
+            }
+            return true;
+
+        } else {
+            return isBuildinType(dataType);
+        }
+    }
+  
+    private boolean isBuildinType(DataType type) {
+        return DataType.allPrimitiveTypes().contains(type);
+    }
+    
+    
+    protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
         return entityMapper.toValues(entity);
     }
 
+    
+  
+    
     
     protected <T> T fromValues(Class<?> clazz, Record record) {
         return entityMapper.fromValues(clazz, record);
@@ -237,6 +283,28 @@ public class Context  {
     
         public Optional<Long> getWritetime() {
             return writetimeMicrosSinceEpoch;
+        }
+    }
+    
+    
+    
+
+
+    private final class ColumnMetadataCacheLoader extends CacheLoader<String, ColumnMetadata> {
+        
+        @Override
+        public ColumnMetadata load(String columnName) throws Exception {
+            return  session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
+        }
+    }
+    
+    
+
+    private final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
+        
+        @Override
+        public UserType load(String usertypeName) throws Exception {
+            return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
         }
     }
 }

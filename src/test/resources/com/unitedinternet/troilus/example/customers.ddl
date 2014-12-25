@@ -3,6 +3,9 @@ CREATE TABLE customers (
                     	name text,
 	                    is_customer boolean,
     	                picture blob,
-        				address frozen<address>,
+    	                phone_numbers set<text>,
+        				current_address frozen<address>,
+        				old_addresses set<frozen<address>>,
+        				classification map<frozen<Classifier>, frozen<Score>>,
                         PRIMARY KEY (id)
-                       );
+                       ); 

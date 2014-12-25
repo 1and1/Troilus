@@ -1,4 +1,4 @@
 CREATE TYPE address (
-                     street text,
+                     lines list<frozen<addressline>>,
                      zip_code int
                     )

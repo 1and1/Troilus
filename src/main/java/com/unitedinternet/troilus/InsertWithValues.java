@@ -31,7 +31,7 @@ public interface InsertWithValues extends Insertion {
     
     InsertWithValues value(String name, Object value);
     
-    InsertWithValues values(ImmutableMap<String , Object> nameValuePairsToAdd);
+    InsertWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
 }
 
 

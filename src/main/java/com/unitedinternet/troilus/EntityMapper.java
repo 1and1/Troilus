@@ -17,7 +17,9 @@ package com.unitedinternet.troilus;
 
 
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -28,7 +30,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.datastax.driver.core.ColumnDefinitions.Definition;
-import com.datastax.driver.mapping.annotations.Field;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -58,21 +59,21 @@ class EntityMapper {
         private final Class<?> clazz;
         private final ImmutableSet<BiConsumer<Object, Record>> propertyWriters;
         
-        private final ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> valueReaders;
+        private final ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders;
         
     
-        public PropertiesMapper(ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
+        public PropertiesMapper(ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders, ImmutableSet<BiConsumer<Object, Record>> propertyWriters, Class<?> clazz) {
             this.valueReaders = valueReaders;
             this.propertyWriters = propertyWriters;
             this.clazz = clazz;
         }
      
       
-        public ImmutableMap<String, Object> toValues(Object entity) {
-            Map<String, Object> values = Maps.newHashMap();
+        public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+            Map<String, Optional<Object>> values = Maps.newHashMap();
             
-            for (Function<Object, Map.Entry<String, Object>> valueReader : valueReaders.values()) {
-                Map.Entry<String, Object> pair = valueReader.apply(entity); 
+            for (Function<Object, Map.Entry<String, Optional<Object>>> valueReader : valueReaders.values()) {
+                Map.Entry<String, Optional<Object>> pair = valueReader.apply(entity); 
                 values.put(pair.getKey(), pair.getValue());
             }
 
@@ -110,7 +111,7 @@ class EntityMapper {
   
 
     
-    public ImmutableMap<String, Object> toValues(Object entity) {
+    public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
         return getPropertiesMapper(entity.getClass()).toValues(entity);
     }
 
@@ -152,36 +153,71 @@ class EntityMapper {
         
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
-            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
+            Map<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders = Maps.newHashMap();
             
             // check attributes
-            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            valueReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+            valueReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+        //    valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+        //    valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
      
             
             Set<BiConsumer<Object, Record>> propertyWriters = Sets.newHashSet();
-            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+        //    propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+        //    propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
                    
             return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
         }
         
         
         
-        
-        private static ImmutableMap<String, Function<Object, Map.Entry<String, Object>>> fetchFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
-            Map<String, Function<Object, Map.Entry<String, Object>>> valueReaders = Maps.newHashMap();
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> fetchJEEFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
+            Map<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders = Maps.newHashMap();
             
             for (java.lang.reflect.Field beanField : beanFields) {
-                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
-                String columnName = annotation.name();    
-                if (columnName != null) {
-                    valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
+                for (Annotation annotation : beanField.getAnnotations()) {
+                    
+                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
+                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
+                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
+                                try {
+                                    String columnName = (String) attributeMethod.invoke(annotation);
+                                    if (columnName != null) {
+                                        valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
+                                    }
+                                    break;
+
+                                } catch (ReflectiveOperationException ignore) { }
+                            }
+                        }
+                    }
                 }
             }
             
             return ImmutableMap.copyOf(valueReaders);
         }
+        
+      
+
+      /*  
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> fetchFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
+            Map<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders = Maps.newHashMap();
+            
+            for (java.lang.reflect.Field beanField : beanFields) {
+                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
+                if (annotation != null) {
+                    String columnName = annotation.name();    
+                    if (columnName != null) {
+                        valueReaders.put(columnName, entity -> Maps.immutableEntry(columnName, readBeanField(beanField, entity)));
+                    }
+                }
+            }
+            
+            return ImmutableMap.copyOf(valueReaders);
+        }
+        */
         
             
         @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -200,20 +236,30 @@ class EntityMapper {
         }
     
         
-        
-        
-        private ImmutableSet<BiConsumer<Object, Record>> fetchFieldWriters(ImmutableSet<java.lang.reflect.Field> beanFields) {
+        private ImmutableSet<BiConsumer<Object, Record>> fetchJEEFieldWriters(ImmutableSet<java.lang.reflect.Field> beanFields) {
             Set<BiConsumer<Object, Record>> valueWriters = Sets.newHashSet();
             
             for (java.lang.reflect.Field beanField : beanFields) {
-                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
-                String columnName = annotation.name();
-                Class<?> beanFieldClass = beanField.getType();
+                for (Annotation annotation : beanField.getAnnotations()) {
+                    
+                    if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
+                        for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
+                            if (attributeMethod.getName().equalsIgnoreCase("name")) {
+                                try {
+                                    String columnName = (String) attributeMethod.invoke(annotation);
+                                    Class<?> beanFieldClass = beanField.getType();
                                   
-                for (RecordValueMapper valueMapper : recordValueMappers) {
-                    if (valueMapper.isSupport(beanFieldClass)) {
-                        valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
-                        break;
+                                    for (RecordValueMapper valueMapper : recordValueMappers) {
+                                        if (valueMapper.isSupport(beanFieldClass)) {
+                                            valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
+                                            break;
+                                        }
+                                    }
+                                    
+                                    break;
+                                } catch (ReflectiveOperationException ignore) { }
+                            }
+                        }
                     }
                 }
             }
@@ -221,6 +267,29 @@ class EntityMapper {
             return ImmutableSet.copyOf(valueWriters);
         }
         
+        
+        /*
+        private ImmutableSet<BiConsumer<Object, Record>> fetchFieldWriters(ImmutableSet<java.lang.reflect.Field> beanFields) {
+            Set<BiConsumer<Object, Record>> valueWriters = Sets.newHashSet();
+            
+            for (java.lang.reflect.Field beanField : beanFields) {
+                Field annotation = beanField.getAnnotation(com.datastax.driver.mapping.annotations.Field.class);
+                if (annotation != null) {
+                    String columnName = annotation.name();
+                    Class<?> beanFieldClass = beanField.getType();
+                                      
+                    for (RecordValueMapper valueMapper : recordValueMappers) {
+                        if (valueMapper.isSupport(beanFieldClass)) {
+                            valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            return ImmutableSet.copyOf(valueWriters);
+        }
+        */
         
         private static void writeBeanField(java.lang.reflect.Field field, Object persistenceObject, Object value) {
             try {
