@@ -20,10 +20,7 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -32,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -48,23 +46,17 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.UDTValue;
-import com.datastax.driver.core.UserType;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import org.slf4j.Logger;
@@ -682,85 +674,12 @@ public class DaoImpl implements Dao {
         @Override
         public Object addToStatement(Context ctx, Insert insert) {
             insert.value(columnName, bindMarker());
-            return toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
+            return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
         }
 
         public Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
             update.with(set(columnName, bindMarker()));
-            return toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
-        }
-        
-        
-        
-        @SuppressWarnings("unchecked")
-        private static Object toUdtValue(Context ctx, DataType datatype, Object value) {
-            
-            // build-in type (will not be converted)
-            if (ctx.isBuildInType(datatype)) {
-                return value;
-                
-            // udt collection
-            } else if (datatype.isCollection()) {
-               
-               if (Set.class.isAssignableFrom(value.getClass())) {
-                   DataType elementDataType = datatype.getTypeArguments().get(0);
-                   
-                   Set<Object> udt = Sets.newHashSet();
-                   for (Object element : (Set<Object>) value) {
-                       udt.add(toUdtValue(ctx, ctx.getUserType(((UserType) elementDataType).getTypeName()), element));
-                   }
-                   
-                   return ImmutableSet.copyOf(udt);
-                   
-               } else if (List.class.isAssignableFrom(value.getClass())) {
-                   DataType elementDataType = datatype.getTypeArguments().get(0);
-                   
-                   List<Object> udt = Lists.newArrayList();
-                   for (Object element : (List<Object>) value) {
-                       udt.add(toUdtValue(ctx, ctx.getUserType(((UserType) elementDataType).getTypeName()), element));
-                   }
-                   
-                   return ImmutableList.copyOf(udt);
-                   
-               } else {
-                   DataType keyDataType = datatype.getTypeArguments().get(0);
-                   DataType valueDataType = datatype.getTypeArguments().get(1);
-                   
-                   Map<Object, Object> udt = Maps.newHashMap();
-                   for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
-                       udt.put(toUdtValue(ctx, ctx.getUserType(((UserType) keyDataType).getTypeName()), entry.getKey()), 
-                               toUdtValue(ctx, ctx.getUserType(((UserType) valueDataType).getTypeName()), entry.getValue()));
-                   }
-                   
-                   return ImmutableMap.copyOf(udt);  
-               }
-        
-            // udt
-            } else {
-                return toUdtValue(ctx, ctx.getUserType(((UserType) datatype).getTypeName()), value);
-            }
-        }
-        
-        
-        
-        private static Object toUdtValue(Context ctx, UserType usertype, Object entity) {
-            UDTValue udtValue = usertype.newValue();
-            
-            for (Entry<String, Optional<Object>> entry : ctx.toValues(entity).entrySet()) {
-                DataType fieldType = usertype.getFieldType(entry.getKey());
-                        
-                if (entry.getValue().isPresent()) {
-                    Object value = entry.getValue().get();
-                    
-                    if (!ctx.isBuildInType(usertype.getFieldType(entry.getKey()))) {
-                        value = toUdtValue(ctx, fieldType, value);
-                    }
-                    
-                    udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(value, ctx.getProtocolVersion()));
-                }
-            }
-            
-            return udtValue;
+            return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
         }
     }
    
@@ -1078,11 +997,11 @@ public class DaoImpl implements Dao {
                                                       return Optional.empty();
                                                       
                                                   } else {
-                                                      Record record = new Record(ctx.getProtocolVersion(), new ResultImpl(resultSet), row);
+                                                      Record record = new Record(ctx, new ResultImpl(resultSet), row);
                         
                                                       // paranioa check
                                                       keyNameValuePairs.forEach((name, value) -> { 
-                                                                                                   if (record.get(name).equals(value)) {
+                                                                                                   if (record.getObject(name).equals(value)) {
                                                                                                        LOG.warn("Dataswap error for " + name);
                                                                                                        throw new ProtocolErrorException("Dataswap error for " + name); 
                                                                                                    }
@@ -1148,7 +1067,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> ctx.fromValues(clazz, record)));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> ctx.fromValues(clazz, new RecordAccessorAdapter(record))));
         }        
     }
      
@@ -1420,19 +1339,17 @@ public class DaoImpl implements Dao {
             optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
             
             return ctx.performAsync(select)
-                      .thenApply(resultSet -> new RecordsImpl(ctx.getProtocolVersion(), resultSet));
+                      .thenApply(resultSet -> new RecordsImpl(resultSet));
         }        
         
         
         private final class RecordsImpl extends ResultImpl implements ListResult<Record> {
-            private final ProtocolVersion protocolVersion;
             private final Iterator<Row> iterator;
             private final ResultSet rs;
             private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
             
-            public RecordsImpl(ProtocolVersion protocolVersion, ResultSet rs) {
+            public RecordsImpl(ResultSet rs) {
                 super(rs);
-                this.protocolVersion = protocolVersion;
                 this.rs = rs;
                 this.iterator = rs.iterator();
             }
@@ -1444,7 +1361,7 @@ public class DaoImpl implements Dao {
             
             @Override
             public Record next() {
-                return new Record(protocolVersion, this, iterator.next());
+                return new Record(ctx, this, iterator.next());
             }
             
             @Override
@@ -1635,7 +1552,7 @@ public class DaoImpl implements Dao {
             
             @Override
             public F next() {
-                return ctx.fromValues(clazz, recordIterator.next());
+                return ctx.fromValues(clazz, new RecordAccessorAdapter(recordIterator.next()));
             }
             
           
@@ -1663,7 +1580,7 @@ public class DaoImpl implements Dao {
                 
                 @Override
                 public void onNext(Record record) {
-                    subscriber.onNext(ctx.fromValues(clazz, record));
+                    subscriber.onNext(ctx.fromValues(clazz, new RecordAccessorAdapter(record)));
                 }
 
                 @Override
@@ -1676,6 +1593,22 @@ public class DaoImpl implements Dao {
                     subscriber.onComplete();
                 }
             }
+        }
+    }
+    
+    
+    
+    private static final class RecordAccessorAdapter implements Function<String, Optional<?>> {
+        
+        private final Record record;
+        
+        public RecordAccessorAdapter(Record record) {
+            this.record = record;
+        }
+        
+        @Override
+        public Optional<?> apply(String name) {
+            return record.getObject(name);
         }
     }
 }

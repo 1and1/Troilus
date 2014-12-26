@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Function;
 
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -50,16 +51,16 @@ public class Context  {
     
     private final String table;
     private final Session session;
-    private final EntityMapper entityMapper;
+    private final BeanMapper entityMapper;
     private final ExecutionSpec executionSpec;
 
     
     public Context(Session session, String table) {
-        this(session, new EntityMapper(), table, new ExecutionSpec());
+        this(session, new BeanMapper(), table, new ExecutionSpec());
     }
 
     
-    Context(Session session, EntityMapper entityMapper, String table, ExecutionSpec executionSpec) {
+    Context(Session session, BeanMapper entityMapper, String table, ExecutionSpec executionSpec) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
@@ -127,8 +128,8 @@ public class Context  {
   
     
     
-    protected <T> T fromValues(Class<?> clazz, Record record) {
-        return entityMapper.fromValues(clazz, record);
+    protected <T> T fromValues(Class<?> clazz, Function<String, Optional<?>> datasource) {
+        return entityMapper.fromValues(clazz, datasource);
     }
     
     

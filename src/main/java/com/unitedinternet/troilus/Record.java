@@ -49,13 +49,13 @@ import com.google.common.collect.ImmutableList;
  */
 public class Record implements Result {
    
-    private final ProtocolVersion protocolVersion;
+    private final Context ctx;
     private final Result result;
     private final Row row;
     
     
-    Record(ProtocolVersion protocolVersion, Result result, Row row) {
-        this.protocolVersion = protocolVersion;
+    Record(Context ctx, Result result, Row row) {
+        this.ctx = ctx;
         this.result = result;
         this.row = row;
     }
@@ -72,7 +72,7 @@ public class Record implements Result {
     
     
     public ProtocolVersion getProtocolVersion() {
-        return protocolVersion;
+        return ctx.getProtocolVersion();
     }
 
     public Optional<Long> getWritetime(String name) {
@@ -99,10 +99,6 @@ public class Record implements Result {
         return row.isNull(name);
     }
      
-    Optional<Object> get(String name) {
-        return isNull(name) ? Optional.empty() : Optional.of(row.getColumnDefinitions().getType(name).deserialize(row.getBytesUnsafe(name), protocolVersion));
-    }
-    
     public Optional<Long> getLong(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getLong(name));
     }
@@ -176,6 +172,7 @@ public class Record implements Result {
     public Optional<UUID> getUUID(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUUID(name));
     }
+   
     
      
     public <T> Optional<List<T>> getList(String name, Class<T> elementsClass) {
@@ -193,7 +190,7 @@ public class Record implements Result {
             return Optional.empty();
         } else {
             StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(row.getBytesUnsafe(name), protocolVersion));
+            builder.append(dataType.deserialize(row.getBytesUnsafe(name), getProtocolVersion()));
 
             return Optional.of(builder.toString());
         }
@@ -204,6 +201,22 @@ public class Record implements Result {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
     }
 
+    
+    public <T> Optional<T> getUDT(String name, Class<T> elementsClass) {
+        return getUDTValue(name).map(udtValue -> UDTValueMapper.fromUdtValue(ctx, row.getColumnDefinitions().getType(name), udtValue));
+    }
+   
+
+    
+    @SuppressWarnings("unchecked")
+    <T> Optional<T> getObject(String name) {
+        DataType dataType = getColumnDefinitions().getType(name);
+        if (dataType != null) {
+            return (Optional<T>) getBytesUnsafe(name).map(bytes -> dataType.deserialize(bytes, getProtocolVersion()));
+        }
+        
+        return Optional.empty();
+    }
 
     
     public String toString() {
