@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.google.common.cache.CacheBuilder;
@@ -56,12 +57,12 @@ class BeanMapper {
     
     private static final class PropertiesMapper {
         private final Class<?> clazz;
-        private final ImmutableSet<BiConsumer<Object, Function<String, Optional<?>>>> propertyWriters;
+        private final ImmutableSet<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> propertyWriters;
         
         private final ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders;
         
     
-        public PropertiesMapper(ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders, ImmutableSet<BiConsumer<Object, Function<String, Optional<?>>>> propertyWriters, Class<?> clazz) {
+        public PropertiesMapper(ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders, ImmutableSet<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> propertyWriters, Class<?> clazz) {
             this.valueReaders = valueReaders;
             this.propertyWriters = propertyWriters;
             this.clazz = clazz;
@@ -81,7 +82,7 @@ class BeanMapper {
 
         
         @SuppressWarnings("unchecked")
-        public <T> T fromValues(Function<String, Optional<?>> datasource) {
+        public <T> T fromValues(BiFunction<String, Class<?>, Optional<?>> datasource) {
             try {
                 T persistenceObject = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
                 propertyWriters.forEach(writer -> writer.accept(persistenceObject, datasource)); 
@@ -115,7 +116,7 @@ class BeanMapper {
     }
 
     
-    public <T> T fromValues(Class<?> clazz, Function<String, Optional<?>> datasource) {
+    public <T> T fromValues(Class<?> clazz, BiFunction<String, Class<?>, Optional<?>> datasource) {
         return getPropertiesMapper(clazz).fromValues(datasource);
     }
     
@@ -144,15 +145,35 @@ class BeanMapper {
             valueReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             valueReaders.putAll(fetchCMapperFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
             valueReaders.putAll(fetchCMapperFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
      
             
-            Set<BiConsumer<Object, Function<String, Optional<?>>>> propertyWriters = Sets.newHashSet();
+            Set<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> propertyWriters = Sets.newHashSet();
             propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
             propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             propertyWriters.addAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
             propertyWriters.addAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
                    
             return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
+        }
+        
+        
+        
+
+        private static ImmutableMap<String, Function<Object, Map.Entry<String, Optional<Object>>>> fetchFieldReaders(ImmutableSet<Field> beanFields) {
+            Map<String, Function<Object, Map.Entry<String, Optional<Object>>>> valueReaders = Maps.newHashMap();
+            
+            for (Field beanField : beanFields) {
+                com.unitedinternet.troilus.Field field = beanField.getAnnotation(com.unitedinternet.troilus.Field.class);
+                if (field != null) {
+                    valueReaders.put(field.name(), entity -> Maps.immutableEntry(field.name(), readBeanField(beanField, entity)));
+                }
+            }
+            
+            return ImmutableMap.copyOf(valueReaders);
         }
         
         
@@ -226,10 +247,25 @@ class BeanMapper {
                 return Optional.ofNullable(value);
             }
         }
-    
+
         
-        private ImmutableSet<BiConsumer<Object, Function<String, Optional<?>>>> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
-            Set<BiConsumer<Object, Function<String, Optional<?>>>> valueWriters = Sets.newHashSet();
+
+        private ImmutableSet<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> fetchFieldWriters(ImmutableSet<Field> beanFields) {
+            Set<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> valueWriters = Sets.newHashSet();
+            
+            for (Field beanField : beanFields) {
+                com.unitedinternet.troilus.Field field = beanField.getAnnotation(com.unitedinternet.troilus.Field.class);
+                if (field != null) {
+                    writeBeanField(valueWriters, beanField, field.name(), (field.type() == Object.class) ? Optional.empty() : Optional.of(field.type()));
+                }
+            }
+            
+            return ImmutableSet.copyOf(valueWriters);
+        }
+
+        
+        private ImmutableSet<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
+            Set<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> valueWriters = Sets.newHashSet();
             
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -237,7 +273,10 @@ class BeanMapper {
                     if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
                         for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                writeBeanField(valueWriters, beanField, annotation, attributeMethod);
+                                try {
+                                    String columnName = (String) attributeMethod.invoke(annotation);
+                                    writeBeanField(valueWriters, beanField, columnName, Optional.empty());
+                                } catch (ReflectiveOperationException ignore) { }
                             }
                         }
                     }
@@ -248,8 +287,8 @@ class BeanMapper {
         }
 
                 
-        private ImmutableSet<BiConsumer<Object, Function<String, Optional<?>>>> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
-            Set<BiConsumer<Object, Function<String, Optional<?>>>> valueWriters = Sets.newHashSet();
+        private ImmutableSet<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
+            Set<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> valueWriters = Sets.newHashSet();
 
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -257,7 +296,10 @@ class BeanMapper {
                     if (annotation.annotationType().getName().equals("com.datastax.driver.mapping.annotations.Field")) {
                         for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                writeBeanField(valueWriters, beanField, annotation, attributeMethod);
+                                try {
+                                    String columnName = (String) attributeMethod.invoke(annotation);
+                                    writeBeanField(valueWriters, beanField, columnName, Optional.empty());
+                                } catch (ReflectiveOperationException ignore) { }
                             }
                         }
                     }
@@ -271,28 +313,24 @@ class BeanMapper {
 
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        private static void writeBeanField(Set<BiConsumer<Object, Function<String, Optional<?>>>> valueWriters, Field beanField, Annotation annotation, Method attributeMethod) {
-            try {
-                String columnName = (String) attributeMethod.invoke(annotation);
-                Class<?> beanFieldClass = beanField.getType();
-              
-                if (Optional.class.isAssignableFrom(beanFieldClass)) {
-                    valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(columnName)));
-                    
-                } else if (ImmutableSet.class.isAssignableFrom(beanFieldClass)) {
-                    valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableSet.copyOf((Collection) value))));
+        private static void writeBeanField(Set<BiConsumer<Object, BiFunction<String, Class<?>, Optional<?>>>> valueWriters, Field beanField, String fieldName, Optional<Class<?>> fieldType) {
+            Class<?> beanFieldClass = beanField.getType();
+            
+            if (Optional.class.isAssignableFrom(beanFieldClass)) {
+                valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(fieldName, fieldType.orElse(beanFieldClass))));
+                
+            } else if (ImmutableSet.class.isAssignableFrom(beanFieldClass)) {
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType.orElse(beanFieldClass)).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableSet.copyOf((Collection) value))));
 
-                } else if (ImmutableList.class.isAssignableFrom(beanFieldClass)) {
-                    valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableList.copyOf((Collection) value))));
+            } else if (ImmutableList.class.isAssignableFrom(beanFieldClass)) {
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType.orElse(beanFieldClass)).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableList.copyOf((Collection) value))));
 
-                } else if (ImmutableMap.class.isAssignableFrom(beanFieldClass)) {
-                    valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableMap.copyOf((Map) value))));
+            } else if (ImmutableMap.class.isAssignableFrom(beanFieldClass)) {
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType.orElse(beanFieldClass)).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableMap.copyOf((Map) value))));
 
-                } else {
-                    valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
-                }
-
-            } catch (ReflectiveOperationException ignore) { }
+            } else {
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType.orElse(beanFieldClass)).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
+            }
         }
         
         

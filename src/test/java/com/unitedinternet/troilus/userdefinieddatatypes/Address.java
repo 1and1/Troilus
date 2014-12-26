@@ -1,15 +1,15 @@
 package com.unitedinternet.troilus.userdefinieddatatypes;
 
-import javax.persistence.Column;
 
 import com.google.common.collect.ImmutableList;
+import com.unitedinternet.troilus.Field;
 
 public class Address {
 
-    @Column(name = "lines")
+    @Field(name = "lines", type = Addressline.class)
     private ImmutableList<Addressline> lines;
-    
-    @Column(name = "zip_code")
+
+    @Field(name = "zip_code")
     private Integer zipCode;
 
     

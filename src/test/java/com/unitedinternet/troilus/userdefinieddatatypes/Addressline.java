@@ -1,11 +1,12 @@
 package com.unitedinternet.troilus.userdefinieddatatypes;
 
-import javax.persistence.Column;
+
+import com.unitedinternet.troilus.Field;
 
 
 public class Addressline {
 
-    @Column(name = "line")
+    @Field(name = "line")
     private String line;
         
     @SuppressWarnings("unused")

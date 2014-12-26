@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -1598,7 +1598,7 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class RecordAccessorAdapter implements Function<String, Optional<?>> {
+    private static final class RecordAccessorAdapter implements BiFunction<String, Class<?>, Optional<?>> {
         
         private final Record record;
         
@@ -1606,8 +1606,9 @@ public class DaoImpl implements Dao {
             this.record = record;
         }
         
+        
         @Override
-        public Optional<?> apply(String name) {
+        public Optional<?> apply(String name, Class<?> clazz) {
             return record.getObject(name);
         }
     }

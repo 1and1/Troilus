@@ -1,11 +1,12 @@
 package com.unitedinternet.troilus.userdefinieddatatypes;
 
-import javax.persistence.Column;
+
+import com.unitedinternet.troilus.Field;
 
 
 public class Score {
 
-    @Column(name = "score")
+    @Field(name = "score")
     private Integer score;
         
     

@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -128,7 +128,7 @@ public class Context  {
   
     
     
-    protected <T> T fromValues(Class<?> clazz, Function<String, Optional<?>> datasource) {
+    protected <T> T fromValues(Class<?> clazz, BiFunction<String, Class<?>, Optional<?>> datasource) {
         return entityMapper.fromValues(clazz, datasource);
     }
     
