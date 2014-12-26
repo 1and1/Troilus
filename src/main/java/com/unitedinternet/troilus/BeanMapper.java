@@ -250,7 +250,7 @@ class BeanMapper {
                 
         private ImmutableSet<BiConsumer<Object, Function<String, Optional<?>>>> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
             Set<BiConsumer<Object, Function<String, Optional<?>>>> valueWriters = Sets.newHashSet();
-            
+
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
                     
