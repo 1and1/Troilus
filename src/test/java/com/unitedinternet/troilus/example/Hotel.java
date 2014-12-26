@@ -2,28 +2,27 @@ package com.unitedinternet.troilus.example;
 
 import java.util.Optional;
 
-import javax.persistence.Column;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.Field;
 
 
 
 public class Hotel  {
    
-    @Column(name = "id")
+    @Field(name = "id")
     private String id = null;
     
-    @Column(name = "name")
+    @Field(name = "name")
     private String name = null;
 
-    @Column(name = "room_ids")
+    @Field(name = "room_ids", type = String.class)
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
-    @Column(name = "classification")
+    @Field(name = "classification", type = Integer.class)
     private Optional<Integer> classification = Optional.empty();
     
-    @Column(name = "description")
+    @Field(name = "description", type = String.class)
     private Optional<String> description = Optional.empty();
 
     

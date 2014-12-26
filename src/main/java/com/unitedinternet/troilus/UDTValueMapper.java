@@ -16,6 +16,7 @@
 package com.unitedinternet.troilus;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +26,7 @@ import java.util.Set;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
+import com.datastax.driver.core.schemabuilder.UDTType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -39,9 +41,51 @@ class UDTValueMapper {
     private UDTValueMapper() {  }
  
     
-    public static <T> T fromUdtValue(Context ctx, DataType datatype, UDTValue udtValue) {
-       return null;
+    public static <T> T fromUdtValue(Context ctx, UserType usertype, UDTValue udtValue, Class<T> type) {
+         return ctx.fromValues(type, (name, clazz) -> fromUdtValue(ctx, usertype, udtValue, clazz, name));
     }
+    
+    
+    
+    public static Optional<?> fromUdtValue(Context ctx, UserType usertype, UDTValue udtValue, Class<?> fieldtype, String fieldname) {
+        
+        DataType datatype = usertype.getFieldType(fieldname);
+        
+        // build-in type 
+        if (ctx.isBuildInType(datatype)) {
+            return Optional.ofNullable(datatype.deserialize(udtValue.getBytesUnsafe(fieldname), ctx.getProtocolVersion()));
+        
+            
+        // udt collection    
+        } else if (datatype.isCollection()) {
+            Class<?> type = datatype.getName().asJavaClass();
+            
+            if (Set.class.isAssignableFrom(type)) {
+                
+                
+            } else if (List.class.isAssignableFrom(type)) {
+                List<Object> elements = Lists.newArrayList();
+                UserType elementType = (UserType) datatype.getTypeArguments().get(0);
+                
+                for (UDTValue elementUdtValue : udtValue.getList(fieldname, UDTValue.class)) {
+                    Object element = ctx.fromValues(fieldtype, (name, clazz) -> fromUdtValue(ctx, elementType, elementUdtValue, clazz, name));
+                    elements.add(element);
+                }
+                
+                return Optional.of(ImmutableList.copyOf(elements));
+                
+            } else {
+                
+            }
+            
+            return null;
+            
+        } else {
+            ((UserType) datatype).getCustomTypeClassName();
+            return null;
+        }
+    }
+    
     
     
     @SuppressWarnings("unchecked")

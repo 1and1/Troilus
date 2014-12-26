@@ -42,7 +42,7 @@ Write a row in an entity-oriented way.
 hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
          .execute();
 ```
-The columns will be mapped by using [@Column](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotated fields and setter/getter method. The annotation attribute *name* is supported only. Setting a  @Entity or @Table annotation is not necessary and will be ignored
+The columns will be mapped by using `@Type` annotated fields
 ``` java
 import java.util.Optional;
 import javax.persistence.Column;
@@ -50,19 +50,19 @@ import javax.persistence.Column;
 
 public class Hotel  {
    
-    @Column(name = "id")
+    @Type(name = "id")
     private String id = null;
     
-    @Column(name = "name")
+    @Type(name = "name")
     private String name = null;
 
-    @Column(name = "room_ids")
+    @Type(name = "room_ids", type = String.class)
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
-    @Column(name = "classification")
+    @Type(name = "classification", type = Integer.class)
     private Optional<Integer> classification = Optional.empty();
     
-    @Column(name = "description")
+    @Type(name = "description", type = String.class)
     private Optional<String> description = Optional.empty();
 
     

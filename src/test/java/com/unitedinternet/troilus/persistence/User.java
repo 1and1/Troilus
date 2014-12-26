@@ -6,32 +6,31 @@ import java.util.Optional;
 
 
 
-import javax.persistence.Column;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.Field;
 
 public class User {
 
-    @Column(name = "user_id")
+    @Field(name = "user_id")
     private String userId;
     
-    @Column(name = "name")
+    @Field(name = "name")
     private String name;
  
-    @Column(name = "is_customer")
+    @Field(name = "is_customer", type = Boolean.class)
     private Optional<Boolean> isCustomer;
     
-    @Column(name = "picture")
+    @Field(name = "picture", type = ByteBuffer.class)
     private Optional<ByteBuffer> picture;  
     
-    @Column(name = "modified")
+    @Field(name = "modified")
     private Long modified;
     
-    @Column(name = "phone_numbers")
+    @Field(name = "phone_numbers", type = String.class)
     private ImmutableSet<String> phoneNumbers;
     
-    @Column(name = "addresses")
+    @Field(name = "addresses", type = String.class)
     private ImmutableList<String> addresses;
 
     

@@ -36,6 +36,7 @@ import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
+import com.datastax.driver.core.UserType;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
@@ -202,8 +203,8 @@ public class Record implements Result {
     }
 
     
-    public <T> Optional<T> getUDT(String name, Class<T> elementsClass) {
-        return getUDTValue(name).map(udtValue -> UDTValueMapper.fromUdtValue(ctx, row.getColumnDefinitions().getType(name), udtValue));
+    public <T> Optional<T> getUDT(String name, Class<T> type) {
+        return getUDTValue(name).map(udtValue -> UDTValueMapper.fromUdtValue(ctx, (UserType) row.getColumnDefinitions().getType(name), udtValue, type));
     }
    
 

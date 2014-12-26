@@ -1,11 +1,12 @@
 package com.unitedinternet.troilus.userdefinieddatatypes;
 
-import javax.persistence.Column;
+
+import com.unitedinternet.troilus.Field;
 
 
 public class Classifier {
 
-    @Column(name = "type")
+    @Field(name = "type")
     private String type;
         
     
