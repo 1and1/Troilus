@@ -27,10 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,13 +40,13 @@ import com.google.common.collect.Sets;
 
  
 
-class EntityMapper {
+class BeanMapper {
     private final LoadingCache<Class<?>, PropertiesMapper> propertiesMapperCache;
     
     
     
     
-    public EntityMapper() {        
+    public BeanMapper() {        
         this.propertiesMapperCache = CacheBuilder.newBuilder()
                                                  .maximumSize(200)
                                                  .build(new PropertiesMapperLoader());
@@ -133,24 +131,9 @@ class EntityMapper {
     
     
 
-
-    public interface RecordValueMapper extends BiFunction<Record, String, Optional<Object>> {
-        boolean isSupport(Class<?> type);
-        
-    }
-
- 
     
     private static final class PropertiesMapperLoader extends CacheLoader<Class<?>, PropertiesMapper> {
-        private final ImmutableList<RecordValueMapper> recordValueMappers = ImmutableList.of(new OptionalRecordValueMapper(), 
-                                                                                             new ImmutableSetRecordValueMapper(),
-                                                                                             new ImmutableListRecordValueMapper(),
-                                                                                             new ImmutableMapRecordValueMapper(),
-                                                                                             new DefaultRecordValueMapper());
-    
-        
-     
-        
+
         
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
@@ -254,19 +237,7 @@ class EntityMapper {
                     if (annotation.annotationType().getName().equals("javax.persistence.Column")) {
                         for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                try {
-                                    String columnName = (String) attributeMethod.invoke(annotation);
-                                    Class<?> beanFieldClass = beanField.getType();
-                                  
-                                    for (RecordValueMapper valueMapper : recordValueMappers) {
-                                        if (valueMapper.isSupport(beanFieldClass)) {
-                                            valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
-                                            break;
-                                        }
-                                    }
-                                    
-                                    break;
-                                } catch (ReflectiveOperationException ignore) { }
+                                writeBeanField(valueWriters, beanField, annotation, attributeMethod);
                             }
                         }
                     }
@@ -275,7 +246,8 @@ class EntityMapper {
             
             return ImmutableSet.copyOf(valueWriters);
         }
-        
+
+                
         private ImmutableSet<BiConsumer<Object, Record>> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
             Set<BiConsumer<Object, Record>> valueWriters = Sets.newHashSet();
             
@@ -285,19 +257,7 @@ class EntityMapper {
                     if (annotation.annotationType().getName().equals("com.datastax.driver.mapping.annotations.Field")) {
                         for (Method attributeMethod : annotation.annotationType().getDeclaredMethods()) {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
-                                try {
-                                    String columnName = (String) attributeMethod.invoke(annotation);
-                                    Class<?> beanFieldClass = beanField.getType();
-                                  
-                                    for (RecordValueMapper valueMapper : recordValueMappers) {
-                                        if (valueMapper.isSupport(beanFieldClass)) {
-                                            valueWriters.add((persistenceObject, record) -> valueMapper.apply(record, columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
-                                            break;
-                                        }
-                                    }
-                                    
-                                    break;
-                                } catch (ReflectiveOperationException ignore) { }
+                                writeBeanField(valueWriters, beanField, annotation, attributeMethod);
                             }
                         }
                     }
@@ -307,6 +267,36 @@ class EntityMapper {
             return ImmutableSet.copyOf(valueWriters);
         }
         
+        
+
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        private static void writeBeanField(Set<BiConsumer<Object, Record>> valueWriters, Field beanField, Annotation annotation, Method attributeMethod) {
+            try {
+                String columnName = (String) attributeMethod.invoke(annotation);
+                Class<?> beanFieldClass = beanField.getType();
+              
+                if (Optional.class.isAssignableFrom(beanFieldClass)) {
+                    valueWriters.add((persistenceObject, record) -> writeBeanField(beanField, persistenceObject, record.getObject(columnName)));
+                    
+                } else if (ImmutableSet.class.isAssignableFrom(beanFieldClass)) {
+                    valueWriters.add((persistenceObject, record) -> record.getObject(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableSet.copyOf((Collection) value))));
+
+                } else if (ImmutableList.class.isAssignableFrom(beanFieldClass)) {
+                    valueWriters.add((persistenceObject, record) -> record.getObject(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableList.copyOf((Collection) value))));
+
+                } else if (ImmutableMap.class.isAssignableFrom(beanFieldClass)) {
+                    valueWriters.add((persistenceObject, record) -> record.getObject(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableMap.copyOf((Map) value))));
+
+                } else {
+                    valueWriters.add((persistenceObject, record) -> record.getObject(columnName).ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
+                }
+
+            } catch (ReflectiveOperationException ignore) { }
+        }
+        
+        
+        
         private static void writeBeanField(java.lang.reflect.Field field, Object persistenceObject, Object value) {
             try {
                 field.setAccessible(true);
@@ -315,140 +305,7 @@ class EntityMapper {
                 e.printStackTrace();
             }
         }
-    
-    
-            
-      
-        
-     
-        private static final class OptionalRecordValueMapper implements RecordValueMapper {
-            
-            @Override
-            public boolean isSupport(Class<?> type) {
-                return Optional.class.isAssignableFrom(type);
-            }
-         
-            
-            @Override
-            public Optional<Object> apply(Record record, String columnname) {
-                for (Definition definition : record.getColumnDefinitions().asList()) {
-                    if (definition.getName().equals(columnname)) {
-                        Optional<Object> optionalValue =  record.getBytesUnsafe(columnname).map(bytes -> Optional.of(definition.getType().deserialize(bytes, record.getProtocolVersion())));
-                        if (optionalValue.isPresent()) {
-                            return optionalValue;
-                        }
-                    }
-                }
-                
-                return Optional.empty();
-            }
-        }
-        
-        
-        
-        private static final class ImmutableSetRecordValueMapper implements RecordValueMapper {
-            
-            @Override
-            public boolean isSupport(Class<?> type) {
-                return ImmutableSet.class.isAssignableFrom(type);
-            }
-         
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            @Override
-            public Optional<Object> apply(Record record, String columnname) {
-                
-                for (Definition definition : record.getColumnDefinitions().asList()) {
-                    if (definition.getName().equals(columnname)) {
-                        Optional<Object> optionalValue =  record.getBytesUnsafe(columnname).map(bytes -> ImmutableSet.copyOf((Collection) definition.getType().deserialize(bytes, record.getProtocolVersion())));
-                        if (optionalValue.isPresent()) {
-                            return optionalValue;
-                        }
-                    }
-                }
-
-                return Optional.empty();
-            }
-        }
-
-        
-        private static final class ImmutableListRecordValueMapper implements RecordValueMapper {
-            
-            @Override
-            public boolean isSupport(Class<?> type) {
-                return ImmutableList.class.isAssignableFrom(type);
-            }
-         
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            @Override
-            public Optional<Object> apply(Record record, String columnname) {
-                for (Definition definition : record.getColumnDefinitions().asList()) {
-                    if (definition.getName().equals(columnname)) {
-                        Optional<Object> optionalValue =  record.getBytesUnsafe(columnname).map(bytes -> ImmutableList.copyOf((Collection) definition.getType().deserialize(bytes, record.getProtocolVersion())));
-                        if (optionalValue.isPresent()) {
-                            return optionalValue;
-                        }
-                    }
-                }
-                
-                return Optional.empty();
-            }
-        }
-
-
-        private static final class ImmutableMapRecordValueMapper implements RecordValueMapper {
-            
-            @Override
-            public boolean isSupport(Class<?> type) {
-                return ImmutableList.class.isAssignableFrom(type);
-            }
-         
-            
-
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            @Override
-            public Optional<Object> apply(Record record, String columnname) {
-                
-                for (Definition definition : record.getColumnDefinitions().asList()) {
-                    if (definition.getName().equals(columnname)) {
-                        if (definition.getName().equals(columnname)) {
-                            Optional<Object> optionalValue =  record.getBytesUnsafe(columnname).map(bytes -> ImmutableMap.copyOf((Map) definition.getType().deserialize(bytes, record.getProtocolVersion())));
-                            if (optionalValue.isPresent()) {
-                                return optionalValue;
-                            }
-                        }
-                    }
-                }
-
-                return Optional.empty();
-            }
-        }
-
-
-
-        
-        private static final class DefaultRecordValueMapper implements RecordValueMapper {
-            
-            @Override
-            public boolean isSupport(Class<?> type) {
-                return true;
-            }
-         
-            
-            @Override
-            public Optional<Object> apply(Record record, String columnname) {
-                for (Definition definition : record.getColumnDefinitions().asList()) {
-                    if (definition.getName().equals(columnname)) {
-                        Optional<Object> optionalValue =  record.getBytesUnsafe(columnname).map(bytes -> definition.getType().deserialize(bytes, record.getProtocolVersion()));
-                        if (optionalValue.isPresent()) {
-                            return optionalValue;
-                        }
-                    }
-                }
-                
-                return Optional.empty();
-            }
-        }   
-    }
+    }    
 }
 
         

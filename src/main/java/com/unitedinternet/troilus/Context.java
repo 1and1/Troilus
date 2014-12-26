@@ -50,16 +50,16 @@ public class Context  {
     
     private final String table;
     private final Session session;
-    private final EntityMapper entityMapper;
+    private final BeanMapper entityMapper;
     private final ExecutionSpec executionSpec;
 
     
     public Context(Session session, String table) {
-        this(session, new EntityMapper(), table, new ExecutionSpec());
+        this(session, new BeanMapper(), table, new ExecutionSpec());
     }
 
     
-    Context(Session session, EntityMapper entityMapper, String table, ExecutionSpec executionSpec) {
+    Context(Session session, BeanMapper entityMapper, String table, ExecutionSpec executionSpec) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
