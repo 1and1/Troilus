@@ -42,6 +42,7 @@ Write a row in an entity-oriented way.
 hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
          .execute();
 ```
+
 The columns will be mapped by using `@Field` annotated fields
 ``` java
 import java.util.Optional;
