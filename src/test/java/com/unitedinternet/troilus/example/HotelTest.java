@@ -44,7 +44,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
                                         Optional.of(5), 
-                                        Optional.of("Superb hotel housed in a heritage building - exudes old world charm")))
+                                        Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
+                                        new Address("Erzsébet körút 43", "Budapest", "1073"))
+                                       )
                  .ifNotExits()
                  .withConsistency(ConsistencyLevel.QUORUM)      
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
@@ -56,6 +58,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
                  .value("classification", 4)
+                 .value("address", new Address("Andrássy út", "Budapest", "1061"))
                  .ifNotExits()
                  .execute();
 
@@ -65,7 +68,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                                                            "Richter Panzio",
                                                                            ImmutableSet.of("1", "2", "3"),
                                                                            Optional.of(2), 
-                                                                           Optional.empty()))
+                                                                           Optional.empty(),
+                                                                           new Address("Thököly Ut 111", "Budapest", "1145")))
                                                     .withConsistency(ConsistencyLevel.ANY)
                                                     .executeAsync();
         future.get(); // waits for completion
@@ -115,7 +119,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         Optional<Hotel> optionalHotel = hotelsDao.readWithKey("id", "BUP45544")
-                                                 .entity(Hotel.class)
+                                                 .asEntity(Hotel.class)
                                                  .withConsistency(ConsistencyLevel.LOCAL_ONE)
                                                  .execute();
         optionalHotel.ifPresent(hotel -> System.out.println(hotel.getName()));
@@ -124,11 +128,14 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
        
         Hotel hotel = hotelsDao.readWithKey("id", "BUP932432")
-                               .entity(Hotel.class)
+                               .asEntity(Hotel.class)
                                .executeAsync()
                                .thenApply(opHotel -> opHotel.<RuntimeException>orElseThrow(RuntimeException::new))
                                .get();  // waits for completion
         System.out.println(hotel);
+
+        Assert.assertEquals("1061", hotel.getAddress().getPostCode());
+
 
 
    
@@ -143,6 +150,38 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Assert.assertFalse(record.getWritetime(HotelsTable.NAME).isPresent());
         Assert.assertTrue(record.getTtl(HotelsTable.DESCRIPTION).isPresent());
         Assert.assertFalse(record.getTtl(HotelsTable.NAME).isPresent());
+        
+        
+        
+        
+        
+        
+        record = hotelsDao.readWithKey("id", "BUP14334")
+                          .column("id")
+                          .column("name")
+                          .column("classification")
+                          .column("address")
+                          .withConsistency(ConsistencyLevel.LOCAL_ONE)
+                          .execute()
+                          .get();
+        
+        Assert.assertNotNull(record.getObject("address", Address.class));
+        System.out.println(record.getInt("classification"));
+        System.out.println(record.getObject("address", Address.class));
+
+
+        
+        
+        hotel = hotelsDao.readWithKey("id", "BUP14334")
+                         .asEntity(Hotel.class)
+                         .execute()
+                         .get();
+        
+        Assert.assertNotNull(hotel.getAddress());
+        System.out.println(hotel.getAddress());
+
+
+
         
         
         ////////////////

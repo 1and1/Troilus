@@ -318,27 +318,24 @@ class BeanMapper {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         private static void addBeanFieldWriter(Set<BiConsumer<Object, TriFunction<String, Class<?>, Class<?>, Optional<?>>>> valueWriters, Field beanField, String fieldName) {
             Class<?> beanFieldClass = beanField.getType();
-            Class<?> fieldType1 = getActualTypeArgument(beanField, 0);
-            Class<?> fieldType2 = getActualTypeArgument(beanField, 1);
-
             
             if (Optional.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(fieldName, fieldType1, fieldType2)));
+                valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(fieldName, getActualTypeArgument(beanField, 0), Object.class)));
                 
             } else if (ImmutableSet.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, getActualTypeArgument(beanField, 0), Object.class)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableSet.copyOf((Collection) value))));
 
             } else if (ImmutableList.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, getActualTypeArgument(beanField, 0), Object.class)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableList.copyOf((Collection) value))));
 
             } else if (ImmutableMap.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, getActualTypeArgument(beanField, 0), getActualTypeArgument(beanField, 1))
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableMap.copyOf((Map) value))));
 
             } else {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, beanFieldClass, Object.class)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
             }
         }

@@ -39,15 +39,16 @@ hotelsDao.writeWithKey("id", "BUP932432")
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1", "2", "3", "4", "5"), Optional.of(2), Optional.empty()))
+hotelsDao.writeEntity(new Hotel("BUP14334", 
+                                "Richter Panzio",
+                                ImmutableSet.of("1", "2", "3", "4", "5"),
+                                Optional.of(2),
+                                Optional.empty()))
          .execute();
 ```
 
 The columns will be mapped by using `@Field` annotated fields
 ``` java
-import java.util.Optional;
-
-
 public class Hotel  {
    
     @Field(name = "id")
@@ -225,6 +226,177 @@ Iterator<Hotel> hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45
 hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));                
 ```        
         
+
+      
+#User-defined types support
+-------
+
+to use the user-defined types support a Java class which represents the user-definied type has to be implemented. The fields to be mapped have to be annotated with `@Field`
+
+
+``` java
+public class Address {
+
+    @Field(name = "street")
+    private String street;
+    
+    @Field(name = "city")
+    private String city;
+    
+    @Field(name = "post_code")
+    private String postCode;
+    
+        
+    @SuppressWarnings("unused")
+    private Address() { }
+
+    
+    public Address(String street, String city, String postCode) {
+        this.street = street;
+        this.city = city;
+        this.postCode = postCode;
+    }
+
+
+    public String getStreet() {
+        return street;
+    }
+
+
+    public String getCity() {
+        return city;
+    }
+
+
+    public String getPostCode() {
+        return postCode;
+    }
+}
+```
+
+
+
+##Write
+
+Write a row in a column-oriented way
+``` java
+hotelsDao.writeWithKey("id", "BUP932432")
+         .value("name", "City Budapest")
+         .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
+         .value("classification", 4)
+         .value("address", new Address("Thököly Ut 111", "Budapest", "1145"))
+         .withWritetime(microsSinceEpoch)
+         .execute();
+```
+
+
+Write a row in a entity-oriented way
+``` java
+hotelsDao.writeEntity(new Hotel("BUP14334", 
+                                "Richter Panzio",
+                                ImmutableSet.of("1", "2", "3", "4", "5"),
+                                Optional.of(2),
+                                Optional.empty(),
+                                new Address("Thököly Ut 111", "Budapest", "1145")))
+         .execute();
+```
+
+``` java
+public class Hotel  {
+   
+    @Field(name = "id")
+    private String id = null;
+    
+    @Field(name = "name")
+    private String name = null;
+
+    @Field(name = "room_ids")
+    private ImmutableSet<String> roomIds = ImmutableSet.of();
+
+    @Field(name = "classification")
+    private Optional<Integer> classification = Optional.empty();
+    
+    @Field(name = "description")
+    private Optional<String> description = Optional.empty();
+
+    @Field(name = "address")
+    private Address address;
+
+    
+    @SuppressWarnings("unused")
+    private Hotel() { }
+    
+     public Hotel(String id, 
+                 String name, 
+                 ImmutableSet<String> roomIds,  
+                 Optional<Integer> classification, 
+                 Optional<String> description,
+                 Address address) {
+        this.id = id;
+        this.name = name;
+        this.roomIds = roomIds;
+        this.classification = classification;
+        this.description = description;
+        this.address = address;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+    
+    public ImmutableSet<String> getRoomIds() {
+        return roomIds;
+    }
+
+    public Optional<Integer> getClassification() {
+        return classification;
+    }
+
+    public Optional<String> getDescription() {
+        return description;
+    }
+    
+    public Address getAddress() {
+        return address;
+    }
+}
+```
+
+
+
+##Read
+
+Read a row in a entity-oriented way
+``` java
+hotel = hotelsDao.readWithKey("id", "BUP14334")
+                 .asEntity(Hotel.class)
+                 .execute()
+                 .get();
+        
+System.out.println(hotel.getAddress());
+```
+
+
+Read a row in a column-oriented way
+``` java
+record = hotelsDao.readWithKey("id", "BUP14334")
+                  .column("id")
+                  .column("name")
+                  .column("classification")
+                  .column("address")
+                  .withConsistency(ConsistencyLevel.LOCAL_ONE)
+                  .execute()
+                  .get();
+        
+System.out.println(record.getInt("classification"));
+System.out.println(record.getObject("address", Address.class));
+```
+
 
         
 #Asynchronous Examples

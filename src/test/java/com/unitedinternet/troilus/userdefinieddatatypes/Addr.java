@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.Field;
 
-public class Address {
+public class Addr {
 
     @Field(name = "lines")
     private ImmutableList<Addressline> lines;
@@ -18,10 +18,10 @@ public class Address {
     
     
     @SuppressWarnings("unused")
-    private Address() { }
+    private Addr() { }
 
     
-    public Address(ImmutableList<Addressline> lines, Integer zipCode, ImmutableMap<String, Addressline> aliases) {
+    public Addr(ImmutableList<Addressline> lines, Integer zipCode, ImmutableMap<String, Addressline> aliases) {
         this.lines = lines;
         this.zipCode = zipCode;
         this.aliases = aliases;

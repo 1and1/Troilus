@@ -31,7 +31,7 @@ import java.util.Optional;
  */
 public interface SingleReadWithUnit<T> extends SingleReadWithColumns<T> {
     
-    <E> SingleRead<Optional<E>> entity(Class<E> objectClass);
+    <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass);
 }
 
 

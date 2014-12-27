@@ -2,7 +2,6 @@ package com.unitedinternet.troilus.example;
 
 import java.util.Optional;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Field;
 
@@ -25,6 +24,10 @@ public class Hotel  {
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
 
+    @Field(name = "address")
+    private Address address;
+
+        
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -33,12 +36,14 @@ public class Hotel  {
                  String name, 
                  ImmutableSet<String> roomIds,  
                  Optional<Integer> classification, 
-                 Optional<String> description) {
+                 Optional<String> description,
+                 Address address) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
+        this.address = address;
     }
 
     public String getId() {
@@ -61,13 +66,7 @@ public class Hotel  {
         return description;
     }
     
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                          .add("id", id)
-                          .add("name", name)
-                          .add("classification", classification)
-                          .add("description", description)
-                          .toString();
+    public Address getAddress() {
+        return address;
     }
 }

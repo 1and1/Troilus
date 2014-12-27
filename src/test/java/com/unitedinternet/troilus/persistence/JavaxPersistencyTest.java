@@ -48,7 +48,7 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
         
 
         Optional<User> optionalUser =  userDao.readWithKey("user_id", "4454")   
-                                              .entity(User.class)
+                                              .asEntity(User.class)
                                               .execute();
         
         Assert.assertTrue(optionalUser.isPresent());

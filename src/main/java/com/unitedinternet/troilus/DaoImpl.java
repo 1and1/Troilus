@@ -911,7 +911,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public <E> SingleRead<Optional<E>> entity(Class<E> objectClass) {
+        public <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass) {
             return newSingleSelection(ctx, this, objectClass);
         }
         
