@@ -18,19 +18,19 @@ public class User {
     @Field(name = "name")
     private String name;
  
-    @Field(name = "is_customer", type = Boolean.class)
+    @Field(name = "is_customer")
     private Optional<Boolean> isCustomer;
     
-    @Field(name = "picture", type = ByteBuffer.class)
+    @Field(name = "picture")
     private Optional<ByteBuffer> picture;  
     
     @Field(name = "modified")
     private Long modified;
     
-    @Field(name = "phone_numbers", type = String.class)
+    @Field(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
     
-    @Field(name = "addresses", type = String.class)
+    @Field(name = "addresses")
     private ImmutableList<String> addresses;
 
     

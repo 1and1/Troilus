@@ -26,8 +26,4 @@ import java.lang.annotation.Target;
 public @interface Field {
     
    String name();
-   
-   Class<?> type() default Object.class;
-   
-   Class<?> type2() default Object.class;
 }

@@ -56,13 +56,13 @@ public class Hotel  {
     @Field(name = "name")
     private String name = null;
 
-    @Field(name = "room_ids", type = String.class)
+    @Field(name = "room_ids")
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
-    @Field(name = "classification", type = Integer.class)
+    @Field(name = "classification")
     private Optional<Integer> classification = Optional.empty();
     
-    @Field(name = "description", type = String.class)
+    @Field(name = "description")
     private Optional<String> description = Optional.empty();
 
     

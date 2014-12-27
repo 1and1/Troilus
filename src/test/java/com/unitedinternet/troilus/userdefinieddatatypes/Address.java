@@ -7,13 +7,13 @@ import com.unitedinternet.troilus.Field;
 
 public class Address {
 
-    @Field(name = "lines", type = Addressline.class)
+    @Field(name = "lines")
     private ImmutableList<Addressline> lines;
 
     @Field(name = "zip_code")
     private Integer zipCode;
 
-    @Field(name = "aliases", type = String.class, type2 = Addressline.class)
+    @Field(name = "aliases")
     private ImmutableMap<String, Addressline> aliases;
     
     

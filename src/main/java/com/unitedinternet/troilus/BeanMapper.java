@@ -21,6 +21,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -255,13 +257,15 @@ class BeanMapper {
             for (Field beanField : beanFields) {
                 com.unitedinternet.troilus.Field field = beanField.getAnnotation(com.unitedinternet.troilus.Field.class);
                 if (field != null) {
-                    writeBeanField(valueWriters, beanField, field.name(), (field.type() == Object.class) ? Optional.empty() : Optional.of(field.type()), (field.type2() == Object.class) ? Optional.empty() : Optional.of(field.type2()));
+                    addBeanFieldWriter(valueWriters, beanField, field.name());
                 }
             }
             
             return ImmutableSet.copyOf(valueWriters);
         }
 
+        
+        
         
         private ImmutableSet<BiConsumer<Object, TriFunction<String, Class<?>, Class<?>, Optional<?>>>> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
             Set<BiConsumer<Object, TriFunction<String, Class<?>, Class<?>, Optional<?>>>> valueWriters = Sets.newHashSet();
@@ -274,7 +278,7 @@ class BeanMapper {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    writeBeanField(valueWriters, beanField, columnName, Optional.empty(), Optional.empty());
+                                    addBeanFieldWriter(valueWriters, beanField, columnName);
                                 } catch (ReflectiveOperationException ignore) { }
                             }
                         }
@@ -297,7 +301,7 @@ class BeanMapper {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    writeBeanField(valueWriters, beanField, columnName, Optional.empty(), Optional.empty());
+                                    addBeanFieldWriter(valueWriters, beanField, columnName);
                                 } catch (ReflectiveOperationException ignore) { }
                             }
                         }
@@ -312,29 +316,48 @@ class BeanMapper {
 
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        private static void writeBeanField(Set<BiConsumer<Object, TriFunction<String, Class<?>, Class<?>, Optional<?>>>> valueWriters, Field beanField, String fieldName, Optional<Class<?>> fieldType1, Optional<Class<?>> fieldType2) {
+        private static void addBeanFieldWriter(Set<BiConsumer<Object, TriFunction<String, Class<?>, Class<?>, Optional<?>>>> valueWriters, Field beanField, String fieldName) {
             Class<?> beanFieldClass = beanField.getType();
+            Class<?> fieldType1 = getActualTypeArgument(beanField, 0);
+            Class<?> fieldType2 = getActualTypeArgument(beanField, 1);
+
             
             if (Optional.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(fieldName, fieldType1.orElse(beanFieldClass), fieldType2.orElse(beanFieldClass))));
+                valueWriters.add((persistenceObject, dataSource) -> writeBeanField(beanField, persistenceObject, dataSource.apply(fieldName, fieldType1, fieldType2)));
                 
             } else if (ImmutableSet.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1.orElse(beanFieldClass), fieldType2.orElse(beanFieldClass))
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableSet.copyOf((Collection) value))));
 
             } else if (ImmutableList.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1.orElse(beanFieldClass), fieldType2.orElse(beanFieldClass))
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableList.copyOf((Collection) value))));
 
             } else if (ImmutableMap.class.isAssignableFrom(beanFieldClass)) {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1.orElse(beanFieldClass), fieldType2.orElse(beanFieldClass))
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, ImmutableMap.copyOf((Map) value))));
 
             } else {
-                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1.orElse(beanFieldClass), fieldType2.orElse(beanFieldClass))
+                valueWriters.add((persistenceObject, dataSource) -> dataSource.apply(fieldName, fieldType1, fieldType2)
                                                                               .ifPresent(value -> writeBeanField(beanField, persistenceObject, value)));
             }
         }
+        
+        private static Class<?> getActualTypeArgument(Field field, int argIndex) {
+            
+            Type type = field.getGenericType();
+            if (type instanceof ParameterizedType) {
+                ParameterizedType paramizedType = (ParameterizedType) type;
+                Type[] types = paramizedType.getActualTypeArguments();
+                if ((types != null) && (types.length > argIndex)) {
+                    return (Class<?>) types[argIndex];
+                }
+            }
+            
+            
+            return Object.class;
+        }
+        
         
         
         
