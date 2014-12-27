@@ -214,15 +214,17 @@ public class Record implements Result {
         DataType datatype = ctx.getColumnMetadata(name).getType();
         if (ctx.isBuildInType(datatype)) {
             return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
+            
         } else {
- /*           if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
-                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, keysClass, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableMap.copyOf(udtValues), keyclass));
+            if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
+                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, keysClass, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
 
-            } else {
+            } else if (ctx.isBuildInType(datatype.getTypeArguments().get(1))) {
+                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, UDTValue.class, valuesClass)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
                 
+            } else {
+                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, UDTValue.class, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
             }
-   */         
-            return null;
         }
     }
     

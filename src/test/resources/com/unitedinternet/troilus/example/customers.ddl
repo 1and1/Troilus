@@ -8,5 +8,6 @@ CREATE TABLE customers (
         				old_addresses set<frozen<address>>,
         				classification map<frozen<Classifier>, frozen<Score>>,
         				classification2 map<int, frozen<Score>>,
+        				roles map<text, text>,
                         PRIMARY KEY (id)
                        ); 

@@ -15,8 +15,7 @@ public interface CustomersTable  {
     public static final String PHONE_NUMBERS = "phone_numbers";
     public static final String CLASSIFICATION = "classification";
     public static final String CLASSIFICATION2 = "classification2";
-    
-    
+    public static final String ROLES = "roles";
     
     
     

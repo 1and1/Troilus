@@ -15,19 +15,16 @@
  */
 package com.unitedinternet.troilus;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Field {
-    
-   String name();
-   
-   Class<?> type() default Object.class;
-   
-   Class<?> type2() default Object.class;
+
+/**
+ * TriFunction
+ *
+ * @author grro
+ */
+@FunctionalInterface
+interface TriFunction<A,B,C,R> {
+
+    R apply(A a, B b, C c);
 }

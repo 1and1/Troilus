@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
@@ -1603,7 +1602,7 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class RecordAccessorAdapter implements BiFunction<String, Class<?>, Optional<?>> {
+    private static final class RecordAccessorAdapter implements TriFunction<String, Class<?>, Class<?>, Optional<?>> {
         
         private final Record record;
         
@@ -1613,8 +1612,8 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public Optional<?> apply(String name, Class<?> clazz) {
-            return record.getObject(name, clazz);
+        public Optional<?> apply(String name, Class<?> clazz1, Class<?> clazz2) {
+            return record.getObject(name, clazz1);
         }
     }
 }
