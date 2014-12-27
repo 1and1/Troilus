@@ -49,10 +49,10 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
         
         Assert.assertEquals("peter", record.getString(CustomersTable.NAME).get());
         Assert.assertTrue(record.getSet(CustomersTable.PHONE_NUMBERS, String.class).get().contains("454545"));       
-        Assert.assertEquals("brauerstrasse", record.getUDT(CustomersTable.CURRENT_ADDRESS, Address.class).get().getLines().get(0).getLine());
+        Assert.assertEquals("brauerstrasse", record.getObject(CustomersTable.CURRENT_ADDRESS, Address.class).get().getLines().get(0).getLine());
         Assert.assertEquals("frankfurter ring", record.getSet(CustomersTable.OLD_ADDRESSES, Address.class).get().iterator().next().getLines().get(0).getLine());
-        
-  
+ //       Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get().get(new Classifier("reliability")).getScore());
+ //       Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get().get(5).getScore());
     }               
 }
 

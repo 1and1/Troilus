@@ -57,19 +57,11 @@ class UDTValueMapper {
             Class<?> type = datatype.getName().asJavaClass();
             
             if (Set.class.isAssignableFrom(type)) {
-                return Optional.of(fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), fieldtype)); 
+                return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), fieldtype)); 
                 
             } else if (List.class.isAssignableFrom(type)) {
-                List<Object> elements = Lists.newArrayList();
-                UserType elementType = (UserType) datatype.getTypeArguments().get(0);
-                
-                for (UDTValue elementUdtValue : udtValue.getList(fieldname, UDTValue.class)) {
-                    Object element = ctx.fromValues(fieldtype, (name, clazz) -> fromUdtValue(ctx, elementType.getFieldType(name), elementUdtValue, clazz, name));
-                    elements.add(element);
-                }
-                
-                return Optional.of(ImmutableList.copyOf(elements));
-                
+                return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)), fieldtype)); 
+
             } else {
               
                 return null;
@@ -77,13 +69,19 @@ class UDTValueMapper {
             
             
         } else {
-            return null;
+            return Optional.ofNullable(fromUdtValue(ctx, datatype, udtValue, fieldtype));
         }
     }
     
+
+    
+    public static <T> T fromUdtValue(Context ctx, DataType datatype, UDTValue udtValue, Class<T> type) {
+        return ctx.fromValues(type, (name, clazz) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), udtValue, clazz, name));
+    }
+
     
     
-    public static <T>  ImmutableSet<T> fromUdtValues(Context ctx, DataType datatype, ImmutableSet<UDTValue> udtValues, Class<T> type) {
+    public static <T> ImmutableSet<T> fromUdtValues(Context ctx, DataType datatype, ImmutableSet<UDTValue> udtValues, Class<T> type) {
         Set<T> elements = Sets.newHashSet();
         
         for (UDTValue elementUdtValue : udtValues) {
@@ -93,8 +91,19 @@ class UDTValueMapper {
         
         return ImmutableSet.copyOf(elements);
     }
-        
+
     
+    public static <T> ImmutableList<T> fromUdtValues(Context ctx, DataType datatype, ImmutableList<UDTValue> udtValues, Class<T> type) {
+        List<T> elements = Lists.newArrayList();
+        
+        for (UDTValue elementUdtValue : udtValues) {
+            T element = ctx.fromValues(type, (name, clazz) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), elementUdtValue, clazz, name));
+            elements.add(element);
+        }
+        
+        return ImmutableList.copyOf(elements);
+    }
+
     
     
     

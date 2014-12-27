@@ -20,4 +20,18 @@ public class Classifier {
     public String getType() {
         return type;
     }
+    
+    @Override
+    public int hashCode() {
+        return type.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Classifier) {
+            return ((Classifier) other).type.equals(type);
+        }
+        
+        return false;
+    }
 }

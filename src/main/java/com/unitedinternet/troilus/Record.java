@@ -23,10 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import com.datastax.driver.core.ColumnDefinitions;
@@ -42,7 +39,6 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 
 
@@ -148,19 +144,6 @@ public class Record implements Result {
     }
     
      
-    public <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass) {
-        DataType datatype = ctx.getColumnMetadata(name).getType();
-        
-        if (ctx.isBuildInType(datatype)) {
-            return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, elementsClass)).map(set -> ImmutableSet.copyOf(set));
-        } else {
-            
-            return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, UDTValue.class)).map(udtValues -> (ImmutableSet<T>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValues), elementsClass));
-            
-//            return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, UDTValue.class).stream().map(udtValue -> (T) UDTValueMapper.fromUdtValue(ctx,  ((UserType) datatype), udtValue, elementsClass, name).get()).collect(Immutables.toSet()));
-        }
-    }
-    
      
     public Optional<InetAddress> getInet(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getInet(name));
@@ -187,16 +170,6 @@ public class Record implements Result {
     }
    
     
-     
-    public <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass) {
-        return Optional.ofNullable(row.getList(name, elementsClass)).map(list -> ImmutableList.copyOf(list));
-    }
-    
-     
-    public <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
-        return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
-    }
-    
     
     private Optional<String> toString(String name, DataType dataType) {
         if (isNull(name)) {
@@ -215,22 +188,50 @@ public class Record implements Result {
     }
 
     
-    public <T> Optional<T> getUDT(String name, Class<T> type) {
-        return getUDTValue(name).map(udtValue -> UDTValueMapper.fromUdtValue(ctx, (UserType) row.getColumnDefinitions().getType(name), udtValue, type));
-    }
-   
-    
-  
-    
     @SuppressWarnings("unchecked")
-    <T> Optional<T> getObject(String name) {
-        DataType dataType = getColumnDefinitions().getType(name);
-        if (dataType != null) {
-            return (Optional<T>) getBytesUnsafe(name).map(bytes -> dataType.deserialize(bytes, getProtocolVersion()));
+    public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
+        DataType datatype = getColumnDefinitions().getType(name);
+        
+        if (datatype != null) {
+            if (ctx.isBuildInType(datatype)) {
+                return (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion()));
+            } else {
+                return Optional.ofNullable(UDTValueMapper.fromUdtValue(ctx, datatype, getUDTValue(name).get(), elementsClass));
+            }
         }
         
         return Optional.empty();
     }
+    
+    
+    public <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass) {
+        DataType datatype = ctx.getColumnMetadata(name).getType();
+        if (ctx.isBuildInType(datatype)) {
+            return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, elementsClass)).map(set -> ImmutableSet.copyOf(set));
+        } else {
+            return isNull(name) ? Optional.empty() : Optional.of(row.getSet(name, UDTValue.class)).map(udtValues -> (ImmutableSet<T>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValues), elementsClass));
+        }
+    }
+    
+
+     
+    public <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass) {
+        DataType datatype = ctx.getColumnMetadata(name).getType();
+        if (ctx.isBuildInType(datatype)) {
+            return Optional.ofNullable(row.getList(name, elementsClass)).map(list -> ImmutableList.copyOf(list));
+        } else {
+            return isNull(name) ? Optional.empty() : Optional.of(row.getList(name, UDTValue.class)).map(udtValues -> (ImmutableList<T>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableList.copyOf(udtValues), elementsClass));
+        }
+    }
+    
+    
+    
+     
+    public <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
+        return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
+    }
+    
+
 
     
     public String toString() {

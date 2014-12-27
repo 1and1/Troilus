@@ -998,7 +998,7 @@ public class DaoImpl implements Dao {
                                                       
                                                   } else {
                                                       Record record = new Record(ctx, new ResultImpl(resultSet), row);
-                        
+                /*        
                                                       // paranioa check
                                                       keyNameValuePairs.forEach((name, value) -> { 
                                                                                                    if (record.getObject(name).equals(value)) {
@@ -1006,6 +1006,7 @@ public class DaoImpl implements Dao {
                                                                                                        throw new ProtocolErrorException("Dataswap error for " + name); 
                                                                                                    }
                                                                                                  });
+                  */
                                                       
                                                       if (!resultSet.isExhausted()) {
                                                           throw new TooManyResultsException("more than one record exists");
@@ -1609,7 +1610,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public Optional<?> apply(String name, Class<?> clazz) {
-            return record.getObject(name);
+            return record.getObject(name, clazz);
         }
     }
 }
