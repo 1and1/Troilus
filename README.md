@@ -46,7 +46,6 @@ hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", ImmutableSet.of("1
 The columns will be mapped by using `@Field` annotated fields
 ``` java
 import java.util.Optional;
-import javax.persistence.Column;
 
 
 public class Hotel  {
