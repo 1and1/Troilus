@@ -67,11 +67,7 @@ public class Context  {
         this.entityMapper = entityMapper;
     }
  
-    @Deprecated
-    protected Session getSession() {
-        return session;
-    }
-    
+  
     protected String getTable() {
         return table;
     }

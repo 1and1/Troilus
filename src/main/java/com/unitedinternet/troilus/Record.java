@@ -33,7 +33,6 @@ import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
-import com.datastax.driver.core.UserType;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
@@ -144,7 +143,6 @@ public class Record implements Result {
     }
     
      
-     
     public Optional<InetAddress> getInet(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getInet(name));
     }
@@ -164,24 +162,11 @@ public class Record implements Result {
         return isNull(name) ? Optional.empty() : Optional.of(row.getTupleValue(name));
     }
     
-     
+    
     public Optional<UUID> getUUID(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUUID(name));
     }
    
-    
-    
-    private Optional<String> toString(String name, DataType dataType) {
-        if (isNull(name)) {
-            return Optional.empty();
-        } else {
-            StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(row.getBytesUnsafe(name), getProtocolVersion()));
-
-            return Optional.of(builder.toString());
-        }
-    }
-    
     
     public Optional<UDTValue> getUDTValue(String name) {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
@@ -213,8 +198,7 @@ public class Record implements Result {
         }
     }
     
-
-     
+ 
     public <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass) {
         DataType datatype = ctx.getColumnMetadata(name).getType();
         if (ctx.isBuildInType(datatype)) {
@@ -225,14 +209,23 @@ public class Record implements Result {
     }
     
     
-    
-     
     public <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
-        return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
+        
+        DataType datatype = ctx.getColumnMetadata(name).getType();
+        if (ctx.isBuildInType(datatype)) {
+            return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
+        } else {
+ /*           if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
+                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, keysClass, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableMap.copyOf(udtValues), keyclass));
+
+            } else {
+                
+            }
+   */         
+            return null;
+        }
     }
     
-
-
     
     public String toString() {
         ToStringHelper toStringHelper = MoreObjects.toStringHelper(this);
@@ -240,7 +233,16 @@ public class Record implements Result {
                                   .forEach(definition -> toString(definition.getName(), definition.getType()).ifPresent(value -> toStringHelper.add(definition.getName(), value)));
         return toStringHelper.toString();
     }
+    
+    
+    private Optional<String> toString(String name, DataType dataType) {
+        if (isNull(name)) {
+            return Optional.empty();
+        } else {
+            StringBuilder builder = new StringBuilder();
+            builder.append(dataType.deserialize(row.getBytesUnsafe(name), getProtocolVersion()));
+
+            return Optional.of(builder.toString());
+        }
+    }
 }
-
-
-

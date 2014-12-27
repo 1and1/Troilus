@@ -104,7 +104,20 @@ class UDTValueMapper {
         return ImmutableList.copyOf(elements);
     }
 
+    /*
     
+    public static <K, V> ImmutableMap<K, V> fromUdtValues(Context ctx, DataType datatype, ImmutableMap<K, ?> udtValues, Class<K> keytype, Class<V> valueType) {
+        Map<K, V> elements = Maps.newHashMap();
+        
+        for (Entry<K, ?> entry : udtValues.entrySet()) {
+            K keyElement = ctx.fromValues(keytype, (name, clazz) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), entry.getKey(), clazz, name));
+            V valueElement = ctx.fromValues(valueType, (name, clazz) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), entry.getValue(), clazz, name));
+            elements.put(keyElement, valueElement);
+        }
+        
+        return ImmutableMap.copyOf(elements);
+    }
+    */
     
     
     @SuppressWarnings("unchecked")

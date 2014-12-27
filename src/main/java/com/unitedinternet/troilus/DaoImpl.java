@@ -17,6 +17,7 @@ package com.unitedinternet.troilus;
 
 
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +47,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -998,15 +1000,17 @@ public class DaoImpl implements Dao {
                                                       
                                                   } else {
                                                       Record record = new Record(ctx, new ResultImpl(resultSet), row);
-                /*        
+                                                      
                                                       // paranioa check
                                                       keyNameValuePairs.forEach((name, value) -> { 
-                                                                                                   if (record.getObject(name).equals(value)) {
+                                                                                                  ByteBuffer in = DataType.serializeValue(value, ctx.getProtocolVersion());
+                                                                                                  ByteBuffer out = record.getBytesUnsafe(name).get();
+                                                          
+                                                                                                  if (in.compareTo(out) != 0) {
                                                                                                        LOG.warn("Dataswap error for " + name);
                                                                                                        throw new ProtocolErrorException("Dataswap error for " + name); 
-                                                                                                   }
+                                                                                                  }
                                                                                                  });
-                  */
                                                       
                                                       if (!resultSet.isExhausted()) {
                                                           throw new TooManyResultsException("more than one record exists");
