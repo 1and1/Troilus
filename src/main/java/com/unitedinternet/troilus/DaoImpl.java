@@ -861,7 +861,8 @@ public class DaoImpl implements Dao {
     
     public DeletionWithCondition deleteWhere(Clause clause) {
         return newDeletion(getDefaultContext(), 
-                           ImmutableList.of(clause));
+                           ImmutableList.of(clause),
+                           ImmutableList.of());
     };
     
     
@@ -869,7 +870,8 @@ public class DaoImpl implements Dao {
     public Deletion deleteWithKey(String keyName, Object keyValue) {
         
         return newDeletion(getDefaultContext(), 
-                           ImmutableMap.of(keyName, keyValue));
+                           ImmutableMap.of(keyName, keyValue),
+                           ImmutableList.of());
     }
 
     @Override
@@ -878,7 +880,8 @@ public class DaoImpl implements Dao {
         
         return newDeletion(getDefaultContext(), 
                            ImmutableMap.of(keyName1, keyValue1,
-                                           keyName2, keyValue2));
+                                           keyName2, keyValue2),
+                           ImmutableList.of());
     }
     
     @Override
@@ -889,7 +892,8 @@ public class DaoImpl implements Dao {
         return newDeletion(getDefaultContext(), 
                            ImmutableMap.of(keyName1, keyValue1, 
                                            keyName2, keyValue2, 
-                                           keyName3, keyValue3));
+                                           keyName3, keyValue3),
+                           ImmutableList.of());
     }
     
     @Override
@@ -902,47 +906,55 @@ public class DaoImpl implements Dao {
                            ImmutableMap.of(keyName1, keyValue1, 
                                            keyName2, keyValue2, 
                                            keyName3, keyValue3, 
-                                           keyName4, keyValue4));
+                                           keyName4, keyValue4),
+                           ImmutableList.of());
     }
     
-    protected DeletionWithCondition newDeletion(Context ctx, ImmutableList<Clause> whereConditions) {
-        return new ConditionBasedDeleteQuery(ctx, whereConditions);
+    protected DeletionWithCondition newDeletion(Context ctx, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+        return new ConditionBasedDeleteQuery(ctx, whereConditions, ifConditions);
     }
     
     
-    protected Deletion newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
-        return new KeyBasedDeleteQuery(ctx, keyNameValuePairs);
+    protected Deletion newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> ifConditions) {
+        return new KeyBasedDeleteQuery(ctx, keyNameValuePairs, ifConditions);
     }
     
     
     private class KeyBasedDeleteQuery implements Deletion {
         private final Context ctx;
         private final ImmutableMap<String, Object> keyNameValuePairs;
+        private final ImmutableList<Clause> ifConditions;
         
-        public KeyBasedDeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
+        public KeyBasedDeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> ifConditions) {
             this.ctx = ctx;
             this.keyNameValuePairs = keyNameValuePairs;
+            this.ifConditions = ifConditions;
+        }
+        
+        @Override
+        public Deletion onlyIf(Clause... conditions) {
+            return newDeletion(ctx.withEnableTracking(), keyNameValuePairs, ImmutableList.copyOf(conditions));
         }
         
         @Override
         public Deletion withEnableTracking() {
-            return newDeletion(ctx.withEnableTracking(), keyNameValuePairs);
+            return newDeletion(ctx.withEnableTracking(), keyNameValuePairs, ifConditions);
         }
         
         @Override
         public Deletion withDisableTracking() {
-            return newDeletion(ctx.withDisableTracking(), keyNameValuePairs);
+            return newDeletion(ctx.withDisableTracking(), keyNameValuePairs, ifConditions);
         }
         
         
         @Override
         public Deletion withConsistency(ConsistencyLevel consistencyLevel) {
-            return newDeletion(ctx.withConsistency(consistencyLevel), keyNameValuePairs);
+            return newDeletion(ctx.withConsistency(consistencyLevel), keyNameValuePairs, ifConditions);
         }
         
         @Override
         public Deletion withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newDeletion(ctx.withSerialConsistency(consistencyLevel), keyNameValuePairs);
+            return newDeletion(ctx.withSerialConsistency(consistencyLevel), keyNameValuePairs, ifConditions);
         }
         
         @Override
@@ -955,8 +967,10 @@ public class DaoImpl implements Dao {
         public Statement getStatement() {
             Delete delete = delete().from(ctx.getTable());
 
+            ifConditions.forEach(condition -> delete.onlyIf(condition));
+            
             Delete.Where where = null;
-      
+            
             if (!keyNameValuePairs.isEmpty()) {
                 for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
                     if (where == null) {
@@ -989,37 +1003,45 @@ public class DaoImpl implements Dao {
     
     private class ConditionBasedDeleteQuery implements DeletionWithCondition {
         private final Context ctx;
+        private final ImmutableList<Clause> ifConditions;
         private final ImmutableList<Clause> whereConditions;
         
-        public ConditionBasedDeleteQuery(Context ctx, ImmutableList<Clause> whereConditions) {
+        public ConditionBasedDeleteQuery(Context ctx, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
             this.ctx = ctx;
             this.whereConditions = whereConditions;
+            this.ifConditions = ifConditions;
         }
         
         @Override
+        public Deletion onlyIf(Clause... conditions) {
+            return newDeletion(ctx.withEnableTracking(), whereConditions, ImmutableList.copyOf(conditions));
+        }
+        
+        
+        @Override
         public DeletionWithCondition and(Clause where) {
-            return newDeletion(ctx.withEnableTracking(), Immutables.merge(whereConditions, where));
+            return newDeletion(ctx.withEnableTracking(), Immutables.merge(whereConditions, where), ifConditions);
         }
         
         @Override
         public Deletion withEnableTracking() {
-            return newDeletion(ctx.withEnableTracking(), whereConditions);
+            return newDeletion(ctx.withEnableTracking(), whereConditions, ifConditions);
         }
         
         @Override
         public Deletion withDisableTracking() {
-            return newDeletion(ctx.withDisableTracking(), whereConditions);
+            return newDeletion(ctx.withDisableTracking(), whereConditions, ifConditions);
         }
         
         
         @Override
         public Deletion withConsistency(ConsistencyLevel consistencyLevel) {
-            return newDeletion(ctx.withConsistency(consistencyLevel), whereConditions);
+            return newDeletion(ctx.withConsistency(consistencyLevel), whereConditions, ifConditions);
         }
         
         @Override
         public Deletion withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newDeletion(ctx.withSerialConsistency(consistencyLevel), whereConditions);
+            return newDeletion(ctx.withSerialConsistency(consistencyLevel), whereConditions, ifConditions);
         }
         
         @Override
@@ -1033,6 +1055,8 @@ public class DaoImpl implements Dao {
             Delete delete = delete().from(ctx.getTable());
 
             Delete.Where where = null;
+            
+            ifConditions.forEach(condition -> delete.onlyIf(condition));
             
             for (Clause whereClause : whereConditions) {
                 if (where == null) {

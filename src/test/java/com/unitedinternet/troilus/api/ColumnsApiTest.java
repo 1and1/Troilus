@@ -271,6 +271,27 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("berlin", addresses.next());
         Assert.assertEquals("budapest", addresses.next());
         Assert.assertFalse(addresses.hasNext());        
+        
+        
+        
+        
+        
+        usersDao.deleteWithKey(UsersTable.USER_ID, "2222")
+                .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
+                .execute();
+
+        Optional<Record> rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
+                                       .execute();
+        Assert.assertTrue(rec.isPresent());   
+
+        
+        usersDao.deleteWithKey(UsersTable.USER_ID, "2222")
+                .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, true))
+                .execute();
+
+        rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
+                      .execute();
+        Assert.assertFalse(rec.isPresent());   
       }    
     
 }
