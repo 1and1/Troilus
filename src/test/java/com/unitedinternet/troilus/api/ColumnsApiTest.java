@@ -141,6 +141,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                  .execute();
         Assert.assertFalse(optionalRecord.isPresent());
         
+
+        
         
         
         
@@ -268,9 +270,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("berlin", addresses.next());
         Assert.assertEquals("budapest", addresses.next());
         Assert.assertFalse(addresses.hasNext());        
-    }    
-    
-    
+      }    
     
 }
 

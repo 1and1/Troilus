@@ -202,7 +202,7 @@ public class DaoImpl implements Dao {
             Insert insert = insertInto(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, insert)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(ctx, insert)));
             
             
             if (ifNotExists) {
@@ -250,39 +250,47 @@ public class DaoImpl implements Dao {
 
     
     @Override
-    public UpdateWithValues writeWhere(Clause... clauses) {
-        return newUpdate(getDefaultContext(), ImmutableMap.of(), ImmutableList.of(), ImmutableList.copyOf(clauses), ImmutableList.of());
+    public UpdateWithValuesAndCondition writeWhere(Clause... clauses) {
+        return newUpdate(getDefaultContext(), ImmutableList.of(), ImmutableList.copyOf(clauses), ImmutableList.of());
     }
     
 
-    private UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new UpdateQuery(ctx, keys, valuesToInsert, ImmutableList.of(), ImmutableList.of());
-    }
-
-    protected UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
-        return new UpdateQuery(ctx, keys, valuesToInsert, whereConditions, ifConditions);
+    private UpdateWithValuesAndCondition newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+        return new ConditionBasedUpdateQuery(ctx, valuesToMutate, whereConditions, ifConditions);
     }
 
     
-    private class UpdateQuery implements UpdateWithValues {
+    
+    protected UpdateWithValues newUpdate(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert, ImmutableList<Clause> ifConditions) {
+        return new KeyBasedUpdateQuery(ctx, keys, valuesToInsert, ifConditions);
+    }
+
+    
+
+    
+    private class ConditionBasedUpdateQuery implements UpdateWithValuesAndCondition {
         private final Context ctx;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
-        private final ImmutableMap<String, Object> keys;
         private final ImmutableList<Clause> ifConditions;
         private final ImmutableList<Clause> whereConditions;
         
-        public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+        public ConditionBasedUpdateQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
             this.ctx = ctx;
             this.valuesToMutate = valuesToMutate;
-            this.keys = keys;
             this.whereConditions = whereConditions;
             this.ifConditions = ifConditions;
         }
         
         
         @Override
+        public UpdateWithValuesAndCondition and(Clause where) {
+            return newUpdate(ctx, valuesToMutate, whereConditions, Immutables.merge(whereConditions, where));
+        }
+        
+        
+        @Override
         public Update onlyIf(Clause... conditions) {
-            return newUpdate(ctx, keys, valuesToMutate, whereConditions, ImmutableList.copyOf(conditions)) ;
+            return newUpdate(ctx, valuesToMutate, whereConditions, ImmutableList.copyOf(conditions)) ;
         }
         
         @Override
@@ -305,41 +313,182 @@ public class DaoImpl implements Dao {
                 newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
             }
             
-            return newUpdate(ctx, keys, newValuesToInsert, whereConditions, ifConditions);
+            return newUpdate(ctx, newValuesToInsert, whereConditions, ifConditions);
         }
            
         
         @Override
         public Update withEnableTracking() {
-            return newUpdate(ctx.withEnableTracking(), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withEnableTracking(), valuesToMutate, whereConditions, ifConditions);
         }
         
         @Override
         public Update withDisableTracking() {
-            return newUpdate(ctx.withDisableTracking(), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withDisableTracking(), valuesToMutate, whereConditions, ifConditions);
         }
         
         
         @Override
         public Update withConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withConsistency(consistencyLevel), valuesToMutate, whereConditions, ifConditions);
         }
         
         
         @Override
         public Update withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return newUpdate(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withSerialConsistency(consistencyLevel), valuesToMutate, whereConditions, ifConditions);
         }
         
         
         @Override
         public Update withTtl(Duration ttl) {
-            return newUpdate(ctx.withTtl(ttl), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withTtl(ttl), valuesToMutate, whereConditions, ifConditions);
         }
 
         @Override
         public Update withWritetime(long writetimeMicrosSinceEpoch) {
-            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate, whereConditions, ifConditions);
+            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), valuesToMutate, whereConditions, ifConditions);
+        }
+        
+        @Override
+        public BatchMutation combinedWith(Mutation other) {
+            return newBatchMutation(ctx, Type.LOGGED, ImmutableList.of(this, other));
+        }
+      
+        
+        @Override
+        public Statement getStatement() {
+            
+            // statement
+            com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
+            
+            valuesToMutate.forEach(valueToInsert -> valueToInsert.addToStatement(ctx, update));
+            
+            ifConditions.forEach(condition -> update.onlyIf(condition));
+   
+            ctx.getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+            
+            com.datastax.driver.core.querybuilder.Update.Where where = null;
+            
+            for (Clause whereClause : whereConditions) {
+                if (where == null) {
+                    where = update.where(whereClause);
+                } else {
+                    where = where.and(whereClause);
+                }
+            }
+            
+            return update;
+        }
+        
+        
+        public Result execute() {
+            try {
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            } 
+        }
+        
+        
+        @Override
+        public CompletableFuture<Result> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> {
+                if (!ifConditions.isEmpty()) {
+                    // check cas result column '[applied]'
+                    if (!resultSet.wasApplied()) {
+                        throw new IfConditionException("if condition does not match");  
+                    }
+                } 
+                return new ResultImpl(resultSet);
+            });
+
+        }
+        
+        @Override
+        public String toString() {
+            return getStatement().toString();
+        }
+    }
+
+
+    
+    
+    private class KeyBasedUpdateQuery implements UpdateWithValues {
+        private final Context ctx;
+        private final ImmutableList<? extends ValueToMutate> valuesToMutate;
+        private final ImmutableMap<String, Object> keys;
+        private final ImmutableList<Clause> ifConditions;
+        
+        public KeyBasedUpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
+            this.ctx = ctx;
+            this.valuesToMutate = valuesToMutate;
+            this.keys = keys;
+            this.ifConditions = ifConditions;
+        }
+        
+        
+        
+        @Override
+        public Update onlyIf(Clause... conditions) {
+            return newUpdate(ctx, keys, valuesToMutate, ImmutableList.copyOf(conditions)) ;
+        }
+        
+        @Override
+        public final  UpdateWithValues values(ImmutableMap<String, ? extends Object> additionalvaluesToMutate) {
+            UpdateWithValues write = this;
+            for (String name : additionalvaluesToMutate.keySet()) {
+                write = write.value(name, additionalvaluesToMutate.get(name));
+            }
+            return write;
+        }
+        
+     
+        @Override
+        public UpdateWithValues value(String name, Object value) {
+            ImmutableList<? extends ValueToMutate> newValuesToInsert;
+            
+            if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
+            } else {
+                newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
+            }
+            
+            return newUpdate(ctx, keys, newValuesToInsert, ifConditions);
+        }
+           
+        
+        @Override
+        public Update withEnableTracking() {
+            return newUpdate(ctx.withEnableTracking(), keys, valuesToMutate, ifConditions);
+        }
+        
+        @Override
+        public Update withDisableTracking() {
+            return newUpdate(ctx.withDisableTracking(), keys, valuesToMutate, ifConditions);
+        }
+        
+        
+        @Override
+        public Update withConsistency(ConsistencyLevel consistencyLevel) {
+            return newUpdate(ctx.withConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
+        }
+        
+        
+        @Override
+        public Update withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return newUpdate(ctx.withSerialConsistency(consistencyLevel), keys, valuesToMutate, ifConditions);
+        }
+        
+        
+        @Override
+        public Update withTtl(Duration ttl) {
+            return newUpdate(ctx.withTtl(ttl), keys, valuesToMutate, ifConditions);
+        }
+
+        @Override
+        public Update withWritetime(long writetimeMicrosSinceEpoch) {
+            return newUpdate(ctx.withWritetime(writetimeMicrosSinceEpoch), keys, valuesToMutate, ifConditions);
         }
         
         @Override
@@ -355,7 +504,7 @@ public class DaoImpl implements Dao {
             com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, update)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(ctx, update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
@@ -366,10 +515,6 @@ public class DaoImpl implements Dao {
                                             update.using(QueryBuilder.ttl(bindMarker()));
                                             values.add((int) ttl.getSeconds());
                                          });
-
-            
-            whereConditions.forEach(condition -> update.where(condition));
-
             
             PreparedStatement stmt = ctx.prepare(update);
             return stmt.bind(values.toArray());
@@ -405,7 +550,6 @@ public class DaoImpl implements Dao {
         }
     }
 
-    
     
 
     
@@ -450,7 +594,7 @@ public class DaoImpl implements Dao {
    
         @Override
         public Update onlyIf(Clause... conditions) {
-            return newUpdate(ctx, keys, valuesToMutate).onlyIf(conditions); 
+            return newUpdate(ctx, keys, valuesToMutate, ImmutableList.copyOf(conditions)); 
         }
 
         @Override
@@ -530,7 +674,7 @@ public class DaoImpl implements Dao {
             
             
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addToStatement(ctx, update)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(ctx, update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
@@ -610,9 +754,13 @@ public class DaoImpl implements Dao {
   
     
     private static interface ValueToMutate {
-        Object addToStatement(Context ctx, Insert insert);
+        Object addPreparedToStatement(Context ctx, Insert insert);
+
+        void addToStatement(Context ctx, Insert insert);
         
-        Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
+        Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
+        
+        void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
     }
   
     
@@ -638,14 +786,25 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public Object addToStatement(Context ctx, Insert insert) {
+        public Object addPreparedToStatement(Context ctx, Insert insert) {
             insert.value(name, bindMarker());
             return value;
         }
+        
+        @Override
+        public void addToStatement(Context ctx, Insert insert) {
+            insert.value(name,  value);
+        }
 
-        public Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
+        public Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
             update.with(set(name, bindMarker()));
             return value;
+        }
+        
+        
+        @Override
+        public void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(name, value));
         }
     }
    
@@ -673,14 +832,24 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public Object addToStatement(Context ctx, Insert insert) {
+        public Object addPreparedToStatement(Context ctx, Insert insert) {
             insert.value(columnName, bindMarker());
             return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
         }
 
-        public Object addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
+        @Override
+        public void addToStatement(Context ctx, Insert insert) {
+            insert.value(columnName, value);
+        }
+        
+        public Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
             update.with(set(columnName, bindMarker()));
             return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
+        }
+        
+        @Override
+        public void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(columnName, UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value)));
         }
     }
    
@@ -690,25 +859,37 @@ public class DaoImpl implements Dao {
     ///////////////////////////////
     // DELETE
     
+    public DeletionWithCondition deleteWhere(Clause clause) {
+        return newDeletion(getDefaultContext(), 
+                           ImmutableList.of(clause));
+    };
+    
+    
     @Override
     public Deletion deleteWithKey(String keyName, Object keyValue) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName, keyValue));
+        
+        return newDeletion(getDefaultContext(), 
+                           ImmutableMap.of(keyName, keyValue));
     }
 
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1,
-                                                                keyName2, keyValue2));
+        
+        return newDeletion(getDefaultContext(), 
+                           ImmutableMap.of(keyName1, keyValue1,
+                                           keyName2, keyValue2));
     }
     
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2, 
                                   String keyName3, Object keyValue3) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, 
-                                                                keyName2, keyValue2, 
-                                                                keyName3, keyValue3));
+        
+        return newDeletion(getDefaultContext(), 
+                           ImmutableMap.of(keyName1, keyValue1, 
+                                           keyName2, keyValue2, 
+                                           keyName3, keyValue3));
     }
     
     @Override
@@ -716,21 +897,29 @@ public class DaoImpl implements Dao {
                                   String keyName2, Object keyValue2, 
                                   String keyName3, Object keyValue3,
                                   String keyName4, Object keyValue4) {
-        return newDeletion(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, 
-                                                                keyName2, keyValue2, 
-                                                                keyName3, keyValue3, 
-                                                                keyName4, keyValue4));
+        
+        return newDeletion(getDefaultContext(), 
+                           ImmutableMap.of(keyName1, keyValue1, 
+                                           keyName2, keyValue2, 
+                                           keyName3, keyValue3, 
+                                           keyName4, keyValue4));
     }
+    
+    protected DeletionWithCondition newDeletion(Context ctx, ImmutableList<Clause> whereConditions) {
+        return new ConditionBasedDeleteQuery(ctx, whereConditions);
+    }
+    
     
     protected Deletion newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQuery(ctx, keyNameValuePairs);
+        return new KeyBasedDeleteQuery(ctx, keyNameValuePairs);
     }
     
-    private class DeleteQuery implements Deletion {
+    
+    private class KeyBasedDeleteQuery implements Deletion {
         private final Context ctx;
         private final ImmutableMap<String, Object> keyNameValuePairs;
         
-        public DeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
+        public KeyBasedDeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs) {
             this.ctx = ctx;
             this.keyNameValuePairs = keyNameValuePairs;
         }
@@ -767,11 +956,14 @@ public class DaoImpl implements Dao {
             Delete delete = delete().from(ctx.getTable());
 
             Delete.Where where = null;
-            for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
-                if (where == null) {
-                    where = delete.where(whereClause);
-                } else {
-                    where = where.and(whereClause);
+      
+            if (!keyNameValuePairs.isEmpty()) {
+                for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
+                    if (where == null) {
+                        where = delete.where(whereClause);
+                    } else {
+                        where = where.and(whereClause);
+                    }
                 }
             }
             
@@ -793,6 +985,84 @@ public class DaoImpl implements Dao {
         }
     }
 
+    
+    
+    private class ConditionBasedDeleteQuery implements DeletionWithCondition {
+        private final Context ctx;
+        private final ImmutableList<Clause> whereConditions;
+        
+        public ConditionBasedDeleteQuery(Context ctx, ImmutableList<Clause> whereConditions) {
+            this.ctx = ctx;
+            this.whereConditions = whereConditions;
+        }
+        
+        @Override
+        public DeletionWithCondition and(Clause where) {
+            return newDeletion(ctx.withEnableTracking(), Immutables.merge(whereConditions, where));
+        }
+        
+        @Override
+        public Deletion withEnableTracking() {
+            return newDeletion(ctx.withEnableTracking(), whereConditions);
+        }
+        
+        @Override
+        public Deletion withDisableTracking() {
+            return newDeletion(ctx.withDisableTracking(), whereConditions);
+        }
+        
+        
+        @Override
+        public Deletion withConsistency(ConsistencyLevel consistencyLevel) {
+            return newDeletion(ctx.withConsistency(consistencyLevel), whereConditions);
+        }
+        
+        @Override
+        public Deletion withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return newDeletion(ctx.withSerialConsistency(consistencyLevel), whereConditions);
+        }
+        
+        @Override
+        public BatchMutation combinedWith(Mutation other) {
+            return newBatchMutation(ctx, Type.LOGGED, ImmutableList.of(this, other));
+        }
+        
+        
+        @Override
+        public Statement getStatement() {
+            Delete delete = delete().from(ctx.getTable());
+
+            Delete.Where where = null;
+            
+            for (Clause whereClause : whereConditions) {
+                if (where == null) {
+                    where = delete.where(whereClause);
+                } else {
+                    where = where.and(whereClause);
+                }
+            }
+           
+            return delete;
+        }
+        
+        
+        public Result execute() {
+            try {
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            } 
+        }
+        
+        
+        public CompletableFuture<Result> executeAsync() {
+            return ctx.performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
+        }
+    }
+
+  
+
+    
     
     protected BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Mutation<?>> mutations) {
         return new MutationBatchQuery(ctx, type, mutations);

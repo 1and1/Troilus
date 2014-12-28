@@ -90,6 +90,19 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
+        
+        
+        
+        
+        feeDao.deleteWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+              .and(QueryBuilder.eq(FeesTable.YEAR, 4))
+              .execute();
+        
+        
+        feeRecord = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+                          .columns(FeesTable.ALL)
+                          .execute();
+        Assert.assertFalse(feeRecord.isPresent());
     }        
 }
 
