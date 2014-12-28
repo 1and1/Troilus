@@ -203,6 +203,8 @@ public interface Dao {
 
     public static interface SingleReadWithUnit<T> extends SingleReadWithColumns<T> {
         
+        SingleRead<T> all();
+        
         <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass);
     }
 
@@ -239,6 +241,8 @@ public interface Dao {
     
     
     public static interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
+        
+        ListRead<T> all();
         
         <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass);
     }

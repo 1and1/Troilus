@@ -1179,6 +1179,10 @@ public class DaoImpl implements Dao {
         }
          
         
+        @Override
+        public SingleRead<Optional<Record>> all() {
+            return this;
+        }
         
         @Override
         public <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass) {
@@ -1442,6 +1446,12 @@ public class DaoImpl implements Dao {
             this.optionalAllowFiltering = optionalAllowFiltering;
             this.optionalFetchSize = optionalFetchSize;
             this.optionalDistinct = optionalDistinct;
+        }
+        
+        
+        @Override
+        public ListRead<ListResult<Record>> all() {
+            return this;
         }
         
         

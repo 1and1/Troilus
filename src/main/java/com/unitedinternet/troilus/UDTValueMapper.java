@@ -64,13 +64,13 @@ class UDTValueMapper {
 
             } else {
                 if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValue.getMap(fieldname, fieldtype1, UDTValue.class)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, fieldtype1, UDTValue.class)), fieldtype1, fieldtype2));
 
                 } else if (ctx.isBuildInType(datatype.getTypeArguments().get(1))) {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValue.getMap(fieldname, UDTValue.class, fieldtype2)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, fieldtype2)), fieldtype1, fieldtype2));
                     
                 } else {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValue.getMap(fieldname, UDTValue.class, UDTValue.class)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, UDTValue.class)), fieldtype1, fieldtype2));
                 }
             }
             

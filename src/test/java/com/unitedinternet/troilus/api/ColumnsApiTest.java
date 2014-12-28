@@ -172,6 +172,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         // check
         optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "14323425")
+                                 .all()
                                  .execute();
         System.out.println(optionalRecord);
         Assert.assertTrue(optionalRecord.isPresent());
