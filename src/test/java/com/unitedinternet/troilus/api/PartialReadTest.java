@@ -94,8 +94,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        feeDao.deleteWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
-              .and(QueryBuilder.eq(FeesTable.YEAR, 4))
+        feeDao.deleteWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"), QueryBuilder.eq(FeesTable.YEAR, 4))
               .execute();
         
         

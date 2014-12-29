@@ -35,7 +35,7 @@ public interface Dao {
     
     
     
-    UpdateWithValuesAndCondition writeWhere(Clause... clauses);
+    UpdateWithValues writeWhere(Clause... clauses);
 
     Insertion writeEntity(Object entity);
    
@@ -130,11 +130,6 @@ public interface Dao {
         UpdateWithValues putMapValue(String name, Object key, Object value);*/
     }
     
-    
-    public static interface UpdateWithValuesAndCondition extends UpdateWithValues {
-        
-        UpdateWithValuesAndCondition and(Clause where);
-    }
     
 
     public static interface Insertion extends Mutation<Insertion> {
@@ -256,7 +251,7 @@ public interface Dao {
     
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
-    DeletionWithCondition deleteWhere(Clause clause);
+    Deletion deleteWhere(Clause... whereConditions);
 
     
     public static interface Deletion extends Mutation<Deletion> {
@@ -267,16 +262,6 @@ public interface Dao {
         
         Deletion withDisableTracking();
         
-     // Deletion if(condition ... condition);
-    }
-
-
-    public static interface DeletionWithCondition extends Deletion {
-        
-        DeletionWithCondition and(Clause where);
-    }
-
-    
-    
-    
+        Deletion onlyIf(Clause... conditions);
+    }    
 }
