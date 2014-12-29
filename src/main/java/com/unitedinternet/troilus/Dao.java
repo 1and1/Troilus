@@ -263,5 +263,5 @@ public interface Dao {
         Deletion withDisableTracking();
         
         Deletion onlyIf(Clause... conditions);
-    }    
+    }
 }

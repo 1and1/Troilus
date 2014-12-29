@@ -895,8 +895,7 @@ public class DaoImpl implements Dao {
     }
 
     
-    
-    
+        
     protected BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Mutation<?>> mutations) {
         return new MutationBatchQuery(ctx, type, mutations);
     }
