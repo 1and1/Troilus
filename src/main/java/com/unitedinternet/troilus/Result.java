@@ -17,6 +17,8 @@ package com.unitedinternet.troilus;
 
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 
@@ -26,11 +28,57 @@ import com.google.common.collect.ImmutableList;
  *
  * @author grro
  */
-public interface Result {
+public abstract class Result {
 
-    ExecutionInfo getExecutionInfo();
+    public abstract ExecutionInfo getExecutionInfo();
     
-    ImmutableList<ExecutionInfo> getAllExecutionInfo();
+    public abstract ImmutableList<ExecutionInfo> getAllExecutionInfo();
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(); 
+        for (ExecutionInfo info : getAllExecutionInfo())  {
+
+            builder.append("queried=" + info.getQueriedHost());
+            builder.append("\r\ntried=")
+                   .append(Joiner.on(",").join(info.getTriedHosts()));
+
+
+            if (info.getAchievedConsistencyLevel() != null) {
+                builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
+            }
+            
+            if (info.getQueryTrace() != null) {
+                builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
+                builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
+            }
+        }
+        return builder.toString();
+    }
+    
+    
+    static Result newResult(ResultSet rs) {
+        return new ResultImpl(rs);
+    }
+    
+    
+    private static class ResultImpl extends Result {
+        private final ResultSet rs;
+        
+        public ResultImpl(ResultSet rs) {
+            this.rs = rs;
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return rs.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return ImmutableList.copyOf(rs.getAllExecutionInfo());
+        }
+    }
 }
 
 

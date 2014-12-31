@@ -46,7 +46,7 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author grro
  */
-public class Record implements Result {
+public class Record extends Result {
    
     private final Context ctx;
     private final Result result;

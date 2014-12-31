@@ -70,7 +70,7 @@ class BeanMapper {
         }
      
       
-        public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+        public ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
             Map<String, Optional<Object>> values = Maps.newHashMap();
             
             for (Function<Object, Map.Entry<String, Optional<Object>>> valueReader : valueReaders.values()) {
@@ -112,7 +112,7 @@ class BeanMapper {
   
 
     
-    public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+    public ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
         return getPropertiesMapper(entity.getClass()).toValues(entity);
     }
 
