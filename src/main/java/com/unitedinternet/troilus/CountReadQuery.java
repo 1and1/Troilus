@@ -128,7 +128,7 @@ class CountReadQuery extends AbstractQuery<ListRead<Count>> implements ListRead<
  
         selection.countAll();
         
-        Select select = selection.from(getContext().getTable());
+        Select select = selection.from(getTable());
         Select.Where where = null;
         for (Clause clause : clauses) {
             if (where == null) {
@@ -142,7 +142,7 @@ class CountReadQuery extends AbstractQuery<ListRead<Count>> implements ListRead<
         optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
         optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
         
-        return getContext().performAsync(select)
+        return performAsync(select)
                            .thenApply(resultSet -> Count.newCountResult(resultSet));
     }        
 }    

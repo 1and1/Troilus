@@ -33,7 +33,6 @@ import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Update;
 import com.unitedinternet.troilus.Dao.Write;
 import com.unitedinternet.troilus.Dao.WriteWithValues;
-import com.unitedinternet.troilus.QueryFactory.ValueToMutate;
 
 
  
@@ -80,7 +79,7 @@ class WriteQuery extends MutationQuery<Write> implements WriteWithValues {
     @Override
     public WriteWithValues value(String name, Object value) {
         
-        if (getContext().isOptional(value)) {
+        if (isOptional(value)) {
             Optional<Object> optional = (Optional<Object>) value;
             if (optional.isPresent()) {
                 return value(name, optional.get());
@@ -91,10 +90,10 @@ class WriteQuery extends MutationQuery<Write> implements WriteWithValues {
         
         ImmutableList<? extends ValueToMutate> newValuesToInsert;
         
-        if (getContext().isBuildInType(getContext().getColumnMetadata(name).getType())) {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.BuildinValueToMutate(name, value)).build();
+        if (isBuildInType(getColumnMetadata(name).getType())) {
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
         } else {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.UDTValueToMutate(name, value)).build();
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
         }
         
         return queryFactory.newWrite(getContext(), keys, newValuesToInsert);
@@ -111,17 +110,17 @@ class WriteQuery extends MutationQuery<Write> implements WriteWithValues {
         
         
         List<Object> values = Lists.newArrayList();
-        valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(getContext(), update)));
+        valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(update)));
         
         keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
         
 
-        getContext().getTtl().ifPresent(ttl-> {
+        getTtl().ifPresent(ttl-> {
                                         update.using(QueryBuilder.ttl(bindMarker()));
                                         values.add((int) ttl.getSeconds());
                                      });
 
-        PreparedStatement stmt = getContext().prepare(update);
+        PreparedStatement stmt = prepare(update);
         return stmt.bind(values.toArray());
     }
 }

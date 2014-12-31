@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Update;
 import com.unitedinternet.troilus.Dao.UpdateWithValues;
-import com.unitedinternet.troilus.QueryFactory.ValueToMutate;
 
  
 class UpdateQuery extends MutationQuery<UpdateWithValues> implements UpdateWithValues {
@@ -77,7 +76,7 @@ class UpdateQuery extends MutationQuery<UpdateWithValues> implements UpdateWithV
  
     @Override
     public UpdateWithValues value(String name, Object value) {
-        if (getContext().isOptional(value)) {
+        if (isOptional(value)) {
             Optional<Object> optional = (Optional<Object>) value;
             if (optional.isPresent()) {
                 return value(name, optional.get());
@@ -88,10 +87,10 @@ class UpdateQuery extends MutationQuery<UpdateWithValues> implements UpdateWithV
         
         ImmutableList<? extends ValueToMutate> newValuesToInsert;
         
-        if (getContext().isBuildInType(getContext().getColumnMetadata(name).getType())) {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.BuildinValueToMutate(name, value)).build();
+        if (isBuildInType(getColumnMetadata(name).getType())) {
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
         } else {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.UDTValueToMutate(name, value)).build();
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
         }
         
         return queryFactory.newUpdate(getContext(), newValuesToInsert, keys, whereConditions, ifConditions);
@@ -111,27 +110,27 @@ class UpdateQuery extends MutationQuery<UpdateWithValues> implements UpdateWithV
         // key-based update
         if (whereConditions.isEmpty()) {
             List<Object> values = Lists.newArrayList();
-            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(getContext(), update)));
+            valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(update)));
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
             
             ifConditions.forEach(condition -> update.onlyIf(condition));
    
-            getContext().getTtl().ifPresent(ttl-> {
+            getTtl().ifPresent(ttl-> {
                                             update.using(QueryBuilder.ttl(bindMarker()));
                                             values.add((int) ttl.getSeconds());
                                          });
             
-            PreparedStatement stmt = getContext().prepare(update);
+            PreparedStatement stmt = prepare(update);
             return stmt.bind(values.toArray());
 
             
         // where condition-based update
         } else {
-            valuesToMutate.forEach(valueToInsert -> valueToInsert.addToStatement(getContext(), update));
+            valuesToMutate.forEach(valueToInsert -> valueToInsert.addToStatement(update));
             
-            getContext().getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+            getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
             
             com.datastax.driver.core.querybuilder.Update.Where where = null;
             

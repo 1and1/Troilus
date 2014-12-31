@@ -57,7 +57,7 @@ class SingleEntityReadQuery<E> extends AbstractQuery<SingleRead<Optional<E>>> im
     
     @Override
     public CompletableFuture<Optional<E>> executeAsync() {
-        return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().fromValues(clazz, record.getAccessor())));
+        return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> fromValues(clazz, record.getAccessor())));
     }        
 }
  

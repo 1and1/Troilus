@@ -15,7 +15,11 @@
  */
 package com.unitedinternet.troilus;
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
+
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.querybuilder.Insert;
 import com.google.common.collect.ImmutableList;
 
 
@@ -67,13 +72,120 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
     
     public CompletableFuture<Result> executeAsync() {
-        return getContext().performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
+        return performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
     }
     
     
     @Override
     public String toString() {
         return getStatement().toString();
+    }
+    
+    
+    
+  
+ 
+
+    public static interface ValueToMutate {
+        Object addPreparedToStatement(Insert insert);
+
+        void addToStatement(Insert insert);
+        
+        Object addPreparedToStatement(com.datastax.driver.core.querybuilder.Update update);
+        
+        void addToStatement(com.datastax.driver.core.querybuilder.Update update);
+    }
+    
+
+     
+    
+    protected final class BuildinValueToMutate implements ValueToMutate {
+        private final String name;
+        private final Object value;
+        
+        @SuppressWarnings("unchecked")
+        public BuildinValueToMutate(String name, Object value) {
+            this.name = name;
+            if (value instanceof Optional) {
+                this.value = ((Optional) value).orElse(null);
+            } else {
+                this.value = value;
+            }
+        }
+        
+        
+        @Override
+        public String toString() {
+            return name + "=" + value;
+        }
+        
+        
+        @Override
+        public Object addPreparedToStatement(Insert insert) {
+            insert.value(name, bindMarker());
+            return value;
+        }
+        
+        @Override
+        public void addToStatement(Insert insert) {
+            insert.value(name,  value);
+        }
+
+        public Object addPreparedToStatement(com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(name, bindMarker()));
+            return value;
+        }
+        
+        
+        @Override
+        public void addToStatement(com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(name, value));
+        }
+    }
+   
+    
+    
+    protected final class UDTValueToMutate implements ValueToMutate {
+        private final String columnName;
+        private final Object value;
+        
+        @SuppressWarnings("unchecked")
+        public UDTValueToMutate(String columnName, Object value) {
+            this.columnName = columnName;
+            if (value instanceof Optional) {
+                this.value = ((Optional) value).orElse(null);
+            } else {
+                this.value = value;
+            }
+        }
+        
+        
+        @Override
+        public String toString() {
+            return columnName + "=" + value;
+        }
+        
+        
+        @Override
+        public Object addPreparedToStatement(Insert insert) {
+            insert.value(columnName, bindMarker());
+            return UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(columnName).getType(), value);
+        }
+
+        @Override
+        public void addToStatement(Insert insert) {
+            insert.value(columnName, value);
+        }
+        
+        public Object addPreparedToStatement(com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(columnName, bindMarker()));
+            return UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(columnName).getType(), value);
+        }
+        
+        @Override
+        public void addToStatement(com.datastax.driver.core.querybuilder.Update update) {
+            update.with(set(columnName, UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(columnName).getType(), value)));
+        }
     }
 }
 

@@ -67,31 +67,6 @@ public interface Dao {
     }
 
     
-    public static interface WriteWithValues extends Write {
-        
-        WriteWithValues value(String name, Object value);
-        
-        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-        
-        /*
-        UpdateWithValues removeValue(String name, Object value);
-        
-        UpdateWithValues addSetValue(String name, Object value);
-        
-        UpdateWithValues removeSetValue(String name, Object value);
-    
-        UpdateWithValues appendListValue(String name, Object value);
-    
-        UpdateWithValues prependListValue(String name, Object value);
-    
-        UpdateWithValues discardListValue(String name, Object value);
-    
-        UpdateWithValues putMapValue(String name, Object key, Object value); */
-    }
-    
-    
-    
-    
     public static interface Update extends Mutation<Update> {
     
         Update withConsistency(ConsistencyLevel consistencyLevel);
@@ -129,6 +104,33 @@ public interface Dao {
         UpdateWithValues putMapValue(String name, Object key, Object value);*/
     }
     
+
+    
+    public static interface WriteWithValues extends Write {
+        
+        WriteWithValues value(String name, Object value);
+        
+        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+        
+        /*
+        UpdateWithValues removeValue(String name, Object value);
+        
+        UpdateWithValues addSetValue(String name, Object value);
+        
+        UpdateWithValues removeSetValue(String name, Object value);
+    
+        UpdateWithValues appendListValue(String name, Object value);
+    
+        UpdateWithValues prependListValue(String name, Object value);
+    
+        UpdateWithValues discardListValue(String name, Object value);
+    
+        UpdateWithValues putMapValue(String name, Object key, Object value); */
+    }
+    
+    
+    
+
     
 
     public static interface Insertion extends Mutation<Insertion> {

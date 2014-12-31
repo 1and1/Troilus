@@ -126,7 +126,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadWithUnit<Optional<Record>>
         
         
         
-        Select select = selection.from(getContext().getTable());
+        Select select = selection.from(getTable());
         Select.Where where = null;
         for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
             if (where == null) {
@@ -136,10 +136,10 @@ class SingleReadQuery extends AbstractQuery<SingleReadWithUnit<Optional<Record>>
             }
         }
 
-        Statement statement = getContext().prepare(select).bind(keyNameValuePairs.values().toArray());
+        Statement statement = prepare(select).bind(keyNameValuePairs.values().toArray());
         
         
-        return getContext().performAsync(statement)
+        return performAsync(statement)
                   .thenApply(resultSet -> {
                                               Row row = resultSet.one();
                                               if (row == null) {
@@ -150,7 +150,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadWithUnit<Optional<Record>>
                                                   
                                                   // paranioa check
                                                   keyNameValuePairs.forEach((name, value) -> { 
-                                                                                              ByteBuffer in = DataType.serializeValue(value, getContext().getProtocolVersion());
+                                                                                              ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
                                                                                               ByteBuffer out = record.getBytesUnsafe(name).get();
                                                       
                                                                                               if (in.compareTo(out) != 0) {

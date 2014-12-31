@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Delete;
-import com.datastax.driver.core.ConsistencyLevel;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
@@ -55,18 +54,13 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     @Override
     public Deletion onlyIf(Clause... conditions) {
-        return queryFactory.newDeletion(getContext().withEnableTracking(), keyNameValuePairs, whereConditions, ImmutableList.copyOf(conditions));
-    }
-    
-    @Override
-    public Deletion withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return queryFactory.newDeletion(getContext().withSerialConsistency(consistencyLevel), keyNameValuePairs, whereConditions, ifConditions);
+        return queryFactory.newDeletion(getContext(), keyNameValuePairs, whereConditions, ImmutableList.copyOf(conditions));
     }
     
  
     @Override
     public Statement getStatement() {
-        Delete delete = delete().from(getContext().getTable());
+        Delete delete = delete().from(getTable());
 
         // key-based delete    
         if (whereConditions.isEmpty()) {
@@ -84,7 +78,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 }
             }
             
-            return getContext().prepare(delete).bind(keyNameValuePairs.values().toArray());
+            return prepare(delete).bind(keyNameValuePairs.values().toArray());
 
             
         // where condition-based delete    

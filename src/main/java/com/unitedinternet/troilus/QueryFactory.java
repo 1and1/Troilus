@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +31,7 @@ import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.Dao.UpdateWithValues;
+import com.unitedinternet.troilus.MutationQuery.ValueToMutate;
 
 
 interface QueryFactory  {
@@ -86,16 +86,6 @@ interface QueryFactory  {
     
     InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists);
 
-    static interface ValueToMutate {
-        Object addPreparedToStatement(Context ctx, Insert insert);
-
-        void addToStatement(Context ctx, Insert insert);
-        
-        Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
-        
-        void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
-    }
-    
 
     ListRead<Count> newCountRead(Context ctx, 
                                        ImmutableSet<Clause> clauses, 

@@ -216,7 +216,7 @@ class ListReadQuery extends AbstractQuery<ListRead<RecordList>> implements ListR
             selection.all();
         }
         
-        Select select = selection.from(getContext().getTable());
+        Select select = selection.from(getTable());
         Select.Where where = null;
         for (Clause clause : clauses) {
             if (where == null) {
@@ -230,7 +230,7 @@ class ListReadQuery extends AbstractQuery<ListRead<RecordList>> implements ListR
         optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
         optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
         
-        return getContext().performAsync(select)
+        return performAsync(select)
                   .thenApply(resultSet -> RecordList.newRecordList(getContext(), resultSet));
     }        
 }  

@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.InsertWithValues;
 import com.unitedinternet.troilus.Dao.Insertion;
-import com.unitedinternet.troilus.QueryFactory.ValueToMutate;
 
 
  
@@ -72,7 +71,7 @@ class InsertQuery extends MutationQuery<InsertWithValues> implements InsertWithV
       
     @Override
     public InsertWithValues value(String name, Object value) {
-        if (getContext().isOptional(value)) {
+        if (isOptional(value)) {
             Optional<Object> optional = (Optional<Object>) value;
             if (optional.isPresent()) {
                 return value(name, optional.get());
@@ -83,10 +82,10 @@ class InsertQuery extends MutationQuery<InsertWithValues> implements InsertWithV
         
         ImmutableList<? extends ValueToMutate> newValuesToInsert;
         
-        if (getContext().isBuildInType(getContext().getColumnMetadata(name).getType())) {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.BuildinValueToMutate(name, value)).build();
+        if (isBuildInType(getColumnMetadata(name).getType())) {
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new BuildinValueToMutate(name, value)).build();
         } else {
-            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new DaoImpl.UDTValueToMutate(name, value)).build();
+            newValuesToInsert = ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(new UDTValueToMutate(name, value)).build();
         }
         
         return queryFactory.newInsertion(getContext(), newValuesToInsert, ifNotExists);
@@ -103,23 +102,23 @@ class InsertQuery extends MutationQuery<InsertWithValues> implements InsertWithV
     public Statement getStatement() {
         
         // statement
-        Insert insert = insertInto(getContext().getTable());
+        Insert insert = insertInto(getTable());
         
         List<Object> values = Lists.newArrayList();
-        valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(getContext(), insert)));
+        valuesToMutate.forEach(valueToInsert -> values.add(valueToInsert.addPreparedToStatement(insert)));
         
         
         if (ifNotExists) {
             insert.ifNotExists();
-            getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
+            getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
         }
 
-        getContext().getTtl().ifPresent(ttl-> {
+        getTtl().ifPresent(ttl-> {
                                         insert.using(QueryBuilder.ttl(bindMarker()));
                                         values.add((int) ttl.getSeconds());
                                      });
 
-        PreparedStatement stmt = getContext().prepare(insert);
+        PreparedStatement stmt = prepare(insert);
         return stmt.bind(values.toArray());
     }
     

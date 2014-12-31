@@ -20,21 +20,17 @@ import java.util.Optional;
 
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.ConsistencyLevel;
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.MutationQuery.ValueToMutate;
 import com.unitedinternet.troilus.QueryFactory.ColumnToFetch;
-import com.unitedinternet.troilus.QueryFactory.ValueToMutate;
 
 
  
 
-@SuppressWarnings("rawtypes")
 public class DaoImpl implements Dao {
     private final QueryFactory queryFactory = new QueryFactoryImpl();
     private final Context defaultContext;
@@ -273,101 +269,6 @@ public class DaoImpl implements Dao {
     }
     
 
-    
-  
- 
-
-     
-    
-    static final class BuildinValueToMutate implements ValueToMutate {
-        private final String name;
-        private final Object value;
-        
-        @SuppressWarnings("unchecked")
-        public BuildinValueToMutate(String name, Object value) {
-            this.name = name;
-            if (value instanceof Optional) {
-                this.value = ((Optional) value).orElse(null);
-            } else {
-                this.value = value;
-            }
-        }
-        
-        
-        @Override
-        public String toString() {
-            return name + "=" + value;
-        }
-        
-        
-        @Override
-        public Object addPreparedToStatement(Context ctx, Insert insert) {
-            insert.value(name, bindMarker());
-            return value;
-        }
-        
-        @Override
-        public void addToStatement(Context ctx, Insert insert) {
-            insert.value(name,  value);
-        }
-
-        public Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
-            update.with(set(name, bindMarker()));
-            return value;
-        }
-        
-        
-        @Override
-        public void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
-            update.with(set(name, value));
-        }
-    }
-   
-    
-    
-    static final class UDTValueToMutate implements ValueToMutate {
-        private final String columnName;
-        private final Object value;
-        
-        @SuppressWarnings("unchecked")
-        public UDTValueToMutate(String columnName, Object value) {
-            this.columnName = columnName;
-            if (value instanceof Optional) {
-                this.value = ((Optional) value).orElse(null);
-            } else {
-                this.value = value;
-            }
-        }
-        
-        
-        @Override
-        public String toString() {
-            return columnName + "=" + value;
-        }
-        
-        
-        @Override
-        public Object addPreparedToStatement(Context ctx, Insert insert) {
-            insert.value(columnName, bindMarker());
-            return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
-        }
-
-        @Override
-        public void addToStatement(Context ctx, Insert insert) {
-            insert.value(columnName, value);
-        }
-        
-        public Object addPreparedToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
-            update.with(set(columnName, bindMarker()));
-            return UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value);
-        }
-        
-        @Override
-        public void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update) {
-            update.with(set(columnName, UDTValueMapper.toUdtValue(ctx, ctx.getColumnMetadata(columnName).getType(), value)));
-        }
-    }
-   
         
         
     
@@ -424,7 +325,6 @@ public class DaoImpl implements Dao {
         return new ListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
 
-    
     
     
     protected <E> ListRead<EntityList<E>> newListSelection(Context ctx, ListRead<RecordList> read, Class<?> clazz) {

@@ -15,7 +15,20 @@
  */
 package com.unitedinternet.troilus;
 
+import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.UserType;
+import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.google.common.collect.ImmutableMap;
 
 
  
@@ -28,6 +41,7 @@ abstract class AbstractQuery<Q> {
         this.ctx = ctx;
     }
     
+    @Deprecated
     protected Context getContext() {
         return ctx;
     }
@@ -45,6 +59,86 @@ abstract class AbstractQuery<Q> {
     }
  
     
-    abstract protected Q newQuery(Context newContext);  
+    abstract protected Q newQuery(Context newContext);
+    
+    
+    
+    protected String getTable() {
+        return ctx.getTable();
+    }
+  
+    protected ProtocolVersion getProtocolVersion() {
+        return ctx.getProtocolVersion();
+    }
+    
+    
+    protected ColumnMetadata getColumnMetadata(String columnName) {
+        return ctx.getColumnMetadata(columnName);
+    }
+
+    
+    protected UserType getUserType(String usertypeName) {
+        return ctx.getUserType(usertypeName);
+    }
+
+ 
+    public boolean isOptional(Object obj) {
+        if (obj == null) {
+            return false;
+        } else {
+            return (Optional.class.isAssignableFrom(obj.getClass()));
+        }
+    }
+    
+    
+
+    public boolean isBuildInType(DataType dataType) {
+        
+        if (dataType.isCollection()) {
+            for (DataType type : dataType.getTypeArguments()) {
+                if (!isBuildinType(type)) {
+                    return false;
+                }
+            }
+            return true;
+
+        } else {
+            return isBuildinType(dataType);
+        }
+    }
+  
+    private boolean isBuildinType(DataType type) {
+        return ctx.isBuildInType(type);
+    }   
+    
+    
+    protected ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
+        return ctx.toValues(entity);
+    }
+
+    protected PreparedStatement prepare(BuiltStatement statement) {
+        return ctx.prepare(statement);
+    }
+    
+    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
+        return ctx.performAsync(statement);
+    }
+
+    
+    protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
+        return ctx.fromValues(clazz, datasource);
+    }
+
+    public Optional<ConsistencyLevel> getConsistencyLevel() {
+        return ctx.getConsistencyLevel();
+    }
+
+    public Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+        return ctx.getSerialConsistencyLevel();
+    }
+
+    public Optional<Duration> getTtl() {
+        return ctx.getTtl();
+    }
 }
 
