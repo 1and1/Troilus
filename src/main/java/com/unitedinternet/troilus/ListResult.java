@@ -47,19 +47,19 @@ public abstract class ListResult<T> extends Result implements Iterator<T>, Publi
     }
     
     
-    static ListResult<Record> newListResult(Context ctx, ResultSet rs) {
-        return new ListResultImpl(ctx, rs);
+    static ListResult<Record> newRecordList(Context ctx, ResultSet rs) {
+        return new RecordList(ctx, rs);
     }
     
     
-    private static final class ListResultImpl extends ListResult<Record> {
+    private static final class RecordList extends ListResult<Record> {
         private final Context ctx;
         private final ResultSet rs;
 
         private final Iterator<Row> iterator;
         private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
         
-        public ListResultImpl(Context ctx, ResultSet rs) {
+        public RecordList(Context ctx, ResultSet rs) {
             this.ctx = ctx;
             this.rs = rs;
             this.iterator = rs.iterator();

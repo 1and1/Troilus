@@ -305,6 +305,15 @@ public class DaoImpl implements Dao {
           
         @Override
         public InsertWithValues value(String name, Object value) {
+            if (ctx.isOptional(value)) {
+                Optional<Object> optional = (Optional<Object>) value;
+                if (optional.isPresent()) {
+                    return value(name, optional.get());
+                } else {
+                    return this;
+                }
+            }
+            
             ImmutableList<? extends ValueToMutate> newValuesToInsert;
             
             if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
@@ -451,6 +460,15 @@ public class DaoImpl implements Dao {
      
         @Override
         public UpdateWithValues value(String name, Object value) {
+            if (ctx.isOptional(value)) {
+                Optional<Object> optional = (Optional<Object>) value;
+                if (optional.isPresent()) {
+                    return value(name, optional.get());
+                } else {
+                    return this;
+                }
+            }
+            
             ImmutableList<? extends ValueToMutate> newValuesToInsert;
             
             if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
@@ -617,6 +635,15 @@ public class DaoImpl implements Dao {
      
         @Override
         public WriteWithValues value(String name, Object value) {
+            
+            if (ctx.isOptional(value)) {
+                Optional<Object> optional = (Optional<Object>) value;
+                if (optional.isPresent()) {
+                    return value(name, optional.get());
+                } else {
+                    return this;
+                }
+            }
             
             ImmutableList<? extends ValueToMutate> newValuesToInsert;
             
@@ -809,9 +836,7 @@ public class DaoImpl implements Dao {
    
    
     
-    
-    
-    private static class DeleteQuery implements Deletion {
+    private class DeleteQuery implements Deletion {
         private final Context ctx;
         private final QueryFactory queryFactory;
         private final ImmutableMap<String, Object> keyNameValuePairs;
@@ -914,6 +939,8 @@ public class DaoImpl implements Dao {
         }
     }
 
+
+    
      
     
     private final static class MutationBatchQuery implements BatchMutation {
@@ -1410,7 +1437,7 @@ public class DaoImpl implements Dao {
             optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
             
             return ctx.performAsync(select)
-                      .thenApply(resultSet -> ListResult.newListResult(ctx, resultSet));
+                      .thenApply(resultSet -> ListResult.newRecordList(ctx, resultSet));
         }        
     }  
     

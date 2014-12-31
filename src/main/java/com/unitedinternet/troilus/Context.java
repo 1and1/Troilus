@@ -46,7 +46,9 @@ public class Context  {
     private final Cache<String, PreparedStatement> statementCache = CacheBuilder.newBuilder().maximumSize(100).build();
     private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
     private final LoadingCache<String, UserType> userTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader());
-    
+
+    private final LoadingCache<Class<?>, Boolean> optionalTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new OptionalTypeCacheLoader());
+
     
     private final String table;
     private final Session session;
@@ -93,6 +95,17 @@ public class Context  {
     }
 
  
+    public boolean isOptional(Object obj) {
+        if (obj == null) {
+            return false;
+        } else {
+            try {
+                return optionalTypeCache.get(obj.getClass());
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        }
+    }
     
 
     public boolean isBuildInType(DataType dataType) {
@@ -347,6 +360,15 @@ public class Context  {
         @Override
         public UserType load(String usertypeName) throws Exception {
             return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
+        }
+    }
+    
+    
+    private final class OptionalTypeCacheLoader extends CacheLoader<Class<?>, Boolean> {
+        
+        @Override
+        public Boolean load(Class<?> type) throws Exception {
+            return (Optional.class.isAssignableFrom(type));
         }
     }
 }
