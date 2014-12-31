@@ -26,14 +26,12 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.Dao.InsertWithValues;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.Dao.UpdateWithValues;
-import com.unitedinternet.troilus.Dao.WriteWithValues;
 
 
 interface QueryFactory  {
@@ -78,11 +76,11 @@ interface QueryFactory  {
     
     
     
-    Deletion newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
+    DeleteQuery newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
     
-    BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Mutation<?>> mutations);
+    BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Batchable> batchables);
     
-    WriteWithValues newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert);
+    WriteQuery newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert);
 
     UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
     

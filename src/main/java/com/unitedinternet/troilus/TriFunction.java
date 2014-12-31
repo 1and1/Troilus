@@ -20,8 +20,6 @@ package com.unitedinternet.troilus;
 
 /**
  * TriFunction
- *
- * @author grro
  */
 @FunctionalInterface
 interface TriFunction<A,B,C,R> {

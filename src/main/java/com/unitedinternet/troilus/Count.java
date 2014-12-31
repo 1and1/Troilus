@@ -53,6 +53,11 @@ public abstract class Count extends Result {
             return ImmutableList.copyOf(rs.getAllExecutionInfo());
         }
 
+        @Override
+        boolean wasApplied() {
+            return rs.wasApplied();
+        }
+
         
         @Override
         public long getCount() {

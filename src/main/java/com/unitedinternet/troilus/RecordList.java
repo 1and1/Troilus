@@ -18,7 +18,6 @@ package com.unitedinternet.troilus;
 
 
 import java.util.Iterator;
-
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -75,6 +74,10 @@ public abstract class RecordList extends Result implements Iterator<Record>, Pub
             return ImmutableList.copyOf(rs.getAllExecutionInfo());
         }
 
+        @Override
+        boolean wasApplied() {
+            return rs.wasApplied();
+        }
         
         @Override
         public boolean hasNext() {

@@ -23,17 +23,16 @@ import com.google.common.collect.ImmutableList;
 
 
 
-/**
- * QueryInfo
- *
- * @author grro
- */
+
 public abstract class Result {
 
     public abstract ExecutionInfo getExecutionInfo();
     
     public abstract ImmutableList<ExecutionInfo> getAllExecutionInfo();
+    
+    abstract boolean wasApplied();
 
+    
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(); 
@@ -67,6 +66,11 @@ public abstract class Result {
         
         public ResultImpl(ResultSet rs) {
             this.rs = rs;
+        }
+        
+        @Override
+        boolean wasApplied() {
+            return rs.wasApplied();
         }
         
         @Override

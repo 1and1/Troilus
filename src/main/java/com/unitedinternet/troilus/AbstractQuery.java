@@ -15,24 +15,36 @@
  */
 package com.unitedinternet.troilus;
 
-
 import com.datastax.driver.core.ConsistencyLevel;
 
 
+ 
+abstract class AbstractQuery<Q> {
+    
+    private final Context ctx;
 
-
-
-
-
-/**
- * Configurable
- *
- * @author grro
- */
-public interface Configurable<T extends Configurable<?>> {    
-
-    T withConsistency(ConsistencyLevel consistencyLevel);
+    
+    public AbstractQuery(Context ctx) {
+        this.ctx = ctx;
+    }
+    
+    protected Context getContext() {
+        return ctx;
+    }
+    
+    public Q withConsistency(ConsistencyLevel consistencyLevel) {
+        return newQuery(ctx.withConsistency(consistencyLevel));
+    }
+  
+    public Q withEnableTracking() {
+        return newQuery(ctx.withEnableTracking());
+    }
+    
+    public Q withDisableTracking() {
+        return newQuery(ctx.withDisableTracking());
+    }
+ 
+    
+    abstract protected Q newQuery(Context newContext);  
 }
-
-
 

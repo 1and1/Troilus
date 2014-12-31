@@ -86,7 +86,7 @@ public interface Dao {
     
         UpdateWithValues discardListValue(String name, Object value);
     
-        UpdateWithValues putMapValue(String name, Object key, Object value);*/
+        UpdateWithValues putMapValue(String name, Object key, Object value); */
     }
     
     
@@ -114,8 +114,7 @@ public interface Dao {
         
         UpdateWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
     
-        /*
-        UpdateWithValues removeValue(String name, Object value);
+    /*    UpdateWithValues removeValue(String name, Object value);
         
         UpdateWithValues addSetValue(String name, Object value);
         

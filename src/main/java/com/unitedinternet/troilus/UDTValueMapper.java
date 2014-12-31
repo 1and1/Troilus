@@ -34,18 +34,30 @@ import com.google.common.collect.Sets;
 
  
 
+/**
+ * UDTValueMapper
+ */
 class UDTValueMapper {
     
     private UDTValueMapper() {  }
  
     
     public static <T> T fromUdtValue(Context ctx, UserType usertype, UDTValue udtValue, Class<T> type) {
-         return ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, usertype.getFieldType(name), udtValue, clazz1, clazz2, name));
+         return ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                            usertype.getFieldType(name), 
+                                                                            udtValue, 
+                                                                            clazz1, 
+                                                                            clazz2, 
+                                                                            name));
     }
     
     
     
-    public static Optional<?> fromUdtValue(Context ctx, DataType datatype, UDTValue udtValue, Class<?> fieldtype1, Class<?> fieldtype2, String fieldname) {
+    public static Optional<?> fromUdtValue(Context ctx, 
+                                           DataType datatype, 
+                                           UDTValue udtValue, Class<?> fieldtype1, 
+                                           Class<?> fieldtype2,
+                                           String fieldname) {
         
         // build-in type 
         if (ctx.isBuildInType(datatype)) {
@@ -55,26 +67,50 @@ class UDTValueMapper {
         // udt collection    
         } else if (datatype.isCollection()) {
             Class<?> type = datatype.getName().asJavaClass();
-            
+           
+            // set
             if (Set.class.isAssignableFrom(type)) {
-                return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), fieldtype1)); 
+                return Optional.ofNullable(fromUdtValues(ctx, 
+                                                         datatype.getTypeArguments().get(0), 
+                                                         ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
+                                                         fieldtype1)); 
                 
+            // list
             } else if (List.class.isAssignableFrom(type)) {
-                return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)), fieldtype1)); 
+                return Optional.ofNullable(fromUdtValues(ctx, 
+                                                         datatype.getTypeArguments().get(0), 
+                                                         ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
+                                                         fieldtype1)); 
 
+            // map
             } else {
                 if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, fieldtype1, UDTValue.class)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, 
+                                                             datatype.getTypeArguments().get(0), 
+                                                             datatype.getTypeArguments().get(1), 
+                                                             ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, fieldtype1, UDTValue.class)), 
+                                                             fieldtype1, 
+                                                             fieldtype2));
 
                 } else if (ctx.isBuildInType(datatype.getTypeArguments().get(1))) {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, fieldtype2)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, 
+                                                             datatype.getTypeArguments().get(0), 
+                                                             datatype.getTypeArguments().get(1), 
+                                                             ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, fieldtype2)), 
+                                                             fieldtype1, 
+                                                             fieldtype2));
                     
                 } else {
-                    return Optional.ofNullable(fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, UDTValue.class)), fieldtype1, fieldtype2));
+                    return Optional.ofNullable(fromUdtValues(ctx, 
+                                                             datatype.getTypeArguments().get(0), 
+                                                             datatype.getTypeArguments().get(1), 
+                                                             ImmutableMap.<Object, Object>copyOf(udtValue.getMap(fieldname, UDTValue.class, UDTValue.class)),
+                                                             fieldtype1, 
+                                                             fieldtype2));
                 }
             }
-            
-            
+                        
+        // udt    
         } else {
             return Optional.ofNullable(fromUdtValue(ctx, datatype, udtValue, fieldtype1));
         }
@@ -83,28 +119,51 @@ class UDTValueMapper {
 
     
     public static <T> T fromUdtValue(Context ctx, DataType datatype, UDTValue udtValue, Class<T> type) {
-        return ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), udtValue, clazz1, clazz2, name));
+        return ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                           ((UserType) datatype).getFieldType(name), 
+                                                                           udtValue, 
+                                                                           clazz1, 
+                                                                           clazz2,
+                                                                           name));
     }
 
+
     
-    
-    public static <T> ImmutableSet<T> fromUdtValues(Context ctx, DataType datatype, ImmutableSet<UDTValue> udtValues, Class<T> type) {
+    static <T> ImmutableSet<T> fromUdtValues(Context ctx, 
+                                                    DataType datatype, 
+                                                    ImmutableSet<UDTValue> udtValues, 
+                                                    Class<T> type) {
         Set<T> elements = Sets.newHashSet();
         
         for (UDTValue elementUdtValue : udtValues) {
-            T element = ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), elementUdtValue, clazz1, clazz2, name));
+            T element = ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                                    ((UserType) datatype).getFieldType(name), 
+                                                                                    elementUdtValue, 
+                                                                                    clazz1, 
+                                                                                    clazz2, 
+                                                                                    name));
             elements.add(element);
         }
         
         return ImmutableSet.copyOf(elements);
     }
 
+
     
-    public static <T> ImmutableList<T> fromUdtValues(Context ctx, DataType datatype, ImmutableList<UDTValue> udtValues, Class<T> type) {
+    
+    public static <T> ImmutableList<T> fromUdtValues(Context ctx, 
+                                                     DataType datatype, 
+                                                     ImmutableList<UDTValue> udtValues, 
+                                                     Class<T> type) {
         List<T> elements = Lists.newArrayList();
         
         for (UDTValue elementUdtValue : udtValues) {
-            T element = ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, ((UserType) datatype).getFieldType(name), elementUdtValue, clazz1, clazz2, name));
+            T element = ctx.fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                                    ((UserType) datatype).getFieldType(name), 
+                                                                                    elementUdtValue, 
+                                                                                    clazz1,
+                                                                                    clazz2, 
+                                                                                    name));
             elements.add(element);
         }
         
@@ -112,8 +171,15 @@ class UDTValueMapper {
     }
 
     
+    
     @SuppressWarnings("unchecked")
-    public static <K, V> ImmutableMap<K, V> fromUdtValues(Context ctx, DataType keyDatatype, DataType valueDatatype, ImmutableMap<?, ?> udtValues, Class<K> keystype, Class<V> valuesType) {
+    public static <K, V> ImmutableMap<K, V> fromUdtValues(Context ctx, 
+                                                          DataType keyDatatype, 
+                                                          DataType valueDatatype, 
+                                                          ImmutableMap<?, ?> udtValues, 
+                                                          Class<K> keystype, 
+                                                          Class<V> valuesType) {
+        
         Map<K, V> elements = Maps.newHashMap();
         
         for (Entry<?, ?> entry : udtValues.entrySet()) {
@@ -122,14 +188,24 @@ class UDTValueMapper {
             if (keystype.isAssignableFrom(entry.getKey().getClass())) {
                 keyElement = (K) entry.getKey(); 
             } else {
-                keyElement = ctx.fromValues(keystype, (name, clazz1, clazz2) -> fromUdtValue(ctx, ((UserType) keyDatatype).getFieldType(name), (UDTValue) entry.getKey(), clazz1, clazz2, name));
+                keyElement = ctx.fromValues(keystype, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                                             ((UserType) keyDatatype).getFieldType(name), 
+                                                                                             (UDTValue) entry.getKey(), 
+                                                                                             clazz1, 
+                                                                                             clazz2, 
+                                                                                             name));
             }
             
             V valueElement;
             if (valuesType.isAssignableFrom(entry.getValue().getClass())) {
                 valueElement = (V) entry.getValue(); 
             } else {
-                valueElement = ctx.fromValues(valuesType, (name, clazz1, clazz2) -> fromUdtValue(ctx, ((UserType) valueDatatype).getFieldType(name), (UDTValue) entry.getValue(), clazz1, clazz2, name));
+                valueElement = ctx.fromValues(valuesType, (name, clazz1, clazz2) -> fromUdtValue(ctx, 
+                                                                                                 ((UserType) valueDatatype).getFieldType(name), 
+                                                                                                 (UDTValue) entry.getValue(), 
+                                                                                                 clazz1, 
+                                                                                                 clazz2, 
+                                                                                                 name));
             }
 
             elements.put(keyElement, valueElement);
@@ -149,6 +225,7 @@ class UDTValueMapper {
         // udt collection
         } else if (datatype.isCollection()) {
            
+           // set 
            if (Set.class.isAssignableFrom(value.getClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
@@ -159,6 +236,7 @@ class UDTValueMapper {
                
                return ImmutableSet.copyOf(udt);
                
+           // list 
            } else if (List.class.isAssignableFrom(value.getClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
@@ -168,7 +246,8 @@ class UDTValueMapper {
                }
                
                return ImmutableList.copyOf(udt);
-               
+              
+           // map
            } else {
                DataType keyDataType = datatype.getTypeArguments().get(0);
                DataType valueDataType = datatype.getTypeArguments().get(1);

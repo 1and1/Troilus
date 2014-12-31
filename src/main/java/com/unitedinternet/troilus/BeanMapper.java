@@ -358,7 +358,7 @@ class BeanMapper {
         
         
         
-        private static void writeBeanField(java.lang.reflect.Field field, Object persistenceObject, Object value) {
+        private static void writeBeanField(Field field, Object persistenceObject, Object value) {
             try {
                 field.setAccessible(true);
                 field.set(persistenceObject, value);

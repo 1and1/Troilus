@@ -290,9 +290,12 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        usersDao.deleteWithKey(UsersTable.USER_ID, "2222")
-                .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
-                .execute();
+        try {
+            usersDao.deleteWithKey(UsersTable.USER_ID, "2222")
+                    .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
+                    .execute();
+            Assert.fail("IfConditionException expected");
+        } catch (IfConditionException expected) { }
 
         Optional<Record> rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                                        .execute();

@@ -69,6 +69,12 @@ public class Record extends Result {
         return result.getAllExecutionInfo();
     }
     
+
+    @Override
+    boolean wasApplied() {
+        return result.wasApplied();
+    }
+
     
     public ProtocolVersion getProtocolVersion() {
         return ctx.getProtocolVersion();

@@ -63,6 +63,11 @@ public abstract class EntityList<E> extends Result implements Iterator<E>, Publi
             return recordIterator.getAllExecutionInfo();
         }
         
+        @Override
+        boolean wasApplied() {
+            return recordIterator.wasApplied();
+        }
+
         
         @Override
         public boolean hasNext() {
