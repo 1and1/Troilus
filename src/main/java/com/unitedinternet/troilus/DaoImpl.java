@@ -426,7 +426,6 @@ public class DaoImpl implements Dao {
 
     
     
-    
     protected <E> ListRead<EntityList<E>> newListSelection(Context ctx, ListRead<RecordList> read, Class<?> clazz) {
         return new ListEntityReadQuery<>(ctx, queryFactory, read, clazz);
     }
