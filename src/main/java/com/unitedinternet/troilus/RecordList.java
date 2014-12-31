@@ -40,26 +40,26 @@ import com.google.common.util.concurrent.ListenableFuture;
  *
  * @author grro
  */
-public abstract class ListResult<T> extends Result implements Iterator<T>, Publisher<T> {
+public abstract class RecordList extends Result implements Iterator<Record>, Publisher<Record> {
 
     public void remove() {
         throw new UnsupportedOperationException();
     }
     
     
-    static ListResult<Record> newRecordList(Context ctx, ResultSet rs) {
-        return new RecordList(ctx, rs);
+    static RecordList newRecordList(Context ctx, ResultSet rs) {
+        return new RecordListImpl(ctx, rs);
     }
     
     
-    private static final class RecordList extends ListResult<Record> {
+    private static final class RecordListImpl extends RecordList {
         private final Context ctx;
         private final ResultSet rs;
 
         private final Iterator<Row> iterator;
         private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
         
-        public RecordList(Context ctx, ResultSet rs) {
+        public RecordListImpl(Context ctx, ResultSet rs) {
             this.ctx = ctx;
             this.rs = rs;
             this.iterator = rs.iterator();

@@ -18,6 +18,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
+import com.unitedinternet.troilus.Count;
 import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
@@ -38,6 +39,14 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Dao usersDao = daoManager.getDao(UsersTable.TABLE)
                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
+        
+
+        
+
+        Count num = usersDao.readAll()
+                            .count()
+                            .execute();
+        Assert.assertEquals(0,  num.getCount());
         
 
 
@@ -127,7 +136,12 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         optionalRecord3.ifPresent(record -> System.out.println(record));
 
  
-       
+
+        num = usersDao.readAll()
+                      .count()
+                      .execute();
+        Assert.assertEquals(4,  num.getCount());
+        
         
 
         ////////////////

@@ -262,4 +262,26 @@ public class Record extends Result {
             return Optional.of(builder.toString());
         }
     }
+    
+    
+    
+    TriFunction<String, Class<?>, Class<?>, Optional<?>> getAccessor() {
+        return new RecordAccessorAdapter(this);
+    }
+    
+    
+    private static final class RecordAccessorAdapter implements TriFunction<String, Class<?>, Class<?>, Optional<?>> {
+        
+        private final Record record;
+        
+        public RecordAccessorAdapter(Record record) {
+            this.record = record;
+        }
+        
+        
+        @Override
+        public Optional<?> apply(String name, Class<?> clazz1, Class<?> clazz2) {
+            return record.getObject(name, clazz1);
+        }
+    }
 }

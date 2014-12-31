@@ -8,12 +8,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.ListResult;
+import com.unitedinternet.troilus.EntityList;
 import com.unitedinternet.troilus.api.UsersTable;
 
 
@@ -60,13 +61,20 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
     
         
         
-        ListResult<User> list = userDao.readWhere()
-                                   .asEntity(User.class)
-                                   .withLimit(3)
-                                   .execute();
+        EntityList<User> list = userDao.readWhere()
+                                       .asEntity(User.class)
+                                       .withLimit(3)        
+                                       .execute();
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
         ImmutableList.copyOf(list).forEach(user -> System.out.println(user.getAddresses()));
+        
+        
+        list = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
+                      .asEntity(User.class)   
+                      .execute();
+        Assert.assertNotNull(list.next());
+        Assert.assertFalse(list.hasNext());
     }        
 }
 

@@ -28,6 +28,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.Dao.InsertWithValues;
+import com.unitedinternet.troilus.Dao.ListRead;
+import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.Dao.UpdateWithValues;
@@ -41,7 +43,6 @@ interface QueryFactory  {
     SingleReadWithUnit<Optional<Record>> newSingleSelection(Context ctx, ImmutableMap<String, Object> keyNameValuePairs,Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch);
 
     
-
     static class ColumnToFetch implements Consumer<Select.Selection> {
         private final String name;
         private final boolean isFetchWritetime;
@@ -96,6 +97,27 @@ interface QueryFactory  {
         
         void addToStatement(Context ctx, com.datastax.driver.core.querybuilder.Update update);
     }
+    
+
+    ListRead<Count> newCountRead(Context ctx, 
+                                       ImmutableSet<Clause> clauses, 
+                                       Optional<Integer> optionalLimit, 
+                                       Optional<Boolean> optionalAllowFiltering,       
+                                       Optional<Integer> optionalFetchSize,    
+                                       Optional<Boolean> optionalDistinct);
+    
+    
+    ListReadWithUnit<RecordList> newListSelection(Context ctx, 
+                                                  ImmutableSet<Clause> clauses,    
+                                                  Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                                  Optional<Integer> optionalLimit, 
+                                                  Optional<Boolean> optionalAllowFiltering,
+                                                  Optional<Integer> optionalFetchSize,    
+                                                  Optional<Boolean> optionalDistinct);
+    
+    
+    <E> ListRead<EntityList<E>> newListSelection(Context ctx, ListRead<RecordList> read, Class<?> clazz);
+  
 }
 
 

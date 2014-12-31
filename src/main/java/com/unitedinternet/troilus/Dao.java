@@ -206,9 +206,9 @@ public interface Dao {
 
     
     
-    ListReadWithUnit<ListResult<Record>> readAll();
+    ListReadWithUnit<RecordList> readAll();
     
-    ListReadWithUnit<ListResult<Record>> readWhere(Clause... clauses);
+    ListReadWithUnit<RecordList> readWhere(Clause... clauses);
 
 
     public static interface ListRead<T> extends SingleRead<T> {
@@ -239,7 +239,9 @@ public interface Dao {
         
         ListRead<T> all();
         
-        <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass);
+        ListRead<Count> count();
+        
+        <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
     }
     
     
