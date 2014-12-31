@@ -239,6 +239,8 @@ public interface Dao {
         
         ListRead<T> all();
         
+        ListRead<Count> count();
+        
         <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass);
     }
     

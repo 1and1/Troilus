@@ -45,12 +45,14 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.QueryFactory.ColumnToFetch;
 import com.unitedinternet.troilus.QueryFactory.ValueToMutate;
 
@@ -236,8 +238,6 @@ public class DaoImpl implements Dao {
     }
 
     
-    
-    
     private final class QueryFactoryImpl implements QueryFactory {
         
         @Override
@@ -268,6 +268,34 @@ public class DaoImpl implements Dao {
         @Override
         public SingleReadWithUnit<Optional<Record>> newSingleSelection(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
             return DaoImpl.this.newSingleSelection(ctx, keyNameValuePairs, optionalColumnsToFetch);
+        }
+        
+        @Override
+        public ListRead<Count> newCountRead(Context ctx, ImmutableSet<Clause> clauses, Optional<Integer> optionalLimit, Optional<Boolean> optionalAllowFiltering, Optional<Integer> optionalFetchSize, Optional<Boolean> optionalDistinct) {
+            return DaoImpl.this.newCountRead(ctx, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+        }
+        
+        @Override
+        public <E> ListRead<ListResult<E>> newListSelection(Context ctx, ListRead<ListResult<Record>> read, Class<?> clazz) {
+            return DaoImpl.this.newListSelection(ctx, read, clazz);
+        }
+        
+        @Override
+        public ListReadWithUnit<ListResult<Record>> newListSelection(Context ctx, 
+                                                                     ImmutableSet<Clause> clauses,
+                                                                     Optional<ImmutableSet<ColumnToFetch>> columnsToFetch,
+                                                                     Optional<Integer> optionalLimit,
+                                                                     Optional<Boolean> optionalAllowFiltering,
+                                                                     Optional<Integer> optionalFetchSize,
+                                                                     Optional<Boolean> optionalDistinct) {
+            return new ListReadQuery(ctx, 
+                                     queryFactory, 
+                                     clauses, 
+                                     columnsToFetch, 
+                                     optionalLimit, 
+                                     optionalAllowFiltering, 
+                                     optionalFetchSize, 
+                                     optionalDistinct);
         }
         
         @Override
@@ -836,7 +864,7 @@ public class DaoImpl implements Dao {
    
    
     
-    private class DeleteQuery implements Deletion {
+    private static class DeleteQuery implements Deletion {
         private final Context ctx;
         private final QueryFactory queryFactory;
         private final ImmutableMap<String, Object> keyNameValuePairs;
@@ -1218,20 +1246,34 @@ public class DaoImpl implements Dao {
                                 Optional.empty());
     }
     
+    
+
+    protected ListRead<Count> newCountRead(Context ctx, 
+                                                 ImmutableSet<Clause> clauses, 
+                                                 Optional<Integer> optionalLimit, 
+                                                 Optional<Boolean> optionalAllowFiltering,    
+                                                 Optional<Integer> optionalFetchSize,    
+                                                 Optional<Boolean> optionalDistinct) {
+        return new CountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+    
+    
+    
     protected ListReadWithUnit<ListResult<Record>> newListSelection(Context ctx, 
-                                                                     ImmutableSet<Clause> clauses, 
-                                                                     Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
-                                                                     Optional<Integer> optionalLimit, 
-                                                                     Optional<Boolean> optionalAllowFiltering,
-                                                                     Optional<Integer> optionalFetchSize,    
-                                                                     Optional<Boolean> optionalDistinct) {
-        return new ListReadQuery(ctx, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+                                                                    ImmutableSet<Clause> clauses, 
+                                                                    Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                                                    Optional<Integer> optionalLimit, 
+                                                                    Optional<Boolean> optionalAllowFiltering,
+                                                                    Optional<Integer> optionalFetchSize,    
+                                                                    Optional<Boolean> optionalDistinct) {
+        return new ListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
 
     
     
-    private class ListReadQuery implements ListReadWithUnit<ListResult<Record>> {
+    private static class ListReadQuery implements ListReadWithUnit<ListResult<Record>> {
         private final Context ctx;
+        private final QueryFactory queryFactory;
         private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
         private final Optional<Integer> optionalLimit;
@@ -1240,14 +1282,16 @@ public class DaoImpl implements Dao {
         private final Optional<Boolean> optionalDistinct;
 
 
-        public ListReadQuery(Context ctx, 
-                                  ImmutableSet<Clause> clauses, 
-                                  Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
-                                  Optional<Integer> optionalLimit, 
-                                  Optional<Boolean> optionalAllowFiltering,
-                                  Optional<Integer> optionalFetchSize,
-                                  Optional<Boolean> optionalDistinct) {
+        public ListReadQuery(Context ctx,
+                             QueryFactory queryFactory,
+                             ImmutableSet<Clause> clauses, 
+                             Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                             Optional<Integer> optionalLimit, 
+                             Optional<Boolean> optionalAllowFiltering,
+                             Optional<Integer> optionalFetchSize,
+                             Optional<Boolean> optionalDistinct) {
             this.ctx = ctx;
+            this.queryFactory = queryFactory;
             this.clauses = clauses;
             this.columnsToFetch = columnsToFetch;
             this.optionalLimit = optionalLimit;
@@ -1259,19 +1303,19 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListRead<ListResult<Record>> all() {
-            return newListSelection(ctx, 
-                                    clauses, 
-                                    Optional.empty(),
-                                    optionalLimit, 
-                                    optionalAllowFiltering, 
-                                    optionalFetchSize,
-                                    optionalDistinct);
+            return queryFactory.newListSelection(ctx, 
+                                                 clauses, 
+                                                 Optional.empty(),
+                                                 optionalLimit, 
+                                                 optionalAllowFiltering, 
+                                                 optionalFetchSize,
+                                                 optionalDistinct);
         }
         
         
         @Override
-        public SingleRead<ListResult<Record>> withEnableTracking() {
-            return newListSelection(ctx.withEnableTracking(), 
+        public ListRead<ListResult<Record>> withEnableTracking() {
+            return queryFactory.newListSelection(ctx.withEnableTracking(), 
                                     clauses, 
                                     columnsToFetch,
                                     optionalLimit, 
@@ -1281,8 +1325,8 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public SingleRead<ListResult<Record>> withDisableTracking() {
-            return newListSelection(ctx.withDisableTracking(), 
+        public ListRead<ListResult<Record>> withDisableTracking() {
+            return queryFactory.newListSelection(ctx.withDisableTracking(), 
                                     clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
@@ -1294,7 +1338,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListRead<ListResult<Record>> withConsistency(ConsistencyLevel consistencyLevel) {
-            return newListSelection(ctx.withConsistency(consistencyLevel), 
+            return queryFactory.newListSelection(ctx.withConsistency(consistencyLevel), 
                                     clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
@@ -1305,7 +1349,7 @@ public class DaoImpl implements Dao {
         
         @Override 
         public ListReadWithUnit<ListResult<Record>> columns(ImmutableCollection<String> namesToRead) {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses, 
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
                                     optionalLimit, 
@@ -1318,7 +1362,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListReadWithUnit<ListResult<Record>> column(String name) {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, false, false)), 
                                     optionalLimit, 
@@ -1330,7 +1374,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListReadWithColumns<ListResult<Record>> columnWithMetadata(String name) {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, true, true)), 
                                     optionalLimit, 
@@ -1342,7 +1386,7 @@ public class DaoImpl implements Dao {
 
         @Override
         public ListRead<ListResult<Record>> withLimit(int limit) {
-            return newListSelection(ctx,
+            return queryFactory.newListSelection(ctx,
                                     clauses, 
                                     columnsToFetch, 
                                     Optional.of(limit), 
@@ -1353,7 +1397,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListRead<ListResult<Record>> withAllowFiltering() {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
@@ -1364,7 +1408,7 @@ public class DaoImpl implements Dao {
 
         @Override
         public ListRead<ListResult<Record>> withFetchSize(int fetchSize) {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
@@ -1375,7 +1419,7 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListRead<ListResult<Record>> withDistinct() {
-            return newListSelection(ctx, 
+            return queryFactory.newListSelection(ctx, 
                                     clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
@@ -1385,10 +1429,20 @@ public class DaoImpl implements Dao {
         }
         
        
+        @Override
+        public ListRead<Count> count() {
+            return queryFactory.newCountRead(ctx,
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize, 
+                                             optionalDistinct);
+        }
+        
       
         @Override
         public <E> ListRead<ListResult<E>> asEntity(Class<E> objectClass) {
-            return newListSelection(ctx, this, objectClass) ;
+            return queryFactory.newListSelection(ctx, this, objectClass) ;
         }
 
         
@@ -1442,57 +1496,61 @@ public class DaoImpl implements Dao {
     }  
     
     
+
     
     protected <E> ListRead<ListResult<E>> newListSelection(Context ctx, ListRead<ListResult<Record>> read, Class<?> clazz) {
-        return new ListEntityReadQuery<>(ctx, read, clazz);
+        return new ListEntityReadQuery<>(ctx, queryFactory, read, clazz);
     }
     
     
-    private class ListEntityReadQuery<E> implements ListRead<ListResult<E>> {
+    
+    private static class ListEntityReadQuery<E> implements ListRead<ListResult<E>> {
         private final Context ctx;
+        private final QueryFactory queryFactory;
         private final ListRead<ListResult<Record>> read;
         private final Class<?> clazz;
         
-        public ListEntityReadQuery(Context ctx, ListRead<ListResult<Record>> read, Class<?> clazz) {
+        public ListEntityReadQuery(Context ctx, QueryFactory queryFactory, ListRead<ListResult<Record>> read, Class<?> clazz) {
             this.ctx = ctx;
+            this.queryFactory = queryFactory;
             this.read = read;
             this.clazz = clazz;
         }
     
         @Override
-        public SingleRead<ListResult<E>> withEnableTracking() {
-            return newListSelection(ctx.withEnableTracking(), read, clazz);
+        public ListRead<ListResult<E>> withEnableTracking() {
+            return queryFactory.newListSelection(ctx.withEnableTracking(), read, clazz);
         }
         
         @Override
-        public SingleRead<ListResult<E>> withDisableTracking() {
-            return newListSelection(ctx.withDisableTracking(), read, clazz);
+        public ListRead<ListResult<E>> withDisableTracking() {
+            return queryFactory.newListSelection(ctx.withDisableTracking(), read, clazz);
         }
         
     
         @Override
-        public SingleRead<ListResult<E>> withConsistency( ConsistencyLevel consistencyLevel) {
-            return newListSelection(ctx.withConsistency(consistencyLevel), read, clazz);
+        public ListRead<ListResult<E>> withConsistency( ConsistencyLevel consistencyLevel) {
+            return queryFactory.newListSelection(ctx.withConsistency(consistencyLevel), read, clazz);
         }
     
         @Override
         public ListRead<ListResult<E>> withDistinct() {
-            return newListSelection(ctx, read.withDistinct(), clazz);
+            return queryFactory.newListSelection(ctx, read.withDistinct(), clazz);
         }
         
         @Override
         public ListRead<ListResult<E>> withFetchSize(int fetchSize) {
-            return newListSelection(ctx, read.withFetchSize(fetchSize), clazz);
+            return queryFactory.newListSelection(ctx, read.withFetchSize(fetchSize), clazz);
         }
         
         @Override
         public ListRead<ListResult<E>> withAllowFiltering() {
-            return newListSelection(ctx, read.withAllowFiltering(), clazz);
+            return queryFactory.newListSelection(ctx, read.withAllowFiltering(), clazz);
         }
         
         @Override
         public ListRead<ListResult<E>> withLimit(int limit) {
-            return newListSelection(ctx, read.withLimit(limit), clazz);
+            return queryFactory.newListSelection(ctx, read.withLimit(limit), clazz);
         }
 
         
@@ -1587,6 +1645,150 @@ public class DaoImpl implements Dao {
             }
         }
     }
+   
+    
+    
+    private static class CountReadQuery implements ListRead<Count> {
+        private final Context ctx;
+        private final QueryFactory queryFactory;
+        private final ImmutableSet<Clause> clauses;
+        private final Optional<Integer> optionalLimit;
+        private final Optional<Boolean> optionalAllowFiltering;
+        private final Optional<Integer> optionalFetchSize;
+        private final Optional<Boolean> optionalDistinct;
+
+
+        public CountReadQuery(Context ctx, 
+                              QueryFactory queryFactory,
+                              ImmutableSet<Clause> clauses, 
+                              Optional<Integer> optionalLimit, 
+                              Optional<Boolean> optionalAllowFiltering,
+                              Optional<Integer> optionalFetchSize,
+                              Optional<Boolean> optionalDistinct) {
+            this.ctx = ctx;
+            this.queryFactory = queryFactory;
+            this.clauses = clauses;
+            this.optionalLimit = optionalLimit;
+            this.optionalAllowFiltering = optionalAllowFiltering;
+            this.optionalFetchSize = optionalFetchSize;
+            this.optionalDistinct = optionalDistinct;
+        }
+        
+
+        @Override
+        public ListRead<Count> withEnableTracking() {
+            return queryFactory.newCountRead(ctx.withEnableTracking(), 
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize,
+                                             optionalDistinct);
+        }
+        
+        @Override
+        public ListRead<Count> withDisableTracking() {
+            return queryFactory.newCountRead(ctx.withDisableTracking(), 
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize,
+                                             optionalDistinct);
+        }
+        
+        
+        @Override
+        public ListRead<Count> withConsistency(ConsistencyLevel consistencyLevel) {
+            return queryFactory.newCountRead(ctx.withConsistency(consistencyLevel), 
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize,
+                                             optionalDistinct);
+        }
+        
+
+        @Override
+        public ListRead<Count> withLimit(int limit) {
+            return queryFactory.newCountRead(ctx,
+                                             clauses, 
+                                             Optional.of(limit), 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize,
+                                             optionalDistinct);
+        }
+        
+        
+        @Override
+        public ListRead<Count> withAllowFiltering() {
+            return queryFactory.newCountRead(ctx, 
+                                             clauses, 
+                                             optionalLimit, 
+                                             Optional.of(true), 
+                                             optionalFetchSize,
+                                             optionalDistinct);
+        }
+
+        @Override
+        public ListRead<Count> withFetchSize(int fetchSize) {
+            return queryFactory.newCountRead(ctx, 
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             Optional.of(fetchSize),
+                                             optionalDistinct);
+        }
+        
+        @Override
+        public ListRead<Count> withDistinct() {
+            return queryFactory.newCountRead(ctx, 
+                                             clauses, 
+                                             optionalLimit, 
+                                             optionalAllowFiltering, 
+                                             optionalFetchSize,
+                                             Optional.of(true));
+        }
+        
+        
+        @Override
+        public Count execute() {
+            try {
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            }
+        }
+
+    
+        public CompletableFuture<Count> executeAsync() {
+            Select.Selection selection = select();
+
+            optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });
+
+     
+            selection.countAll();
+            
+            Select select = selection.from(ctx.getTable());
+            Select.Where where = null;
+            for (Clause clause : clauses) {
+                if (where == null) {
+                    where = select.where(clause);
+                } else {
+                    where = where.and(clause);
+                }
+            }
+
+            optionalLimit.ifPresent(limit -> select.limit(limit));
+            optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
+            optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
+            
+            return ctx.performAsync(select)
+                      .thenApply(resultSet -> Count.newCountResult(resultSet));
+        }        
+    }
+    
+   
+    
+    
     
     
     
