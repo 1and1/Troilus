@@ -1702,6 +1702,6 @@ public class DaoImpl implements Dao {
             return ctx.performAsync(select)
                       .thenApply(resultSet -> Count.newCountResult(resultSet));
         }        
-    }
+    }    
 }
 

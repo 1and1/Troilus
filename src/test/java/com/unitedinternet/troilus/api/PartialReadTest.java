@@ -12,7 +12,6 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.ListResult;
 import com.unitedinternet.troilus.RecordList;
 import com.unitedinternet.troilus.TooManyResultsException;
 
