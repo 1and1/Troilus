@@ -809,9 +809,7 @@ public class DaoImpl implements Dao {
    
    
     
-    
-    
-    private static class DeleteQuery implements Deletion {
+    private class DeleteQuery implements Deletion {
         private final Context ctx;
         private final QueryFactory queryFactory;
         private final ImmutableMap<String, Object> keyNameValuePairs;
@@ -914,6 +912,8 @@ public class DaoImpl implements Dao {
         }
     }
 
+
+    
      
     
     private final static class MutationBatchQuery implements BatchMutation {
