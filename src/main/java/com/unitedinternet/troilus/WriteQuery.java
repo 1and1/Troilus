@@ -51,7 +51,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     private final ImmutableList<? extends ValueToMutate> valuesToMutate;
     
    
-    protected static InsertionQuery newInsertionQuery(Context ctx, Object entity) {
+    protected static Insertion newInsertionQuery(Context ctx, Object entity) {
         return new InsertionQuery(ctx, entity, false);
     }
     
@@ -81,6 +81,8 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     protected WriteQuery newQuery(Context newContext) {
         return new WriteQuery(newContext, keys, whereConditions, valuesToMutate);
     }
+    
+    
 
     
     @Override
@@ -148,6 +150,8 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         public InsertionQuery(Context ctx, Object entity, boolean ifNotExists) {
             this(ctx, ValueToMutate.newValuesToMutate(ctx, ctx.toValues(entity)), ifNotExists);
         }
+            
+
         
         public InsertionQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert, boolean ifNotExists) {
             super(ctx);
@@ -163,6 +167,8 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
                                      ifNotExists);
         }
 
+        
+        
 
         @Override
         public Mutation<?> ifNotExits() {
@@ -313,7 +319,6 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
 
   
-    
 
     static interface ValueToMutate {
         
@@ -326,6 +331,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         void addToStatement(com.datastax.driver.core.querybuilder.Update update);
         
         
+
         static ValueToMutate newValueToMutate(Context ctx, String name, Object value) {
             if (ctx.isBuildInType(ctx.getColumnMetadata(name).getType())) {
                 return new BuildinValueToMutate(name, value);
@@ -334,11 +340,13 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
             }
         }
         
+        
         static ImmutableList<ValueToMutate> newValuesToMutate(Context ctx, ImmutableMap<String, ? extends Object> nameValuePair) {
             List<ValueToMutate> valuesToMutate = Lists.newArrayList();
             nameValuePair.forEach((name, value) -> ctx.toOptional((Object) value).ifPresent(val -> valuesToMutate.add(newValueToMutate(ctx, name, value))));
             return ImmutableList.copyOf(valuesToMutate);
         }
+        
     }
     
 
@@ -357,13 +365,6 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
                 this.value = value;
             }
         }
-        
-        
-        @Override
-        public String toString() {
-            return name + "=" + value;
-        }
-        
         
         @Override
         public Object addPreparedToStatement(Insert insert) {
@@ -393,7 +394,8 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     protected static final class UDTValueToMutate implements ValueToMutate {
         private final String columnName;
         private final Object value;
-        private final Context ctx;
+        private Context ctx;
+        
         
         @SuppressWarnings("unchecked")
         public UDTValueToMutate(Context ctx, String columnName, Object value) {
@@ -405,13 +407,6 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
                 this.value = value;
             }
         }
-        
-        
-        @Override
-        public String toString() {
-            return columnName + "=" + value;
-        }
-        
         
         @Override
         public Object addPreparedToStatement(Insert insert) {

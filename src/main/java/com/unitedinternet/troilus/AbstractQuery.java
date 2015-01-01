@@ -81,6 +81,11 @@ abstract class AbstractQuery<Q> {
         return ctx.getUserType(usertypeName);
     }
 
+    
+    public <T> Optional<T> toOptional(T obj) {
+        return ctx.toOptional(obj);
+    }
+    
  
     public boolean isOptional(Object obj) {
         if (obj == null) {
