@@ -18,6 +18,9 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -36,9 +39,16 @@ public interface Dao {
     
     public interface Query<T> {    
 
-        T execute();
-           
         CompletableFuture<T> executeAsync();
+
+        
+        default T execute() {
+            try {
+                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw Exceptions.unwrapIfNecessary(e);
+            } 
+        }
     }
 
 
@@ -135,130 +145,6 @@ public interface Dao {
     Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
 
-    
-    /*
-    
-    public static interface WriteWithValues extends UpdateWithValues {
-        
-        Insertion ifNotExits();
-<<<<<<< HEAD
-        
-        WriteWithValues value(String name, Object value);
-        
-=======
-        
-        WriteWithValues value(String name, Object value);
-        
->>>>>>> e29ddc51a6320e3808b7c8310fb53330d6c54e32
-        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-    }
-     
-     */
-    
-    /*
-    public static interface Write extends Mutation<Write> {
-    
-        Write withConsistency(ConsistencyLevel consistencyLevel);
-        
-        Write withEnableTracking();
-        
-        Write withDisableTracking();
-    
-        Write withTtl(Duration ttl);
-    
-        Write withWritetime(long microsSinceEpoch);
-        
-        Update onlyIf(Clause... conditions);
-        
-        Insertion ifNotExits();
-    }
-    
-    
-
-    
-    public static interface WriteWithValues extends UpdateWithValues {
-        
-        Insertion ifNotExits();
-        
-        WriteWithValues value(String name, Object value);
-        
-        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-    }
-    
-    */
-    
-
-/*    
-    public static interface Update extends Mutation<Update> {
-    
-        Update withConsistency(ConsistencyLevel consistencyLevel);
-        
-        Update withEnableTracking();
-        
-        Update withDisableTracking();
-    
-        Update withTtl(Duration ttl);
-    
-        Update withWritetime(long microsSinceEpoch);
-        
-        Update onlyIf(Clause... conditions);
-    }
-        
-        
-    public static interface UpdateWithValues extends Update {
-        
-        UpdateWithValues value(String name, Object value);
-        
-        UpdateWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-    
-    /*    UpdateWithValues removeValue(String name, Object value);
-        
-        UpdateWithValues addSetValue(String name, Object value);
-        
-        UpdateWithValues removeSetValue(String name, Object value);
-    
-        UpdateWithValues appendListValue(String name, Object value);
-    
-        UpdateWithValues prependListValue(String name, Object value);
-    
-        UpdateWithValues discardListValue(String name, Object value);
-    
-        UpdateWithValues putMapValue(String name, Object key, Object value);
-    }*/
-    
-
-
-    /*
-
-    public static interface Insertion extends Mutation<Insertion> {
-
-        Insertion withConsistency(ConsistencyLevel consistencyLevel);
-        
-        Insertion withEnableTracking();
-        
-        Insertion withDisableTracking();
-
-        Insertion withTtl(Duration ttl);
-
-        Insertion withWritetime(long microsSinceEpoch);
-        
-        Insertion ifNotExits();
-    }
-    
-    /*
-    public static interface InsertWithValues extends Insertion {
-        
-        InsertWithValues value(String name, Object value);
-        
-        InsertWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-    }
-    
-    
-    */
-    
-    
-    
-    
     
     
     

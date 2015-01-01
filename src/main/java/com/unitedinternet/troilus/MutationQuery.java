@@ -53,7 +53,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         
 
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
     
     
@@ -64,16 +64,6 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
 
     protected abstract Statement getStatement();
-
-    
-    
-    public Result execute() {
-        try {
-            return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw Exceptions.unwrapIfNecessary(e);
-        } 
-    }
     
     
     public CompletableFuture<Result> executeAsync() {

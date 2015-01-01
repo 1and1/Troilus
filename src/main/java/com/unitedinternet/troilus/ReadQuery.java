@@ -53,8 +53,7 @@ import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 
 abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
      
-    
-    
+   
     static SingleReadWithUnit<Optional<Record>> newSingleReadQuery(Context ctx, 
                                                                    ImmutableMap<String, Object> keyNameValuePairs, 
                                                                    Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {

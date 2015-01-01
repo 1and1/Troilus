@@ -33,7 +33,6 @@ import com.unitedinternet.troilus.Dao.Deletion;
 
  
 class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
-    
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> ifConditions;
@@ -46,24 +45,36 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         return new DeleteQuery(ctx, keyNameValuePairs, whereConditions, ifConditions);
     }
     
+
     
-    protected DeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+    protected DeleteQuery(Context ctx, 
+                          ImmutableMap<String, Object> keyNameValuePairs, 
+                          ImmutableList<Clause> whereConditions, 
+                          ImmutableList<Clause> ifConditions) {
         super(ctx);
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.ifConditions = ifConditions;
     }
+    
 
     @Override
     protected Deletion newQuery(Context newContext) {
-        return new DeleteQuery(newContext, keyNameValuePairs, whereConditions, ifConditions);
+        return newDeleteQuery(newContext, 
+                              keyNameValuePairs, 
+                              whereConditions, 
+                              ifConditions);
     }
     
     
     @Override
     public Deletion onlyIf(Clause... conditions) {
-        return new DeleteQuery(getContext(), keyNameValuePairs, whereConditions, ImmutableList.copyOf(conditions));
+        return newDeleteQuery(getContext(), 
+                              keyNameValuePairs, 
+                              whereConditions, 
+                              ImmutableList.copyOf(conditions));
     }
+    
     
  
     @Override

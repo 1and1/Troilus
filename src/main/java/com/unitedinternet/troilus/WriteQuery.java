@@ -44,26 +44,26 @@ import com.unitedinternet.troilus.Dao.Write;
 
  
 class WriteQuery extends MutationQuery<WriteQuery> implements Write {
-    
+
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
 
     private final ImmutableList<? extends ValueToMutate> valuesToMutate;
     
-    
-    protected static InsertionQuery newInsertQuery(Context ctx, Object entity) {
-        return new InsertionQuery(ctx, ValueToMutate.newValuesToMutate(ctx, ctx.toValues(entity)), false);
+   
+    protected static InsertionQuery newInsertionQuery(Context ctx, Object entity) {
+        return new InsertionQuery(ctx, entity, false);
     }
     
+    protected static InsertionQuery newInsertionQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert, boolean ifNotExists) {
+        return new InsertionQuery(ctx, valuesToInsert, false);
+    }
     
-
-    protected static UpdateWithValues<?> newUpdate(Context ctx, ImmutableList<Clause> whereConditions) {
+    protected static UpdateWithValues<?> newUpdateQuery(Context ctx, ImmutableList<Clause> whereConditions) {
         return new WriteQuery(ctx, ImmutableMap.of(), whereConditions, ImmutableList.of());
     }
     
-    
-
-    protected static Write newUpdate(Context ctx, ImmutableMap<String, Object> keys) {
+    protected static Write newUpdateQuery(Context ctx, ImmutableMap<String, Object> keys) {
         return new WriteQuery(ctx, keys, ImmutableList.of(), ImmutableList.of());
     }
     
@@ -112,18 +112,28 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionQuery(getContext(), ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(ValueToMutate.newValuesToMutate(getContext(), keys)).build(), true);
+        return newInsertionQuery(getContext(), 
+                                 ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(ValueToMutate.newValuesToMutate(getContext(), keys)).build(), 
+                                 true);
     }
 
     @Override
     public Update onlyIf(Clause... conditions) {
-        return new UpdateConditionsImpl(getContext(), keys, whereConditions, valuesToMutate, ImmutableList.copyOf(conditions));
+        return new UpdateQuery(getContext(), 
+                               keys, 
+                               whereConditions, 
+                               valuesToMutate, 
+                               ImmutableList.copyOf(conditions));
     }
 
     
     @Override
     protected Statement getStatement() {
-        return new UpdateConditionsImpl(getContext(), keys, whereConditions, valuesToMutate, ImmutableList.of()).getStatement();
+        return new UpdateQuery(getContext(), 
+                               keys, 
+                               whereConditions, 
+                               valuesToMutate,
+                               ImmutableList.of()).getStatement();
     }    
     
     
@@ -135,6 +145,10 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         private final boolean ifNotExists;
 
         
+        public InsertionQuery(Context ctx, Object entity, boolean ifNotExists) {
+            this(ctx, ValueToMutate.newValuesToMutate(ctx, ctx.toValues(entity)), ifNotExists);
+        }
+        
         public InsertionQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert, boolean ifNotExists) {
             super(ctx);
             this.valuesToInsert = valuesToInsert;
@@ -144,13 +158,17 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         
         @Override
         protected Insertion newQuery(Context newContext) {
-            return new InsertionQuery(newContext, valuesToInsert, ifNotExists);
+            return newInsertionQuery(newContext, 
+                                     valuesToInsert, 
+                                     ifNotExists);
         }
 
 
         @Override
         public Mutation<?> ifNotExits() {
-            return new InsertionQuery(getContext(), valuesToInsert, true);
+            return newInsertionQuery(getContext(), 
+                                     valuesToInsert, 
+                                     true);
         }
 
 
@@ -196,7 +214,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     
     
     
-    private static final class UpdateConditionsImpl extends MutationQuery<Update> implements Update {
+    private static final class UpdateQuery extends MutationQuery<Update> implements Update {
 
         private final ImmutableMap<String, Object> keys;
         private final ImmutableList<? extends ValueToMutate> valuesToMutate;
@@ -205,7 +223,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
 
         
-        public UpdateConditionsImpl(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
+        public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
             super(ctx);
             this.keys = keys;
             this.whereConditions = whereConditions;
@@ -215,12 +233,20 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         
         @Override
         protected Update newQuery(Context newContext) {
-            return new UpdateConditionsImpl(newContext, keys, whereConditions, valuesToMutate, ifConditions);
+            return new UpdateQuery(newContext, 
+                                   keys, 
+                                   whereConditions,  
+                                   valuesToMutate,  
+                                   ifConditions);
         }
    
         @Override
         public Mutation<?> onlyIf(Clause... conditions) {
-            return new UpdateConditionsImpl(getContext(), keys, whereConditions, valuesToMutate, ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
+            return new UpdateQuery(getContext(),
+                                   keys, 
+                                   whereConditions, 
+                                   valuesToMutate, 
+                                   ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
         }
    
         

@@ -58,32 +58,32 @@ public class DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return WriteQuery.newInsertQuery(getDefaultContext(), entity);
+        return WriteQuery.newInsertionQuery(getDefaultContext(), entity);
     }
     
     @Override
     public UpdateWithValues<?> writeWhere(Clause... whereConditions) {
-        return WriteQuery.newUpdate(getDefaultContext(), ImmutableList.copyOf(whereConditions));
+        return WriteQuery.newUpdateQuery(getDefaultContext(), ImmutableList.copyOf(whereConditions));
     }
     
     @Override
     public Write writeWithKey(String keyName, Object keyValue) {
-        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName, keyValue));
+        return WriteQuery.newUpdateQuery(getDefaultContext(), ImmutableMap.of(keyName, keyValue));
     }
     
     @Override
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
+        return WriteQuery.newUpdateQuery(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
     }
     
     @Override
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
+        return WriteQuery.newUpdateQuery(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
     }
 
     @Override
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
+        return WriteQuery.newUpdateQuery(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
     }
     
     

@@ -29,36 +29,41 @@ import com.unitedinternet.troilus.Dao.Query;
 
  
 
-class BatchMutationQuery extends MutationQuery<BatchMutationQuery> implements BatchMutation {
+class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMutation {
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
     
-    public BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+    static BatchMutation newBatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+        return new BatchMutationQuery(ctx, type, batchables);
+    }
+  
+    
+    protected BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
         super(ctx);
         this.type = type;
         this.batchables = batchables;
     }
     
     @Override
-    protected BatchMutationQuery newQuery(Context newContext) {
-        return new BatchMutationQuery(newContext, type, batchables);
+    protected BatchMutation newQuery(Context newContext) {
+        return BatchMutationQuery.newBatchMutationQuery(newContext, type, batchables);
     }
     
     
     @Override
     public Query<Result> withLockedBatchType() {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
+        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.LOGGED, batchables);
     }
     
     @Override
     public Query<Result> withUnlockedBatchType() {
-        return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
+        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
     }
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
+        return BatchMutationQuery.newBatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
     @Override
