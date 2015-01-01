@@ -136,7 +136,7 @@ class Context  {
     }   
     
     
-    protected ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
+    protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
         return entityMapper.toValues(entity);
     }
 

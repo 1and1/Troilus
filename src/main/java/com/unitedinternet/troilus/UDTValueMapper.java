@@ -267,7 +267,7 @@ class UDTValueMapper {
             UserType usertype = ctx.getUserType(((UserType) datatype).getTypeName());
             UDTValue udtValue = usertype.newValue();
             
-            for (Entry<String, Optional<? extends Object>> entry : ctx.toValues(value).entrySet()) {
+            for (Entry<String, Optional<Object>> entry : ctx.toValues(value).entrySet()) {
                 DataType fieldType = usertype.getFieldType(entry.getKey());
                         
                 if (entry.getValue().isPresent()) {

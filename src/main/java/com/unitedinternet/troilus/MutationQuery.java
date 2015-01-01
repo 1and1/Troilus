@@ -18,9 +18,6 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -50,7 +47,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         return newQuery(getContext().withSerialConsistency(consistencyLevel));
     }
     
-        
+       
 
     public BatchMutation combinedWith(Batchable other) {
         return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
@@ -63,11 +60,19 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     }
     
 
-    protected abstract Statement getStatement();
-    
-    
     public CompletableFuture<Result> executeAsync() {
         return performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
+    }
+    
+    protected abstract Statement getStatement();
+   
+    
+    protected Object toStatementValue(String name, Object value) {
+        if (isBuildInType(getColumnMetadata(name).getType())) {
+            return value;
+        } else {
+            return UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(name).getType(), value);
+        }
     }
 }
 

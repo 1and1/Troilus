@@ -70,12 +70,12 @@ class BeanMapper {
         }
      
       
-        public ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
+        public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
             Map<String, Optional<Object>> values = Maps.newHashMap();
             
             for (Function<Object, Map.Entry<String, Optional<Object>>> valueReader : valueReaders.values()) {
-                Map.Entry<String, Optional<Object>> pair = valueReader.apply(entity); 
-                values.put(pair.getKey(), pair.getValue());
+                Map.Entry<String, Optional<Object>> pair = valueReader.apply(entity);
+                pair.getValue().ifPresent(value -> values.put(pair.getKey(), pair.getValue()));
             }
 
             return ImmutableMap.copyOf(values);
@@ -112,7 +112,7 @@ class BeanMapper {
   
 
     
-    public ImmutableMap<String, Optional<? extends Object>> toValues(Object entity) {
+    public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
         return getPropertiesMapper(entity.getClass()).toValues(entity);
     }
 

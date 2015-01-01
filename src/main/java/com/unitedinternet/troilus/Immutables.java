@@ -95,8 +95,7 @@ class Immutables {
             return col2;
         }
     }  
-    
-    
+        
     
     public static <T> Collector<T, ?, ImmutableList<T>> toList() {
         Collector<T, ?, List<T>> collector = Collectors.toList();

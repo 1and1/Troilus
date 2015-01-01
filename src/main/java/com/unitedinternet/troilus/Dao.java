@@ -88,7 +88,7 @@ public interface Dao {
 
        U value(String name, Object value);
        
-       U values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+       U values(ImmutableMap<String, Object> nameValuePairsToAdd);
        
        Update onlyIf(Clause... conditions);
    }
