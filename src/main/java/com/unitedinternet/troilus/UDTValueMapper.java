@@ -226,23 +226,27 @@ class UDTValueMapper {
         } else if (datatype.isCollection()) {
            
            // set 
-           if (Set.class.isAssignableFrom(value.getClass())) {
+           if (Set.class.isAssignableFrom(datatype.getName().asJavaClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
                Set<Object> udt = Sets.newHashSet();
-               for (Object element : (Set<Object>) value) {
-                   udt.add(toUdtValue(ctx, elementDataType, element));
+               if (value != null) {
+                   for (Object element : (Set<Object>) value) {
+                       udt.add(toUdtValue(ctx, elementDataType, element));
+                   }
                }
                
                return ImmutableSet.copyOf(udt);
                
            // list 
-           } else if (List.class.isAssignableFrom(value.getClass())) {
+           } else if (List.class.isAssignableFrom(datatype.getName().asJavaClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
                List<Object> udt = Lists.newArrayList();
-               for (Object element : (List<Object>) value) {
-                   udt.add(toUdtValue(ctx, elementDataType, element));
+               if (value != null) {
+                   for (Object element : (List<Object>) value) {
+                       udt.add(toUdtValue(ctx, elementDataType, element));
+                   }
                }
                
                return ImmutableList.copyOf(udt);
@@ -253,35 +257,41 @@ class UDTValueMapper {
                DataType valueDataType = datatype.getTypeArguments().get(1);
                
                Map<Object, Object> udt = Maps.newHashMap();
-               for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
-                     udt.put(toUdtValue(ctx, keyDataType, entry.getKey()), 
-                             toUdtValue(ctx, valueDataType, entry.getValue()));
-               }
+               if (value != null) {
+                   for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
+                         udt.put(toUdtValue(ctx, keyDataType, entry.getKey()), 
+                                 toUdtValue(ctx, valueDataType, entry.getValue()));
+                   }
                
+               }
                return ImmutableMap.copyOf(udt);  
            }
     
            
         // udt
         } else {
-            UserType usertype = ctx.getUserType(((UserType) datatype).getTypeName());
-            UDTValue udtValue = usertype.newValue();
-            
-            for (Entry<String, Optional<Object>> entry : ctx.toValues(value).entrySet()) {
-                DataType fieldType = usertype.getFieldType(entry.getKey());
+            if (value == null) {
+                return value;
+            } else {
+                UserType usertype = ctx.getUserType(((UserType) datatype).getTypeName());
+                UDTValue udtValue = usertype.newValue();
+                
+                for (Entry<String, Optional<Object>> entry : ctx.toValues(value).entrySet()) {
+                    DataType fieldType = usertype.getFieldType(entry.getKey());
+                            
+                    if (entry.getValue().isPresent()) {
+                        Object vl = entry.getValue().get();
                         
-                if (entry.getValue().isPresent()) {
-                    Object vl = entry.getValue().get();
-                    
-                    if (!ctx.isBuildInType(usertype.getFieldType(entry.getKey()))) {
-                        vl = toUdtValue(ctx, fieldType, vl);
+                        if (!ctx.isBuildInType(usertype.getFieldType(entry.getKey()))) {
+                            vl = toUdtValue(ctx, fieldType, vl);
+                        }
+                        
+                        udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, ctx.getProtocolVersion()));
                     }
-                    
-                    udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, ctx.getProtocolVersion()));
                 }
+                
+                return udtValue;
             }
-            
-            return udtValue; 
         }
     }
 }

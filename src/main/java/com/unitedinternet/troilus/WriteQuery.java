@@ -239,9 +239,9 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
                 ifConditions.forEach(condition -> update.onlyIf(condition));
        
                 getTtl().ifPresent(ttl-> {
-                                                update.using(QueryBuilder.ttl(bindMarker()));
-                                                values.add((int) ttl.getSeconds());
-                                             });
+                                            update.using(QueryBuilder.ttl(bindMarker()));
+                                            values.add((int) ttl.getSeconds());
+                                         });
                 
                 PreparedStatement stmt = prepare(update);
                 return stmt.bind(values.toArray());
