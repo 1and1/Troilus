@@ -192,8 +192,6 @@ public class DaoImpl implements Dao {
     
     private final class QueryFactoryImpl implements QueryFactory {
         
-       
-        
         @Override
         public <E> SingleRead<Optional<E>> newSingleSelection(Context ctx, SingleRead<Optional<Record>> read, Class<?> clazz) {
             return DaoImpl.this.newSingleSelection(ctx, read, clazz);
