@@ -17,6 +17,7 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -33,22 +34,134 @@ public interface Dao {
     Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
     
-    
-    
-    UpdateWithValues writeWhere(Clause... clauses);
+    public interface Query<T> {    
 
-    Insertion writeEntity(Object entity);
-   
-    WriteWithValues writeWithKey(String keyName, Object keyValue);
+        T execute();
+           
+        CompletableFuture<T> executeAsync();
+    }
 
-    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
-    
-    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
-    
-    WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
+    @Deprecated  // merge it with Query
+    public static interface Conditions<Q, R> extends Query<R> {
         
+        Q withConsistency(ConsistencyLevel consistencyLevel);
+        
+        Q withEnableTracking();
+        
+        Q withDisableTracking();
+        
+    }
+
     
+
+    public static interface MutationConditions<Q extends MutationConditions<?>> extends Conditions<Q, Result>, Batchable {
+        
+        Q withSerialConsistency(ConsistencyLevel consistencyLevel);
+        
+        Q withTtl(Duration ttl);
+    
+        Q withWritetime(long microsSinceEpoch);
+        
+        BatchMutation combinedWith(Batchable other);
+    }
+
+    
+    
+   public static interface InsertionConditions extends MutationConditions<InsertionConditions> {
+        
+       MutationConditions<?> ifNotExits();
+    }
+ 
+
+   
+   public static interface UpdateConditions extends MutationConditions<UpdateConditions> {
+       
+       MutationConditions<?> onlyIf(Clause... conditions);
+   }
+
+    
+
+   
+   public static interface Update<U extends Update<?>> extends MutationConditions<U> {
+
+       U value(String name, Object value);
+       
+       U values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+       
+       UpdateConditions onlyIf(Clause... conditions);
+   }
+
+   
+   
+   
+   public static interface Write extends Update<Write> {
+
+       InsertionConditions ifNotExits();
+   }
+   
+   
+ 
+   
+
+   
+
+   public static interface Insert extends MutationConditions<Insert> {
+
+       InsertionConditions ifNotExits();
+   }
+   
+   
+   public static interface InsertWithValues extends MutationConditions<Insert> {
+
+       InsertWithValues value(String name, Object value);
+       
+       InsertWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+       
+       InsertionConditions ifNotExits();
+   }
+
+
+   public interface BatchMutation extends Conditions<BatchMutation, Result> {
+       
+       BatchMutation combinedWith(Batchable other);
+       
+       Query<Result> withLockedBatchType();
+       
+       Query<Result> withUnlockedBatchType();
+   }
+
+
+    
+    
+    Update<?> writeWhere(Clause... clauses);
+
+    InsertionConditions writeEntity(Object entity);
+   
+    Write writeWithKey(String keyName, Object keyValue);
+
+    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    
+    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    
+    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+
+
+    
+    /*
+    
+    public static interface WriteWithValues extends UpdateWithValues {
+        
+        Insertion ifNotExits();
+        
+        WriteWithValues value(String name, Object value);
+        
+        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+    }
+     
+     */
+    
+    /*
     public static interface Write extends Mutation<Write> {
     
         Write withConsistency(ConsistencyLevel consistencyLevel);
@@ -65,8 +178,23 @@ public interface Dao {
         
         Insertion ifNotExits();
     }
+    
+    
 
     
+    public static interface WriteWithValues extends UpdateWithValues {
+        
+        Insertion ifNotExits();
+        
+        WriteWithValues value(String name, Object value);
+        
+        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
+    }
+    
+    */
+    
+
+/*    
     public static interface Update extends Mutation<Update> {
     
         Update withConsistency(ConsistencyLevel consistencyLevel);
@@ -101,37 +229,12 @@ public interface Dao {
     
         UpdateWithValues discardListValue(String name, Object value);
     
-        UpdateWithValues putMapValue(String name, Object key, Object value);*/
-    }
+        UpdateWithValues putMapValue(String name, Object key, Object value);
+    }*/
     
 
-    
-    public static interface WriteWithValues extends Write {
-        
-        WriteWithValues value(String name, Object value);
-        
-        WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-        
-        /*
-        UpdateWithValues removeValue(String name, Object value);
-        
-        UpdateWithValues addSetValue(String name, Object value);
-        
-        UpdateWithValues removeSetValue(String name, Object value);
-    
-        UpdateWithValues appendListValue(String name, Object value);
-    
-        UpdateWithValues prependListValue(String name, Object value);
-    
-        UpdateWithValues discardListValue(String name, Object value);
-    
-        UpdateWithValues putMapValue(String name, Object key, Object value); */
-    }
-    
-    
-    
 
-    
+    /*
 
     public static interface Insertion extends Mutation<Insertion> {
 
@@ -148,7 +251,7 @@ public interface Dao {
         Insertion ifNotExits();
     }
     
-    
+    /*
     public static interface InsertWithValues extends Insertion {
         
         InsertWithValues value(String name, Object value);
@@ -157,7 +260,7 @@ public interface Dao {
     }
     
     
-    
+    */
     
     
     

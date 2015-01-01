@@ -18,76 +18,60 @@ package com.unitedinternet.troilus;
 
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
-
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Query;
 
 
  
 
-class BatchMutationQuery implements BatchMutation {
-    private final Context ctx;
+class BatchMutationQuery extends MutationQuery<BatchMutationQuery> implements BatchMutation {
     private final QueryFactory queryFactory;
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
     
     public BatchMutationQuery(Context ctx, QueryFactory queryFactory, Type type, ImmutableList<Batchable> batchables) {
-        this.ctx = ctx;
+        super(ctx, queryFactory);
         this.queryFactory = queryFactory;
         this.type = type;
         this.batchables = batchables;
     }
-            
-    @Override
-    public BatchMutation withEnableTracking() {
-        return queryFactory.newBatchMutation(ctx.withEnableTracking(), type, batchables);
-    }
     
     @Override
-    public BatchMutation withDisableTracking() {
-        return queryFactory.newBatchMutation(ctx.withDisableTracking(), type, batchables);
+    protected BatchMutationQuery newQuery(Context newContext) {
+        return new BatchMutationQuery(newContext, queryFactory, type, batchables);
     }
     
     
     @Override
     public Query<Result> withLockedBatchType() {
-        return queryFactory.newBatchMutation(ctx, Type.LOGGED, batchables);
+        return new BatchMutationQuery(getContext(), queryFactory, Type.LOGGED, batchables);
     }
     
     @Override
     public Query<Result> withUnlockedBatchType() {
-        return queryFactory.newBatchMutation(ctx, Type.UNLOGGED, batchables);
+        return new BatchMutationQuery(getContext(), queryFactory, Type.UNLOGGED, batchables);
     }
-    
-     
+
     @Override
-    public BatchMutation combinedWith(Mutation<?> other) {
-        return queryFactory.newBatchMutation(ctx, type, Immutables.merge(batchables, other));
+    public BatchMutation combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), queryFactory, type, Immutables.merge(batchables, other));
     }
-    
+
     @Override
     public Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(type);
-        batchables.forEach(mutation -> batchStmt.add(((Batchable) mutation).getStatement()));
+        batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;
     }
     
-    public Result execute() {
-        try {
-            return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw Exceptions.unwrapIfNecessary(e);
-        } 
-    }
     
     public CompletableFuture<Result> executeAsync() {
-        return ctx.performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
+        return performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
     }
 }

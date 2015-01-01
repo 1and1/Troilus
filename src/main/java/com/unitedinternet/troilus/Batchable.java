@@ -15,7 +15,7 @@
  */
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.BatchStatement;
 
 
 
@@ -25,10 +25,9 @@ import com.datastax.driver.core.Statement;
  *
  * @author grro
  */
-interface Batchable {
+public interface Batchable {
 
-    
-    Statement getStatement();
+    void addTo(BatchStatement batchStatement);
 }
 
 

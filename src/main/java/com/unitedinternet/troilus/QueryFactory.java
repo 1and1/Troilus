@@ -30,8 +30,6 @@ import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.Dao.UpdateWithValues;
-import com.unitedinternet.troilus.MutationQuery.ValueToMutate;
 
 
 interface QueryFactory  {
@@ -78,13 +76,13 @@ interface QueryFactory  {
     
     DeleteQuery newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
     
-    BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Batchable> batchables);
+   // BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Batchable> batchables);
     
-    WriteQuery newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert);
+   // OldWriteQuery newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert);
 
-    UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
+  //  UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions);
     
-    InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists);
+ //   InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists);
 
 
     ListRead<Count> newCountRead(Context ctx, 

@@ -18,6 +18,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
+import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Count;
 import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
@@ -161,18 +162,18 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        ////////////////
+        //////////////// 
         // batch inserts
-        Mutation<?> insert1 = usersDao.writeWithKey(UsersTable.USER_ID, "14323425")
-                                      .value(UsersTable.IS_CUSTOMER, true)
-                                      .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                      .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Batchable insert1 = usersDao.writeWithKey(UsersTable.USER_ID, "14323425")
+                                    .value(UsersTable.IS_CUSTOMER, true)
+                                    .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                    .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Mutation<?> insert2 = usersDao.writeWithKey(UsersTable.USER_ID, "2222")
-                                      .value(UsersTable.IS_CUSTOMER, true)
-                                      .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                      .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Batchable insert2 = usersDao.writeWithKey(UsersTable.USER_ID, "2222")
+                                    .value(UsersTable.IS_CUSTOMER, true)
+                                    .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                    .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         usersDao.writeWithKey(UsersTable.USER_ID, "222222")
                 .value(UsersTable.IS_CUSTOMER, true)

@@ -16,6 +16,8 @@
 package com.unitedinternet.troilus;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Query;
 
  
 
