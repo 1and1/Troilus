@@ -13,13 +13,14 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
+import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
-import com.unitedinternet.troilus.Mutation;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
@@ -263,7 +264,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // deletions
-        Mutation<?> delition = hotelsDao.deleteWithKey("id", "BUP932432");
+        Batchable delition = hotelsDao.deleteWithKey("id", "BUP932432");
         
         
         hotelsDao.deleteWithKey("id", "BUP14334")

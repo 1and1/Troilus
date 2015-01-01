@@ -25,7 +25,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.MutationQuery.ValueToMutate;
 
 import com.unitedinternet.troilus.QueryFactory.ColumnToFetch;
 
@@ -57,52 +56,40 @@ public class DaoImpl implements Dao {
     public Dao withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return new DaoImpl(getDefaultContext().withSerialConsistency(consistencyLevel));
     }
-    
-    
+ 
+
+
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return newInsertion(getDefaultContext(), ImmutableList.of(), false).values(getDefaultContext().toValues(entity));
-    }
-    
-    protected InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists) {
-        return new InsertQuery(ctx, queryFactory, valuesToMutate, ifNotExists);
-    }
-    
-    
-    @Override
-    public UpdateWithValues writeWhere(Clause... clauses) {
-        return newUpdate(getDefaultContext(), ImmutableList.of(), ImmutableMap.of(), ImmutableList.copyOf(clauses), ImmutableList.of());
-    }
-    
-    protected UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
-        return new UpdateQuery(ctx, queryFactory, valuesToMutate, keys, whereConditions, ifConditions);
-    }
-    
-
-    @Override
-    public WriteWithValues writeWithKey(String keyName, Object keyValue) {
-        return newWrite(getDefaultContext(), ImmutableMap.of(keyName, keyValue), ImmutableList.of());
+        return WriteQuery.newInsertQuery(getDefaultContext(), queryFactory, entity);
     }
     
     @Override
-    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), ImmutableList.of());
+    public UpdateWithValues<?> writeWhere(Clause... whereConditions) {
+        return WriteQuery.newUpdate(getDefaultContext(), ImmutableList.copyOf(whereConditions));
     }
     
     @Override
-    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), ImmutableList.of());
+    public Write writeWithKey(String keyName, Object keyValue) {
+        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName, keyValue));
+    }
+    
+    @Override
+    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2));
+    }
+    
+    @Override
+    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3));
     }
 
     @Override
-    public WriteWithValues writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return newWrite(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), ImmutableList.of());
+    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+        return WriteQuery.newUpdate(getDefaultContext(), ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4));
     }
-
-    protected WriteQuery newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-        return new WriteQuery(ctx, queryFactory, keys, valuesToInsert);
-    }
+    
     
     
     @Override
@@ -205,25 +192,7 @@ public class DaoImpl implements Dao {
     
     private final class QueryFactoryImpl implements QueryFactory {
         
-        @Override
-        public InsertWithValues newInsertion(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, boolean ifNotExists) {
-            return DaoImpl.this.newInsertion(ctx, valuesToMutate, ifNotExists);
-        }
-        
-        @Override
-        public UpdateWithValues newUpdate(Context ctx, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
-            return DaoImpl.this.newUpdate(ctx, valuesToMutate, keys, whereConditions, ifConditions);
-        }
-        
-        @Override
-        public WriteQuery newWrite(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<? extends ValueToMutate> valuesToInsert) {
-            return DaoImpl.this.newWrite(ctx, keys, valuesToInsert);
-        }
-        
-        @Override
-        public DeleteQuery newDeletion(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
-            return DaoImpl.this.newDeletion(ctx, keyNameValuePairs, whereConditions, ifConditions);
-        }
+       
         
         @Override
         public <E> SingleRead<Optional<E>> newSingleSelection(Context ctx, SingleRead<Optional<Record>> read, Class<?> clazz) {
@@ -262,19 +231,8 @@ public class DaoImpl implements Dao {
                                      optionalFetchSize, 
                                      optionalDistinct);
         }
-        
-        @Override
-        public BatchMutation newBatchMutation(Context ctx, Type type, ImmutableList<Batchable> batchables) {
-            return DaoImpl.this.newBatchMutation(ctx, type, batchables);
-        }
     }
     
-
-        
-        
-    
-    
-
 
   
 

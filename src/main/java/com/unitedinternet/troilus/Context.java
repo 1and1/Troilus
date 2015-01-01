@@ -100,7 +100,20 @@ class Context  {
             return (Optional.class.isAssignableFrom(obj.getClass()));
         }
     }
-    
+ 
+
+    public <T> Optional<T> toOptional(T obj) {
+        if (obj == null) {
+            return Optional.empty();
+        } else {
+            if (isOptional(obj)) {
+                return (Optional<T>) obj;
+            } else {
+                return Optional.of(obj);
+            }
+        }
+    }
+ 
     
 
     public boolean isBuildInType(DataType dataType) {

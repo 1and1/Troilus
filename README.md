@@ -159,7 +159,7 @@ hotelsDao.deleteWithKey("id", "BUP932432")
 ##Batching        
 Non conditional mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation
 ``` java
- Mutation<?> deletion = hotelsDao.deleteWithKey("id", "BUP932432");
+Batchable deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
 hotelsDao.deleteWithKey("id", "BUP14334")
          .combinedWith(deletion)
