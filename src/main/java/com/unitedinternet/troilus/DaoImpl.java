@@ -169,14 +169,7 @@ public class DaoImpl implements Dao {
                                             ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), 
                                             Optional.of(ImmutableSet.of()));
     }
-    
-    
-    
-    protected <E> SingleRead<Optional<E>> newSingleSelection(Context ctx, SingleReadWithUnit<Optional<Record>> read, Class<?> clazz) {
-        return ReadQuery.newSingleEntityReadQuery(ctx, read, clazz);
-    }
 
-    
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
@@ -199,12 +192,6 @@ public class DaoImpl implements Dao {
                                           Optional.empty(), 
                                           Optional.empty(),
                                           Optional.empty());
-    }
-  
-  
-    
-    protected <E> ListRead<EntityList<E>> newListSelection(Context ctx, ListRead<RecordList> read, Class<?> clazz) {
-        return ReadQuery.newListEntityReadQuery(ctx, read, clazz);
     }
 }
 

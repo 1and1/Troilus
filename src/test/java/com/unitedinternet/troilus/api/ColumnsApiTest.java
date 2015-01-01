@@ -46,7 +46,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Count num = usersDao.readAll()
                             .count()
                             .execute();
-        Assert.assertEquals(0,  num.getCount());
+        Assert.assertEquals(0, num.getCount());
         
 
 
