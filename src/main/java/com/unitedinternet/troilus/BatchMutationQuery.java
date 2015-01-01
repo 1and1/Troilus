@@ -30,37 +30,35 @@ import com.unitedinternet.troilus.Dao.Query;
  
 
 class BatchMutationQuery extends MutationQuery<BatchMutationQuery> implements BatchMutation {
-    private final QueryFactory queryFactory;
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
     
-    public BatchMutationQuery(Context ctx, QueryFactory queryFactory, Type type, ImmutableList<Batchable> batchables) {
-        super(ctx, queryFactory);
-        this.queryFactory = queryFactory;
+    public BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+        super(ctx);
         this.type = type;
         this.batchables = batchables;
     }
     
     @Override
     protected BatchMutationQuery newQuery(Context newContext) {
-        return new BatchMutationQuery(newContext, queryFactory, type, batchables);
+        return new BatchMutationQuery(newContext, type, batchables);
     }
     
     
     @Override
     public Query<Result> withLockedBatchType() {
-        return new BatchMutationQuery(getContext(), queryFactory, Type.LOGGED, batchables);
+        return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
     }
     
     @Override
     public Query<Result> withUnlockedBatchType() {
-        return new BatchMutationQuery(getContext(), queryFactory, Type.UNLOGGED, batchables);
+        return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
     }
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), queryFactory, type, Immutables.merge(batchables, other));
+        return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
     @Override

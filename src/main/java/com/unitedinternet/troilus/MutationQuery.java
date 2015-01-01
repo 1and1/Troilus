@@ -15,11 +15,8 @@
  */
 package com.unitedinternet.troilus;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +26,6 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
-import com.datastax.driver.core.querybuilder.Insert;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 
@@ -37,11 +33,8 @@ import com.unitedinternet.troilus.Dao.BatchMutation;
  
 abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
-    private final QueryFactory queryFactory;
-    
-    public MutationQuery(Context ctx, QueryFactory queryFactory) {
+    public MutationQuery(Context ctx) {
         super(ctx);
-        this.queryFactory = queryFactory;
     }
     
     
@@ -60,7 +53,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         
 
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), queryFactory, Type.LOGGED, ImmutableList.of(this, other));
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
     
     
@@ -86,7 +79,5 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     public CompletableFuture<Result> executeAsync() {
         return performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
     }
-        
-  
 }
 

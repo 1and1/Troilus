@@ -45,8 +45,6 @@ import com.unitedinternet.troilus.Dao.Write;
  
 class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     
-    private final QueryFactory queryFactory;
-
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
 
@@ -54,26 +52,25 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
     
     
-    protected static InsertionConditionsImpl newInsertQuery(Context ctx, QueryFactory queryFactory, Object entity) {
-        return new InsertionConditionsImpl(ctx, ValueToMutate.newValuesToMutate(ctx, ctx.toValues(entity)), false);
+    protected static InsertionQuery newInsertQuery(Context ctx, Object entity) {
+        return new InsertionQuery(ctx, ValueToMutate.newValuesToMutate(ctx, ctx.toValues(entity)), false);
     }
     
     
 
     protected static UpdateWithValues<?> newUpdate(Context ctx, ImmutableList<Clause> whereConditions) {
-        return new WriteQuery(ctx, null, ImmutableMap.of(), whereConditions, ImmutableList.of());
+        return new WriteQuery(ctx, ImmutableMap.of(), whereConditions, ImmutableList.of());
     }
     
     
 
     protected static Write newUpdate(Context ctx, ImmutableMap<String, Object> keys) {
-        return new WriteQuery(ctx, null, keys, ImmutableList.of(), ImmutableList.of());
+        return new WriteQuery(ctx, keys, ImmutableList.of(), ImmutableList.of());
     }
     
     
-    public WriteQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<? extends ValueToMutate> valuesToMutate) {
-        super(ctx, queryFactory);
-        this.queryFactory = queryFactory;
+    protected WriteQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<? extends ValueToMutate> valuesToMutate) {
+        super(ctx);
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
@@ -82,7 +79,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     
     @Override
     protected WriteQuery newQuery(Context newContext) {
-        return new WriteQuery(newContext, queryFactory, keys, whereConditions, valuesToMutate);
+        return new WriteQuery(newContext, keys, whereConditions, valuesToMutate);
     }
 
     
@@ -98,7 +95,6 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         }
         
         return new WriteQuery(getContext(), 
-                              queryFactory, 
                               keys, 
                               whereConditions, 
                               ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).add(ValueToMutate.newValueToMutate(getContext(), name, value)).build());
@@ -118,7 +114,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionConditionsImpl(getContext(), ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(ValueToMutate.newValuesToMutate(getContext(), keys)).build(), true);
+        return new InsertionQuery(getContext(), ImmutableList.<ValueToMutate>builder().addAll(valuesToMutate).addAll(ValueToMutate.newValuesToMutate(getContext(), keys)).build(), true);
     }
 
     @Override
@@ -136,15 +132,15 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
     
     
     
-    private static final class InsertionConditionsImpl extends MutationQuery<Insertion> implements Insertion {
+    private static final class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
         
         private final ImmutableList<? extends ValueToMutate> valuesToInsert;
         private final boolean ifNotExists;
 
 
         
-        public InsertionConditionsImpl(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert, boolean ifNotExists) {
-            super(ctx, null);
+        public InsertionQuery(Context ctx, ImmutableList<? extends ValueToMutate> valuesToInsert, boolean ifNotExists) {
+            super(ctx);
             this.valuesToInsert = valuesToInsert;
             this.ifNotExists = ifNotExists;
         }
@@ -152,13 +148,13 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
         
         @Override
         protected Insertion newQuery(Context newContext) {
-            return new InsertionConditionsImpl(newContext, valuesToInsert, ifNotExists);
+            return new InsertionQuery(newContext, valuesToInsert, ifNotExists);
         }
 
 
         @Override
         public Mutation<?> ifNotExits() {
-            return new InsertionConditionsImpl(getContext(), valuesToInsert, true);
+            return new InsertionQuery(getContext(), valuesToInsert, true);
         }
 
 
@@ -214,7 +210,7 @@ class WriteQuery extends MutationQuery<WriteQuery> implements Write {
 
         
         public UpdateConditionsImpl(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableList<? extends ValueToMutate> valuesToMutate, ImmutableList<Clause> ifConditions) {
-            super(ctx, null);
+            super(ctx);
             this.keys = keys;
             this.whereConditions = whereConditions;
             this.valuesToMutate = valuesToMutate;

@@ -34,15 +34,21 @@ import com.unitedinternet.troilus.Dao.Deletion;
  
 class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
-    private final QueryFactory queryFactory;
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> ifConditions;
      
     
-    public DeleteQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
-        super(ctx, queryFactory);
-        this.queryFactory = queryFactory;
+    static Deletion newDeleteQuery(Context ctx, 
+                                   ImmutableMap<String, Object> keyNameValuePairs, 
+                                   ImmutableList<Clause> whereConditions, 
+                                   ImmutableList<Clause> ifConditions) {
+        return new DeleteQuery(ctx, keyNameValuePairs, whereConditions, ifConditions);
+    }
+    
+    
+    protected DeleteQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, ImmutableList<Clause> whereConditions, ImmutableList<Clause> ifConditions) {
+        super(ctx);
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.ifConditions = ifConditions;
@@ -50,13 +56,13 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
     @Override
     protected Deletion newQuery(Context newContext) {
-        return new DeleteQuery(newContext, queryFactory, keyNameValuePairs, whereConditions, ifConditions);
+        return new DeleteQuery(newContext, keyNameValuePairs, whereConditions, ifConditions);
     }
     
     
     @Override
     public Deletion onlyIf(Clause... conditions) {
-        return new DeleteQuery(getContext(), queryFactory, keyNameValuePairs, whereConditions, ImmutableList.copyOf(conditions));
+        return new DeleteQuery(getContext(), keyNameValuePairs, whereConditions, ImmutableList.copyOf(conditions));
     }
     
  

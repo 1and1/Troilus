@@ -49,7 +49,6 @@ public interface Dao {
         Q withEnableTracking();
         
         Q withDisableTracking();
-        
     }
 
     
@@ -65,7 +64,6 @@ public interface Dao {
         BatchMutation combinedWith(Batchable other);
     }
 
-    
     
    
    public static interface Update extends Mutation<Update> {
@@ -85,7 +83,6 @@ public interface Dao {
        Update onlyIf(Clause... conditions);
    }
 
-   
    
    
    public static interface Write extends UpdateWithValues<Write> {
@@ -124,9 +121,9 @@ public interface Dao {
 
 
     
-    
     UpdateWithValues<?> writeWhere(Clause... clauses);
 
+    
     Insertion writeEntity(Object entity);
    
     Write writeWithKey(String keyName, Object keyValue);
@@ -144,9 +141,15 @@ public interface Dao {
     public static interface WriteWithValues extends UpdateWithValues {
         
         Insertion ifNotExits();
+<<<<<<< HEAD
         
         WriteWithValues value(String name, Object value);
         
+=======
+        
+        WriteWithValues value(String name, Object value);
+        
+>>>>>>> e29ddc51a6320e3808b7c8310fb53330d6c54e32
         WriteWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
     }
      
