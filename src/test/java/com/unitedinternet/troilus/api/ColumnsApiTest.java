@@ -336,8 +336,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         // remove value
         usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
-                .removeValue(UsersTable.IS_CUSTOMER)
-                .removeValue(UsersTable.ADDRESSES)
+                .value(UsersTable.IS_CUSTOMER, null)
+                .value(UsersTable.ADDRESSES, null)
                 .execute();        
         
         
@@ -347,13 +347,54 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
         Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
         Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isPresent());
+
+        
+        
+        // add set value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .addSetValue(UsersTable.PHONE_NUMBERS, "12142343")
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
         
         
         
         
+        // add set value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .addSetValue(UsersTable.PHONE_NUMBERS, "23234234")
+                .execute();        
         
         
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
         
+/*        
+        // remove set value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .removeSetValue(UsersTable.PHONE_NUMBERS, "34324543")
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Assert.assertTrue(record.getList(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
+        Assert.assertFalse(record.getList(UsersTable.PHONE_NUMBERS, String.class).get().contains("34324543"));
+        */
       }        
 }
 

@@ -17,10 +17,7 @@ package com.unitedinternet.troilus;
 
 
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +29,7 @@ import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.UpdateWithValues;
@@ -43,25 +41,34 @@ import com.unitedinternet.troilus.Dao.Write;
 class UpdateQuery extends MutationQuery<Write> implements Write {
 
     private final ImmutableMap<String, Object> keys;
+    
     private final ImmutableMap<String, Optional<Object>> valuesToMutate;
+    private final ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd;
+    
     private final ImmutableList<Clause> ifConditions;
     private final ImmutableList<Clause> whereConditions;
 
 
     protected static UpdateWithValues<?> newUpdateQuery(Context ctx, ImmutableList<Clause> whereConditions) {
-        return new UpdateQuery(ctx, ImmutableMap.of(), whereConditions, ImmutableMap.of(), ImmutableList.of());
+        return new UpdateQuery(ctx, ImmutableMap.of(), whereConditions, ImmutableMap.of(), ImmutableMap.of(), ImmutableList.of());
     }
     
     protected static Write newUpdateQuery(Context ctx, ImmutableMap<String, Object> keys) {
-        return new UpdateQuery(ctx, keys, ImmutableList.of(), ImmutableMap.of(), ImmutableList.of());
+        return new UpdateQuery(ctx, keys, ImmutableList.of(), ImmutableMap.of(), ImmutableMap.of(), ImmutableList.of());
     }
     
     
-    public UpdateQuery(Context ctx, ImmutableMap<String, Object> keys, ImmutableList<Clause> whereConditions, ImmutableMap<String, Optional<Object>> valuesToMutate, ImmutableList<Clause> ifConditions) {
+    public UpdateQuery(Context ctx, 
+                       ImmutableMap<String, Object> keys, 
+                       ImmutableList<Clause> whereConditions, 
+                       ImmutableMap<String, Optional<Object>> valuesToMutate, 
+                       ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
+                       ImmutableList<Clause> ifConditions) {
         super(ctx);
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
+        this.setValuesToAdd = setValuesToAdd;
         this.ifConditions = ifConditions;
     }
     
@@ -70,7 +77,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         return new UpdateQuery(newContext, 
                                keys, 
                                whereConditions,  
-                               valuesToMutate,  
+                               valuesToMutate,
+                               setValuesToAdd,
                                ifConditions);
     }
     
@@ -78,20 +86,51 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     
     @Override
     public UpdateQuery value(String name, Object value) {
-        return new UpdateQuery(getContext(), keys, whereConditions, Immutables.merge(valuesToMutate, name, toOptional(value)), ifConditions);
+        return new UpdateQuery(getContext(),
+                               keys, 
+                               whereConditions,
+                               Immutables.merge(valuesToMutate, name, toOptional(value)), 
+                               setValuesToAdd,
+                               ifConditions);
     }
 
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new UpdateQuery(getContext(), keys, whereConditions, Immutables.merge(valuesToMutate, Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value))), ifConditions);
+        return new UpdateQuery(getContext(),
+                               keys, 
+                               whereConditions, 
+                               Immutables.merge(valuesToMutate, Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value))), 
+                               setValuesToAdd,
+                               ifConditions);
     }
     
+    
+   /*
+    @Override
+    public UpdateQuery removeValue(String name, Object value) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    */
     
     @Override
-    public UpdateQuery removeValue(String name) {
-        return value(name, null);
+    public UpdateQuery addSetValue(String name, Object value) {
+        ImmutableSet<Object> values = setValuesToAdd.get(name);
+        if (values == null) {
+            values = ImmutableSet.of(value);
+        } else {
+            values = Immutables.merge(values, value);
+        }
+
+        return new UpdateQuery(getContext(),
+                               keys, 
+                               whereConditions, 
+                               valuesToMutate, 
+                               Immutables.merge(setValuesToAdd, name, values),
+                               ifConditions);
     }
+   
     
     
     @Override
@@ -105,6 +144,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                keys, 
                                whereConditions, 
                                valuesToMutate, 
+                               setValuesToAdd,
                                ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
     }
 
@@ -121,7 +161,12 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         if (whereConditions.isEmpty()) {
             List<Object> values = Lists.newArrayList();
             valuesToMutate.forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
-            
+
+            if (!setValuesToAdd.isEmpty()) {
+                setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            }
+  
+
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
             
@@ -139,6 +184,11 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         // where condition-based update
         } else {
             valuesToMutate.forEach((name, optionalValue) -> update.with(set(name, toStatementValue(name, optionalValue.orElse(null)))));
+        
+            if (!setValuesToAdd.isEmpty()) {
+                setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
+            }
+  
             
             getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
             

@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
@@ -27,6 +28,8 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 
 
@@ -69,29 +72,33 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
     protected abstract Statement getStatement();
    
+  
+    
+    protected ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
+    }
+  
     
     protected Object toStatementValue(String name, Object value) {
         if (value == null) {
             return value;
         }
+    
+        // map empty collection to null
+        if (Collection.class.isAssignableFrom(value.getClass())) {
+            if (((Collection<?>) value).isEmpty()) {
+                return null;
+            }
+        }
+        if (Map.class.isAssignableFrom(value.getClass())) {
+            if (((Map<?, ?>) value).isEmpty()) {
+                return null;
+            }
+        } 
+        
         
         DataType dataType = getColumnMetadata(name).getType();
-        
         if (isBuildInType(dataType)) {
-        
-            // map empty collection to null
-            if (dataType.isCollection()) {
-               if (Collection.class.isAssignableFrom(dataType.getName().asJavaClass())) {
-                   if (((Collection<?>) value).isEmpty()) {
-                       value = null;
-                   }
-                } else {
-                    if (((Map<?, ?>) value).isEmpty()) {
-                        value = null;
-                    }
-                }
-            } 
-            
             return value;
         } else {
             return UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(name).getType(), value);
