@@ -88,6 +88,11 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     }
     
     
+    @Override
+    public UpdateQuery removeValue(String name) {
+        return value(name, null);
+    }
+    
     
     @Override
     public Insertion ifNotExits() {

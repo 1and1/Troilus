@@ -309,8 +309,52 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                       .execute();
         Assert.assertFalse(rec.isPresent());   
-      }    
-    
+        
+        
+        
+        
+        
+        
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.ADDRESSES, ImmutableList.of("hamburg"))
+                .execute();
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                .execute()
+                .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertTrue(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
+        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().isEmpty());
+        
+
+
+        
+        
+        
+        // remove value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .removeValue(UsersTable.IS_CUSTOMER)
+                .removeValue(UsersTable.ADDRESSES)
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isPresent());
+        
+        
+        
+        
+        
+        
+        
+      }        
 }
 
 

@@ -18,20 +18,15 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 
 
