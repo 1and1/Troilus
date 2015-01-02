@@ -76,21 +76,19 @@ public interface Dao {
 
     
    
-   public static interface Update extends Mutation<Update> {
+   public static interface Update<U extends Mutation<U>> extends Mutation<U> {
        
-       Mutation<?> onlyIf(Clause... conditions);
+       Update<U> onlyIf(Clause... conditions);
    }
 
     
 
    
-   public static interface UpdateWithValues<U extends UpdateWithValues<?>> extends Mutation<U> {
+   public static interface UpdateWithValues<U extends Mutation<U>> extends Update<U> {
 
        U value(String name, Object value);
        
        U values(ImmutableMap<String, Object> nameValuePairsToAdd);
-       
-       Update onlyIf(Clause... conditions);
    }
 
    
