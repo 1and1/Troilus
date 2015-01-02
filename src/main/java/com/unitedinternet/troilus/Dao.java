@@ -90,7 +90,7 @@ public interface Dao {
        
        U values(ImmutableMap<String, Object> nameValuePairsToAdd);
        
-  //     U removeValue(String name, Object value);
+       U removeSetValue(String name, Object value);
            
        U addSetValue(String name, Object value);
    

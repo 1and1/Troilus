@@ -380,10 +380,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
         Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
         
-/*        
+        
         // remove set value
         usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
-                .removeSetValue(UsersTable.PHONE_NUMBERS, "34324543")
+                .removeSetValue(UsersTable.PHONE_NUMBERS, "12142343")
                 .execute();        
         
         
@@ -392,9 +392,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                          .get();
         Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
         Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
-        Assert.assertTrue(record.getList(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
-        Assert.assertFalse(record.getList(UsersTable.PHONE_NUMBERS, String.class).get().contains("34324543"));
-        */
+        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
+        
+   
       }        
 }
 
