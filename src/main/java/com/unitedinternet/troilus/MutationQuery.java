@@ -78,6 +78,10 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
     }
   
+    protected ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
+    }
+  
     
     protected Object toStatementValue(String name, Object value) {
         if (value == null) {

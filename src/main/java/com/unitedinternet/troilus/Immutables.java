@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 
 
@@ -48,13 +49,19 @@ class Immutables {
         return ImmutableList.<T>builder().addAll(list).add(entryToAdd).build();
     }
  
+    public static <T> ImmutableList<T> merge(T entryToAdd, ImmutableList<T> list) {
+        return ImmutableList.<T>builder().add(entryToAdd).addAll(list).build();
+    }
+    
     public static <T> ImmutableList<T> merge(ImmutableList<T> list1, ImmutableList<T> list2) {
         return ImmutableList.<T>builder().addAll(list1).addAll(list2).build();
     }
 
     
     public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map, K key, V value) {
-        return ImmutableMap.<K, V>builder().putAll(map).put(key, value).build();
+        Map<K, V> m = Maps.newHashMap(map);
+        m.put(key, value);
+        return ImmutableMap.copyOf(m);
     }
 
     

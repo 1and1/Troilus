@@ -45,6 +45,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     private final ImmutableMap<String, Optional<Object>> valuesToMutate;
     private final ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd;
     private final ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove;
+    private final ImmutableMap<String, ImmutableList<Object>> listValuesToAppend;
+    private final ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend;
+    private final ImmutableMap<String, ImmutableList<Object>> listValuesToRemove;
     
     private final ImmutableList<Clause> ifConditions;
     private final ImmutableList<Clause> whereConditions;
@@ -57,6 +60,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                ImmutableMap.of(),
                                ImmutableMap.of(), 
                                ImmutableMap.of(),
+                               ImmutableMap.of(),
+                               ImmutableMap.of(),
+                               ImmutableMap.of(),
                                ImmutableList.of());
     }
     
@@ -64,6 +70,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         return new UpdateQuery(ctx, 
                                keys,
                                ImmutableList.of(),
+                               ImmutableMap.of(),
+                               ImmutableMap.of(),
+                               ImmutableMap.of(),
                                ImmutableMap.of(),
                                ImmutableMap.of(),
                                ImmutableMap.of(),
@@ -77,6 +86,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                        ImmutableMap<String, Optional<Object>> valuesToMutate, 
                        ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
                        ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
+                       ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
+                       ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
+                       ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                        ImmutableList<Clause> ifConditions) {
         super(ctx);
         this.keys = keys;
@@ -84,6 +96,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         this.valuesToMutate = valuesToMutate;
         this.setValuesToAdd = setValuesToAdd;
         this.setValuesToRemove = setValuesToRemove;
+        this.listValuesToAppend = listValuesToAppend;
+        this.listValuesToPrepend = listValuesToPrepend;
+        this.listValuesToRemove = listValuesToRemove;
         this.ifConditions = ifConditions;
     }
     
@@ -95,6 +110,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                valuesToMutate,
                                setValuesToAdd,
                                setValuesToRemove,
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove, 
                                ifConditions);
     }
     
@@ -108,6 +126,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                Immutables.merge(valuesToMutate, name, toOptional(value)), 
                                setValuesToAdd,
                                setValuesToRemove,
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove, 
                                ifConditions);
     }
 
@@ -120,6 +141,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                Immutables.merge(valuesToMutate, Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value))), 
                                setValuesToAdd,
                                setValuesToRemove,
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove,                                
                                ifConditions);
     }
     
@@ -140,6 +164,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                valuesToMutate, 
                                setValuesToAdd,
                                Immutables.merge(setValuesToRemove, name, values),
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove, 
                                ifConditions);
     }
    
@@ -159,9 +186,77 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                valuesToMutate, 
                                Immutables.merge(setValuesToAdd, name, values),
                                setValuesToRemove,
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove, 
                                ifConditions);
     }
    
+
+    @Override
+    public Write prependListValue(String name, Object value) {
+        ImmutableList<Object> values = listValuesToPrepend.get(name);
+        if (values == null) {
+            values = ImmutableList.of(value);
+        } else {
+            values = Immutables.merge(values, value);
+        }
+        
+        return new UpdateQuery(getContext(),
+                keys, 
+                whereConditions, 
+                valuesToMutate, 
+                setValuesToAdd,
+                setValuesToRemove,
+                listValuesToAppend,
+                Immutables.merge(listValuesToPrepend, name, values),
+                listValuesToRemove, 
+                ifConditions);
+    }
+    
+
+    @Override
+    public Write appendListValue(String name, Object value) {
+        ImmutableList<Object> values = listValuesToAppend.get(name);
+        if (values == null) {
+            values = ImmutableList.of(value);
+        } else {
+            values = Immutables.merge(values, value);
+        }
+        
+        return new UpdateQuery(getContext(),
+                keys, 
+                whereConditions, 
+                valuesToMutate, 
+                setValuesToAdd,
+                setValuesToRemove,
+                Immutables.merge(listValuesToAppend, name, values),
+                listValuesToPrepend,
+                listValuesToRemove, 
+                ifConditions);
+    }
+    
+    @Override
+    public Write removeListValue(String name, Object value) {
+        ImmutableList<Object> values = listValuesToRemove.get(name);
+        if (values == null) {
+            values = ImmutableList.of(value);
+        } else {
+            values = Immutables.merge(values, value);
+        }
+        
+        return new UpdateQuery(getContext(),
+                keys, 
+                whereConditions, 
+                valuesToMutate, 
+                setValuesToAdd,
+                setValuesToRemove,
+                listValuesToAppend,
+                listValuesToPrepend,
+                Immutables.merge(listValuesToRemove, name, values), 
+                ifConditions);
+
+    }
     
     
     @Override
@@ -177,6 +272,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                                valuesToMutate, 
                                setValuesToAdd,
                                setValuesToRemove,
+                               listValuesToAppend,
+                               listValuesToPrepend,
+                               listValuesToRemove, 
                                ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
     }
 
@@ -204,6 +302,17 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                 setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
             }
 
+            if (!listValuesToPrepend.isEmpty()) {
+                listValuesToPrepend.forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            }
+            if (!listValuesToAppend.isEmpty()) {
+                listValuesToAppend.forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            }
+            if (!listValuesToRemove.isEmpty()) {
+                listValuesToRemove.forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            }
+
+            
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
             
@@ -225,10 +334,20 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
             if (!setValuesToAdd.isEmpty()) {
                 setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
             }
-              if (!setValuesToRemove.isEmpty()) {
+            if (!setValuesToRemove.isEmpty()) {
                   setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
             }
   
+            if (!listValuesToPrepend.isEmpty()) {
+                listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
+            }
+            if (!listValuesToAppend.isEmpty()) {
+                listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
+            }
+            if (!listValuesToRemove.isEmpty()) {
+                listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
+            }
+
             
             getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
             

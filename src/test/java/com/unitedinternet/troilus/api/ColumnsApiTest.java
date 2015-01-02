@@ -394,7 +394,56 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
         Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
         Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
+        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isPresent());
         
+        
+        
+        
+        // add list value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .value(UsersTable.ADDRESSES, ImmutableList.of("bonn", "stuttgart"))
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        Iterator<String> addrIt = record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("bonn", addrIt.next());
+        Assert.assertEquals("stuttgart", addrIt.next());
+        Assert.assertFalse(addrIt.hasNext());
+   
+        
+        
+        
+        // modify list value
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .prependListValue(UsersTable.ADDRESSES, "bern")
+                .prependListValue(UsersTable.ADDRESSES, "neustadt")
+                .prependListValue(UsersTable.ADDRESSES, "ulm")
+                .appendListValue(UsersTable.ADDRESSES, "frankfurt")
+                .appendListValue(UsersTable.ADDRESSES, "innsbruck")
+                .removeListValue(UsersTable.ADDRESSES, "bonn")
+                .appendListValue(UsersTable.ADDRESSES, "berlin")
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).isPresent());
+        addrIt = record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("ulm", addrIt.next());
+        Assert.assertEquals("neustadt", addrIt.next());
+        Assert.assertEquals("bern", addrIt.next());
+        Assert.assertEquals("stuttgart", addrIt.next());
+        Assert.assertEquals("frankfurt", addrIt.next());
+        Assert.assertEquals("innsbruck", addrIt.next());
+        Assert.assertEquals("berlin", addrIt.next());
+        Assert.assertFalse(addrIt.hasNext());
    
       }        
 }

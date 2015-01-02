@@ -94,11 +94,11 @@ public interface Dao {
            
        U addSetValue(String name, Object value);
    
-  //     U appendListValue(String name, Object value);
+       U appendListValue(String name, Object value);
    
-  //     U prependListValue(String name, Object value);
+       U prependListValue(String name, Object value);
    
-  //     U discardListValue(String name, Object value);
+       U removeListValue(String name, Object value);
    
   //     U putMapValue(String name, Object key, Object value);     
    }
