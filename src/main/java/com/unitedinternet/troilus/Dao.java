@@ -63,13 +63,13 @@ public interface Dao {
 
     
 
-    public static interface Mutation<Q extends Mutation<?>> extends Conditions<Q, Result>, Batchable {
+    public static interface Mutation<Q extends Mutation<Q>> extends Conditions<Q, Result>, Batchable {
         
-        Q withSerialConsistency(ConsistencyLevel consistencyLevel);
+        Mutation<Q> withSerialConsistency(ConsistencyLevel consistencyLevel);
         
-        Q withTtl(Duration ttl);
+        Mutation<Q> withTtl(Duration ttl);
     
-        Q withWritetime(long microsSinceEpoch);
+        Mutation<Q> withWritetime(long microsSinceEpoch);
         
         BatchMutation combinedWith(Batchable other);
     }
@@ -89,6 +89,20 @@ public interface Dao {
        U value(String name, Object value);
        
        U values(ImmutableMap<String, Object> nameValuePairsToAdd);
+       
+  //     U removeValue(String name);
+           
+  //     U addSetValue(String name, Object value);
+       
+  //     U removeSetValue(String name, Object value);
+   
+  //     U appendListValue(String name, Object value);
+   
+  //     U prependListValue(String name, Object value);
+   
+  //     U discardListValue(String name, Object value);
+   
+  //     U putMapValue(String name, Object key, Object value);     
    }
 
    
@@ -143,6 +157,25 @@ public interface Dao {
     Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
 
+    
+    
+    Deletion deleteWithKey(String keyName, Object keyValue);
+    
+    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    
+    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    
+    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+
+    Deletion deleteWhere(Clause... whereConditions);
+
+    
+    
+    public static interface Deletion extends Mutation<Deletion> {
+        
+        Deletion onlyIf(Clause... conditions);
+    }
+    
     
     
     
@@ -226,21 +259,5 @@ public interface Dao {
         <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
     }
     
-    
-    Deletion deleteWithKey(String keyName, Object keyValue);
-    
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
-    
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
-    
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
-
-    Deletion deleteWhere(Clause... whereConditions);
-
-    
-    
-    public static interface Deletion extends Mutation<Deletion> {
-        
-        Deletion onlyIf(Clause... conditions);
-    }
+  
 }

@@ -15,10 +15,11 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.EntityList;
+import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.api.UsersTable;
 
 
-public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
+public class EntityMappingTest extends AbstractCassandraBasedTest {
     
     
     @Test
@@ -56,7 +57,6 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("paul", optionalUser.get().getName());
         Assert.assertTrue(optionalUser.get().isCustomer().get());
         Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
-    //    Assert.assertEquals(ByteBuffer.wrap(new byte[] { 6, 7, 8}).get(1), optionalUser.get().getPicture().get(1));
         
     
         
@@ -75,6 +75,43 @@ public class JavaxPersistencyTest extends AbstractCassandraBasedTest {
                       .execute();
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
+        
+        
+        
+        
+        
+        ////////////////
+        // update
+        userDao.writeWithKey(UsersTable.USER_ID, "4454")
+               .value(UsersTable.NAME, "eric")
+               .execute();
+
+
+        Record user = userDao.readWithKey("user_id", "4454")   
+                             .execute()
+                             .get();
+        Assert.assertEquals("eric", user.getString(UsersTable.NAME).get());
+        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED).get());
+        Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
+        
+        
+        
+        ////////////////
+        // update
+        userDao.writeEntity(new User("4454", null, true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of()))
+               .execute();
+
+ 
+        user = userDao.readWithKey("user_id", "4454")   
+                      .execute()
+                      .get(); 
+        Assert.assertFalse(user.getString(UsersTable.NAME).isPresent());
+        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED).get());
+        Assert.assertFalse(user.getList(UsersTable.ADDRESSES, String.class).isPresent());
+        Assert.assertTrue(user.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12313241243"));
+
+
+
     }        
 }
 

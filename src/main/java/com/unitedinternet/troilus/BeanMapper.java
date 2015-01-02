@@ -75,7 +75,7 @@ class BeanMapper {
             
             for (Function<Object, Map.Entry<String, Optional<Object>>> valueReader : valueReaders.values()) {
                 Map.Entry<String, Optional<Object>> pair = valueReader.apply(entity);
-                pair.getValue().ifPresent(value -> values.put(pair.getKey(), pair.getValue()));
+                values.put(pair.getKey(), pair.getValue());
             }
 
             return ImmutableMap.copyOf(values);
