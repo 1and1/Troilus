@@ -39,25 +39,21 @@ interface QueryFactory {
                                ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
                                ImmutableList<Clause> ifConditions);
   
-    
     InsertionQuery newInsertionQuery(Context ctx, 
                                      QueryFactory queryFactory, 
                                      ImmutableMap<String, Optional<Object>> valuesToMutate, 
                                      boolean ifNotExists);
-    
-    
+      
     DeleteQuery newDeleteQuery(Context ctx, 
                                QueryFactory queryFactory,
                                ImmutableMap<String, Object> keyNameValuePairs,  
                                ImmutableList<Clause> whereConditions, 
                                ImmutableList<Clause> ifConditions);
     
-    
     SingleReadQuery newSingleReadQuery(Context ctx, 
                                        QueryFactory queryFactory,
                                        ImmutableMap<String, Object> keyNameValuePairs, 
                                        Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch);   
-    
     
     ListReadQuery newListReadQuery(Context ctx,
                                    QueryFactory queryFactory, 
@@ -68,7 +64,6 @@ interface QueryFactory {
                                    Optional<Integer> optionalFetchSize,
                                    Optional<Boolean> optionalDistinct);
 
-    
     CountReadQuery newCountReadQuery(Context ctx, 
                                      QueryFactory queryFactory,
                                      ImmutableSet<Clause> clauses, 

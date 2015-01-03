@@ -12,7 +12,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.TooManyResultsException;
@@ -25,10 +25,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testAsync() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        
-        Dao feeDao = daoManager.getDao(FeesTable.TABLE);
+        Dao feeDao = new DaoImpl(getSession(), FeesTable.TABLE);
 
         
         ////////////////

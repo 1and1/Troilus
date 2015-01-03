@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -35,7 +36,11 @@ public class DaoImpl implements Dao, QueryFactory {
     private final Context ctx;
     
     
-    public DaoImpl(Context ctx) {
+    public DaoImpl(Session session, String tablename) {
+        this(new Context(session, tablename));
+    }
+     
+    private DaoImpl(Context ctx) {
         this.ctx = ctx;
     }
 
@@ -68,8 +73,14 @@ public class DaoImpl implements Dao, QueryFactory {
     }
         
     @Override
-    public InsertionQuery newInsertionQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
-        return new InsertionQuery(ctx, queryFactory, valuesToMutate, ifNotExists);
+    public InsertionQuery newInsertionQuery(Context ctx, 
+                                            QueryFactory queryFactory, 
+                                            ImmutableMap<String, Optional<Object>> valuesToMutate, 
+                                            boolean ifNotExists) {
+        return new InsertionQuery(ctx, 
+                                  queryFactory, 
+                                  valuesToMutate, 
+                                  ifNotExists);
     }
     
    
@@ -80,7 +91,11 @@ public class DaoImpl implements Dao, QueryFactory {
                                       ImmutableMap<String, Object> keyNameValuePairs,
                                       ImmutableList<Clause> whereConditions,
                                       ImmutableList<Clause> ifConditions) {
-        return new DeleteQuery(ctx, queryFactory, keyNameValuePairs, whereConditions, ifConditions);
+        return new DeleteQuery(ctx, 
+                               queryFactory, 
+                               keyNameValuePairs, 
+                               whereConditions, 
+                               ifConditions);
     }
 
 
@@ -88,7 +103,10 @@ public class DaoImpl implements Dao, QueryFactory {
                                               QueryFactory queryFactory,
                                               ImmutableMap<String, Object> keyNameValuePairs, 
                                               Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
-        return new SingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
+        return new SingleReadQuery(ctx, 
+                                   queryFactory, 
+                                   keyNameValuePairs, 
+                                   optionalColumnsToFetch);
     }
     
     
@@ -100,7 +118,14 @@ public class DaoImpl implements Dao, QueryFactory {
                                           Optional<Boolean> optionalAllowFiltering,
                                           Optional<Integer> optionalFetchSize,
                                           Optional<Boolean> optionalDistinct) {
-        return new ListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+        return new ListReadQuery(ctx, 
+                                 queryFactory, 
+                                 clauses, 
+                                 columnsToFetch, 
+                                 optionalLimit, 
+                                 optionalAllowFiltering, 
+                                 optionalFetchSize, 
+                                 optionalDistinct);
     }
     
     
@@ -113,7 +138,13 @@ public class DaoImpl implements Dao, QueryFactory {
                                             Optional<Boolean> optionalAllowFiltering,
                                             Optional<Integer> optionalFetchSize,
                                             Optional<Boolean> optionalDistinct) {
-        return new CountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+        return new CountReadQuery(ctx, 
+                                  queryFactory, 
+                                  clauses, 
+                                  optionalLimit, 
+                                  optionalAllowFiltering, 
+                                  optionalFetchSize, 
+                                  optionalDistinct);
     }
     
   
@@ -124,7 +155,10 @@ public class DaoImpl implements Dao, QueryFactory {
                                                     QueryFactory queryFactory,
                                                     Type type,
                                                     ImmutableList<Batchable> batchables) {
-        return new BatchMutationQuery(ctx, queryFactory, type, batchables);
+        return new BatchMutationQuery(ctx, 
+                                      queryFactory, 
+                                      type, 
+                                      batchables);
     } 
     
     
@@ -217,7 +251,8 @@ public class DaoImpl implements Dao, QueryFactory {
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
         return newUpdateQuery(ctx, 
                               this, 
-                              ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), 
+                              ImmutableMap.of(keyName1, keyValue1,
+                                              keyName2, keyValue2), 
                               ImmutableList.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -234,7 +269,9 @@ public class DaoImpl implements Dao, QueryFactory {
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
         return newUpdateQuery(ctx, 
                               this, 
-                              ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), 
+                              ImmutableMap.of(keyName1, keyValue1, 
+                                              keyName2, keyValue2, 
+                                              keyName3, keyValue3), 
                               ImmutableList.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -251,7 +288,10 @@ public class DaoImpl implements Dao, QueryFactory {
     public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
         return newUpdateQuery(ctx, 
                               this, 
-                              ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), 
+                              ImmutableMap.of(keyName1, keyValue1, 
+                                              keyName2, keyValue2, 
+                                              keyName3, keyValue3, 
+                                              keyName4, keyValue4), 
                               ImmutableList.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -269,20 +309,33 @@ public class DaoImpl implements Dao, QueryFactory {
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
         
-        return newDeleteQuery(ctx, this, ImmutableMap.of(), ImmutableList.copyOf(whereConditions), ImmutableList.of());
+        return newDeleteQuery(ctx, 
+                              this,
+                              ImmutableMap.of(), 
+                              ImmutableList.copyOf(whereConditions), 
+                              ImmutableList.of());
     };
     
     @Override
     public Deletion deleteWithKey(String keyName, Object keyValue) {
         
-        return newDeleteQuery(ctx, this, ImmutableMap.of(keyName, keyValue), ImmutableList.of(), ImmutableList.of());
+        return newDeleteQuery(ctx, 
+                              this,
+                              ImmutableMap.of(keyName, keyValue), 
+                              ImmutableList.of(), 
+                              ImmutableList.of());
     }
 
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2) {
         
-        return newDeleteQuery(ctx, this, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), ImmutableList.of(), ImmutableList.of());
+        return newDeleteQuery(ctx, 
+                              this, 
+                              ImmutableMap.of(keyName1, keyValue1, 
+                                              keyName2, keyValue2),
+                              ImmutableList.of(), 
+                              ImmutableList.of());
     }
     
     @Override
@@ -290,7 +343,13 @@ public class DaoImpl implements Dao, QueryFactory {
                                   String keyName2, Object keyValue2, 
                                   String keyName3, Object keyValue3) {
         
-        return newDeleteQuery(ctx, this, ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), ImmutableList.of(), ImmutableList.of());
+        return newDeleteQuery(ctx, 
+                              this, 
+                              ImmutableMap.of(keyName1, keyValue1,
+                                              keyName2, keyValue2, 
+                                              keyName3, keyValue3),
+                              ImmutableList.of(), 
+                              ImmutableList.of());
     }
     
     @Override
@@ -299,7 +358,14 @@ public class DaoImpl implements Dao, QueryFactory {
                                   String keyName3, Object keyValue3,
                                   String keyName4, Object keyValue4) {
         
-        return newDeleteQuery(ctx, this,  ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), ImmutableList.of(), ImmutableList.of());
+        return newDeleteQuery(ctx, 
+                              this,
+                              ImmutableMap.of(keyName1, keyValue1, 
+                                              keyName2, keyValue2, 
+                                              keyName3, keyValue3, 
+                                              keyName4, keyValue4), 
+                              ImmutableList.of(), 
+                              ImmutableList.of());
     }
     
     
@@ -314,26 +380,38 @@ public class DaoImpl implements Dao, QueryFactory {
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
+                                                            String keyName2, Object keyValue2) {
         return newSingleReadQuery(ctx, 
                                   this,
-                                  ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), 
+                                  ImmutableMap.of(keyName1, keyValue1, 
+                                                  keyName2, keyValue2), 
                                   Optional.of(ImmutableMap.of()));
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
+                                                            String keyName2, Object keyValue2,
+                                                            String keyName3, Object keyValue3) {
         return newSingleReadQuery(ctx, 
                                   this,
-                                  ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), 
+                                  ImmutableMap.of(keyName1, keyValue1, 
+                                                  keyName2, keyValue2, 
+                                                  keyName3, keyValue3), 
                                   Optional.of(ImmutableMap.of()));
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
+                                                            String keyName2, Object keyValue2, 
+                                                            String keyName3, Object keyValue3, 
+                                                            String keyName4, Object keyValue4) {
         return newSingleReadQuery(ctx, 
                                   this,
-                                  ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), 
+                                  ImmutableMap.of(keyName1, keyValue1, 
+                                                  keyName2, keyValue2, 
+                                                  keyName3, keyValue3, 
+                                                  keyName4, keyValue4), 
                                   Optional.of(ImmutableMap.of()));
     }
 
@@ -363,4 +441,3 @@ public class DaoImpl implements Dao, QueryFactory {
                                 Optional.empty());
     }
 }
-

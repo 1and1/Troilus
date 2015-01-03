@@ -3,6 +3,7 @@ package com.unitedinternet.troilus.api;
 
 import java.util.Optional;
 
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.RecordList;
 import com.unitedinternet.troilus.TooManyResultsException;
@@ -23,9 +24,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testPartialKey() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        Dao feeDao = daoManager.getDao(FeesTable.TABLE);
+        Dao feeDao = new DaoImpl(getSession(), FeesTable.TABLE);
 
 
         

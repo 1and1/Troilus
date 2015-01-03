@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 
 
@@ -26,9 +26,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testPartialKey() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        Dao userDao = daoManager.getDao(UsersTable.TABLE)
+        Dao userDao = new DaoImpl(getSession(), UsersTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
 
   

@@ -15,35 +15,17 @@
  */
 package com.unitedinternet.troilus;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Statement;
+
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
-import com.datastax.driver.core.querybuilder.Select.Selection;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
-import com.unitedinternet.troilus.Dao.ListReadWithColumns;
-import com.unitedinternet.troilus.Dao.ListReadWithUnit;
-import com.unitedinternet.troilus.Dao.SingleRead;
-import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
-import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 
 
 

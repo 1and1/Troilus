@@ -272,6 +272,7 @@ class UDTValueMapper {
         } else {
             if (value == null) {
                 return value;
+                
             } else {
                 UserType usertype = ctx.getUserType(((UserType) datatype).getTypeName());
                 UDTValue udtValue = usertype.newValue();

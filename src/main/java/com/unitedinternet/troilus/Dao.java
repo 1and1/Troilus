@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 
 public interface Dao {
-
+    
     Dao withConsistency(ConsistencyLevel consistencyLevel);
 
     Dao withSerialConsistency(ConsistencyLevel consistencyLevel);

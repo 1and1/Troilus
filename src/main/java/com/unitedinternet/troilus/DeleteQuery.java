@@ -27,6 +27,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.Deletion;
 
 
@@ -77,34 +78,16 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         if (whereConditions.isEmpty()) {
             ifConditions.forEach(condition -> delete.onlyIf(condition));
             
-            Delete.Where where = null;
-            
-            if (!keyNameValuePairs.isEmpty()) {
-                for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
-                    if (where == null) {
-                        where = delete.where(whereClause);
-                    } else {
-                        where = where.and(whereClause);
-                    }
-                }
-            }
+            ImmutableSet<Clause> whereClauses = keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
+            whereClauses.forEach(whereClause -> delete.where(whereClause));
             
             return prepare(delete).bind(keyNameValuePairs.values().toArray());
 
             
         // where condition-based delete    
         } else {
-            Delete.Where where = null;
-            
             ifConditions.forEach(condition -> delete.onlyIf(condition));
-            
-            for (Clause whereClause : whereConditions) {
-                if (where == null) {
-                    where = delete.where(whereClause);
-                } else {
-                    where = where.and(whereClause);
-                }
-            }
+            whereConditions.forEach(whereClause -> delete.where(whereClause));
            
             return delete;
         }
@@ -114,13 +97,11 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     @Override
     public CompletableFuture<Result> executeAsync() {
         return super.executeAsync().thenApply(result -> {
-            if (!ifConditions.isEmpty()) {
-                    // check cas result column '[applied]'
-                    if (!result.wasApplied()) {
-                        throw new IfConditionException("if condition does not match");  
-                    }
-                } 
-                return result;
-            });
+                                                            // check cas result column '[applied]'
+                                                            if (!ifConditions.isEmpty() && !result.wasApplied()) {
+                                                                throw new IfConditionException("if condition does not match");  
+                                                            } 
+                                                            return result;
+                                                        });
     }
 }

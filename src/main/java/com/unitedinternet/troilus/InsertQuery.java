@@ -61,12 +61,10 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
 
     @Override
     protected Statement getStatement() {
-        // statement
         Insert insert = insertInto(getTable());
          
         List<Object> values = Lists.newArrayList();
         valuesToMutate.forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
-        
         
         if (ifNotExists) {
             insert.ifNotExists();
@@ -83,13 +81,11 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     @Override
     public CompletableFuture<Result> executeAsync() {
         return super.executeAsync().thenApply(result -> {
-                if (ifNotExists) {
-                    // check cas result column '[applied]'
-                    if (!result.wasApplied()) {
-                        throw new IfConditionException("duplicated entry");  
-                    }
-                } 
-                return result;
-            });
+                                                            // check cas result column '[applied]'
+                                                            if (ifNotExists && !result.wasApplied()) {
+                                                                throw new IfConditionException("duplicated entry");  
+                                                            } 
+                                                            return result;
+                                                        });
     }
 }

@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Count;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 
@@ -35,9 +35,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testSimpleTable() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        Dao usersDao = daoManager.getDao(UsersTable.TABLE)
+        Dao usersDao = new DaoImpl(getSession(), UsersTable.TABLE)
                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         

@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 
 
@@ -24,9 +24,7 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testSimpleTable() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        Dao customersDao = daoManager.getDao(CustomersTable.TABLE)
+        Dao customersDao = new DaoImpl(getSession(), CustomersTable.TABLE)
                                      .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         

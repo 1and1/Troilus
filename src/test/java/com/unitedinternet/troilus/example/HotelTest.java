@@ -14,13 +14,14 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
@@ -31,11 +32,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testExample() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        
+                
         // create dao
-        Dao hotelsDao = daoManager.getDao(HotelsTable.TABLE)
+        Dao hotelsDao = new DaoImpl(getSession(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
                                   .withSerialConsistency(ConsistencyLevel.SERIAL);
         

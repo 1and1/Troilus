@@ -3,6 +3,7 @@ package com.unitedinternet.troilus.api;
 
 
 import java.util.Map;
+
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -12,7 +13,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoManager;
+import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 
 
@@ -22,9 +23,7 @@ public class WideRowTest extends AbstractCassandraBasedTest {
     
     @Test
     public void testIdsTable() throws Exception {
-        DaoManager daoManager = new DaoManager(getSession());
-
-        Dao userDao = daoManager.getDao(IdsTable.TABLE)
+        Dao userDao = new DaoImpl(getSession(), IdsTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
         
         // insert

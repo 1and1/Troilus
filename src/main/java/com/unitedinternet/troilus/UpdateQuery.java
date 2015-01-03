@@ -136,11 +136,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public UpdateQuery removeSetValue(String name, Object value) {
         ImmutableSet<Object> values = setValuesToRemove.get(name);
-        if (values == null) {
-            values = ImmutableSet.of(value);
-        } else {
-            values = Immutables.merge(values, value);
-        }
+        values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
         
         return newUpdateQuery(keys, 
                               whereConditions, 
@@ -158,12 +154,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public UpdateQuery addSetValue(String name, Object value) {
         ImmutableSet<Object> values = setValuesToAdd.get(name);
-        if (values == null) {
-            values = ImmutableSet.of(value);
-        } else {
-            values = Immutables.merge(values, value);
-        }
-
+        values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
+        
         return newUpdateQuery(keys, 
                               whereConditions, 
                               valuesToMutate, 
@@ -180,11 +172,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public Write prependListValue(String name, Object value) {
         ImmutableList<Object> values = listValuesToPrepend.get(name);
-        if (values == null) {
-            values = ImmutableList.of(value);
-        } else {
-            values = Immutables.merge(values, value);
-        }
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
         
         return newUpdateQuery(keys, 
                               whereConditions, 
@@ -203,11 +191,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public Write appendListValue(String name, Object value) {
         ImmutableList<Object> values = listValuesToAppend.get(name);
-        if (values == null) {
-            values = ImmutableList.of(value);
-        } else {
-            values = Immutables.merge(values, value);
-        }
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
         
         return newUpdateQuery(keys, 
                               whereConditions, 
@@ -226,11 +210,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public Write removeListValue(String name, Object value) {
         ImmutableList<Object> values = listValuesToRemove.get(name);
-        if (values == null) {
-            values = ImmutableList.of(value);
-        } else {
-            values = Immutables.merge(values, value);
-        }
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
         
         return newUpdateQuery(keys, 
                               whereConditions, 
@@ -249,11 +229,7 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     @Override
     public Write putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = mapValuesToMutate.get(name);
-        if (values == null) {
-            values = ImmutableMap.of(key, toOptional(value));
-        } else {
-            values = Immutables.merge(values, key, toOptional(value));
-        }
+        values = (values == null) ? ImmutableMap.of(key, toOptional(value)) : Immutables.merge(values, key, toOptional(value));
         
         return newUpdateQuery(keys, 
                               whereConditions, 
@@ -299,100 +275,58 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         
         // key-based update
         if (whereConditions.isEmpty()) {
-            
             List<Object> values = Lists.newArrayList();
             
             valuesToMutate.forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
 
-            if (!setValuesToAdd.isEmpty()) {
-                setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            }
-            if (!setValuesToRemove.isEmpty()) {
-                setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            }
+            setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            
+            listValuesToPrepend.forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            listValuesToAppend.forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            listValuesToRemove.forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
 
-            if (!listValuesToPrepend.isEmpty()) {
-                listValuesToPrepend.forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            }
-            if (!listValuesToAppend.isEmpty()) {
-                listValuesToAppend.forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            }
-            if (!listValuesToRemove.isEmpty()) {
-                listValuesToRemove.forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            }
-
-            if (!mapValuesToMutate.isEmpty()) {
-                mapValuesToMutate.forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
-            }
-
+            mapValuesToMutate.forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
             
             
             keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
             
-            
             ifConditions.forEach(condition -> update.onlyIf(condition));
-   
-            getTtl().ifPresent(ttl-> {
-                                        update.using(QueryBuilder.ttl(bindMarker()));
-                                        values.add((int) ttl.getSeconds());
-                                     });
+            getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
             
-            PreparedStatement stmt = prepare(update);
-            return stmt.bind(values.toArray());
+            return prepare(update).bind(values.toArray());
 
             
         // where condition-based update
         } else {
             valuesToMutate.forEach((name, optionalValue) -> update.with(set(name, toStatementValue(name, optionalValue.orElse(null)))));
         
-            if (!setValuesToAdd.isEmpty()) {
-                setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
-            }
-            if (!setValuesToRemove.isEmpty()) {
-                  setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
-            }
+            setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
+            setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
   
-            if (!listValuesToPrepend.isEmpty()) {
-                listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
-            }
-            if (!listValuesToAppend.isEmpty()) {
-                listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
-            }
-            if (!listValuesToRemove.isEmpty()) {
-                listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
-            }
+            listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
+            listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
+            listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
             
-            if (!mapValuesToMutate.isEmpty()) {
-                mapValuesToMutate.forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
-            }
-            
+            mapValuesToMutate.forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
+
             getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
-            
-            com.datastax.driver.core.querybuilder.Update.Where where = null;
-            
-            for (Clause whereClause : whereConditions) {
-                if (where == null) {
-                    where = update.where(whereClause);
-                } else {
-                    where = where.and(whereClause);
-                }
-            }
+            whereConditions.forEach(whereClause -> update.where(whereClause));
             
             return update;
         }
     }
     
+    
     @Override
     public CompletableFuture<Result> executeAsync() {
         return super.executeAsync().thenApply(result ->  {
-            if (!ifConditions.isEmpty()) {
-                // check cas result column '[applied]'
-                if (!result.wasApplied()) {
-                    throw new IfConditionException("if condition does not match");  
-                }
-            } 
-            return result;
-        });
+                                                            // check cas result column '[applied]'
+                                                            if (!ifConditions.isEmpty() && !result.wasApplied()) {
+                                                                throw new IfConditionException("if condition does not match");  
+                                                            } 
+                                                            return result;
+                                                        });
     }
 }
 
