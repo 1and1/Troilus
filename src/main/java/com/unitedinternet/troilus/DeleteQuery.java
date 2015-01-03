@@ -38,8 +38,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     private final ImmutableList<Clause> ifConditions;
      
     
-  
-        
+      
     protected DeleteQuery(Context ctx, 
                           QueryFactory queryFactory,
                           ImmutableMap<String, Object> keyNameValuePairs, 

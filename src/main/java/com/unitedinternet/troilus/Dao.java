@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +42,8 @@ public interface Dao {
 
     Dao withDisableTracking();
 
+    Dao withRetryPolicy(RetryPolicy policy);
+        
     
     
     public interface Query<T> {
@@ -66,6 +69,8 @@ public interface Dao {
         Q withEnableTracking();
 
         Q withDisableTracking();
+        
+        Q withRetryPolicy(RetryPolicy policy);
     }
 
     

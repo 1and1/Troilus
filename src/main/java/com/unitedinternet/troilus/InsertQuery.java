@@ -39,13 +39,8 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     private final ImmutableMap<String, Optional<Object>> valuesToMutate;
     private final boolean ifNotExists;
 
-    
-    public InsertionQuery(Context ctx, QueryFactory queryFactory, Object entity, boolean ifNotExists) {
-        this(ctx, queryFactory, ctx.toValues(entity), ifNotExists);
-    }
-        
-
-    
+  
+  
     public InsertionQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
         super(ctx, queryFactory);
         this.valuesToMutate = valuesToMutate;

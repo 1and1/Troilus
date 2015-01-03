@@ -15,7 +15,6 @@
  */
 package com.unitedinternet.troilus;
 
-import io.netty.channel.udt.UdtMessage;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -30,18 +29,15 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Deletion;
-import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.Dao.UpdateWithValues;
-import com.unitedinternet.troilus.Dao.Write;
 import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
 import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
 import com.unitedinternet.troilus.ReadQuery.ListEntityReadQuery;
@@ -78,16 +74,6 @@ abstract class AbstractQuery<Q> {
                                               queryFactory, 
                                               valuesToMutate,
                                               ifNotExists);
-    }
-    
-    
-    protected Insertion newInsertionQuery(Object entity) {
-        return queryFactory.newInsertionQuery(ctx, queryFactory, entity);
-    }
-    
-    
-    protected Insertion newInsertionQuery(Context ctx,  Object entity) {
-        return queryFactory.newInsertionQuery(ctx, queryFactory, entity);
     }
     
 
@@ -263,7 +249,12 @@ abstract class AbstractQuery<Q> {
     public Q withDisableTracking() {
         return newQuery(ctx.withDisableTracking());
     }
- 
+    
+    public Q withRetryPolicy(RetryPolicy policy) {
+        return newQuery(ctx.withRetryPolicy(policy));
+    }
+    
+
     
     abstract protected Q newQuery(Context newContext);
     
@@ -273,8 +264,7 @@ abstract class AbstractQuery<Q> {
         return UDTValueMapper.toUdtValue(ctx, datatype, value);
     }
         
-    
-    
+      
     protected String getTable() {
         return ctx.getTable();
     }
@@ -294,23 +284,12 @@ abstract class AbstractQuery<Q> {
     }
 
     
-    public <T> Optional<T> toOptional(T obj) {
+    protected <T> Optional<T> toOptional(T obj) {
         return ctx.toOptional(obj);
     }
-    
- 
-    public boolean isOptional(Object obj) {
-        if (obj == null) {
-            return false;
-        } else {
-            return (Optional.class.isAssignableFrom(obj.getClass()));
-        }
-    }
-    
-    
 
-    public boolean isBuildInType(DataType dataType) {
-        
+
+    protected boolean isBuildInType(DataType dataType) {        
         if (dataType.isCollection()) {
             for (DataType type : dataType.getTypeArguments()) {
                 if (!isBuildinType(type)) {
@@ -341,20 +320,19 @@ abstract class AbstractQuery<Q> {
         return ctx.performAsync(statement);
     }
 
-    
     protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
         return ctx.fromValues(clazz, datasource);
     }
 
-    public Optional<ConsistencyLevel> getConsistencyLevel() {
+    protected Optional<ConsistencyLevel> getConsistencyLevel() {
         return ctx.getConsistencyLevel();
     }
 
-    public Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
         return ctx.getSerialConsistencyLevel();
     }
 
-    public Optional<Duration> getTtl() {
+    protected Optional<Duration> getTtl() {
         return ctx.getTtl();
     }
 }

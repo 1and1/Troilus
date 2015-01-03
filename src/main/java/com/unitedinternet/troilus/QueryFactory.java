@@ -22,9 +22,7 @@ import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.ListRead;
-import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
 import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
@@ -49,11 +47,13 @@ interface QueryFactory {
                                ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
                                ImmutableList<Clause> ifConditions);
+  
     
-    @Deprecated
-    Insertion newInsertionQuery(Context ctx, QueryFactory queryFactory, Object entity);
+    InsertionQuery newInsertionQuery(Context ctx, 
+                                     QueryFactory queryFactory, 
+                                     ImmutableMap<String, Optional<Object>> valuesToMutate, 
+                                     boolean ifNotExists);
     
-    InsertionQuery newInsertionQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists);
     
     DeleteQuery newDeleteQuery(Context ctx, 
                                QueryFactory queryFactory,

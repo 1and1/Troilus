@@ -33,6 +33,7 @@ import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UserType;
+import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -102,6 +103,7 @@ class Context  {
     }
  
 
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> toOptional(T obj) {
         if (obj == null) {
             return Optional.empty();
@@ -173,6 +175,10 @@ class Context  {
         return new Context(session, entityMapper, table, executionSpec.withDisableTracking());        
     }
     
+    public Context withRetryPolicy(RetryPolicy policy) {
+        return new Context(session, entityMapper, table, executionSpec.withRetryPolicy(policy));        
+    }
+    
 
     public Optional<ConsistencyLevel> getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
@@ -210,8 +216,7 @@ class Context  {
                                                                     statement.disableTracing(); 
                                                                 }
                                                              });
-        
-        
+        executionSpec.getRetryPolicy().ifPresent(policy -> statement.setRetryPolicy(policy));
         
         ResultSetFuture rsFuture = session.executeAsync(statement);
         return new CompletableDbFuture(rsFuture);
@@ -247,10 +252,12 @@ class Context  {
         private final Optional<Duration> ttl;
         private final Optional<Long> writetimeMicrosSinceEpoch;
         private final Optional<Boolean> enableTracing;
+        private final Optional<RetryPolicy> retryPolicy;
         
     
         public ExecutionSpec() {
             this(Optional.empty(), 
+                 Optional.empty(),
                  Optional.empty(),
                  Optional.empty(),
                  Optional.empty(),
@@ -262,12 +269,14 @@ class Context  {
                              Optional<ConsistencyLevel> serialConsistencyLevel,
                              Optional<Duration> ttl,
                              Optional<Long> writetimeMicrosSinceEpoch,
-                             Optional<Boolean> enableTracking) {
+                             Optional<Boolean> enableTracking,
+                             Optional<RetryPolicy> retryPolicy) {
             this.consistencyLevel = consistencyLevel;
             this.serialConsistencyLevel = serialConsistencyLevel;
             this.ttl = ttl;
             this.writetimeMicrosSinceEpoch = writetimeMicrosSinceEpoch;
             this.enableTracing = enableTracking;
+            this.retryPolicy = retryPolicy;
         }
         
     
@@ -276,7 +285,8 @@ class Context  {
                                      this.serialConsistencyLevel,
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing);
+                                     this.enableTracing,
+                                     this.retryPolicy);
         }
     
         
@@ -286,7 +296,8 @@ class Context  {
                                      Optional.of(consistencyLevel),
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing);
+                                     this.enableTracing,
+                                     this.retryPolicy);
         }
     
         
@@ -295,7 +306,8 @@ class Context  {
                                      this.serialConsistencyLevel,
                                      Optional.of(ttl),
                                      this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing);
+                                     this.enableTracing,
+                                     this.retryPolicy);
         }
     
         
@@ -304,7 +316,8 @@ class Context  {
                                      this.serialConsistencyLevel,
                                      this.ttl,
                                      Optional.of(microsSinceEpoch),
-                                     this.enableTracing);
+                                     this.enableTracing,
+                                     this.retryPolicy);
         }
 
         
@@ -313,7 +326,8 @@ class Context  {
                                      this.serialConsistencyLevel,
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
-                                     Optional.of(true));
+                                     Optional.of(true),
+                                     this.retryPolicy);
         }
 
         ExecutionSpec withDisableTracking() {
@@ -321,7 +335,18 @@ class Context  {
                                      this.serialConsistencyLevel,
                                      this.ttl,
                                      this.writetimeMicrosSinceEpoch,
-                                     Optional.of(false));
+                                     Optional.of(false),
+                                     this.retryPolicy);
+        }
+
+        
+        ExecutionSpec withRetryPolicy(RetryPolicy policy) {
+            return new ExecutionSpec(this.consistencyLevel,
+                                     this.serialConsistencyLevel,
+                                     this.ttl,
+                                     this.writetimeMicrosSinceEpoch,
+                                     this.enableTracing,
+                                     Optional.of(policy));
         }
 
         public Optional<ConsistencyLevel> getConsistencyLevel() {
@@ -346,6 +371,10 @@ class Context  {
 
         public Optional<Boolean> getEnableTracing() {
             return enableTracing;
+        }
+        
+        public Optional<RetryPolicy> getRetryPolicy() {
+            return retryPolicy;
         }
     }
     

@@ -96,6 +96,11 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     }
     
     
+    public InsertionQuery entity(Object entity) {
+        return newInsertionQuery(toValues(entity), false);
+    }
+    
+        
     
     @Override
     public UpdateQuery value(String name, Object value) {
