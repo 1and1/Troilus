@@ -123,14 +123,9 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
         
         
         Select select = selection.from(getTable());
-        Select.Where where = null;
-        for (Clause whereClause : keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet())) {
-            if (where == null) {
-                where = select.where(whereClause);
-            } else {
-                where = where.and(whereClause);
-            }
-        }
+        
+        ImmutableSet<Clause> whereConditions = keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
+        whereConditions.forEach(whereCondition -> select.where(whereCondition));
 
         Statement statement = prepare(select).bind(keyNameValuePairs.values().toArray());
         

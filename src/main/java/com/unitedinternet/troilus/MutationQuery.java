@@ -93,30 +93,21 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         return m;
     }
     
-    protected Object toStatementValue(String name, Object value) {
-        if (value == null) {
-            return value;
-        }
     
-        // map empty collection to null
-        if (Collection.class.isAssignableFrom(value.getClass())) {
-            if (((Collection<?>) value).isEmpty()) {
-                return null;
-            }
-        }
-        if (Map.class.isAssignableFrom(value.getClass())) {
-            if (((Map<?, ?>) value).isEmpty()) {
-                return null;
-            }
+    protected Object toStatementValue(String name, Object value) {
+        if (isNullOrEmpty(value)) {
+            return null;
         } 
         
-        
         DataType dataType = getColumnMetadata(name).getType();
-        if (isBuildInType(dataType)) {
-            return value;
-        } else {
-            return toUdtValue(getColumnMetadata(name).getType(), value);
-        }
+        return (isBuildInType(dataType)) ? value : toUdtValue(getColumnMetadata(name).getType(), value);
+    }
+
+    
+    private boolean isNullOrEmpty(Object value) {
+        return (value == null) || 
+               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
+               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
 }
 
