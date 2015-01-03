@@ -6,5 +6,6 @@ CREATE TABLE users (
                     modified bigint, 
                     phone_numbers set<text>,
                     addresses list<text>,
+                    roles map<text, text>,
                     PRIMARY KEY (user_id)
                    );

@@ -40,24 +40,14 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     private final boolean ifNotExists;
 
     
-
-    protected static Insertion newInsertionQuery(Context ctx, Object entity) {
-        return new InsertionQuery(ctx, entity, false);
-    }
-    
-    protected static InsertionQuery newInsertionQuery(Context ctx, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
-        return new InsertionQuery(ctx, valuesToMutate, ifNotExists);
-    }
-   
-    
-    public InsertionQuery(Context ctx, Object entity, boolean ifNotExists) {
-        this(ctx, ctx.toValues(entity), ifNotExists);
+    public InsertionQuery(Context ctx, QueryFactory queryFactory, Object entity, boolean ifNotExists) {
+        this(ctx, queryFactory, ctx.toValues(entity), ifNotExists);
     }
         
 
     
-    public InsertionQuery(Context ctx, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
-        super(ctx);
+    public InsertionQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
+        super(ctx, queryFactory);
         this.valuesToMutate = valuesToMutate;
         this.ifNotExists = ifNotExists;
     }
@@ -71,7 +61,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     
     @Override
     public Mutation<?> ifNotExits() {
-        return newInsertionQuery(getContext(), valuesToMutate, true);
+        return newInsertionQuery(valuesToMutate, true);
     }
 
 
@@ -79,7 +69,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     protected Statement getStatement() {
         // statement
         Insert insert = insertInto(getTable());
-        
+         
         List<Object> values = Lists.newArrayList();
         valuesToMutate.forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
         

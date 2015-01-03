@@ -104,6 +104,7 @@ public class Hotel  {
 }
 ```
 
+
 ### updating values
 ``` java
 hotelsDao.writeWithKey("id","BUP932432")

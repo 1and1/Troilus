@@ -19,7 +19,8 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
@@ -28,16 +29,18 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.Dao.BatchMutation;
+
 
 
  
 abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
-    public MutationQuery(Context ctx) {
-        super(ctx);
+    public MutationQuery(Context ctx, QueryFactory queryFactory) {
+        super(ctx, queryFactory);
     }
     
     
@@ -56,7 +59,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
        
 
     public BatchMutation combinedWith(Batchable other) {
-        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+        return newBatchMutationQuery(Type.LOGGED, ImmutableList.of(this, other));
     }
     
     
@@ -82,6 +85,13 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
     }
   
+    protected Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
+        Map<Object, Object> m = Maps.newHashMap();
+        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
+            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
+        }
+        return m;
+    }
     
     protected Object toStatementValue(String name, Object value) {
         if (value == null) {
@@ -105,7 +115,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         if (isBuildInType(dataType)) {
             return value;
         } else {
-            return UDTValueMapper.toUdtValue(getContext(), getColumnMetadata(name).getType(), value);
+            return toUdtValue(getColumnMetadata(name).getType(), value);
         }
     }
 }

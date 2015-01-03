@@ -15,6 +15,8 @@
  */
 package com.unitedinternet.troilus;
 
+import io.netty.channel.udt.UdtMessage;
+
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -27,25 +29,229 @@ import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UserType;
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Deletion;
+import com.unitedinternet.troilus.Dao.Insertion;
+import com.unitedinternet.troilus.Dao.ListRead;
+import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
+import com.unitedinternet.troilus.Dao.UpdateWithValues;
+import com.unitedinternet.troilus.Dao.Write;
+import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
+import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
+import com.unitedinternet.troilus.ReadQuery.ListEntityReadQuery;
+import com.unitedinternet.troilus.ReadQuery.ListReadQuery;
+import com.unitedinternet.troilus.ReadQuery.SingleEntityReadQuery;
+import com.unitedinternet.troilus.ReadQuery.SingleReadQuery;
 
 
  
 abstract class AbstractQuery<Q> {
     
     private final Context ctx;
+    private final QueryFactory queryFactory;
+    
+    public AbstractQuery(Context ctx, QueryFactory queryFactory) {
+        this.ctx = ctx;
+        this.queryFactory = queryFactory;
+    }
+    
+    
+    protected InsertionQuery newInsertionQuery(ImmutableMap<String, Optional<Object>> valuesToMutate,
+                                               boolean ifNotExists) {
+        return queryFactory.newInsertionQuery(ctx, 
+                                              queryFactory, 
+                                              valuesToMutate,
+                                              ifNotExists);
+    }
+    
+    
+    protected InsertionQuery newInsertionQuery(Context ctx,
+                                               ImmutableMap<String, Optional<Object>> valuesToMutate,
+                                               boolean ifNotExists) {
+        return queryFactory.newInsertionQuery(ctx, 
+                                              queryFactory, 
+                                              valuesToMutate,
+                                              ifNotExists);
+    }
+    
+    
+    protected Insertion newInsertionQuery(Object entity) {
+        return queryFactory.newInsertionQuery(ctx, queryFactory, entity);
+    }
+    
+    
+    protected Insertion newInsertionQuery(Context ctx,  Object entity) {
+        return queryFactory.newInsertionQuery(ctx, queryFactory, entity);
+    }
+    
+
+
+    protected UpdateQuery newUpdateQuery(Context ctx,
+                                         ImmutableMap<String, Object> keys,
+                                         ImmutableList<Clause> whereConditions,
+                                         ImmutableMap<String, Optional<Object>> valuesToMutate,
+                                         ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
+                                         ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToAppend,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
+                                         ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                         ImmutableList<Clause> ifConditions) {
+        return queryFactory.newUpdateQuery(ctx,
+                                           queryFactory,
+                                           keys, 
+                                           whereConditions,
+                                           valuesToMutate, 
+                                           setValuesToAdd,
+                                           setValuesToRemove, 
+                                           listValuesToAppend,
+                                           listValuesToPrepend,
+                                           listValuesToRemove,
+                                           mapValuesToMutate, 
+                                           ifConditions);
+    }
+  
+
+    protected UpdateQuery newUpdateQuery(ImmutableMap<String, Object> keys,
+                                         ImmutableList<Clause> whereConditions,
+                                         ImmutableMap<String, Optional<Object>> valuesToMutate,
+                                         ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
+                                         ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToAppend,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
+                                         ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
+                                         ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                         ImmutableList<Clause> ifConditions) {
+        return queryFactory.newUpdateQuery(ctx,
+                                           queryFactory,
+                                           keys, 
+                                           whereConditions,
+                                           valuesToMutate, 
+                                           setValuesToAdd,
+                                           setValuesToRemove, 
+                                           listValuesToAppend,
+                                           listValuesToPrepend,
+                                           listValuesToRemove,
+                                           mapValuesToMutate, 
+                                           ifConditions);
+    }
+ 
+    
+    
+    protected Deletion newDeleteQuery(Context ctx, 
+                                      ImmutableMap<String, Object> keyNameValuePairs, 
+                                      ImmutableList<Clause> whereConditions, 
+                                      ImmutableList<Clause> ifConditions) {
+        return queryFactory.newDeleteQuery(ctx, queryFactory, keyNameValuePairs, whereConditions, ifConditions);
+    }
 
     
-    public AbstractQuery(Context ctx) {
-        this.ctx = ctx;
+    protected Deletion newDeleteQuery(ImmutableMap<String, Object> keyNameValuePairs, 
+                                      ImmutableList<Clause> whereConditions, 
+                                      ImmutableList<Clause> ifConditions) {
+        return queryFactory.newDeleteQuery(ctx, queryFactory, keyNameValuePairs, whereConditions, ifConditions);
     }
+
+
+    protected  BatchMutationQuery newBatchMutationQuery(Context ctx,
+                                                        Type type,
+                                                        ImmutableList<Batchable> batchables) {
+        return queryFactory.newBatchMutationQuery(ctx, queryFactory, type, batchables);
+    } 
+    
+    protected  BatchMutationQuery newBatchMutationQuery(Type type,
+                                                        ImmutableList<Batchable> batchables) {
+        return queryFactory.newBatchMutationQuery(ctx, queryFactory, type, batchables);
+    }
+
+    
+    protected SingleReadQuery newSingleReadQuery(Context ctx, 
+                                                 ImmutableMap<String, Object> keyNameValuePairs, 
+                                                 Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+        return queryFactory.newSingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
+    }
+    
+
+    protected SingleReadQuery newSingleReadQuery(ImmutableMap<String, Object> keyNameValuePairs, 
+                                                 Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+        return queryFactory.newSingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
+    }
+    
+    
+    protected <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(SingleReadWithUnit<Optional<Record>> read, 
+                                                                    Class<?> clazz) {
+        return queryFactory.newSingleEntityReadQuery(ctx, queryFactory, read, clazz); 
+    }
+
+    protected <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(Context ctx, 
+                                                                    SingleReadWithUnit<Optional<Record>> read, 
+                                                                    Class<?> clazz) {
+        return queryFactory.newSingleEntityReadQuery(ctx, queryFactory, read, clazz); 
+    }
+    
+    protected ListReadQuery newListReadQuery(Context ctx,
+                                             ImmutableSet<Clause> clauses, 
+                                             Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                             Optional<Integer> optionalLimit, 
+                                             Optional<Boolean> optionalAllowFiltering,
+                                             Optional<Integer> optionalFetchSize,
+                                             Optional<Boolean> optionalDistinct) {
+        return queryFactory.newListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+    
+    
+
+    protected ListReadQuery newListReadQuery(ImmutableSet<Clause> clauses, 
+                                             Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                             Optional<Integer> optionalLimit, 
+                                             Optional<Boolean> optionalAllowFiltering,
+                                             Optional<Integer> optionalFetchSize,
+                                             Optional<Boolean> optionalDistinct) {
+        return queryFactory.newListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+    
+    
+    protected <E> ListEntityReadQuery<E> newListEntityReadQuery(Context ctx,
+                                                                ListRead<RecordList> read, Class<?> clazz) {
+        return queryFactory.newListEntityReadQuery(ctx, queryFactory, read, clazz);
+    }
+    
+
+    protected <E> ListEntityReadQuery<E> newListEntityReadQuery(ListRead<RecordList> read, Class<?> clazz) {
+        return queryFactory.newListEntityReadQuery(ctx, queryFactory, read, clazz);
+    }
+    
+    
+    protected CountReadQuery newCountReadQuery(Context ctx, 
+                                               ImmutableSet<Clause> clauses, 
+                                               Optional<Integer> optionalLimit, 
+                                               Optional<Boolean> optionalAllowFiltering,
+                                               Optional<Integer> optionalFetchSize,
+                                               Optional<Boolean> optionalDistinct) {
+        return queryFactory.newCountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+
+
+    protected CountReadQuery newCountReadQuery(ImmutableSet<Clause> clauses, 
+                                               Optional<Integer> optionalLimit, 
+                                               Optional<Boolean> optionalAllowFiltering,
+                                               Optional<Integer> optionalFetchSize,
+                                               Optional<Boolean> optionalDistinct) {
+        return queryFactory.newCountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+    }
+
     
     @Deprecated
     protected Context getContext() {
         return ctx; 
     }
-    
+  
     public Q withConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(ctx.withConsistency(consistencyLevel));
     }
@@ -61,6 +267,12 @@ abstract class AbstractQuery<Q> {
     
     abstract protected Q newQuery(Context newContext);
     
+    
+    
+    protected Object toUdtValue(DataType datatype, Object value) {
+        return UDTValueMapper.toUdtValue(ctx, datatype, value);
+    }
+        
     
     
     protected String getTable() {

@@ -53,60 +53,23 @@ import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 
 abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
      
-   
-    static SingleReadWithUnit<Optional<Record>> newSingleReadQuery(Context ctx, 
-                                                                   ImmutableMap<String, Object> keyNameValuePairs, 
-                                                                   Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
-        return new SingleReadQuery(ctx, keyNameValuePairs, optionalColumnsToFetch);
-    }
     
-    
-    static <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(Context ctx, SingleReadWithUnit<Optional<Record>> read, Class<? >clazz) {
-        return new SingleEntityReadQuery<>(ctx, read, clazz);
-    }
-    
-    
-    static ListReadWithUnit<RecordList> newListReadQuery(Context ctx,
-                                                         ImmutableSet<Clause> clauses, 
-                                                         Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
-                                                         Optional<Integer> optionalLimit, 
-                                                         Optional<Boolean> optionalAllowFiltering,
-                                                         Optional<Integer> optionalFetchSize,
-                                                         Optional<Boolean> optionalDistinct) {
-        return new ListReadQuery(ctx, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
-    }
-    
-    static <E> ListRead<EntityList<E>> newListEntityReadQuery(Context ctx, ListRead<RecordList> read, Class<?> clazz) {
-        return new ListEntityReadQuery<>(ctx, read, clazz);
-    }
-
-    
-    static ListRead<Count> newCountReadQuery(Context ctx, 
-                                             ImmutableSet<Clause> clauses, 
-                                             Optional<Integer> optionalLimit, 
-                                             Optional<Boolean> optionalAllowFiltering,
-                                             Optional<Integer> optionalFetchSize,
-                                             Optional<Boolean> optionalDistinct) {
-        return new CountReadQuery(ctx, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct); 
-    }
-    
-    public ReadQuery(Context ctx) {
-        super(ctx);
+    public ReadQuery(Context ctx, QueryFactory queryFactory) {
+        super(ctx, queryFactory);
     }
     
     
     
-    
-    
-    private static class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
+     
+    static class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
         private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
 
         private final ImmutableMap<String, Object> keyNameValuePairs;
         private final Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch;
          
         
-        public SingleReadQuery(Context ctx, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
-            super(ctx);
+        public SingleReadQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+            super(ctx, queryFactory);
             this.keyNameValuePairs = keyNameValuePairs;
             this.optionalColumnsToFetch = optionalColumnsToFetch;
         }
@@ -114,27 +77,27 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         protected SingleReadQuery newQuery(Context newContext) {
-            return new SingleReadQuery(newContext, keyNameValuePairs, optionalColumnsToFetch);
+            return newSingleReadQuery(newContext, keyNameValuePairs, optionalColumnsToFetch);
         }
         
         @Override
         public SingleRead<Optional<Record>> all() {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Optional.empty());
+            return newSingleReadQuery(keyNameValuePairs, Optional.empty());
         }
         
         @Override
         public <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass) {
-            return new SingleEntityReadQuery<>(getContext(), this, objectClass);
+            return newSingleEntityReadQuery(this, objectClass);
         }
         
         @Override
         public SingleReadWithUnit<Optional<Record>> column(String name) {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, false, false)));
+            return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, false, false)));
         }
     
         @Override
         public SingleReadWithColumns<Optional<Record>> columnWithMetadata(String name) {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, true, true)));
+            return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, true, true)));
         }
         
         @Override
@@ -144,7 +107,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override 
         public SingleReadWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
-            return new SingleReadQuery(getContext(), keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(namesToRead)));
+            return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(namesToRead)));
         }
       
        
@@ -198,7 +161,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
                                                   } else {
                                                       Record record = new Record(getContext(), Result.newResult(resultSet), row);
                                                       
-                                                      // paranioa check
+                                                      // paranoia check
                                                       keyNameValuePairs.forEach((name, value) -> { 
                                                                                                   ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
                                                                                                   ByteBuffer out = record.getBytesUnsafe(name).get();
@@ -221,12 +184,12 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
     
     
     
-    private static class SingleEntityReadQuery<E> extends ReadQuery<SingleEntityReadQuery<E>> implements SingleRead<Optional<E>> {
+    static class SingleEntityReadQuery<E> extends ReadQuery<SingleEntityReadQuery<E>> implements SingleRead<Optional<E>> {
         private final Class<?> clazz;
         private final SingleReadWithUnit<Optional<Record>> read;
         
-        public SingleEntityReadQuery(Context ctx, SingleReadWithUnit<Optional<Record>> read, Class<?> clazz) {
-            super(ctx);
+        public SingleEntityReadQuery(Context ctx, QueryFactory queryFactory, SingleReadWithUnit<Optional<Record>> read, Class<?> clazz) {
+            super(ctx, queryFactory);
             this.read = read;
             this.clazz = clazz;
         }
@@ -234,7 +197,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
 
         @Override
         protected SingleEntityReadQuery<E> newQuery(Context newContext) {
-            return new SingleEntityReadQuery(newContext, read, clazz);
+            return newSingleEntityReadQuery(newContext, read, clazz);
         }
         
             
@@ -257,7 +220,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
     
     
     
-    private static class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
+    static class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
         private final ImmutableSet<Clause> clauses;
         private final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
         private final Optional<Integer> optionalLimit;
@@ -267,13 +230,14 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
 
 
         public ListReadQuery(Context ctx,
+                             QueryFactory queryFactory,
                              ImmutableSet<Clause> clauses, 
                              Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
                              Optional<Integer> optionalLimit, 
                              Optional<Boolean> optionalAllowFiltering,
                              Optional<Integer> optionalFetchSize,
                              Optional<Boolean> optionalDistinct) {
-            super(ctx);
+            super(ctx, queryFactory);
             this.clauses = clauses;
             this.columnsToFetch = columnsToFetch;
             this.optionalLimit = optionalLimit;
@@ -286,32 +250,29 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         protected ListReadQuery newQuery(Context newContext) {
-            return new ListReadQuery(newContext, 
-                                                 clauses, 
-                                                 columnsToFetch,
-                                                 optionalLimit, 
-                                                 optionalAllowFiltering, 
-                                                 optionalFetchSize,
-                                                 optionalDistinct);
+            return newListReadQuery(clauses, 
+                                    columnsToFetch,
+                                    optionalLimit, 
+                                    optionalAllowFiltering, 
+                                    optionalFetchSize,
+                                    optionalDistinct);
         }
         
         
         @Override
         public ListRead<RecordList> all() {
-            return new ListReadQuery(getContext(), 
-                                                 clauses, 
-                                                 Optional.empty(),
-                                                 optionalLimit, 
-                                                 optionalAllowFiltering, 
-                                                 optionalFetchSize,
-                                                 optionalDistinct);
+            return newListReadQuery(clauses, 
+                                    Optional.empty(),
+                                    optionalLimit, 
+                                    optionalAllowFiltering, 
+                                    optionalFetchSize,
+                                    optionalDistinct);
         }
         
      
         @Override 
         public ListReadWithUnit<RecordList> columns(ImmutableCollection<String> namesToRead) {
-            return new ListReadQuery(getContext(), 
-                                    clauses, 
+            return newListReadQuery(clauses, 
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
                                     optionalLimit, 
                                     optionalAllowFiltering, 
@@ -323,8 +284,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         public ListReadWithUnit<RecordList> column(String name) {
-            return new ListReadQuery(getContext(), 
-                                    clauses,  
+            return newListReadQuery(clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, false, false)), 
                                     optionalLimit, 
                                     optionalAllowFiltering,
@@ -335,8 +295,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         public ListReadWithColumns<RecordList> columnWithMetadata(String name) {
-            return new ListReadQuery(getContext(), 
-                                    clauses,  
+            return newListReadQuery(clauses,  
                                     Immutables.merge(columnsToFetch, ColumnToFetch.create(name, true, true)), 
                                     optionalLimit, 
                                     optionalAllowFiltering,
@@ -347,8 +306,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
 
         @Override
         public ListRead<RecordList> withLimit(int limit) {
-            return new ListReadQuery(getContext(),
-                                    clauses, 
+            return newListReadQuery(clauses, 
                                     columnsToFetch, 
                                     Optional.of(limit), 
                                     optionalAllowFiltering, 
@@ -358,8 +316,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         public ListRead<RecordList> withAllowFiltering() {
-            return new ListReadQuery(getContext(), 
-                                    clauses, 
+            return newListReadQuery(clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
                                     Optional.of(true), 
@@ -369,10 +326,9 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
 
         @Override
         public ListRead<RecordList> withFetchSize(int fetchSize) {
-            return new ListReadQuery(getContext(), 
-                                    clauses, 
+            return newListReadQuery(clauses, 
                                     columnsToFetch, 
-                                    optionalLimit, 
+                                    optionalLimit,  
                                     optionalAllowFiltering, 
                                     Optional.of(fetchSize),
                                     optionalDistinct);
@@ -380,8 +336,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         public ListRead<RecordList> withDistinct() {
-            return new ListReadQuery(getContext(), 
-                                    clauses, 
+            return newListReadQuery(clauses, 
                                     columnsToFetch, 
                                     optionalLimit, 
                                     optionalAllowFiltering, 
@@ -392,8 +347,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
        
         @Override
         public ListRead<Count> count() {
-            return newCountReadQuery(getContext(),
-                                     clauses, 
+            return newCountReadQuery(clauses, 
                                      optionalLimit, 
                                      optionalAllowFiltering, 
                                      optionalFetchSize, 
@@ -403,7 +357,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
       
         @Override
         public <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass) {
-            return newListEntityReadQuery(getContext(), this, objectClass) ;
+            return newListEntityReadQuery(this, objectClass) ;
         }
 
         
@@ -458,39 +412,39 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
     
     
     
-    private static class ListEntityReadQuery<E> extends ReadQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
+    static class ListEntityReadQuery<E> extends ReadQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
         private final ListRead<RecordList> read;
         private final Class<?> clazz;
         
-        public ListEntityReadQuery(Context ctx, ListRead<RecordList> read, Class<?> clazz) {
-            super(ctx);
+        public ListEntityReadQuery(Context ctx, QueryFactory queryFactory, ListRead<RecordList> read, Class<?> clazz) {
+            super(ctx, queryFactory);
             this.read = read;
             this.clazz = clazz;
         }
 
         @Override
         protected ListEntityReadQuery<E> newQuery(Context newContext) {
-            return new ListEntityReadQuery(newContext, read, clazz);
+            return newListEntityReadQuery(newContext, read, clazz);
         }
 
         @Override
         public ListRead<EntityList<E>> withDistinct() {
-            return new ListEntityReadQuery(getContext(), read.withDistinct(), clazz);
+            return newListEntityReadQuery(read.withDistinct(), clazz);
         }
         
         @Override
         public ListRead<EntityList<E>> withFetchSize(int fetchSize) {
-            return new ListEntityReadQuery(getContext(), read.withFetchSize(fetchSize), clazz);
+            return newListEntityReadQuery(read.withFetchSize(fetchSize), clazz);
         }
         
         @Override
         public ListRead<EntityList<E>> withAllowFiltering() {
-            return new ListEntityReadQuery(getContext(), read.withAllowFiltering(), clazz);
+            return newListEntityReadQuery(read.withAllowFiltering(), clazz);
         }
         
         @Override
         public ListRead<EntityList<E>> withLimit(int limit) {
-            return new ListEntityReadQuery(getContext(), read.withLimit(limit), clazz);
+            return newListEntityReadQuery(read.withLimit(limit), clazz);
         }
 
         
@@ -513,7 +467,7 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
     
     
     
-    private static final class CountReadQuery extends ReadQuery<CountReadQuery> implements ListRead<Count> {
+    static final class CountReadQuery extends ReadQuery<CountReadQuery> implements ListRead<Count> {
         private final ImmutableSet<Clause> clauses;
         private final Optional<Integer> optionalLimit;
         private final Optional<Boolean> optionalAllowFiltering;
@@ -522,12 +476,13 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
 
 
         public CountReadQuery(Context ctx, 
+                              QueryFactory queryFactory,
                               ImmutableSet<Clause> clauses, 
                               Optional<Integer> optionalLimit, 
                               Optional<Boolean> optionalAllowFiltering,
                               Optional<Integer> optionalFetchSize,
                               Optional<Boolean> optionalDistinct) {
-            super(ctx);
+            super(ctx, queryFactory);
             this.clauses = clauses;
             this.optionalLimit = optionalLimit;
             this.optionalAllowFiltering = optionalAllowFiltering;
@@ -538,53 +493,49 @@ abstract class ReadQuery<Q extends ReadQuery<?>> extends AbstractQuery<Q> {
         
         @Override
         protected CountReadQuery newQuery(Context newContext) {
-            return new CountReadQuery(newContext, 
-                                             clauses, 
-                                             optionalLimit, 
-                                             optionalAllowFiltering, 
-                                             optionalFetchSize,
-                                             optionalDistinct);
+            return newCountReadQuery(newContext, 
+                                     clauses, 
+                                     optionalLimit, 
+                                     optionalAllowFiltering, 
+                                     optionalFetchSize,
+                                     optionalDistinct);
         }
         
         @Override
         public ListRead<Count> withLimit(int limit) {
-            return new CountReadQuery(getContext(),
-                                             clauses, 
-                                             Optional.of(limit), 
-                                             optionalAllowFiltering, 
-                                             optionalFetchSize,
-                                             optionalDistinct);
+            return newCountReadQuery(clauses, 
+                                     Optional.of(limit), 
+                                     optionalAllowFiltering, 
+                                     optionalFetchSize,
+                                     optionalDistinct);
         }
         
         
         @Override
         public ListRead<Count> withAllowFiltering() {
-            return new CountReadQuery(getContext(), 
-                                             clauses, 
-                                             optionalLimit, 
-                                             Optional.of(true), 
-                                             optionalFetchSize,
-                                             optionalDistinct);
+            return newCountReadQuery(clauses, 
+                                     optionalLimit, 
+                                     Optional.of(true), 
+                                     optionalFetchSize,
+                                     optionalDistinct);
         }
 
         @Override
         public ListRead<Count> withFetchSize(int fetchSize) {
-            return new CountReadQuery(getContext(), 
-                                             clauses, 
-                                             optionalLimit, 
-                                             optionalAllowFiltering, 
-                                             Optional.of(fetchSize),
-                                             optionalDistinct);
+            return newCountReadQuery(clauses, 
+                                     optionalLimit, 
+                                     optionalAllowFiltering, 
+                                     Optional.of(fetchSize),
+                                     optionalDistinct);
         }
         
         @Override
         public ListRead<Count> withDistinct() {
-            return new CountReadQuery(getContext(), 
-                                             clauses, 
-                                             optionalLimit, 
-                                             optionalAllowFiltering, 
-                                             optionalFetchSize,
-                                             Optional.of(true));
+            return newCountReadQuery(clauses, 
+                                     optionalLimit, 
+                                     optionalAllowFiltering, 
+                                     optionalFetchSize,
+                                     Optional.of(true));
         }
         
         

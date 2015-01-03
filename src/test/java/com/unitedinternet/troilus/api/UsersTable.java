@@ -15,7 +15,8 @@ public interface UsersTable  {
     public static final String ADDRESSES = "addresses";
     public static final String MODIFIED = "modified";
     public static final String PHONE_NUMBERS = "phone_numbers";
-    
+    public static final String ROLES = "roles";    
     
     public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/users.ddl");
  }
+

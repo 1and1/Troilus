@@ -38,20 +38,14 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     private final ImmutableList<Clause> ifConditions;
      
     
-    static Deletion newDeleteQuery(Context ctx, 
-                                   ImmutableMap<String, Object> keyNameValuePairs, 
-                                   ImmutableList<Clause> whereConditions, 
-                                   ImmutableList<Clause> ifConditions) {
-        return new DeleteQuery(ctx, keyNameValuePairs, whereConditions, ifConditions);
-    }
-    
-
-    
+  
+        
     protected DeleteQuery(Context ctx, 
+                          QueryFactory queryFactory,
                           ImmutableMap<String, Object> keyNameValuePairs, 
                           ImmutableList<Clause> whereConditions, 
                           ImmutableList<Clause> ifConditions) {
-        super(ctx);
+        super(ctx, queryFactory);
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.ifConditions = ifConditions;
@@ -60,7 +54,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
     @Override
     protected Deletion newQuery(Context newContext) {
-        return newDeleteQuery(newContext, 
+        return newDeleteQuery(newContext,
                               keyNameValuePairs, 
                               whereConditions, 
                               ifConditions);
@@ -69,8 +63,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     @Override
     public Deletion onlyIf(Clause... conditions) {
-        return newDeleteQuery(getContext(), 
-                              keyNameValuePairs, 
+        return newDeleteQuery(keyNameValuePairs, 
                               whereConditions, 
                               ImmutableList.copyOf(conditions));
     }

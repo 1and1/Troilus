@@ -16,6 +16,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Batchable;
@@ -445,6 +446,50 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("berlin", addrIt.next());
         Assert.assertFalse(addrIt.hasNext());
    
+        
+        
+        
+        
+        
+        // set map
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .value(UsersTable.ROLES, ImmutableMap.of("customer", "xe333"))
+                .execute();        
+        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
+        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("customer"));
+        
+        
+        
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .putMapValue(UsersTable.ROLES, "player_type1", "p14334")
+                .putMapValue(UsersTable.ROLES, "player_type2", "p233")
+                .execute();        
+        
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("customer"));
+        Assert.assertEquals("p14334", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("player_type1"));
+        Assert.assertEquals("p233", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("player_type2"));
+
+
+        
+   /* does not work
+        usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
+                .putMapValue(UsersTable.ROLES, "player_type1", null)
+                .execute();        
+
+        record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
+                         .execute()
+                         .get();
+                         */
+        
       }        
 }
 

@@ -34,36 +34,32 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     private final Type type;  
     
     
-    static BatchMutation newBatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
-        return new BatchMutationQuery(ctx, type, batchables);
-    }
   
-    
-    protected BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
-        super(ctx);
+    protected BatchMutationQuery(Context ctx, QueryFactory queryFactory, Type type, ImmutableList<Batchable> batchables) {
+        super(ctx, queryFactory);
         this.type = type;
         this.batchables = batchables;
     }
     
     @Override
     protected BatchMutation newQuery(Context newContext) {
-        return BatchMutationQuery.newBatchMutationQuery(newContext, type, batchables);
+        return newBatchMutationQuery(newContext, type, batchables);
     }
     
     
     @Override
     public Query<Result> withLockedBatchType() {
-        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.LOGGED, batchables);
+        return newBatchMutationQuery(Type.LOGGED, batchables);
     }
     
     @Override
     public Query<Result> withUnlockedBatchType() {
-        return BatchMutationQuery.newBatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
+        return newBatchMutationQuery(Type.UNLOGGED, batchables);
     }
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return BatchMutationQuery.newBatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
+        return newBatchMutationQuery(type, Immutables.merge(batchables, other));
     }
 
     @Override
