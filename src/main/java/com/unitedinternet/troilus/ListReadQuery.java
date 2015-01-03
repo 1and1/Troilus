@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
@@ -34,7 +35,7 @@ import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 
 public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     final ImmutableSet<Clause> clauses;
-    final Optional<ImmutableSet<ColumnToFetch>> columnsToFetch;
+    final Optional<ImmutableMap<String, Boolean>> columnsToFetch;
     final Optional<Integer> optionalLimit;
     final Optional<Boolean> optionalAllowFiltering;
     final Optional<Integer> optionalFetchSize;
@@ -44,7 +45,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     public ListReadQuery(Context ctx,
                          QueryFactory queryFactory,
                          ImmutableSet<Clause> clauses, 
-                         Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                         Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                          Optional<Integer> optionalLimit, 
                          Optional<Boolean> optionalAllowFiltering,
                          Optional<Integer> optionalFetchSize,
@@ -84,12 +85,11 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
  
     @Override 
     public ListReadQuery columns(ImmutableCollection<String> namesToRead) {
-        return newListReadQuery(clauses, 
-                                Immutables.merge(columnsToFetch, ColumnToFetch.create(namesToRead)), 
-                                optionalLimit, 
-                                optionalAllowFiltering, 
-                                optionalFetchSize,
-                                optionalDistinct);
+        ListReadQuery read = this;
+        for (String columnName : namesToRead) {
+            read = read.column(columnName);
+        }
+        return read;
     }
     
     
@@ -97,7 +97,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     @Override
     public ListReadQuery column(String name) {
         return newListReadQuery(clauses,  
-                                Immutables.merge(columnsToFetch, ColumnToFetch.create(name, false, false)), 
+                                Immutables.merge(columnsToFetch, name, false), 
                                 optionalLimit, 
                                 optionalAllowFiltering,
                                 optionalFetchSize,
@@ -108,7 +108,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     @Override
     public ListReadQuery columnWithMetadata(String name) {
         return newListReadQuery(clauses,  
-                                Immutables.merge(columnsToFetch, ColumnToFetch.create(name, true, true)), 
+                                Immutables.merge(columnsToFetch, name, true), 
                                 optionalLimit, 
                                 optionalAllowFiltering,
                                 optionalFetchSize,
@@ -192,7 +192,13 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
 
         
         if (columnsToFetch.isPresent()) {
-            columnsToFetch.get().forEach(column -> column.accept(selection));
+            columnsToFetch.get().forEach((columnName, withMetaData) -> {
+                                                                            selection.column(columnName);
+                                                                            if (withMetaData) {
+                                                                                selection.ttl(columnName);                                                                
+                                                                                selection.writeTime(columnName);
+                                                                            }
+                                                                       });
         } else {
             selection.all();
         }

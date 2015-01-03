@@ -87,7 +87,7 @@ public class DaoImpl implements Dao, QueryFactory {
     public SingleReadQuery newSingleReadQuery(Context ctx, 
                                               QueryFactory queryFactory,
                                               ImmutableMap<String, Object> keyNameValuePairs, 
-                                              Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+                                              Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         return new SingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
     }
     
@@ -95,7 +95,7 @@ public class DaoImpl implements Dao, QueryFactory {
     public ListReadQuery newListReadQuery(Context ctx,
                                           QueryFactory queryFactory, 
                                           ImmutableSet<Clause> clauses, 
-                                          Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                          Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                                           Optional<Integer> optionalLimit, 
                                           Optional<Boolean> optionalAllowFiltering,
                                           Optional<Integer> optionalFetchSize,
@@ -318,7 +318,7 @@ public class DaoImpl implements Dao, QueryFactory {
         return newSingleReadQuery(ctx, 
                                   this,
                                   ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2), 
-                                  Optional.of(ImmutableSet.of()));
+                                  Optional.of(ImmutableMap.of()));
     }
     
     @Override
@@ -326,7 +326,7 @@ public class DaoImpl implements Dao, QueryFactory {
         return newSingleReadQuery(ctx, 
                                   this,
                                   ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3), 
-                                  Optional.of(ImmutableSet.of()));
+                                  Optional.of(ImmutableMap.of()));
     }
     
     @Override
@@ -334,7 +334,7 @@ public class DaoImpl implements Dao, QueryFactory {
         return newSingleReadQuery(ctx, 
                                   this,
                                   ImmutableMap.of(keyName1, keyValue1, keyName2, keyValue2, keyName3, keyValue3, keyName4, keyValue4), 
-                                  Optional.of(ImmutableSet.of()));
+                                  Optional.of(ImmutableMap.of()));
     }
 
     
@@ -343,7 +343,7 @@ public class DaoImpl implements Dao, QueryFactory {
         return newListReadQuery(ctx,
                                 this,
                                 ImmutableSet.copyOf(clauses), 
-                                Optional.of(ImmutableSet.of()), 
+                                Optional.of(ImmutableMap.of()), 
                                 Optional.empty(), 
                                 Optional.empty(), 
                                 Optional.empty(),
@@ -356,7 +356,7 @@ public class DaoImpl implements Dao, QueryFactory {
         return newListReadQuery(ctx, 
                                 this,
                                 ImmutableSet.of(), 
-                                Optional.of(ImmutableSet.of()), 
+                                Optional.of(ImmutableMap.of()), 
                                 Optional.empty(), 
                                 Optional.empty(), 
                                 Optional.empty(),

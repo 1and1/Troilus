@@ -290,20 +290,20 @@ abstract class AbstractQuery<Q> {
     
     protected SingleReadQuery newSingleReadQuery(Context ctx, 
                                                  ImmutableMap<String, Object> keyNameValuePairs, 
-                                                 Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+                                                 Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         return queryFactory.newSingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
     }
     
 
     protected SingleReadQuery newSingleReadQuery(ImmutableMap<String, Object> keyNameValuePairs, 
-                                                 Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+                                                 Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         return queryFactory.newSingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
     }
     
     
     protected ListReadQuery newListReadQuery(Context ctx,
                                              ImmutableSet<Clause> clauses, 
-                                             Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                             Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                                              Optional<Integer> optionalLimit, 
                                              Optional<Boolean> optionalAllowFiltering,
                                              Optional<Integer> optionalFetchSize,
@@ -314,7 +314,7 @@ abstract class AbstractQuery<Q> {
     
 
     protected ListReadQuery newListReadQuery(ImmutableSet<Clause> clauses, 
-                                             Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                             Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                                              Optional<Integer> optionalLimit, 
                                              Optional<Boolean> optionalAllowFiltering,
                                              Optional<Integer> optionalFetchSize,

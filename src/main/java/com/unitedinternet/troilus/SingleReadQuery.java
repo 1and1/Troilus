@@ -47,10 +47,10 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
 
     final ImmutableMap<String, Object> keyNameValuePairs;
-    final Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch;
+    final Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch;
      
     
-    public SingleReadQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch) {
+    public SingleReadQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         super(ctx, queryFactory);
         this.keyNameValuePairs = keyNameValuePairs;
         this.optionalColumnsToFetch = optionalColumnsToFetch;
@@ -73,23 +73,27 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> column(String name) {
-        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, false, false)));
+    public SingleReadQuery column(String name) {
+        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, name, false));
     }
 
     @Override
-    public SingleReadWithColumns<Optional<Record>> columnWithMetadata(String name) {
-        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(name, true, true)));
+    public SingleReadQuery columnWithMetadata(String name) {
+        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, name, true));
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> columns(String... names) {
+    public SingleReadQuery columns(String... names) {
         return columns(ImmutableSet.copyOf(names));
     }
     
     @Override 
-    public SingleReadWithUnit<Optional<Record>> columns(ImmutableCollection<String> namesToRead) {
-        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, ColumnToFetch.create(namesToRead)));
+    public SingleReadQuery columns(ImmutableCollection<String> namesToRead) {
+        SingleReadQuery read = this;
+        for (String columnName : namesToRead) {
+            read = read.column(columnName);
+        }
+        return read;
     }
   
 
@@ -101,10 +105,16 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
         Selection selection = select();
         
         if (optionalColumnsToFetch.isPresent()) {
-            optionalColumnsToFetch.get().forEach(column -> column.accept(selection));
+            optionalColumnsToFetch.get().forEach((columnName, withMetaData) -> {
+                                                                                    selection.column(columnName);
+                                                                                    if (withMetaData) {
+                                                                                        selection.ttl(columnName);                                                                
+                                                                                        selection.writeTime(columnName);
+                                                                                    }
+                                                                               });
 
             // add key columns for paranoia checks
-            keyNameValuePairs.keySet().forEach(name -> { if(!optionalColumnsToFetch.get().contains(name))  ColumnToFetch.create(name, false, false).accept(selection); });  
+            keyNameValuePairs.keySet().forEach(columnName -> { if(!optionalColumnsToFetch.get().containsKey(columnName)) selection.column(columnName); });  
             
         } else {
             selection.all();

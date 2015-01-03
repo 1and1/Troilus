@@ -56,13 +56,13 @@ interface QueryFactory {
     SingleReadQuery newSingleReadQuery(Context ctx, 
                                        QueryFactory queryFactory,
                                        ImmutableMap<String, Object> keyNameValuePairs, 
-                                       Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch);   
+                                       Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch);   
     
     
     ListReadQuery newListReadQuery(Context ctx,
                                    QueryFactory queryFactory, 
                                    ImmutableSet<Clause> clauses, 
-                                   Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
+                                   Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                                    Optional<Integer> optionalLimit, 
                                    Optional<Boolean> optionalAllowFiltering,
                                    Optional<Integer> optionalFetchSize,
