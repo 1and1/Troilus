@@ -26,6 +26,7 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.BatchStatement.Type;
@@ -36,15 +37,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.Deletion;
-import com.unitedinternet.troilus.Dao.ListRead;
-import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
-import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleReadQuery;
-
 
  
 abstract class AbstractQuery<Q> {
@@ -56,7 +48,146 @@ abstract class AbstractQuery<Q> {
         this.ctx = ctx;
         this.queryFactory = queryFactory;
     }
+
     
+    
+    abstract protected Q newQuery(Context newContext);
+    
+
+    
+    ////////////////////////
+    // default implementations
+  
+    public Q withConsistency(ConsistencyLevel consistencyLevel) {
+        return newQuery(ctx.withConsistency(consistencyLevel));
+    }
+  
+    public Q withEnableTracking() {
+        return newQuery(ctx.withEnableTracking());
+    }
+    
+    public Q withDisableTracking() {
+        return newQuery(ctx.withDisableTracking());
+    }
+    
+    public Q withRetryPolicy(RetryPolicy policy) {
+        return newQuery(ctx.withRetryPolicy(policy));
+    }
+    
+
+    protected Optional<ConsistencyLevel> getConsistencyLevel() {
+        return ctx.getConsistencyLevel();
+    }
+
+    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
+        return ctx.getSerialConsistencyLevel();
+    }
+
+    protected Optional<Duration> getTtl() {
+        return ctx.getTtl();
+    }
+    
+
+    
+    
+    
+    
+    
+    //////////////////////////////
+    // utilities methods
+    
+    
+    @Deprecated
+    protected Context getContext() {
+        return ctx; 
+    }
+    
+    @Deprecated
+    protected QueryFactory getQueryFactory() {
+        return queryFactory; 
+    }
+      
+   
+    protected Object toUdtValue(DataType datatype, Object value) {
+        return UDTValueMapper.toUdtValue(ctx, datatype, value);
+    }
+        
+      
+    protected String getTable() {
+        return ctx.getTable();
+    }
+  
+    protected ProtocolVersion getProtocolVersion() {
+        return ctx.getProtocolVersion();
+    }
+    
+    protected Record newRecord(Result result, Row row) {
+        return new Record(ctx, result, row);
+    }
+    
+    protected RecordList newRecordList(ResultSet resultSet) {
+        return RecordList.newRecordList(ctx, resultSet);
+    }
+    
+    protected <E> EntityList<E> newEntityList(RecordList recordList, Class<E> clazz) {
+        return EntityList.newEntityList(ctx, recordList, clazz); 
+    }
+    
+    protected ColumnMetadata getColumnMetadata(String columnName) {
+        return ctx.getColumnMetadata(columnName);
+    }
+
+    
+    protected UserType getUserType(String usertypeName) {
+        return ctx.getUserType(usertypeName);
+    }
+
+    
+    protected <T> Optional<T> toOptional(T obj) {
+        return ctx.toOptional(obj);
+    }
+
+
+    protected boolean isBuildInType(DataType dataType) {        
+        if (dataType.isCollection()) {
+            for (DataType type : dataType.getTypeArguments()) {
+                if (!isBuildinType(type)) {
+                    return false;
+                }
+            }
+            return true;
+
+        } else {
+            return isBuildinType(dataType);
+        }
+    }
+  
+    private boolean isBuildinType(DataType type) {
+        return ctx.isBuildInType(type);
+    }   
+    
+    
+    protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+        return ctx.toValues(entity);
+    }
+
+    protected PreparedStatement prepare(BuiltStatement statement) {
+        return ctx.prepare(statement);
+    }
+    
+    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
+        return ctx.performAsync(statement);
+    }
+
+    protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
+        return ctx.fromValues(clazz, datasource);
+    }
+
+    
+    
+    
+    /////////////////
+    // factory methods
     
     protected InsertionQuery newInsertionQuery(ImmutableMap<String, Optional<Object>> valuesToMutate,
                                                boolean ifNotExists) {
@@ -170,17 +301,6 @@ abstract class AbstractQuery<Q> {
     }
     
     
-    protected <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(SingleReadWithUnit<Optional<Record>> read, 
-                                                                    Class<?> clazz) {
-        return queryFactory.newSingleEntityReadQuery(ctx, queryFactory, read, clazz); 
-    }
-
-    protected <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(Context ctx, 
-                                                                    SingleReadWithUnit<Optional<Record>> read, 
-                                                                    Class<?> clazz) {
-        return queryFactory.newSingleEntityReadQuery(ctx, queryFactory, read, clazz); 
-    }
-    
     protected ListReadQuery newListReadQuery(Context ctx,
                                              ImmutableSet<Clause> clauses, 
                                              Optional<ImmutableSet<ColumnToFetch>> columnsToFetch, 
@@ -202,25 +322,13 @@ abstract class AbstractQuery<Q> {
         return queryFactory.newListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
     
-    
-    protected <E> ListEntityReadQuery<E> newListEntityReadQuery(Context ctx,
-                                                                ListRead<RecordList> read, Class<?> clazz) {
-        return queryFactory.newListEntityReadQuery(ctx, queryFactory, read, clazz);
-    }
-    
-
-    protected <E> ListEntityReadQuery<E> newListEntityReadQuery(ListRead<RecordList> read, Class<?> clazz) {
-        return queryFactory.newListEntityReadQuery(ctx, queryFactory, read, clazz);
-    }
-    
-    
     protected CountReadQuery newCountReadQuery(Context ctx, 
                                                ImmutableSet<Clause> clauses, 
                                                Optional<Integer> optionalLimit, 
                                                Optional<Boolean> optionalAllowFiltering,
                                                Optional<Integer> optionalFetchSize,
                                                Optional<Boolean> optionalDistinct) {
-        return queryFactory.newCountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
+        return queryFactory.newCountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);  
     }
 
 
@@ -230,110 +338,6 @@ abstract class AbstractQuery<Q> {
                                                Optional<Integer> optionalFetchSize,
                                                Optional<Boolean> optionalDistinct) {
         return queryFactory.newCountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
-    }
-
-    
-    @Deprecated
-    protected Context getContext() {
-        return ctx; 
-    }
-  
-    public Q withConsistency(ConsistencyLevel consistencyLevel) {
-        return newQuery(ctx.withConsistency(consistencyLevel));
-    }
-  
-    public Q withEnableTracking() {
-        return newQuery(ctx.withEnableTracking());
-    }
-    
-    public Q withDisableTracking() {
-        return newQuery(ctx.withDisableTracking());
-    }
-    
-    public Q withRetryPolicy(RetryPolicy policy) {
-        return newQuery(ctx.withRetryPolicy(policy));
-    }
-    
-
-    
-    abstract protected Q newQuery(Context newContext);
-    
-    
-    
-    protected Object toUdtValue(DataType datatype, Object value) {
-        return UDTValueMapper.toUdtValue(ctx, datatype, value);
-    }
-        
-      
-    protected String getTable() {
-        return ctx.getTable();
-    }
-  
-    protected ProtocolVersion getProtocolVersion() {
-        return ctx.getProtocolVersion();
-    }
-    
-    
-    protected ColumnMetadata getColumnMetadata(String columnName) {
-        return ctx.getColumnMetadata(columnName);
-    }
-
-    
-    protected UserType getUserType(String usertypeName) {
-        return ctx.getUserType(usertypeName);
-    }
-
-    
-    protected <T> Optional<T> toOptional(T obj) {
-        return ctx.toOptional(obj);
-    }
-
-
-    protected boolean isBuildInType(DataType dataType) {        
-        if (dataType.isCollection()) {
-            for (DataType type : dataType.getTypeArguments()) {
-                if (!isBuildinType(type)) {
-                    return false;
-                }
-            }
-            return true;
-
-        } else {
-            return isBuildinType(dataType);
-        }
-    }
-  
-    private boolean isBuildinType(DataType type) {
-        return ctx.isBuildInType(type);
-    }   
-    
-    
-    protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
-        return ctx.toValues(entity);
-    }
-
-    protected PreparedStatement prepare(BuiltStatement statement) {
-        return ctx.prepare(statement);
-    }
-    
-    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
-        return ctx.performAsync(statement);
-    }
-
-    protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
-        return ctx.fromValues(clazz, datasource);
-    }
-
-    protected Optional<ConsistencyLevel> getConsistencyLevel() {
-        return ctx.getConsistencyLevel();
-    }
-
-    protected Optional<ConsistencyLevel> getSerialConsistencyLevel() {
-        return ctx.getSerialConsistencyLevel();
-    }
-
-    protected Optional<Duration> getTtl() {
-        return ctx.getTtl();
     }
 }
 

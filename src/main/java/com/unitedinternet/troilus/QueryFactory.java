@@ -22,15 +22,6 @@ import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao.ListRead;
-import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
-import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleReadQuery;
-
 
 
 interface QueryFactory {
@@ -62,16 +53,10 @@ interface QueryFactory {
                                ImmutableList<Clause> ifConditions);
     
     
-
     SingleReadQuery newSingleReadQuery(Context ctx, 
                                        QueryFactory queryFactory,
                                        ImmutableMap<String, Object> keyNameValuePairs, 
                                        Optional<ImmutableSet<ColumnToFetch>> optionalColumnsToFetch);   
-    
-    <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(Context ctx,
-                                                          QueryFactory queryFactory,
-                                                          SingleReadWithUnit<Optional<Record>> read, 
-                                                          Class<?> clazz);
     
     
     ListReadQuery newListReadQuery(Context ctx,
@@ -82,10 +67,7 @@ interface QueryFactory {
                                    Optional<Boolean> optionalAllowFiltering,
                                    Optional<Integer> optionalFetchSize,
                                    Optional<Boolean> optionalDistinct);
-    
-    <E> ListEntityReadQuery<E> newListEntityReadQuery(Context ctx,
-                                                      QueryFactory queryFactory, 
-                                                      ListRead<RecordList> read, Class<?> clazz);
+
     
     CountReadQuery newCountReadQuery(Context ctx, 
                                      QueryFactory queryFactory,
@@ -94,8 +76,7 @@ interface QueryFactory {
                                      Optional<Boolean> optionalAllowFiltering,
                                      Optional<Integer> optionalFetchSize,
                                      Optional<Boolean> optionalDistinct); 
-    
-    
+
     BatchMutationQuery newBatchMutationQuery(Context ctx,    
                                              QueryFactory queryFactory,
                                              Type type, 

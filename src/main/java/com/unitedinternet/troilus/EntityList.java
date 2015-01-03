@@ -35,55 +35,55 @@ public abstract class EntityList<E> extends Result implements Iterator<E>, Publi
     }
     
     
-    static <F> EntityList<F> newEntityList(Context ctx, RecordList recordIterator, Class<?> clazz) {
-        return new EntityListImpl<>(ctx, recordIterator, clazz);
+    static <F> EntityList<F> newEntityList(Context ctx, RecordList recordList, Class<F> clazz) {
+        return new EntityListImpl<>(ctx, recordList, clazz);
     }
     
     
 
     private static final class EntityListImpl<F> extends EntityList<F> {
         private final Context ctx;
-        private final RecordList recordIterator;
-        private final Class<?> clazz;
+        private final RecordList recordList;
+        private final Class<F> clazz;
 
         
-        public EntityListImpl(Context ctx, RecordList recordIterator, Class<?> clazz) {
+        public EntityListImpl(Context ctx, RecordList recordList, Class<F> clazz) {
             this.ctx = ctx;
-            this.recordIterator = recordIterator;
+            this.recordList = recordList;
             this.clazz = clazz;
         }
 
         @Override
         public ExecutionInfo getExecutionInfo() {
-            return recordIterator.getExecutionInfo();
+            return recordList.getExecutionInfo();
         }
         
         @Override
         public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-            return recordIterator.getAllExecutionInfo();
+            return recordList.getAllExecutionInfo();
         }
         
         @Override
         boolean wasApplied() {
-            return recordIterator.wasApplied();
+            return recordList.wasApplied();
         }
 
         
         @Override
         public boolean hasNext() {
-            return recordIterator.hasNext();
+            return recordList.hasNext();
         }
     
         
         @Override
         public F next() {
-            return ctx.fromValues(clazz, recordIterator.next().getAccessor());
+            return ctx.fromValues(clazz, recordList.next().getAccessor());
         }
         
       
         @Override
         public void subscribe(Subscriber<? super F> subscriber) {
-            recordIterator.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));
+            recordList.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));
         }
         
         private final class MappingSubscriber<G> implements Subscriber<Record> {

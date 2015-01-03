@@ -26,12 +26,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.ReadQuery.ColumnToFetch;
-import com.unitedinternet.troilus.ReadQuery.CountReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.ListReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleEntityReadQuery;
-import com.unitedinternet.troilus.ReadQuery.SingleReadQuery;
 
 
  
@@ -97,13 +91,6 @@ public class DaoImpl implements Dao, QueryFactory {
         return new SingleReadQuery(ctx, queryFactory, keyNameValuePairs, optionalColumnsToFetch);
     }
     
-    public <E> SingleEntityReadQuery<E> newSingleEntityReadQuery(Context ctx,
-                                                                 QueryFactory queryFactory,
-                                                                 SingleReadWithUnit<Optional<Record>> read, 
-                                                                 Class<?> clazz) {
-        return new SingleEntityReadQuery<>(ctx, queryFactory, read, clazz);
-    }
-    
     
     public ListReadQuery newListReadQuery(Context ctx,
                                           QueryFactory queryFactory, 
@@ -116,24 +103,20 @@ public class DaoImpl implements Dao, QueryFactory {
         return new ListReadQuery(ctx, queryFactory, clauses, columnsToFetch, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
     
-    public <E> ListEntityReadQuery<E> newListEntityReadQuery(Context ctx,
-                                                             QueryFactory queryFactory, 
-                                                             ListRead<RecordList> read, Class<?> clazz) {
-        return new ListEntityReadQuery<>(ctx, queryFactory, read, clazz);
-    }
     
+
     
-    public  CountReadQuery newCountReadQuery(Context ctx, 
-                                             QueryFactory queryFactory,
-                                             ImmutableSet<Clause> clauses, 
-                                             Optional<Integer> optionalLimit, 
-                                             Optional<Boolean> optionalAllowFiltering,
-                                             Optional<Integer> optionalFetchSize,
-                                             Optional<Boolean> optionalDistinct) {
+    public CountReadQuery newCountReadQuery(Context ctx, 
+                                            QueryFactory queryFactory,
+                                            ImmutableSet<Clause> clauses, 
+                                            Optional<Integer> optionalLimit, 
+                                            Optional<Boolean> optionalAllowFiltering,
+                                            Optional<Integer> optionalFetchSize,
+                                            Optional<Boolean> optionalDistinct) {
         return new CountReadQuery(ctx, queryFactory, clauses, optionalLimit, optionalAllowFiltering, optionalFetchSize, optionalDistinct);
     }
     
-
+  
     
     
     @Override
