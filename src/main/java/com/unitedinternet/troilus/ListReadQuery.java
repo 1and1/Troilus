@@ -34,7 +34,7 @@ import com.unitedinternet.troilus.Dao.ListReadWithUnit;
  
 
 public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
-    final ImmutableSet<Clause> clauses;
+    final ImmutableSet<Clause> whereClauses;
     final Optional<ImmutableMap<String, Boolean>> columnsToFetch;
     final Optional<Integer> optionalLimit;
     final Optional<Boolean> optionalAllowFiltering;
@@ -44,14 +44,14 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     public ListReadQuery(Context ctx,
                          QueryFactory queryFactory,
-                         ImmutableSet<Clause> clauses, 
+                         ImmutableSet<Clause> whereClauses, 
                          Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                          Optional<Integer> optionalLimit, 
                          Optional<Boolean> optionalAllowFiltering,
                          Optional<Integer> optionalFetchSize,
                          Optional<Boolean> optionalDistinct) {
         super(ctx, queryFactory);
-        this.clauses = clauses;
+        this.whereClauses = whereClauses;
         this.columnsToFetch = columnsToFetch;
         this.optionalLimit = optionalLimit;
         this.optionalAllowFiltering = optionalAllowFiltering;
@@ -63,7 +63,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     protected ListReadQuery newQuery(Context newContext) {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 columnsToFetch,
                                 optionalLimit, 
                                 optionalAllowFiltering, 
@@ -74,7 +74,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     public ListReadQuery all() {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 Optional.empty(),
                                 optionalLimit, 
                                 optionalAllowFiltering, 
@@ -96,7 +96,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     public ListReadQuery column(String name) {
-        return newListReadQuery(clauses,  
+        return newListReadQuery(whereClauses,  
                                 Immutables.merge(columnsToFetch, name, false), 
                                 optionalLimit, 
                                 optionalAllowFiltering,
@@ -107,7 +107,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
-        return newListReadQuery(clauses,  
+        return newListReadQuery(whereClauses,  
                                 Immutables.merge(columnsToFetch, name, true), 
                                 optionalLimit, 
                                 optionalAllowFiltering,
@@ -118,7 +118,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
 
     @Override
     public ListReadQuery withLimit(int limit) {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 columnsToFetch, 
                                 Optional.of(limit), 
                                 optionalAllowFiltering, 
@@ -128,7 +128,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     public ListReadQuery withAllowFiltering() {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 columnsToFetch, 
                                 optionalLimit, 
                                 Optional.of(true), 
@@ -138,7 +138,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
 
     @Override
     public ListReadQuery withFetchSize(int fetchSize) {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 columnsToFetch, 
                                 optionalLimit,  
                                 optionalAllowFiltering, 
@@ -148,7 +148,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     
     @Override
     public ListReadQuery withDistinct() {
-        return newListReadQuery(clauses, 
+        return newListReadQuery(whereClauses, 
                                 columnsToFetch, 
                                 optionalLimit, 
                                 optionalAllowFiltering, 
@@ -160,8 +160,8 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
     @Override
     public ListRead<Count> count() {
         return new CountReadQuery(getContext(),
-                                  getQueryFactory(),
-                                  clauses, 
+                                  this,
+                                  whereClauses, 
                                   optionalLimit, 
                                   optionalAllowFiltering, 
                                   optionalFetchSize, 
@@ -171,7 +171,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
   
     @Override
     public <E> ListEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new ListEntityReadQuery(getContext(), getQueryFactory(), this, objectClass) ;
+        return new ListEntityReadQuery(getContext(), this, this, objectClass) ;
     }
 
     
@@ -192,26 +192,18 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
 
         
         if (columnsToFetch.isPresent()) {
-            columnsToFetch.get().forEach((columnName, withMetaData) -> {
-                                                                            selection.column(columnName);
-                                                                            if (withMetaData) {
-                                                                                selection.ttl(columnName);                                                                
-                                                                                selection.writeTime(columnName);
-                                                                            }
-                                                                       });
+            columnsToFetch.get().forEach((columnName, withMetaData) -> selection.column(columnName));
+            columnsToFetch.get().entrySet()
+                                .stream()
+                                .filter(entry -> entry.getValue())
+                                .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
         } else {
             selection.all();
         }
         
         Select select = selection.from(getTable());
-        Select.Where where = null;
-        for (Clause clause : clauses) {
-            if (where == null) {
-                where = select.where(clause);
-            } else {
-                where = where.and(clause);
-            }
-        }
+        
+        whereClauses.forEach(whereClause -> select.where(whereClause));
 
         optionalLimit.ifPresent(limit -> select.limit(limit));
         optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
@@ -235,7 +227,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
         @Override
         protected ListEntityReadQuery<E> newQuery(Context newContext) {
             return newListReadQuery(newContext,
-                                    read.clauses,
+                                    read.whereClauses,
                                     read.columnsToFetch, 
                                     read.optionalLimit, 
                                     read.optionalAllowFiltering,

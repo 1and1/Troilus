@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.SingleRead;
-import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 
 
@@ -69,7 +68,7 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
     
     @Override
     public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new SingleEntityReadQuery(getContext(), getQueryFactory(), this, objectClass);
+        return new SingleEntityReadQuery(getContext(), this, this, objectClass);
     }
     
     @Override
@@ -105,16 +104,18 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
         Selection selection = select();
         
         if (optionalColumnsToFetch.isPresent()) {
-            optionalColumnsToFetch.get().forEach((columnName, withMetaData) -> {
-                                                                                    selection.column(columnName);
-                                                                                    if (withMetaData) {
-                                                                                        selection.ttl(columnName);                                                                
-                                                                                        selection.writeTime(columnName);
-                                                                                    }
-                                                                               });
+            
+            optionalColumnsToFetch.get().forEach((columnName, withMetaData) -> selection.column(columnName));
+            optionalColumnsToFetch.get().entrySet()
+                                        .stream()
+                                        .filter(entry -> entry.getValue())
+                                        .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
 
             // add key columns for paranoia checks
-            keyNameValuePairs.keySet().forEach(columnName -> { if(!optionalColumnsToFetch.get().containsKey(columnName)) selection.column(columnName); });  
+            keyNameValuePairs.keySet()
+                             .stream()
+                             .filter(columnName -> !optionalColumnsToFetch.get().containsKey(columnName))
+                             .forEach(columnName -> selection.column(columnName));  
             
         } else {
             selection.all();

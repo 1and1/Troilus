@@ -319,13 +319,14 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return super.executeAsync().thenApply(result ->  {
-                                                            // check cas result column '[applied]'
-                                                            if (!ifConditions.isEmpty() && !result.wasApplied()) {
-                                                                throw new IfConditionException("if condition does not match");  
-                                                            } 
-                                                            return result;
-                                                        });
+        return super.executeAsync()
+                    .thenApply(result ->  {
+                                            // check cas result column '[applied]'
+                                            if (!ifConditions.isEmpty() && !result.wasApplied()) {
+                                                throw new IfConditionException("if condition does not match");  
+                                            } 
+                                            return result;
+                                          });
     }
 }
 
