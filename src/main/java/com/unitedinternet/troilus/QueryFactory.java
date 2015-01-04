@@ -37,6 +37,8 @@ interface QueryFactory {
                                ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                               ImmutableMap<String, Long> counterValuesToIncr,
+                               ImmutableMap<String, Long> counterValuesToDecr,
                                ImmutableList<Clause> ifConditions);
   
     InsertionQuery newInsertionQuery(Context ctx, 

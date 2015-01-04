@@ -38,7 +38,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Dao usersDao = new DaoImpl(getSession(), UsersTable.TABLE)
                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
-        
+        Dao loginsDao = new DaoImpl(getSession(), LoginsTable.TABLE)
+                                .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+   
 
         
 
@@ -191,13 +193,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(optionalRecord.isPresent());
         
         
-        
-        
-        
-        
-        
-        
-        
         Record record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                                 .execute()
                                 .get();
@@ -208,6 +203,52 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("24234244", phoneNumbers.next());
         Assert.assertFalse(phoneNumbers.hasNext());
         
+        
+        
+        // Inc/Set counter value 
+        loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
+                .incr(LoginsTable.LOGINS)
+                .execute();
+        
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 1l, record.getLong(LoginsTable.LOGINS).get());
+        
+        
+        loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
+                 .incr(LoginsTable.LOGINS, 4)   
+                 .execute();
+
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS).get());
+
+        
+        
+        loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
+                 .decr(LoginsTable.LOGINS)   
+                 .execute();
+
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS).get());
+
+
+        
+        loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
+                 .decr(LoginsTable.LOGINS)   
+                 .execute();
+
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 3l, record.getLong(LoginsTable.LOGINS).get());
+
+
+ 
         
         // remove value
         usersDao.writeWithKey(UsersTable.USER_ID, "8345345")

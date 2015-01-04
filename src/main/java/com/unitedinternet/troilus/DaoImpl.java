@@ -57,6 +57,8 @@ public class DaoImpl implements Dao, QueryFactory {
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                       ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                      ImmutableMap<String, Long> counterValuesToIncr,
+                                      ImmutableMap<String, Long> counterValuesToDecr,
                                       ImmutableList<Clause> ifConditions) {
         return new UpdateQuery(ctx, 
                                queryFactory, 
@@ -69,6 +71,8 @@ public class DaoImpl implements Dao, QueryFactory {
                                listValuesToPrepend, 
                                listValuesToRemove,
                                mapValuesToMutate,
+                               counterValuesToIncr,
+                               counterValuesToDecr,
                                ifConditions);
     }
         
@@ -212,6 +216,8 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableList.of()).entity(entity);
     }
     
@@ -221,6 +227,8 @@ public class DaoImpl implements Dao, QueryFactory {
                               this, 
                               ImmutableMap.of(), 
                               ImmutableList.copyOf(whereConditions),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -244,6 +252,8 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableList.of());
     }
     
@@ -254,6 +264,8 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(keyName1, keyValue1,
                                               keyName2, keyValue2), 
                               ImmutableList.of(),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -280,6 +292,8 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableList.of());
         
     }
@@ -293,6 +307,8 @@ public class DaoImpl implements Dao, QueryFactory {
                                               keyName3, keyValue3, 
                                               keyName4, keyValue4), 
                               ImmutableList.of(),
+                              ImmutableMap.of(),
+                              ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),

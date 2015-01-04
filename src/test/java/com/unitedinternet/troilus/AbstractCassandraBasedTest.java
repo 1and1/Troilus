@@ -12,10 +12,13 @@ import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.api.FeesTable;
 import com.unitedinternet.troilus.api.IdsTable;
+import com.unitedinternet.troilus.api.LoginsTable;
 import com.unitedinternet.troilus.api.UsersTable;
 import com.unitedinternet.troilus.example.AddressType;
 import com.unitedinternet.troilus.example.HotelsTable;
 import com.unitedinternet.troilus.example.RoomsTable;
+import com.unitedinternet.troilus.referentialintegrity.DeviceTable;
+import com.unitedinternet.troilus.referentialintegrity.PhoneToDeviceTable;
 import com.unitedinternet.troilus.userdefinieddatatypes.AddrType;
 import com.unitedinternet.troilus.userdefinieddatatypes.AddresslineType;
 import com.unitedinternet.troilus.userdefinieddatatypes.ClassifierType;
@@ -73,12 +76,15 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(AddresslineType.CREATE_STMT);
         session.execute(AddrType.CREATE_STMT);
         session.execute(UsersTable.CREATE_STMT);
+        session.execute(LoginsTable.CREATE_STMT);
         session.execute(FeesTable.CREATE_STMT);
         session.execute(IdsTable.CREATE_STMT);
         session.execute(AddressType.CREATE_STMT);
         session.execute(HotelsTable.CREATE_STMT);
         session.execute(RoomsTable.CREATE_STMT);
         session.execute(CustomersTable.CREATE_STMT);
+        session.execute(DeviceTable.CREATE_STMT);
+        session.execute(PhoneToDeviceTable.CREATE_STMT);
     }
     
     

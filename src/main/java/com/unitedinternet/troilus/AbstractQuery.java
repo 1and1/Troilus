@@ -270,6 +270,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                       ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                      ImmutableMap<String, Long> counterValuesToIncr,
+                                      ImmutableMap<String, Long> counterValuesToDecr,
                                       ImmutableList<Clause> ifConditions) {
         return this.queryFactory.newUpdateQuery(ctx, 
                                                 queryFactory, 
@@ -282,6 +284,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                                                 listValuesToPrepend,
                                                 listValuesToRemove,
                                                 mapValuesToMutate, 
+                                                counterValuesToIncr,
+                                                counterValuesToDecr,
                                                 ifConditions);   
     }
 
@@ -295,6 +299,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                                          ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                          ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                          ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                         ImmutableMap<String, Long> counterValuesToIncr,
+                                         ImmutableMap<String, Long> counterValuesToDecr,
                                          ImmutableList<Clause> ifConditions) {
         return newUpdateQuery(ctx,
                               queryFactory,
@@ -307,6 +313,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate, 
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
   
@@ -319,6 +327,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                                          ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                          ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                          ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                                         ImmutableMap<String, Long> counterValuesToIncr,
+                                         ImmutableMap<String, Long> counterValuesToDecr,
                                          ImmutableList<Clause> ifConditions) {
         return newUpdateQuery(ctx,
                               keys, 
@@ -330,6 +340,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate, 
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
  

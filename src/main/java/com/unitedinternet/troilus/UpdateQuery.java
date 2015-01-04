@@ -47,6 +47,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
     private final ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend;
     private final ImmutableMap<String, ImmutableList<Object>> listValuesToRemove;
     private final ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate;
+    private final ImmutableMap<String, Long> counterValuesToIncr;
+    private final ImmutableMap<String, Long> counterValuesToDecr;
+    
     
     private final ImmutableList<Clause> ifConditions;
     private final ImmutableList<Clause> whereConditions;
@@ -65,6 +68,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                        ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                        ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                        ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                       ImmutableMap<String, Long> counterValuesToIncr,
+                       ImmutableMap<String, Long> counterValuesToDecr,
                        ImmutableList<Clause> ifConditions) {
         super(ctx, queryFactory);
         this.keys = keys;
@@ -76,6 +81,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
         this.listValuesToPrepend = listValuesToPrepend;
         this.listValuesToRemove = listValuesToRemove;
         this.mapValuesToMutate = mapValuesToMutate;
+        this.counterValuesToIncr = counterValuesToIncr;
+        this.counterValuesToDecr = counterValuesToDecr;
         this.ifConditions = ifConditions;
     }
     
@@ -91,6 +98,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove, 
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
     
@@ -112,6 +121,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
 
@@ -127,9 +138,54 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
     
+    
+    @Override
+    public Write incr(String name) {
+        return incr(name, 1);
+    }
+    
+    @Override
+    public Write incr(String name, long value) {
+        return newUpdateQuery(keys, 
+                whereConditions, 
+                valuesToMutate, 
+                setValuesToAdd,
+                setValuesToRemove,
+                listValuesToAppend,
+                listValuesToPrepend,
+                listValuesToRemove,
+                mapValuesToMutate,
+                ImmutableMap.of(name,  (counterValuesToIncr.get(name) == null) ? value : counterValuesToIncr.get(name) + value),
+                counterValuesToDecr,
+                ifConditions);
+    }
+    
+    
+    @Override
+    public Write decr(String name) {
+        return decr(name, 1);
+    }
+    
+    @Override
+    public Write decr(String name, long value) {
+        return newUpdateQuery(keys, 
+                              whereConditions, 
+                              valuesToMutate, 
+                              setValuesToAdd,
+                              setValuesToRemove,
+                              listValuesToAppend,
+                              listValuesToPrepend,
+                              listValuesToRemove,
+                              mapValuesToMutate,
+                              counterValuesToIncr,
+                              ImmutableMap.of(name,  (counterValuesToDecr.get(name) == null) ? value : counterValuesToDecr.get(name) + value),
+                              ifConditions); 
+    }
     
     
     @Override
@@ -146,6 +202,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
 
@@ -164,6 +222,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
    
@@ -182,6 +242,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               Immutables.merge(listValuesToPrepend, name, values),
                               listValuesToRemove, 
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
     
@@ -201,6 +263,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
     
@@ -220,6 +284,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               Immutables.merge(listValuesToRemove, name, values),
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
 
     }
@@ -239,6 +305,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               Immutables.merge(mapValuesToMutate, name, values),
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ifConditions);
     }
     
@@ -259,6 +327,8 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
                               listValuesToPrepend,
                               listValuesToRemove,
                               mapValuesToMutate,
+                              counterValuesToIncr,
+                              counterValuesToDecr,
                               ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
     }
 
@@ -278,6 +348,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
             
             valuesToMutate.forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
 
+            counterValuesToIncr.forEach((name, incValue) -> { update.with(QueryBuilder.incr(name, bindMarker())); values.add(incValue); } );
+            counterValuesToDecr.forEach((name, decValue) -> { update.with(QueryBuilder.decr(name, bindMarker())); values.add(decValue); } );
+            
             setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
             setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
             
@@ -303,6 +376,9 @@ class UpdateQuery extends MutationQuery<Write> implements Write {
             setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
             setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
   
+            counterValuesToIncr.forEach((name, incValue) -> update.with(QueryBuilder.incr(name, incValue)));
+            counterValuesToDecr.forEach((name, decValue) -> update.with(QueryBuilder.decr(name, decValue)));
+            
             listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
             listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
             listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));

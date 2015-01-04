@@ -160,6 +160,14 @@ public interface Dao {
         U value(String name, Object value);
 
         U values(ImmutableMap<String, Object> nameValuePairsToAdd);
+        
+        U decr(String name);
+        
+        U decr(String name, long value);
+        
+        U incr(String name);
+
+        U incr(String name, long value);
 
         U removeSetValue(String name, Object value);
 
