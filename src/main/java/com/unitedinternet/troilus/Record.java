@@ -42,7 +42,7 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author grro
  */
-public abstract class Record extends Result {
+public abstract class Record implements Result {
    
     private final Result result;
     private final Row row;
@@ -70,7 +70,7 @@ public abstract class Record extends Result {
     
 
     @Override
-    boolean wasApplied() {
+    public boolean wasApplied() {
         return result.wasApplied();
     }
 

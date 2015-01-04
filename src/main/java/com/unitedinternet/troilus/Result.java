@@ -17,72 +17,17 @@ package com.unitedinternet.troilus;
 
 
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.ResultSet;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 
 
+public interface Result {
 
-public abstract class Result {
-
-    public abstract ExecutionInfo getExecutionInfo();
+    ExecutionInfo getExecutionInfo();
     
-    public abstract ImmutableList<ExecutionInfo> getAllExecutionInfo();
+    ImmutableList<ExecutionInfo> getAllExecutionInfo();
     
-    abstract boolean wasApplied();
-
-    
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder(); 
-        for (ExecutionInfo info : getAllExecutionInfo())  {
-
-            builder.append("queried=" + info.getQueriedHost());
-            builder.append("\r\ntried=")
-                   .append(Joiner.on(",").join(info.getTriedHosts()));
-
-
-            if (info.getAchievedConsistencyLevel() != null) {
-                builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
-            }
-            
-            if (info.getQueryTrace() != null) {
-                builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
-                builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
-            }
-        }
-        return builder.toString();
-    }
-    
-    
-    static Result newResult(ResultSet rs) {
-        return new ResultImpl(rs);
-    }
-    
-    
-    private static class ResultImpl extends Result {
-        private final ResultSet rs;
-        
-        public ResultImpl(ResultSet rs) {
-            this.rs = rs;
-        }
-        
-        @Override
-        boolean wasApplied() {
-            return rs.wasApplied();
-        }
-        
-        @Override
-        public ExecutionInfo getExecutionInfo() {
-            return rs.getExecutionInfo();
-        }
-        
-        @Override
-        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-            return ImmutableList.copyOf(rs.getAllExecutionInfo());
-        }
-    }
+    boolean wasApplied();
 }
 
 

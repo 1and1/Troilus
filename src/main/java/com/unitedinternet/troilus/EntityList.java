@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 
 
-public abstract class EntityList<E> extends Result implements Iterator<E>, Publisher<E> {
+public abstract class EntityList<E> implements Result, Iterator<E>, Publisher<E> {
 
     public void remove() {
         throw new UnsupportedOperationException();
@@ -64,7 +64,7 @@ public abstract class EntityList<E> extends Result implements Iterator<E>, Publi
         }
         
         @Override
-        boolean wasApplied() {
+        public boolean wasApplied() {
             return recordList.wasApplied();
         }
 

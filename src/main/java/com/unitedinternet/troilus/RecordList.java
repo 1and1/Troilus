@@ -25,16 +25,15 @@ import org.reactivestreams.Publisher;
 
 
 /**
- * Record
+ * RecordList
  *
  * @author grro
  */
-public abstract class RecordList extends Result implements Iterator<Record>, Publisher<Record> {
+public interface RecordList extends Result, Iterator<Record>, Publisher<Record> {
 
-    public void remove() {
+    default public void remove() {
         throw new UnsupportedOperationException();
     }
-
 }
 
 

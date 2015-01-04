@@ -71,6 +71,6 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     
     
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> Result.newResult(resultSet));
+        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
     }
 }

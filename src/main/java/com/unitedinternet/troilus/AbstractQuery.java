@@ -46,6 +46,7 @@ import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
@@ -529,16 +530,6 @@ abstract class AbstractQuery<Q> implements QueryFactory {
     private class UDTValueMapper {
         
         private UDTValueMapper() {  }
-     
-        
-        public <T> T fromUdtValue(UserType usertype, UDTValue udtValue, Class<T> type) {
-             return fromValues(type, (name, clazz1, clazz2) -> fromUdtValue(usertype.getFieldType(name), 
-                                                                            udtValue, 
-                                                                            clazz1, 
-                                                                            clazz2, 
-                                                                            name));
-        }
-        
         
         
         public Optional<?> fromUdtValue(DataType datatype, 
@@ -774,6 +765,53 @@ abstract class AbstractQuery<Q> implements QueryFactory {
     }
     
     
+    
+    protected class ResultImpl implements Result {
+        private final ResultSet rs;
+        
+        public ResultImpl(ResultSet rs) {
+            this.rs = rs;
+        }
+        
+        @Override
+        public boolean wasApplied() {
+            return rs.wasApplied();
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return rs.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return ImmutableList.copyOf(rs.getAllExecutionInfo());
+        }
+        
+
+        public String toString() {
+            StringBuilder builder = new StringBuilder(); 
+            for (ExecutionInfo info : getAllExecutionInfo())  {
+
+                builder.append("queried=" + info.getQueriedHost());
+                builder.append("\r\ntried=")
+                       .append(Joiner.on(",").join(info.getTriedHosts()));
+
+
+                if (info.getAchievedConsistencyLevel() != null) {
+                    builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
+                }
+                
+                if (info.getQueryTrace() != null) {
+                    builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
+                    builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
+                }
+            }
+            return builder.toString();
+        }
+    }
+    
+    
     private final class RecordImpl extends Record {
         
         public RecordImpl(Result result, Row row) {
@@ -873,7 +911,7 @@ abstract class AbstractQuery<Q> implements QueryFactory {
     }
     
     
-    private final class RecordListImpl extends RecordList {
+    private final class RecordListImpl implements RecordList {
         private final ResultSet rs;
 
         private final Iterator<Row> iterator;
@@ -895,7 +933,7 @@ abstract class AbstractQuery<Q> implements QueryFactory {
         }
 
         @Override
-        boolean wasApplied() {
+        public boolean wasApplied() {
             return rs.wasApplied();
         }
         

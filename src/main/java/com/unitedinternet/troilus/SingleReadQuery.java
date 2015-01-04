@@ -138,7 +138,7 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
                                                   return Optional.empty();
                                                   
                                               } else {
-                                                  Record record = newRecord(Result.newResult(resultSet), row);
+                                                  Record record = newRecord(new ResultImpl(resultSet), row);
                                                   
                                                   // paranoia check
                                                   keyNameValuePairs.forEach((name, value) -> { 

@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 
 
 
-public abstract class Count extends Result {
+public abstract class Count implements Result {
     
     public abstract long getCount();
  
@@ -54,7 +54,7 @@ public abstract class Count extends Result {
         }
 
         @Override
-        boolean wasApplied() {
+        public boolean wasApplied() {
             return rs.wasApplied();
         }
 
