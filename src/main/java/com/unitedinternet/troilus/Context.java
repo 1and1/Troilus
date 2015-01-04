@@ -25,7 +25,6 @@ import java.util.concurrent.ForkJoinPool;
 
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -41,7 +40,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 
- 
+
+
 
 class Context  {
     private final Cache<String, PreparedStatement> statementCache = CacheBuilder.newBuilder().maximumSize(100).build();
@@ -93,58 +93,13 @@ class Context  {
         }
     }
 
- 
-    public boolean isOptional(Object obj) {
-        if (obj == null) {
-            return false;
-        } else {
-            return (Optional.class.isAssignableFrom(obj.getClass()));
-        }
-    }
- 
 
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> toOptional(T obj) {
-        if (obj == null) {
-            return Optional.empty();
-        } else {
-            if (isOptional(obj)) {
-                return (Optional<T>) obj;
-            } else {
-                return Optional.of(obj);
-            }
-        }
-    }
- 
-    
-
-    public boolean isBuildInType(DataType dataType) {
-        
-        if (dataType.isCollection()) {
-            for (DataType type : dataType.getTypeArguments()) {
-                if (!isBuildinType(type)) {
-                    return false;
-                }
-            }
-            return true;
-
-        } else {
-            return isBuildinType(dataType);
-        }
-    }
-  
-    private boolean isBuildinType(DataType type) {
-        return DataType.allPrimitiveTypes().contains(type);
-    }   
-    
     
     protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
         return entityMapper.toValues(entity);
     }
 
-    
-  
-    
+        
     
     protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
         return entityMapper.fromValues(clazz, datasource);
@@ -398,7 +353,7 @@ class Context  {
         public UserType load(String usertypeName) throws Exception {
             return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
         }
-    }
+    }    
 }
 
 

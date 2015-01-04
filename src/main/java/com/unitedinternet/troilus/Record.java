@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c)  2014 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -46,17 +42,20 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author grro
  */
-public class Record extends Result {
+public abstract class Record extends Result {
    
-    private final Context ctx;
     private final Result result;
     private final Row row;
     
     
-    Record(Context ctx, Result result, Row row) {
-        this.ctx = ctx;
+    Record(Result result, Row row) {
         this.result = result;
         this.row = row;
+    }
+    
+    
+    protected Row getRow() {
+        return row;
     }
     
     @Override
@@ -73,11 +72,6 @@ public class Record extends Result {
     @Override
     boolean wasApplied() {
         return result.wasApplied();
-    }
-
-    
-    public ProtocolVersion getProtocolVersion() {
-        return ctx.getProtocolVersion();
     }
 
     public Optional<Long> getWritetime(String name) {
@@ -100,7 +94,7 @@ public class Record extends Result {
         return row.getColumnDefinitions();
     }
     
-    private boolean isNull(String name) {
+    protected boolean isNull(String name) {
         return row.isNull(name);
     }
      
@@ -178,98 +172,15 @@ public class Record extends Result {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
     }
 
+    public abstract <T> Optional<T> getObject(String name, Class<T> elementsClass);    
     
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
-        if (isNull(name)) {
-            return Optional.empty();
-        }
+    public abstract <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass);
+     
+    public abstract <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass);
+       
+    public abstract <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
+    
 
-        DataType datatype = getColumnDefinitions().getType(name);
-        
-        if (datatype != null) {
-            if (ctx.isBuildInType(datatype)) {
-                return (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion()));
-            } else {
-                return Optional.ofNullable(UDTValueMapper.fromUdtValue(ctx, datatype, getUDTValue(name).get(), elementsClass));
-            }
-        }
-        
-        return Optional.empty();
-    }
-    
-    
-    public <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass) {
-        if (isNull(name)) {
-            return Optional.empty();
-        }
-
-        DataType datatype = ctx.getColumnMetadata(name).getType();
-        if (ctx.isBuildInType(datatype)) {
-            return Optional.of(row.getSet(name, elementsClass)).map(set -> ImmutableSet.copyOf(set));
-        } else {
-            return Optional.of(row.getSet(name, UDTValue.class)).map(udtValues -> (ImmutableSet<T>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableSet.copyOf(udtValues), elementsClass));
-        }
-    }
-    
- 
-    public <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass) {
-        if (isNull(name)) {
-            return Optional.empty();
-        }
-        
-        DataType datatype = ctx.getColumnMetadata(name).getType();
-        if (ctx.isBuildInType(datatype)) {
-            return Optional.ofNullable(row.getList(name, elementsClass)).map(list -> ImmutableList.copyOf(list));
-        } else {
-            return Optional.of(row.getList(name, UDTValue.class)).map(udtValues -> (ImmutableList<T>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), ImmutableList.copyOf(udtValues), elementsClass));
-        }
-    }
-    
-    
-    public <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
-        if (isNull(name)) {
-            return Optional.empty();
-        }
-        
-        DataType datatype = ctx.getColumnMetadata(name).getType();
-        if (ctx.isBuildInType(datatype)) {
-            return Optional.ofNullable(row.getMap(name, keysClass, valuesClass)).map(map -> ImmutableMap.copyOf(map));
-            
-        } else {
-            if (ctx.isBuildInType(datatype.getTypeArguments().get(0))) {
-                return Optional.of(row.getMap(name, keysClass, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
-
-            } else if (ctx.isBuildInType(datatype.getTypeArguments().get(1))) {
-                return Optional.of(row.getMap(name, UDTValue.class, valuesClass)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
-                
-            } else {
-                return isNull(name) ? Optional.empty() : Optional.of(row.getMap(name, UDTValue.class, UDTValue.class)).map(udtValues -> (ImmutableMap<K, V>) UDTValueMapper.fromUdtValues(ctx, datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(udtValues), keysClass, valuesClass));
-            }
-        }
-    }
-    
-    
-    public String toString() {
-        ToStringHelper toStringHelper = MoreObjects.toStringHelper(this);
-        row.getColumnDefinitions().asList()
-                                  .forEach(definition -> toString(definition.getName(), definition.getType()).ifPresent(value -> toStringHelper.add(definition.getName(), value)));
-        return toStringHelper.toString();
-    }
-    
-    
-    private Optional<String> toString(String name, DataType dataType) {
-        if (isNull(name)) {
-            return Optional.empty();
-        } else {
-            StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(row.getBytesUnsafe(name), getProtocolVersion()));
-
-            return Optional.of(builder.toString());
-        }
-    }
-    
-    
     
     TriFunction<String, Class<?>, Class<?>, Optional<?>> getAccessor() {
         return new RecordAccessorAdapter(this);
