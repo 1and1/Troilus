@@ -27,6 +27,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.Dao.UpdateWithValuesAndCounter;
 
 
  
@@ -57,8 +58,6 @@ public class DaoImpl implements Dao, QueryFactory {
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                                       ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                                       ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                                      ImmutableMap<String, Long> counterValuesToIncr,
-                                      ImmutableMap<String, Long> counterValuesToDecr,
                                       ImmutableList<Clause> ifConditions) {
         return new UpdateQuery(ctx, 
                                queryFactory, 
@@ -71,8 +70,6 @@ public class DaoImpl implements Dao, QueryFactory {
                                listValuesToPrepend, 
                                listValuesToRemove,
                                mapValuesToMutate,
-                               counterValuesToIncr,
-                               counterValuesToDecr,
                                ifConditions);
     }
         
@@ -167,6 +164,16 @@ public class DaoImpl implements Dao, QueryFactory {
     
     
     @Override
+    public CounterBatchMutationQuery newCounterBatchMutationQuery(Context ctx,
+                                                                  QueryFactory queryFactory,
+                                                                  ImmutableList<CounterBatchable> batchables) {
+        return new CounterBatchMutationQuery(ctx, 
+                                             queryFactory, 
+                                             batchables);
+    }
+    
+    
+    @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
         return new DaoImpl(ctx.withConsistency(consistencyLevel));
     }
@@ -216,19 +223,15 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
                               ImmutableList.of()).entity(entity);
     }
     
     @Override
-    public UpdateWithValues<?> writeWhere(Clause... whereConditions) {
+    public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
         return newUpdateQuery(ctx, 
                               this, 
                               ImmutableMap.of(), 
-                              ImmutableList.copyOf(whereConditions),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
+                              ImmutableList.copyOf(clauses),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
@@ -239,8 +242,10 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableList.of());
     }
     
+  
+    
     @Override
-    public Write writeWithKey(String keyName, Object keyValue) {
+    public WriteWithCounter writeWithKey(String keyName, Object keyValue) {
         return newUpdateQuery(ctx, 
                               this, 
                               ImmutableMap.of(keyName, keyValue), 
@@ -252,13 +257,11 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
                               ImmutableList.of());
     }
     
     @Override
-    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
         return newUpdateQuery(ctx, 
                               this, 
                               ImmutableMap.of(keyName1, keyValue1,
@@ -271,14 +274,12 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
                               ImmutableList.of());
         
     }
     
     @Override
-    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
         return newUpdateQuery(ctx, 
                               this, 
                               ImmutableMap.of(keyName1, keyValue1, 
@@ -292,14 +293,12 @@ public class DaoImpl implements Dao, QueryFactory {
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
                               ImmutableList.of());
         
     }
 
     @Override
-    public Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
         return newUpdateQuery(ctx, 
                               this, 
                               ImmutableMap.of(keyName1, keyValue1, 
@@ -307,8 +306,6 @@ public class DaoImpl implements Dao, QueryFactory {
                                               keyName3, keyValue3, 
                                               keyName4, keyValue4), 
                               ImmutableList.of(),
-                              ImmutableMap.of(),
-                              ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),
                               ImmutableMap.of(),

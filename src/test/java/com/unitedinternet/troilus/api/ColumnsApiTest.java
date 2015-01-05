@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Count;
+import com.unitedinternet.troilus.Dao.CounterMutation;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Dao;
@@ -41,6 +42,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Dao loginsDao = new DaoImpl(getSession(), LoginsTable.TABLE)
                                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
    
+        Dao plusLoginsDao = new DaoImpl(getSession(), PlusLoginsTable.TABLE)
+                                .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         
 
@@ -239,7 +242,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
 
         
         loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
-                 .decr(LoginsTable.LOGINS)   
+                 .decr(LoginsTable.LOGINS)
+                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                 .withWritetime(Instant.now().toEpochMilli() * 1000)
                  .execute();
 
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
@@ -248,7 +253,63 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertEquals((Long) 3l, record.getLong(LoginsTable.LOGINS).get());
 
 
- 
+
+        
+        loginsDao.writeWhere(QueryBuilder.eq(LoginsTable.USER_ID, "8345345"))
+                 .incr(LoginsTable.LOGINS)
+                 .withWritetime(Instant.now().toEpochMilli() * 1000)
+                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                 .execute();
+
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS).get());
+
+
+        
+        plusLoginsDao.writeWhere(QueryBuilder.eq(PlusLoginsTable.USER_ID, "8345345"))
+                     .incr(PlusLoginsTable.LOGINS)
+                     .withWritetime(Instant.now().toEpochMilli() * 1000)
+                     .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                     .execute();
+        
+        record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
+                          .execute()
+                          .get();
+        Assert.assertEquals((Long) 1l, record.getLong(PlusLoginsTable.LOGINS).get());
+        
+        
+        
+
+        CounterMutation cm = loginsDao.writeWhere(QueryBuilder.eq(LoginsTable.USER_ID, "8345345"))
+                                      .incr(LoginsTable.LOGINS);
+
+        plusLoginsDao.writeWhere(QueryBuilder.eq(PlusLoginsTable.USER_ID, "8345345"))
+                     .incr(PlusLoginsTable.LOGINS)
+                     .withWritetime(Instant.now().toEpochMilli() * 1000)
+                     .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
+                     .combinedWith(cm)
+                     .execute();
+
+        
+        record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
+                .execute()
+                .get();
+        Assert.assertEquals((Long) 2l, record.getLong(PlusLoginsTable.LOGINS).get());
+
+        record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
+                .execute()
+                .get();
+        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS).get());
+
+
+        
+        
+        
+        
+        
+        
         
         // remove value
         usersDao.writeWithKey(UsersTable.USER_ID, "8345345")

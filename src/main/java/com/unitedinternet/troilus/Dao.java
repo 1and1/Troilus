@@ -80,17 +80,17 @@ public interface Dao {
     // MUTATIONS
 
     
-    UpdateWithValues<?> writeWhere(Clause... clauses);
+    UpdateWithValuesAndCounter writeWhere(Clause... clauses);
 
     Insertion writeEntity(Object entity);
 
-    Write writeWithKey(String keyName, Object keyValue);
+    WriteWithCounter writeWithKey(String keyName, Object keyValue);
 
-    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
 
-    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
 
-    Write writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
     Deletion deleteWithKey(String keyName, Object keyValue);
 
@@ -106,8 +106,7 @@ public interface Dao {
     
     
     
-    public static interface Mutation<Q extends Mutation<Q>> extends
-            ConfiguredQuery<Q, Result> {
+    public static interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
 
         Mutation<Q> withSerialConsistency(ConsistencyLevel consistencyLevel);
 
@@ -115,12 +114,16 @@ public interface Dao {
 
         Mutation<Q> withWritetime(long microsSinceEpoch);
     }
+    
+    
 
     public static interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable {
 
         BatchMutation combinedWith(Batchable other);
     }
 
+    
+    
     public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result> {
 
         BatchMutation combinedWith(Batchable other);
@@ -150,25 +153,40 @@ public interface Dao {
         Mutation<?> onlyIf(Clause... conditions);
     }
 
+    
+    
     public static interface Write extends UpdateWithValues<Write> {
-
+        
         Mutation<?> ifNotExits();
     }
 
-    public static interface UpdateWithValues<U extends BatchableMutation<U>> extends Update<U> {
+    
+    
+    public static interface WithCounter {
+
+        CounterMutation decr(String name); 
+        
+        CounterMutation decr(String name, long value); 
+        
+        CounterMutation incr(String name);  
+
+        CounterMutation incr(String name, long value);   
+    }
+
+    
+
+    public static interface WriteWithCounter extends Write, WithCounter {
+
+    }
+
+    
+    
+    public static interface UpdateWithValues<U extends Update<U>> extends Update<U> {
 
         U value(String name, Object value);
 
         U values(ImmutableMap<String, Object> nameValuePairsToAdd);
         
-        U decr(String name);
-        
-        U decr(String name, long value);
-        
-        U incr(String name);
-
-        U incr(String name, long value);
-
         U removeSetValue(String name, Object value);
 
         U addSetValue(String name, Object value);
@@ -182,6 +200,37 @@ public interface Dao {
         U putMapValue(String name, Object key, Object value);
     }
 
+
+    
+    public static interface UpdateWithValuesAndCounter extends UpdateWithValues<Write>, WithCounter {
+ 
+    }
+
+
+    
+     
+    
+    public static interface CounterMutation extends ConfiguredQuery<CounterMutation, Result>, CounterBatchable  {
+
+        CounterMutation withSerialConsistency(ConsistencyLevel consistencyLevel);
+
+        CounterMutation withTtl(Duration ttl);
+
+        CounterMutation withWritetime(long microsSinceEpoch);
+        
+        CounterBatchMutation combinedWith(CounterBatchable other);
+    }
+
+    
+
+    public interface CounterBatchMutation extends ConfiguredQuery<CounterBatchMutation, Result> {
+
+        CounterBatchMutation combinedWith(CounterBatchable other);
+    }
+
+
+    
+    
 
     public static interface Deletion extends BatchableMutation<Deletion> {
 

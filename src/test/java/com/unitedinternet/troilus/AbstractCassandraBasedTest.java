@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.api.FeesTable;
 import com.unitedinternet.troilus.api.IdsTable;
 import com.unitedinternet.troilus.api.LoginsTable;
+import com.unitedinternet.troilus.api.PlusLoginsTable;
 import com.unitedinternet.troilus.api.UsersTable;
 import com.unitedinternet.troilus.example.AddressType;
 import com.unitedinternet.troilus.example.HotelsTable;
@@ -77,6 +78,7 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(AddrType.CREATE_STMT);
         session.execute(UsersTable.CREATE_STMT);
         session.execute(LoginsTable.CREATE_STMT);
+        session.execute(PlusLoginsTable.CREATE_STMT);
         session.execute(FeesTable.CREATE_STMT);
         session.execute(IdsTable.CREATE_STMT);
         session.execute(AddressType.CREATE_STMT);
