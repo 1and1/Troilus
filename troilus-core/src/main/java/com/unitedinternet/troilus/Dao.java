@@ -45,6 +45,7 @@ public interface Dao {
 
     Dao withRetryPolicy(RetryPolicy policy);
         
+    Dao withInterceptor(QueryInterceptor queryInterceptor);
     
     
     public interface Query<T> {

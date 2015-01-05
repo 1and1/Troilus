@@ -10,6 +10,7 @@ public interface PhoneToDeviceTable  {
     
     public static final String NUMBER = "number";
     public static final String DEVICE_ID = "deviceid";
+    public static final String ACTIVE = "active";
         
     public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/phone_to_device.ddl");
 }

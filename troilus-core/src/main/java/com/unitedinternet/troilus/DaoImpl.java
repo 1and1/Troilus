@@ -185,6 +185,11 @@ public class DaoImpl implements Dao, QueryFactory {
 
     
     @Override
+    public Dao withInterceptor(QueryInterceptor queryInterceptor) {
+        return this;
+    }
+    
+    @Override
     public Insertion writeEntity(Object entity) {
         return newUpdateQuery(ctx,
                               this,
