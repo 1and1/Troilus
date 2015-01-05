@@ -17,7 +17,8 @@ Cluster cluster = Cluster.builder()
 Session session = cluster.connect("hotel_reservation_system");
 ```
 
-This Session object will be used to create a new instance of a `Dao`. In the examples below the [hotels table](src/test/resources/com/unitedinternet/troilus/example/hotels.ddl) is used
+
+This Session object will be used to create a new instance of a `Dao`. In the examples below the [hotels table](troilus-core/src/test/resources/com/unitedinternet/troilus/example/hotels.ddl) is used
 ``` java
 Dao hotelsDao = new DaoImpl(session, "hotels")
                           .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
