@@ -23,7 +23,7 @@ This Session object will be used to create a new instance of a `Dao`. In the exa
 Dao hotelsDao = new DaoImpl(session, "hotels");
 ```
 
-Pre configured dao
+Pre-configured dao
 ``` java
 Dao hotelsDao = new DaoImpl(session, "hotels")
                           .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
@@ -125,7 +125,7 @@ hotelsDao.writeWithKey("id","BUP932432")
   ```             
 
 
-### conditional value update 
+### value update based on where conditions
 ``` java
 hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
          .value(HotelsTable.CLASSIFICATION, 4)
@@ -149,7 +149,7 @@ safe update with `onlyIf(..conditions..)` (uses IF followed by a condition to be
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
          .value("classification", 5)
-	     .onlyIf(QueryBuilder.eq("classification", 4))
+         .onlyIf(QueryBuilder.eq("classification", 4))
          .execute();
   ```  
        
