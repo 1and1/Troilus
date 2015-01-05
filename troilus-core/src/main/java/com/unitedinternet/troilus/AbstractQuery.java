@@ -120,14 +120,8 @@ abstract class AbstractQuery<Q> implements QueryFactory {
     // utilities methods
     
     
-    @Deprecated
     protected Context getContext() {
         return ctx; 
-    }
-    
-    @Deprecated
-    protected QueryFactory getQueryFactory() {
-        return queryFactory; 
     }
       
     protected ProtocolVersion getProtocolVersion() {

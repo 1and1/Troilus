@@ -24,7 +24,6 @@ import java.util.concurrent.ExecutionException;
  *
  * @author grro
  */
-@Deprecated   // replace it by guava artefact?
 class Exceptions {    
      
     

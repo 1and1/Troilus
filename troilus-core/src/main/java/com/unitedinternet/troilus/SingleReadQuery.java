@@ -68,7 +68,7 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
     
     @Override
     public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new SingleEntityReadQuery(getContext(), this, this, objectClass);
+        return new SingleEntityReadQuery<>(getContext(), this, this, objectClass);
     }
     
     @Override

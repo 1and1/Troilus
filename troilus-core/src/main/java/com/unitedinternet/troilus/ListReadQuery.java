@@ -171,7 +171,7 @@ public class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListR
   
     @Override
     public <E> ListEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new ListEntityReadQuery(getContext(), this, this, objectClass) ;
+        return new ListEntityReadQuery<>(getContext(), this, this, objectClass) ;
     }
 
     
