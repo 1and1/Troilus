@@ -134,7 +134,7 @@ hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "
         
 
 ### lightweight transactions 
-unique insert with `ifNotExits()`(performs the insertion only if the row does not already exist)        
+***unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
 ``` java
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
@@ -145,7 +145,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .execute();
   ```  
         
-safe update with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
+***concurrent-safe update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
          .value("classification", 5)
