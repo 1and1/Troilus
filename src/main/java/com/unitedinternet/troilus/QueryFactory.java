@@ -17,7 +17,6 @@ package com.unitedinternet.troilus;
 
 import java.util.Optional;
 
-import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -71,15 +70,6 @@ interface QueryFactory {
                                      Optional<Boolean> optionalAllowFiltering,
                                      Optional<Integer> optionalFetchSize,
                                      Optional<Boolean> optionalDistinct); 
-
-    BatchMutationQuery newBatchMutationQuery(Context ctx,    
-                                             QueryFactory queryFactory,
-                                             Type type, 
-                                             ImmutableList<Batchable> batchables);
-    
-    CounterBatchMutationQuery newCounterBatchMutationQuery(Context ctx,    
-                                                           QueryFactory queryFactory,
-                                                           ImmutableList<CounterBatchable> batchables);
 }
  
 

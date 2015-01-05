@@ -56,6 +56,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.Dao.Batchable;
+import com.unitedinternet.troilus.Dao.CounterBatchable;
 import com.unitedinternet.troilus.Dao.Deletion;
 
  
@@ -367,22 +369,11 @@ abstract class AbstractQuery<Q> implements QueryFactory {
                               ifConditions);
     }
 
-
-    @Override
-    public BatchMutationQuery newBatchMutationQuery(Context ctx,
-                                                    QueryFactory queryFactory,
-                                                    Type type,
-                                                    ImmutableList<Batchable> batchables) {
-        return this.queryFactory.newBatchMutationQuery(ctx,
-                                                       queryFactory, 
-                                                       type, 
-                                                       batchables);
-    }
-    
+ 
     protected  BatchMutationQuery newBatchMutationQuery(Context ctx,
                                                         Type type,
                                                         ImmutableList<Batchable> batchables) {
-        return newBatchMutationQuery(ctx, 
+        return new BatchMutationQuery(ctx, 
                                      queryFactory, 
                                      type, 
                                      batchables);
@@ -396,29 +387,18 @@ abstract class AbstractQuery<Q> implements QueryFactory {
     }
     
    
-    @Override
-    public CounterBatchMutationQuery newCounterBatchMutationQuery(Context ctx,
-                                                                  QueryFactory queryFactory,
-                                                                  ImmutableList<CounterBatchable> batchables) {
-        return this.queryFactory.newCounterBatchMutationQuery(ctx, 
-                                                              queryFactory,
-                                                              batchables);
-    }
- 
-    
-
+  
     protected CounterBatchMutationQuery newCounterBatchMutationQuery(Context ctx,
                                                                      ImmutableList<CounterBatchable> batchables) {    
-        return queryFactory.newCounterBatchMutationQuery(ctx, 
-                                                         queryFactory,
-                                                         batchables);
+        return new CounterBatchMutationQuery(ctx, 
+                                             queryFactory,
+                                             batchables);
     }
 
     
     protected CounterBatchMutationQuery newCounterBatchMutationQuery(ImmutableList<CounterBatchable> batchables) {    
-        return queryFactory.newCounterBatchMutationQuery(ctx, 
-                                                         queryFactory,
-                                                         batchables);
+        return newCounterBatchMutationQuery(ctx, 
+                                            batchables);
     }
 
     

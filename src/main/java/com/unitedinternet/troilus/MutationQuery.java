@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Batchable;
 
 
 

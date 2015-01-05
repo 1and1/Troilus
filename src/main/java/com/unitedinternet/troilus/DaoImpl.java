@@ -19,7 +19,6 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Optional;
 
-import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -27,8 +26,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao.UpdateWithValuesAndCounter;
-
 
  
 
@@ -148,30 +145,7 @@ public class DaoImpl implements Dao, QueryFactory {
                                   optionalDistinct);
     }
     
-  
-    
-    
-    @Override
-    public BatchMutationQuery newBatchMutationQuery(Context ctx,
-                                                    QueryFactory queryFactory,
-                                                    Type type,
-                                                    ImmutableList<Batchable> batchables) {
-        return new BatchMutationQuery(ctx, 
-                                      queryFactory, 
-                                      type, 
-                                      batchables);
-    } 
-    
-    
-    @Override
-    public CounterBatchMutationQuery newCounterBatchMutationQuery(Context ctx,
-                                                                  QueryFactory queryFactory,
-                                                                  ImmutableList<CounterBatchable> batchables) {
-        return new CounterBatchMutationQuery(ctx, 
-                                             queryFactory, 
-                                             batchables);
-    }
-    
+   
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {

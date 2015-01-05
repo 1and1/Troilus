@@ -15,12 +15,13 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
-import com.unitedinternet.troilus.Batchable;
 import com.unitedinternet.troilus.Dao;
+import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;

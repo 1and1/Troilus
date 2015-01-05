@@ -24,6 +24,7 @@ import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.Dao.CounterBatchMutation;
+import com.unitedinternet.troilus.Dao.CounterBatchable;
 
 
  

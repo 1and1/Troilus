@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -116,6 +117,13 @@ public interface Dao {
     }
     
     
+    public static interface Batchable {
+
+        void addTo(BatchStatement batchStatement);
+    }
+
+
+    
 
     public static interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable {
 
@@ -206,6 +214,11 @@ public interface Dao {
  
     }
 
+    
+    public static interface CounterBatchable {
+
+        void addTo(BatchStatement batchStatement);
+    }
 
     
      
