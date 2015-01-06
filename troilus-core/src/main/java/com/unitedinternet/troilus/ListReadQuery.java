@@ -123,19 +123,38 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     
+
+    private ListReadQueryData getPreprocessedData(Context ctx) {
+        ListReadQueryData d = data;
+        for (ListReadQueryBeforeInterceptor interceptor : ctx.getInterceptors(ListReadQueryBeforeInterceptor.class)) {
+            d = interceptor.onBeforeListRead(d);
+        }
+        
+        return d;
+    }
+    
     
 
     @Override
     public CompletableFuture<RecordList> executeAsync() {
-        Statement statement = data.toStatement(getContext());
-        return performAsync(statement).thenApply(resultSet -> newRecordList(resultSet));
+        ListReadQueryData preprocessedData = getPreprocessedData(getContext()); 
+        Statement statement = preprocessedData.toStatement(getContext());
+        
+        return getContext().performAsync(statement)
+                           .thenApply(resultSet -> newRecordList(resultSet))
+                           .thenApply(recordList -> {
+                                                       for (ListReadQueryAfterInterceptor interceptor : getContext().getInterceptors(ListReadQueryAfterInterceptor.class)) {
+                                                           recordList = interceptor.onAfterListRead(preprocessedData, recordList);
+                                                       }
+                                                       return recordList;
+                                                    });
     }        
     
-
+ 
     
     
     
-    private static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
+     private static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
         private final ListReadQuery read;
         private final Class<E> clazz;
         
@@ -266,8 +285,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             return optionalDistinct;
         }
 
-        
-        Statement toStatement(Context ctx) {
+    
+        @Override
+        protected Statement toStatement(Context ctx) {
             Select.Selection selection = select();
             
             optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });
@@ -294,6 +314,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
 
 
+    
     private static class CountReadQuery extends AbstractQuery<CountReadQuery> implements ListRead<Count> {
         
         private final CountReadQueryData data;
@@ -340,7 +361,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         public CompletableFuture<Count> executeAsync() {
             Statement statement = data.toStatement(getContext());
             
-            return performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
+            return getContext().performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
         }        
     }  
 }

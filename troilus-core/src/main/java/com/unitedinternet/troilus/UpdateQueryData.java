@@ -242,9 +242,8 @@ public class UpdateQueryData extends QueryData {
     }
 
 
-
-    Statement toStatement(Context ctx) {
-        
+    @Override
+    protected Statement toStatement(Context ctx) {
         com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
         
         onlyIfConditions.forEach(condition -> update.onlyIf(condition));

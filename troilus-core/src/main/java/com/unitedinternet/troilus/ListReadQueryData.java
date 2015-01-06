@@ -139,8 +139,8 @@ public class ListReadQueryData extends QueryData {
     }
 
     
-    
-    Statement toStatement(Context ctx) {
+    @Override
+    protected Statement toStatement(Context ctx) {
         Select.Selection selection = select();
 
         optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });

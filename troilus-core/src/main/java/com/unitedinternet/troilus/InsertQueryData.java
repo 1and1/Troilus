@@ -73,7 +73,8 @@ public class InsertQueryData extends QueryData {
 
     
     
-    Statement toStatement(Context ctx) {
+    @Override
+    protected Statement toStatement(Context ctx) {
         Insert insert = insertInto(ctx.getTable());
         
         List<Object> values = Lists.newArrayList();

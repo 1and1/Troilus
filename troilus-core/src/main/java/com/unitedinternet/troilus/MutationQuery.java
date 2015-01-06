@@ -71,7 +71,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
 
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
+        return getContext().performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
     }
     
     protected abstract Statement getStatement(Context ctx);
@@ -100,8 +100,8 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
             return null;
         } 
         
-        DataType dataType = getColumnMetadata(name).getType();
-        return (isBuildInType(dataType)) ? value : toUdtValue(getColumnMetadata(name).getType(), value);
+        DataType dataType = getContext().getColumnMetadata(name).getType();
+        return (getContext().isBuildInType(dataType)) ? value : getContext().getUDTValueMapper().toUdtValue(getContext().getColumnMetadata(name).getType(), value);
     }
 
     

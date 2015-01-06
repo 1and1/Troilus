@@ -88,37 +88,54 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
 
     
     
+    private SingleReadQueryData getPreprocessedData(Context ctx) {
+        SingleReadQueryData d = data;
+        for (SingleReadQueryBeforeInterceptor interceptor : ctx.getInterceptors(SingleReadQueryBeforeInterceptor.class)) {
+            d = interceptor.onBeforeSingleRead(d);
+        }
+        
+        return d;
+    }
+    
+    
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
-        Statement statement = data.toStatement(getContext());
+        SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
+        Statement statement = preprocessedData.toStatement(getContext());
         
-        return performAsync(statement)
-                  .thenApply(resultSet -> {
-                                              Row row = resultSet.one();
-                                              if (row == null) {
-                                                  return Optional.empty();
-                                                  
-                                              } else {
-                                                  Record record = newRecord(new ResultImpl(resultSet), row);
-                                                  
-                                                  // paranoia check
-                                                  data.getKeyNameValuePairs().forEach((name, value) -> { 
-                                                                                                          ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
-                                                                                                          ByteBuffer out = record.getBytesUnsafe(name).get();
-                                                                  
-                                                                                                          if (in.compareTo(out) != 0) {
-                                                                                                               LOG.warn("Dataswap error for " + name);
-                                                                                                               throw new ProtocolErrorException("Dataswap error for " + name); 
-                                                                                                          }
-                                                                                                      });
-                                                  
-                                                  if (!resultSet.isExhausted()) {
-                                                      throw new TooManyResultsException("more than one record exists");
-                                                  }
-                                                  
-                                                  return Optional.of(record); 
-                                              }
-                  });
+        return getContext().performAsync(statement)
+                           .thenApply(resultSet -> {
+                                                      Row row = resultSet.one();
+                                                      if (row == null) {
+                                                          return Optional.<Record>empty();
+                                                          
+                                                      } else {
+                                                          Record record = newRecord(new ResultImpl(resultSet), row);
+                                                          
+                                                          // paranoia check
+                                                          data.getKeyNameValuePairs().forEach((name, value) -> { 
+                                                                                                                  ByteBuffer in = DataType.serializeValue(value, getContext().getProtocolVersion());
+                                                                                                                  ByteBuffer out = record.getBytesUnsafe(name).get();
+                                                                          
+                                                                                                                  if (in.compareTo(out) != 0) {
+                                                                                                                       LOG.warn("Dataswap error for " + name);
+                                                                                                                       throw new ProtocolErrorException("Dataswap error for " + name); 
+                                                                                                                  }
+                                                                                                              });
+                                                          
+                                                          if (!resultSet.isExhausted()) {
+                                                              throw new TooManyResultsException("more than one record exists");
+                                                          }
+                                                          
+                                                          return Optional.of(record); 
+                                                      }
+                                                   })
+                           .thenApply(optionalRecord -> {
+                                                           for (SingleReadQueryAfterInterceptor interceptor : getContext().getInterceptors(SingleReadQueryAfterInterceptor.class)) {
+                                                               optionalRecord = interceptor.onAfterSingleRead(preprocessedData, optionalRecord);
+                                                           }
+                                                           return optionalRecord;
+                                                        });
     }
     
     
@@ -146,7 +163,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> fromValues(clazz, record.getAccessor())));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().fromValues(clazz, record.getAccessor())));
         }        
     }
 }

@@ -21,5 +21,5 @@ package com.unitedinternet.troilus;
  
 public interface UpdateQueryBeforeInterceptor extends QueryInterceptor {
     
-    UpdateQueryData onBefore(UpdateQueryData data);
+    UpdateQueryData onBeforeUpdate(UpdateQueryData data);
 }

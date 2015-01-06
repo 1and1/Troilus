@@ -15,15 +15,11 @@
  */
 package com.unitedinternet.troilus;
 
-import java.util.Optional;
-
-import com.google.common.collect.ImmutableMap;
-
-
 
 
  
 public interface InsertQueryBeforeInterceptor extends QueryInterceptor {
     
-    void onBeforeInsert(ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists);
+    InsertQueryData onBeforeInsert(InsertQueryData data);
 }
+ 

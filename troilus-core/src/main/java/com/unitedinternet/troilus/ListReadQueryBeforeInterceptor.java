@@ -15,13 +15,12 @@
  */
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.Statement;
 
 
 
  
-abstract class QueryData  {
-  
-    abstract protected Statement toStatement(Context ctx);
-        
+public interface ListReadQueryBeforeInterceptor extends QueryInterceptor {
+    
+    ListReadQueryData onBeforeListRead(ListReadQueryData data);
 }
+ 

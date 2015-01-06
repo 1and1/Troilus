@@ -33,21 +33,12 @@ public class DaoImpl implements Dao {
     
     private final Context ctx;
     
-    private ImmutableList<InsertQueryBeforeInterceptor> insertBeforeInterceptors;
-    private ImmutableList<InsertQueryAfterInterceptor> insertAfterInterceptors;
-    
     public DaoImpl(Session session, String tablename) {
-        this(new Context(session, tablename),
-             ImmutableList.of(),
-             ImmutableList.of());
+        this(new Context(session, tablename));
     }
      
-    private DaoImpl(Context ctx,
-                    ImmutableList<InsertQueryBeforeInterceptor> insertBeforeInterceptors, 
-                    ImmutableList<InsertQueryAfterInterceptor> insertAfterInterceptors) {
+    private DaoImpl(Context ctx) {
         this.ctx = ctx;
-        this.insertBeforeInterceptors = insertBeforeInterceptors;
-        this.insertAfterInterceptors = insertAfterInterceptors;
     }
     
    
@@ -55,59 +46,52 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
-        return new DaoImpl(ctx.withConsistency(consistencyLevel),
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withConsistency(consistencyLevel));
     }
     
     @Override
     public Dao withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new DaoImpl(ctx.withSerialConsistency(consistencyLevel),
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withSerialConsistency(consistencyLevel));
     }
  
     @Override
     public Dao withTtl(Duration ttl) {
-        return new DaoImpl(ctx.withTtl(ttl), 
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withTtl(ttl));
     }
     
     @Override
     public Dao withWritetime(long microsSinceEpoch) {
-        return new DaoImpl(ctx.withWritetime(microsSinceEpoch),
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withWritetime(microsSinceEpoch));
     }
     
     
     @Override
     public Dao withEnableTracking() {
-        return new DaoImpl(ctx.withEnableTracking(),
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withEnableTracking());
     }
     
     @Override
     public Dao withDisableTracking() {
-        return new DaoImpl(ctx.withDisableTracking(), 
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withDisableTracking());
     }
 
     @Override
     public Dao withRetryPolicy(RetryPolicy policy) {
-        return new DaoImpl(ctx.withRetryPolicy(policy), 
-                           insertBeforeInterceptors,
-                           insertAfterInterceptors);
+        return new DaoImpl(ctx.withRetryPolicy(policy));
     }
 
     
     @Override
     public Dao withInterceptor(QueryInterceptor queryInterceptor) {
-        return this;
+        return new DaoImpl(ctx.interceptor(queryInterceptor));
     }
+    
+    
+    
+    <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
+        return ctx.getInterceptors(clazz);
+    }
+    
     
     @Override
     public Insertion writeEntity(Object entity) {

@@ -60,27 +60,41 @@ class Context  {
     private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
     private final LoadingCache<String, UserType> userTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader());
 
-    private final UDTValueMapper valueMapper = new UDTValueMapper();
     
     
+    private final UDTValueMapper udtValueMapper = new UDTValueMapper();
+
     private final String table;
     private final Session session;
     private final BeanMapper entityMapper;
     private final ExecutionSpec executionSpec;
-
+    private final Interceptors interceptors;
+    
     
     public Context(Session session, String table) {
-        this(session, new BeanMapper(), table, new ExecutionSpec());
+        this(session, 
+             new BeanMapper(), 
+             table,
+             new ExecutionSpec(), 
+             new Interceptors());
     }
-
-    
-    Context(Session session, BeanMapper entityMapper, String table, ExecutionSpec executionSpec) {
+        
+    Context(Session session, 
+            BeanMapper entityMapper,
+            String table, 
+            ExecutionSpec executionSpec,
+            Interceptors interceptors) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
         this.entityMapper = entityMapper;
+        this.interceptors = interceptors;
     }
  
+    
+    protected UDTValueMapper getUDTValueMapper() {
+        return udtValueMapper;
+    }
   
     protected String getTable() {
         return table;
@@ -113,8 +127,7 @@ class Context  {
         return entityMapper.toValues(entity);
     }
 
-    
-
+   
     protected ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
         return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
     }
@@ -140,11 +153,28 @@ class Context  {
         DataType dataType = getColumnMetadata(name).getType();
         return (isBuildInType(dataType)) ? value : toUdtValue(getColumnMetadata(name).getType(), value);
     }
+    
+
+    boolean isBuildInType(DataType dataType) {        
+        if (dataType.isCollection()) {
+            for (DataType type : dataType.getTypeArguments()) {
+                if (!isBuildInType(type)) {
+                    return false;
+                }
+            }
+            return true;
+
+        } else {
+            return DataType.allPrimitiveTypes().contains(dataType);
+        }
+    }
+    
 
     
     protected Object toUdtValue(DataType datatype, Object value) {
-        return valueMapper.toUdtValue(datatype, value);
+        return udtValueMapper.toUdtValue(datatype, value);
     }
+    
     
     private boolean isNullOrEmpty(Object value) {
         return (value == null) || 
@@ -156,57 +186,82 @@ class Context  {
     
 
 
-    protected boolean isBuildInType(DataType dataType) {        
-        if (dataType.isCollection()) {
-            for (DataType type : dataType.getTypeArguments()) {
-                if (!isBuildinType(type)) {
-                    return false;
-                }
-            }
-            return true;
-
-        } else {
-            return isBuildinType(dataType);
-        }
-    }
-
-    
-    private boolean isBuildinType(DataType type) {
-        return DataType.allPrimitiveTypes().contains(type);
-    }   
-
-    
     protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
         return entityMapper.fromValues(clazz, datasource);
     }
     
     
+    Context interceptor(QueryInterceptor interceptor) {
+        return new Context(session, 
+                entityMapper, 
+                table, 
+                executionSpec,
+                interceptors.add(interceptor));
+
+    }
+    
+
+    
+    <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
+        return interceptors.getInterceptors(clazz);
+    }
+    
+    
+    
     public Context withConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, entityMapper, table, executionSpec.withConsistency(consistencyLevel));
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withConsistency(consistencyLevel),
+                           interceptors);
     }
 
     public Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, entityMapper, table, executionSpec.withSerialConsistency(consistencyLevel));
+        return new Context(session, 
+                           entityMapper,
+                           table, 
+                           executionSpec.withSerialConsistency(consistencyLevel),
+                           interceptors);
     }
 
     public Context withTtl(Duration ttl) {
-        return new Context(session, entityMapper, table, executionSpec.withTtl(ttl));        
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withTtl(ttl),
+                           interceptors);        
     }
 
     public Context withWritetime(long microsSinceEpoch) {
-        return new Context(session, entityMapper, table, executionSpec.withWritetime(microsSinceEpoch));        
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withWritetime(microsSinceEpoch),
+                           interceptors);        
     }
     
     public Context withEnableTracking() {
-        return new Context(session, entityMapper, table, executionSpec.withEnableTracking());        
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withEnableTracking(),
+                           interceptors);        
     }
     
     public Context withDisableTracking() {
-        return new Context(session, entityMapper, table, executionSpec.withDisableTracking());        
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withDisableTracking(),
+                           interceptors);        
     }
     
     public Context withRetryPolicy(RetryPolicy policy) {
-        return new Context(session, entityMapper, table, executionSpec.withRetryPolicy(policy));        
+        return new Context(session, 
+                           entityMapper, 
+                           table,
+                           executionSpec.withRetryPolicy(policy),
+                           interceptors);        
     }
     
 
@@ -273,6 +328,59 @@ class Context  {
         }
     }   
 
+    
+    
+    static class Interceptors {
+        
+        private final ImmutableMap<Class<? extends QueryInterceptor>, ImmutableList<QueryInterceptor>> typeInterceptorMap;
+        
+        public Interceptors() {
+            this(ImmutableMap.of());
+        }
+        
+        private Interceptors(ImmutableMap<Class<? extends QueryInterceptor>, ImmutableList<QueryInterceptor>> interceptors) {
+            this.typeInterceptorMap = interceptors;
+        }
+
+        Interceptors add(QueryInterceptor interceptor) {
+            Interceptors interceptors = this;
+            
+            interceptors =  interceptors.addIfMatch(InsertQueryBeforeInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(UpdateQueryBeforeInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(DeleteQueryBeforeInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(SingleReadQueryBeforeInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(SingleReadQueryAfterInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(ListReadQueryBeforeInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(ListReadQueryAfterInterceptor.class, interceptor);
+
+            return interceptors;
+        }
+        
+        private Interceptors addIfMatch(Class<? extends QueryInterceptor> clazz, QueryInterceptor interceptor) {
+            if (clazz.isAssignableFrom(interceptor.getClass())) {
+                ImmutableList<QueryInterceptor> interceptorList = typeInterceptorMap.get(clazz);
+                if (interceptorList == null) {
+                    interceptorList = ImmutableList.of(interceptor);
+                } else {
+                    interceptorList = Immutables.merge(interceptorList, interceptor);
+                }
+                
+                return new Interceptors(Immutables.merge(typeInterceptorMap, clazz, interceptorList));    
+                
+            } else {
+                return this;
+            }
+        }
+        
+        public <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
+            ImmutableList<T> list = (ImmutableList<T>) typeInterceptorMap.get(clazz);
+            if (list == null) {
+                return ImmutableList.of();
+            } else {
+                return list;
+            }
+        }
+    }
 
     
     private static class ExecutionSpec {
@@ -434,7 +542,7 @@ class Context  {
     /**
      * UDTValueMapper
      */
-    private class UDTValueMapper {
+    class UDTValueMapper {
         
         private UDTValueMapper() {  }
         

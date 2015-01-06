@@ -59,7 +59,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     public InsertionQuery entity(Object entity) {
         return new InsertionQuery(getContext(), 
-                                 new InsertQueryData(toValues(entity), false));
+                                 new InsertQueryData(getContext().toValues(entity), false));
     }
         
     
@@ -181,7 +181,12 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     protected Statement getStatement(Context ctx) {
-        return data.toStatement(ctx);
+        UpdateQueryData d = data;
+        for (UpdateQueryBeforeInterceptor interceptor : ctx.getInterceptors(UpdateQueryBeforeInterceptor.class)) {
+            d = interceptor.onBeforeUpdate(d);
+        }
+        
+        return d.toStatement(ctx);
     }
     
     
@@ -197,6 +202,31 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                                           });
     }
     
+    
+    
+    private boolean isOptional(Object obj) {
+        if (obj == null) {
+            return false;
+        } else {
+            return (Optional.class.isAssignableFrom(obj.getClass()));
+        }
+    }
+ 
+
+    @SuppressWarnings("unchecked")
+    private <T> Optional<T> toOptional(T obj) {
+        if (obj == null) {
+            return Optional.empty();
+        } else {
+            if (isOptional(obj)) {
+                return (Optional<T>) obj;
+            } else {
+                return Optional.of(obj);
+            }
+        }
+    }
+ 
+
     
     
     
@@ -241,7 +271,8 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         }
 
         
-        Statement toStatement(Context ctx) {
+        @Override
+        protected Statement toStatement(Context ctx) {
             com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
             // key-based update

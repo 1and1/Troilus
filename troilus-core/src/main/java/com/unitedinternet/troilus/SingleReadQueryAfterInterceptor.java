@@ -15,13 +15,14 @@
  */
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.Statement;
+import java.util.Optional;
+
 
 
 
  
-abstract class QueryData  {
-  
-    abstract protected Statement toStatement(Context ctx);
-        
+public interface SingleReadQueryAfterInterceptor extends QueryInterceptor {
+    
+    Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record);
 }
+ 

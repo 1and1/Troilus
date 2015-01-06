@@ -48,6 +48,11 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
 
     @Override
     protected Statement getStatement(Context ctx) {
+        InsertQueryData d = data;
+        for (InsertQueryBeforeInterceptor interceptor : ctx.getInterceptors(InsertQueryBeforeInterceptor.class)) {
+            d = interceptor.onBeforeInsert(d); 
+        }
+        
         return data.toStatement(ctx);
     }
     

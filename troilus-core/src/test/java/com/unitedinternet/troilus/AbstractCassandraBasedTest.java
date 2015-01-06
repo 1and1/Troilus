@@ -19,7 +19,7 @@ import com.unitedinternet.troilus.example.AddressType;
 import com.unitedinternet.troilus.example.HotelsTable;
 import com.unitedinternet.troilus.example.RoomsTable;
 import com.unitedinternet.troilus.referentialintegrity.DeviceTable;
-import com.unitedinternet.troilus.referentialintegrity.PhoneToDeviceTable;
+import com.unitedinternet.troilus.referentialintegrity.PhonenumbersTable;
 import com.unitedinternet.troilus.userdefinieddatatypes.AddrType;
 import com.unitedinternet.troilus.userdefinieddatatypes.AddresslineType;
 import com.unitedinternet.troilus.userdefinieddatatypes.ClassifierType;
@@ -86,7 +86,7 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(RoomsTable.CREATE_STMT);
         session.execute(CustomersTable.CREATE_STMT);
         session.execute(DeviceTable.CREATE_STMT);
-        session.execute(PhoneToDeviceTable.CREATE_STMT);
+        session.execute(PhonenumbersTable.CREATE_STMT);
     }
     
     

@@ -22,6 +22,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 
 
+
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Delete;
@@ -83,7 +84,8 @@ public class DeleteQueryData extends QueryData {
     
     
     
-    Statement toStatement(Context ctx) {
+    @Override
+    protected Statement toStatement(Context ctx) {
         Delete delete = delete().from(ctx.getTable());
 
         // key-based delete    

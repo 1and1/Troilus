@@ -2,7 +2,6 @@ package com.unitedinternet.troilus.referentialintegrity;
 
 
 
-
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -19,12 +18,23 @@ import org.junit.Test;
 
 
 
+
+
+
+
+
+
 import com.datastax.driver.core.ConsistencyLevel;
-import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.InsertQueryBeforeInterceptor;
+import com.unitedinternet.troilus.InsertQueryData;
+import com.unitedinternet.troilus.Record;
+import com.unitedinternet.troilus.SingleReadQueryAfterInterceptor;
+import com.unitedinternet.troilus.SingleReadQueryData;
+import com.unitedinternet.troilus.UpdateQueryBeforeInterceptor;
+import com.unitedinternet.troilus.UpdateQueryData;
 
 
 
@@ -35,87 +45,160 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     @Test
     public void testUnmodifyableColumn() throws Exception {
                 
-        Dao phoneToDeviceDao = new DaoImpl(getSession(), PhoneToDeviceTable.TABLE)
+        Dao phoneNumbersDao = new DaoImpl(getSession(), PhonenumbersTable.TABLE)
                                    .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
                                    .withSerialConsistency(ConsistencyLevel.SERIAL);
 
 
-        phoneToDeviceDao.writeWithKey(PhoneToDeviceTable.NUMBER, "0089645454455")
-                        .value(PhoneToDeviceTable.DEVICE_ID, "deaeea")
-                        .value(PhoneToDeviceTable.ACTIVE, true)
-                        .ifNotExits()
-                        .execute();
+        phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                       .value(PhonenumbersTable.DEVICE_ID, "deaeea")
+                       .value(PhonenumbersTable.ACTIVE, true)
+                       .ifNotExits()
+                       .execute();
         
         
-        phoneToDeviceDao.writeWithKey(PhoneToDeviceTable.NUMBER, "0089123234234")
-                        .value(PhoneToDeviceTable.DEVICE_ID, "dfacbsd")
-                        .value(PhoneToDeviceTable.ACTIVE, true)
-                        .ifNotExits()
-                        .execute();
+        phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
+                       .value(PhonenumbersTable.DEVICE_ID, "dfacbsd")
+                       .value(PhonenumbersTable.ACTIVE, true)
+                       .ifNotExits()
+                       .execute();
         
         
         // with unmodifiyable constraint
-        Dao phoneToDeviceDaoWithConstraint = phoneToDeviceDao.withInterceptor(new UnmodifyableColumnInterceptor());
+        Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersUnmodifiableColumnConstraint());
+        
         
         // update modifyable column
-        phoneToDeviceDaoWithConstraint.writeWithKey(PhoneToDeviceTable.NUMBER, "0089123234234")
-                                      .value(PhoneToDeviceTable.ACTIVE, false)
+        phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
+                                      .value(PhonenumbersTable.ACTIVE, false)
                                       .execute();
 
 
         // update non-modifyable column
-  /*      try {
-            phoneToDeviceDaoWithConstraint.writeWithKey(PhoneToDeviceTable.NUMBER, "0089123234234")
-                                          .value(PhoneToDeviceTable.DEVICE_ID, "dfacbsd")
+        try {
+            phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
+                                          .value(PhonenumbersTable.DEVICE_ID, "dfacbsd")
                                           .execute();
             Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {  }*/
+        } catch (RuntimeException expected) {  }
     }
     
-
     
-    private static final class UnmodifyableColumnInterceptor implements InsertQueryBeforeInterceptor {
+    
+    
+       @Test
+    public void testRI() throws Exception {
+                
+        Dao phoneNumbersDao = new DaoImpl(getSession(), PhonenumbersTable.TABLE);
+        Dao deviceDao = new DaoImpl(getSession(), DeviceTable.TABLE);
+        
+        Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
+        Dao deviceDaoWithConstraints = deviceDao.withInterceptor(new DeviceConstraints(phoneNumbersDao));
+
+
+        
+        deviceDaoWithConstraints.writeWithKey(DeviceTable.ID, "834343")
+                                .value(DeviceTable.TYPE, 3)
+                                .ifNotExits()
+                                .execute();
+        
+        
+        deviceDaoWithConstraints.writeWithKey(DeviceTable.ID, "2333243")
+                                .value(DeviceTable.TYPE, 1)
+                                .ifNotExits()
+                                .execute();
+
+        
+        deviceDaoWithConstraints.writeWithKey(DeviceTable.ID, "934453434")
+                                .value(DeviceTable.TYPE, 3)
+                                .ifNotExits()
+                                .execute();
+        
+        
+        
+        
+    }       
+ 
+       
+    private static final class PhonenumbersUnmodifiableColumnConstraint implements UpdateQueryBeforeInterceptor {
+           
+        @Override
+        public UpdateQueryData onBeforeUpdate(UpdateQueryData data) {
+
+            if (data.getValuesToMutate().containsKey(PhonenumbersTable.DEVICE_ID)) {
+                throw new ConstraintException("columnn " + PhonenumbersTable.DEVICE_ID + " is unmodifiable");
+            }
+               
+            return data; 
+        }
+    }
+       
+       
+    
+    private static final class PhonenumbersConstraints implements UpdateQueryBeforeInterceptor, InsertQueryBeforeInterceptor, SingleReadQueryAfterInterceptor {
+
+        private final Dao deviceDao;
+        
+        public PhonenumbersConstraints(Dao deviceDao) {
+            this.deviceDao = deviceDao;
+        }
+            
+        @Override
+        public InsertQueryData onBeforeInsert(InsertQueryData data) {
+            data.getValuesToMutate().get(PhonenumbersTable.DEVICE_ID).ifPresent(deviceid -> { /* check if device exits */ });
+            
+            return data;
+        }
+    
+        
         
         @Override
-        public void onBeforeInsert(ImmutableMap<String, Optional<Object>> valuesToMutate,
-                                   boolean ifNotExists) {
-            
+        public UpdateQueryData onBeforeUpdate(UpdateQueryData data) {
+
+            if (data.getValuesToMutate().containsKey(PhonenumbersTable.DEVICE_ID)) {
+                throw new ConstraintException("columnn " + PhonenumbersTable.DEVICE_ID + " is unmodifiable");
+            }
+               
+            return data; 
+        }
+
+
+        
+        @Override
+        public Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record) {
+            // check is related device includes this number
+            return record;
         }
     }
     
     
+    
 
-    @Test
-    public void testSimple() throws Exception {
-                
-        // create dao
-        Dao deviceDao = new DaoImpl(getSession(), DeviceTable.TABLE)
-                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                                  .withSerialConsistency(ConsistencyLevel.SERIAL);
-
-        Dao phoneToDeviceDao = new DaoImpl(getSession(), PhoneToDeviceTable.TABLE)
-                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                                   .withSerialConsistency(ConsistencyLevel.SERIAL);
-
-
+    private static final class DeviceConstraints implements SingleReadQueryAfterInterceptor {
+        private final Dao phoneNumbersDao;
+                    
+        public DeviceConstraints(Dao phoneNumbersDao) {
+            this.phoneNumbersDao = phoneNumbersDao;
+        }
         
-        deviceDao.writeWithKey(DeviceTable.ID, "834343")
-                 .value(DeviceTable.TYPE, 3)
-                 .ifNotExits()
-                 .execute();
-        
-        
-        deviceDao.writeWithKey(DeviceTable.ID, "2333243")
-                 .value(DeviceTable.TYPE, 1)
-                 .ifNotExits()
-                 .execute();
+        @Override
+        public Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record) {
+            // check is related phone numbers points to this device
+            return record;
+        }
+    }
+    
+    
+    
 
-        
-        deviceDao.writeWithKey(DeviceTable.ID, "934453434")
-                 .value(DeviceTable.TYPE, 3)
-                 .ifNotExits()
-                 .execute();
-    }        
+    private static final class ConstraintException extends RuntimeException {
+        private static final long serialVersionUID = 9207265892679971373L;
+
+        public ConstraintException(String message) {
+            super(message);
+        }
+    }
+
 }
 
 

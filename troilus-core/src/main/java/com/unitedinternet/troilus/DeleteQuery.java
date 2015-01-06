@@ -56,6 +56,11 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
  
     @Override
     public Statement getStatement(Context ctx) {
+        DeleteQueryData d = data;
+        for (DeleteQueryBeforeInterceptor interceptor : ctx.getInterceptors(DeleteQueryBeforeInterceptor.class)) {
+            d = interceptor.onBeforeDelete(d); 
+        }
+
         return data.toStatement(ctx);
     }
     

@@ -76,8 +76,8 @@ public class SingleReadQueryData extends QueryData {
     
 
 
-
-    Statement toStatement(Context ctx) {
+    @Override
+    protected Statement toStatement(Context ctx) {
         Selection selection = select();
         
         if (optionalColumnsToFetch.isPresent()) {
