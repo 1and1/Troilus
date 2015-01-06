@@ -1,6 +1,6 @@
 CREATE TABLE device (
-               		   deviceid text,
+               		   device_id text,
                		   type int,
-               		   phonenumbers set<text>,
-                       PRIMARY KEY (deviceid)
+               		   phone_numbers set<text>,
+                       PRIMARY KEY (device_id)
                     ); 
