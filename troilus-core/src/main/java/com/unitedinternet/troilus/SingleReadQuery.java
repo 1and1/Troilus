@@ -15,10 +15,6 @@
  */
 package com.unitedinternet.troilus;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -29,11 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Select;
-import com.datastax.driver.core.querybuilder.Select.Selection;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
@@ -42,43 +34,41 @@ import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 
  
 
-public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
+class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
 
-    final ImmutableMap<String, Object> keyNameValuePairs;
-    final Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch;
+    final SingleReadQueryData data;
      
     
-    public SingleReadQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Object> keyNameValuePairs, Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
-        super(ctx, queryFactory);
-        this.keyNameValuePairs = keyNameValuePairs;
-        this.optionalColumnsToFetch = optionalColumnsToFetch;
+    public SingleReadQuery(Context ctx, SingleReadQueryData data) {
+        super(ctx);
+        this.data = data;
     }
    
     
     @Override
     protected SingleReadQuery newQuery(Context newContext) {
-        return newSingleReadQuery(newContext, keyNameValuePairs, optionalColumnsToFetch);
+        return new SingleReadQuery(newContext, data);
     }
     
     @Override
     public SingleRead<Optional<Record>> all() {
-        return newSingleReadQuery(keyNameValuePairs, Optional.empty());
+        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Optional.empty()));
     }
     
     @Override
     public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new SingleEntityReadQuery<>(getContext(), this, this, objectClass);
+        return new SingleEntityReadQuery<>(getContext(), this, objectClass);
     }
     
     @Override
     public SingleReadQuery column(String name) {
-        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, name, false));
+        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return newSingleReadQuery(keyNameValuePairs, Immutables.merge(optionalColumnsToFetch, name, true));
+        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
@@ -100,36 +90,7 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
     
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
-        
-        Selection selection = select();
-        
-        if (optionalColumnsToFetch.isPresent()) {
-            
-            optionalColumnsToFetch.get().forEach((columnName, withMetaData) -> selection.column(columnName));
-            optionalColumnsToFetch.get().entrySet()
-                                        .stream()
-                                        .filter(entry -> entry.getValue())
-                                        .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-
-            // add key columns for paranoia checks
-            keyNameValuePairs.keySet()
-                             .stream()
-                             .filter(columnName -> !optionalColumnsToFetch.get().containsKey(columnName))
-                             .forEach(columnName -> selection.column(columnName));  
-            
-        } else {
-            selection.all();
-        }
-        
-        
-        
-        Select select = selection.from(getTable());
-        
-        ImmutableSet<Clause> whereConditions = keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
-        whereConditions.forEach(whereCondition -> select.where(whereCondition));
-
-        Statement statement = prepare(select).bind(keyNameValuePairs.values().toArray());
-        
+        Statement statement = data.toStatement(getContext());
         
         return performAsync(statement)
                   .thenApply(resultSet -> {
@@ -141,15 +102,15 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
                                                   Record record = newRecord(new ResultImpl(resultSet), row);
                                                   
                                                   // paranoia check
-                                                  keyNameValuePairs.forEach((name, value) -> { 
-                                                                                              ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
-                                                                                              ByteBuffer out = record.getBytesUnsafe(name).get();
-                                                      
-                                                                                              if (in.compareTo(out) != 0) {
-                                                                                                   LOG.warn("Dataswap error for " + name);
-                                                                                                   throw new ProtocolErrorException("Dataswap error for " + name); 
-                                                                                              }
-                                                                                             });
+                                                  data.getKeyNameValuePairs().forEach((name, value) -> { 
+                                                                                                          ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
+                                                                                                          ByteBuffer out = record.getBytesUnsafe(name).get();
+                                                                  
+                                                                                                          if (in.compareTo(out) != 0) {
+                                                                                                               LOG.warn("Dataswap error for " + name);
+                                                                                                               throw new ProtocolErrorException("Dataswap error for " + name); 
+                                                                                                          }
+                                                                                                      });
                                                   
                                                   if (!resultSet.isExhausted()) {
                                                       throw new TooManyResultsException("more than one record exists");
@@ -170,8 +131,8 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
         private final Class<E> clazz;
         private final SingleReadQuery read;
         
-        public SingleEntityReadQuery(Context ctx, QueryFactory queryFactory, SingleReadQuery read, Class<E> clazz) {
-            super(ctx, queryFactory);
+        public SingleEntityReadQuery(Context ctx, SingleReadQuery read, Class<E> clazz) {
+            super(ctx);
             this.read = read;
             this.clazz = clazz;
         }
@@ -179,7 +140,7 @@ public class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements S
 
         @Override
         protected SingleEntityReadQuery<E> newQuery(Context newContext) {
-            return newSingleReadQuery(newContext, read.keyNameValuePairs, read.optionalColumnsToFetch).asEntity(clazz); 
+            return new SingleReadQuery(newContext, read.data).asEntity(clazz); 
         }
         
         

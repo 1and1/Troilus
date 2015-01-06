@@ -16,65 +16,39 @@
 package com.unitedinternet.troilus;
 
 
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
 
 
  
 class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
-    private final ImmutableMap<String, Optional<Object>> valuesToMutate;
-    private final boolean ifNotExists;
+    
+    private final InsertQueryData data;
   
-  
-    public InsertionQuery(Context ctx, QueryFactory queryFactory, ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
-        super(ctx, queryFactory);
-        this.valuesToMutate = valuesToMutate;
-        this.ifNotExists = ifNotExists;
+    public InsertionQuery(Context ctx, InsertQueryData data) {
+        super(ctx);
+        this.data = data;
     }
     
     
     @Override
-    protected Insertion newQuery(Context newContext) {
-        return newInsertionQuery(newContext, valuesToMutate, ifNotExists);
+    protected InsertionQuery newQuery(Context newContext) {
+        return new InsertionQuery(newContext, data);
     }
 
     
     @Override
     public Mutation<?> ifNotExits() {
-        return newInsertionQuery(valuesToMutate, true);
+        return new InsertionQuery(getContext(), data.withIfNotExits(true));
     }
 
 
     @Override
-    protected Statement getStatement() {
-        Insert insert = insertInto(getTable());
-         
-        List<Object> values = Lists.newArrayList();
-        valuesToMutate.forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
-        
-        if (ifNotExists) {
-            insert.ifNotExists();
-            getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
-        }
-
-        getTtl().ifPresent(ttl-> { insert.using(QueryBuilder.ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
-
-        PreparedStatement stmt = prepare(insert);
-        return stmt.bind(values.toArray());
+    protected Statement getStatement(Context ctx) {
+        return data.toStatement(ctx);
     }
     
     
@@ -82,7 +56,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     public CompletableFuture<Result> executeAsync() {
         return super.executeAsync().thenApply(result -> {
                                                             // check cas result column '[applied]'
-                                                            if (ifNotExists && !result.wasApplied()) {
+                                                            if (data.isIfNotExists() && !result.wasApplied()) {
                                                                 throw new IfConditionException("duplicated entry");  
                                                             } 
                                                             return result;

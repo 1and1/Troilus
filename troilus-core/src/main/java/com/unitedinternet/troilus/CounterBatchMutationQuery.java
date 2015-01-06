@@ -33,23 +33,23 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
     private final ImmutableList<CounterBatchable> batchables;
     
     
-    protected CounterBatchMutationQuery(Context ctx, QueryFactory queryFactory, ImmutableList<CounterBatchable> batchables) {
-        super(ctx, queryFactory);
+    protected CounterBatchMutationQuery(Context ctx, ImmutableList<CounterBatchable> batchables) {
+        super(ctx);
         this.batchables = batchables;
     }
     
     @Override
     protected CounterBatchMutation newQuery(Context newContext) {
-        return newCounterBatchMutationQuery(newContext, batchables);
+        return new CounterBatchMutationQuery(newContext, batchables);
     }
     
         @Override
     public CounterBatchMutation combinedWith(CounterBatchable other) {
-        return newCounterBatchMutationQuery(Immutables.merge(batchables, other));
+        return new CounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
     }
 
     @Override
-    public Statement getStatement() {
+    public Statement getStatement(Context ctx) {
         BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;
@@ -57,6 +57,6 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
     
     
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
+        return performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
     }
 }

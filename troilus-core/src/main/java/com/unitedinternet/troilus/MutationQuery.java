@@ -40,8 +40,8 @@ import com.unitedinternet.troilus.Dao.Batchable;
  
 abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
-    public MutationQuery(Context ctx, QueryFactory queryFactory) {
-        super(ctx, queryFactory);
+    public MutationQuery(Context ctx) {
+        super(ctx);
     }
     
     
@@ -60,21 +60,21 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
        
 
     public BatchMutation combinedWith(Batchable other) {
-        return newBatchMutationQuery(Type.LOGGED, ImmutableList.of(this, other));
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
     
     
     @Override
     public void addTo(BatchStatement batchStatement) {
-        batchStatement.add(getStatement());
+        batchStatement.add(getStatement(getContext()));
     }
     
 
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
+        return performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
     }
     
-    protected abstract Statement getStatement();
+    protected abstract Statement getStatement(Context ctx);
    
   
     

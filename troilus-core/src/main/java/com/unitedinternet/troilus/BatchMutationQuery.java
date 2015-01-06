@@ -36,35 +36,35 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     
     
   
-    protected BatchMutationQuery(Context ctx, QueryFactory queryFactory, Type type, ImmutableList<Batchable> batchables) {
-        super(ctx, queryFactory);
+    protected BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+        super(ctx);
         this.type = type;
         this.batchables = batchables;
     }
     
     @Override
     protected BatchMutation newQuery(Context newContext) {
-        return newBatchMutationQuery(newContext, type, batchables);
+        return new BatchMutationQuery(newContext, type, batchables);
     }
     
     
     @Override
     public Query<Result> withLockedBatchType() {
-        return newBatchMutationQuery(Type.LOGGED, batchables);
+        return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
     }
     
     @Override
     public Query<Result> withUnlockedBatchType() {
-        return newBatchMutationQuery(Type.UNLOGGED, batchables);
+        return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
     }
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return newBatchMutationQuery(type, Immutables.merge(batchables, other));
+        return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
     @Override
-    public Statement getStatement() {
+    public Statement getStatement(Context ctx) {
         BatchStatement batchStmt = new BatchStatement(type);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;
@@ -72,6 +72,6 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     
     
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
+        return performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
     }
 }

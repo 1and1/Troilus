@@ -18,12 +18,13 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.InsertQueryPreInterceptor;
+import com.unitedinternet.troilus.InsertQueryBeforeInterceptor;
 
 
 
@@ -73,10 +74,11 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     
 
     
-    private static final class UnmodifyableColumnInterceptor implements InsertQueryPreInterceptor {
+    private static final class UnmodifyableColumnInterceptor implements InsertQueryBeforeInterceptor {
         
         @Override
-        public void onPreInsert( ImmutableMap<String, Optional<Object>> valuesToMutate, boolean ifNotExists) {
+        public void onBeforeInsert(ImmutableMap<String, Optional<Object>> valuesToMutate,
+                                   boolean ifNotExists) {
             
         }
     }

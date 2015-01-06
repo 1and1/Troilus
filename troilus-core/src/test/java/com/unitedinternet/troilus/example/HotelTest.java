@@ -56,6 +56,23 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .withTtl(Duration.ofDays(222))
                  .execute();
 
+        
+        
+        Record record = hotelsDao.readWithKey(HotelsTable.ID, "BUP45544")
+                                 .column(HotelsTable.NAME)
+                                 .columnWithMetadata(HotelsTable.DESCRIPTION)
+                                 .execute()
+                                 .get();
+        Assert.assertTrue(record.getWritetime(HotelsTable.DESCRIPTION).isPresent());
+        Assert.assertFalse(record.getWritetime(HotelsTable.NAME).isPresent());
+        Assert.assertTrue(record.getTtl(HotelsTable.DESCRIPTION).isPresent());
+        Assert.assertFalse(record.getTtl(HotelsTable.NAME).isPresent());
+        
+        
+        
+        
+        
+        
         hotelsDao.writeWithKey("id", "BUP932432")
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
@@ -141,21 +158,6 @@ public class HotelTest extends AbstractCassandraBasedTest {
 
 
    
-        
-        
-        Record record = hotelsDao.readWithKey(HotelsTable.ID, "BUP45544")
-                                 .column(HotelsTable.NAME)
-                                 .columnWithMetadata(HotelsTable.DESCRIPTION)
-                                 .execute()
-                                 .get();
-        Assert.assertTrue(record.getWritetime(HotelsTable.DESCRIPTION).isPresent());
-        Assert.assertFalse(record.getWritetime(HotelsTable.NAME).isPresent());
-        Assert.assertTrue(record.getTtl(HotelsTable.DESCRIPTION).isPresent());
-        Assert.assertFalse(record.getTtl(HotelsTable.NAME).isPresent());
-        
-        
-        
-        
         
         
         record = hotelsDao.readWithKey("id", "BUP14334")

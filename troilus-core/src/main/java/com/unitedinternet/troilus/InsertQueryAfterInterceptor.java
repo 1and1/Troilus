@@ -19,6 +19,8 @@ package com.unitedinternet.troilus;
 
 
  
-public interface InsertQueryPreInterceptor extends QueryInterceptor {
+public interface InsertQueryAfterInterceptor extends QueryInterceptor {
     
+    Result onAfterInsert(Result result);
 }
+ 

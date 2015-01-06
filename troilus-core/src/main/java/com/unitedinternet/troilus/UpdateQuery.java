@@ -43,99 +43,118 @@ import com.unitedinternet.troilus.Dao.CounterMutation;;
  
 class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
-    private final ImmutableMap<String, Object> keys;
-    private final ImmutableList<Clause> whereConditions;
-    
-    private final ImmutableMap<String, Optional<Object>> valuesToMutate;
-    private final ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd;
-    private final ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToAppend;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToRemove;
-    private final ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate;
-    
-    private final ImmutableList<Clause> ifConditions;
-
-
+    private final UpdateQueryData data;
     
     
-    public UpdateQuery(Context ctx, 
-                       QueryFactory queryFactory,
-                       ImmutableMap<String, Object> keys, 
-                       ImmutableList<Clause> whereConditions, 
-                       ImmutableMap<String, Optional<Object>> valuesToMutate, 
-                       ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
-                       ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
-                       ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
-                       ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
-                       ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
-                       ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                       ImmutableList<Clause> ifConditions) {
-        super(ctx, queryFactory);
-        this.keys = keys;
-        this.whereConditions = whereConditions;
-        this.valuesToMutate = valuesToMutate;
-        this.setValuesToAdd = setValuesToAdd;
-        this.setValuesToRemove = setValuesToRemove;
-        this.listValuesToAppend = listValuesToAppend;
-        this.listValuesToPrepend = listValuesToPrepend;
-        this.listValuesToRemove = listValuesToRemove;
-        this.mapValuesToMutate = mapValuesToMutate;
-        this.ifConditions = ifConditions;
+    public UpdateQuery(Context ctx, UpdateQueryData data) {
+        super(ctx);
+        this.data = data;
     }
     
     @Override
     protected UpdateQuery newQuery(Context newContext) {
-        return newUpdateQuery(newContext, 
-                              keys, 
-                              whereConditions,  
-                              valuesToMutate,
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove, 
-                              mapValuesToMutate,
-                              ifConditions);
+        return new UpdateQuery(newContext, data);
     }
     
     
     public InsertionQuery entity(Object entity) {
-        return newInsertionQuery(toValues(entity), false);
+        return new InsertionQuery(getContext(), 
+                                 new InsertQueryData(toValues(entity), false));
     }
-    
         
     
     @Override
     public UpdateQuery value(String name, Object value) {
-        return newUpdateQuery(keys, 
-                              whereConditions,
-                              Immutables.merge(valuesToMutate, name, toOptional(value)), 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ifConditions);
+        return new UpdateQuery(getContext(), 
+                               data.withValuesToMutate(Immutables.merge(data.getValuesToMutate(), name, toOptional(value))));
     }
 
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return newUpdateQuery(keys,  
-                              whereConditions, 
-                              Immutables.merge(valuesToMutate, Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value))), 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ifConditions);
+        return new UpdateQuery(getContext(), 
+                              data.withValuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
     }
     
     
+
+    @Override
+    public UpdateQuery removeSetValue(String name, Object value) {
+        ImmutableSet<Object> values = data.getSetValuesToRemove().get(name);
+        values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
+
+        return new UpdateQuery(getContext(), 
+                               data.withSetValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
+    }
+
+    
+    @Override
+    public UpdateQuery addSetValue(String name, Object value) {
+        ImmutableSet<Object> values = data.getSetValuesToAdd().get(name);
+        values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
+
+        return new UpdateQuery(getContext(), 
+                               data.withSetValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
+    }
+   
+    
+    @Override
+    public Write prependListValue(String name, Object value) {
+        ImmutableList<Object> values = data.getListValuesToPrepend().get(name);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+
+        return new UpdateQuery(getContext(), 
+                               data.withListValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
+    } 
+    
+    
+
+    @Override
+    public Write appendListValue(String name, Object value) {
+        ImmutableList<Object> values = data.getListValuesToAppend().get(name);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+
+        return new UpdateQuery(getContext(), 
+                               data.withListValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
+    }
+    
+    
+    
+    @Override
+    public Write removeListValue(String name, Object value) {
+        ImmutableList<Object> values = data.getListValuesToRemove().get(name);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+
+        return new UpdateQuery(getContext(), 
+                               data.withListValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
+    }
+   
+    
+    @Override
+    public Write putMapValue(String name, Object key, Object value) {
+        ImmutableMap<Object, Optional<Object>> values = data.getMapValuesToMutate().get(name);
+        values = (values == null) ? ImmutableMap.of(key, toOptional(value)) : Immutables.merge(values, key, toOptional(value));
+
+        return new UpdateQuery(getContext(), 
+                               data.withMapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
+    }
+    
+    
+
+    @Override
+    public Update<Write> onlyIf(Clause... conditions) {
+        return new UpdateQuery(getContext(), 
+                               data.withOnlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions()).addAll(ImmutableList.copyOf(conditions)).build()));
+    }
+
+
+    @Override
+    public Insertion ifNotExits() {
+        return new InsertionQuery(getContext(), 
+                                  new InsertQueryData(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))), true));
+    }
+
+        
     @Override
     public CounterMutationQuery incr(String name) {
         return incr(name, 1);
@@ -144,11 +163,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery incr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        this, 
-                                        keys,
-                                        whereConditions,
-                                        name, 
-                                        value);
+                                        new CounterMutationQueryData(data.getKeys(), data.getWhereConditions(), name, value));  
     }
     
     
@@ -160,195 +175,13 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery decr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        this,
-                                        keys,
-                                        whereConditions,
-                                        name,
-                                        0 - value); 
+                                        new CounterMutationQueryData(data.getKeys(), data.getWhereConditions(), name, 0 - value));  
     }
     
     
     @Override
-    public UpdateQuery removeSetValue(String name, Object value) {
-        ImmutableSet<Object> values = setValuesToRemove.get(name);
-        values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              Immutables.merge(setValuesToRemove, name, values),
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ifConditions);
-    }
-
-    
-    @Override
-    public UpdateQuery addSetValue(String name, Object value) {
-        ImmutableSet<Object> values = setValuesToAdd.get(name);
-        values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              Immutables.merge(setValuesToAdd, name, values),
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ifConditions);
-    }
-   
-    
-    @Override
-    public Write prependListValue(String name, Object value) {
-        ImmutableList<Object> values = listValuesToPrepend.get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              Immutables.merge(listValuesToPrepend, name, values),
-                              listValuesToRemove, 
-                              mapValuesToMutate,
-                              ifConditions);
-    }
-    
-    
-
-    @Override
-    public Write appendListValue(String name, Object value) {
-        ImmutableList<Object> values = listValuesToAppend.get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              Immutables.merge(listValuesToAppend, name, values),
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ifConditions);
-    }
-    
-    
-    
-    @Override
-    public Write removeListValue(String name, Object value) {
-        ImmutableList<Object> values = listValuesToRemove.get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              Immutables.merge(listValuesToRemove, name, values),
-                              mapValuesToMutate,
-                              ifConditions);
-
-    }
-   
-    
-    @Override
-    public Write putMapValue(String name, Object key, Object value) {
-        ImmutableMap<Object, Optional<Object>> values = mapValuesToMutate.get(name);
-        values = (values == null) ? ImmutableMap.of(key, toOptional(value)) : Immutables.merge(values, key, toOptional(value));
-        
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              Immutables.merge(mapValuesToMutate, name, values),
-                              ifConditions);
-    }
-    
-    
-    @Override
-    public Insertion ifNotExits() {
-        return newInsertionQuery(Immutables.merge(valuesToMutate, Immutables.transform(keys, name -> name, value -> toOptional(value))), true);
-    }
-
-    @Override
-    public Update<Write> onlyIf(Clause... conditions) {
-        return newUpdateQuery(keys, 
-                              whereConditions, 
-                              valuesToMutate, 
-                              setValuesToAdd,
-                              setValuesToRemove,
-                              listValuesToAppend,
-                              listValuesToPrepend,
-                              listValuesToRemove,
-                              mapValuesToMutate,
-                              ImmutableList.<Clause>builder().addAll(ifConditions).addAll(ImmutableList.copyOf(conditions)).build());
-    }
-
-    
-    @Override
-    protected Statement getStatement() {
-        
-        com.datastax.driver.core.querybuilder.Update update = update(getTable());
-        
-        ifConditions.forEach(condition -> update.onlyIf(condition));
-
-        
-        // key-based update
-        if (whereConditions.isEmpty()) {
-            List<Object> values = Lists.newArrayList();
-            
-            valuesToMutate.forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
-
-            setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            
-            listValuesToPrepend.forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            listValuesToAppend.forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            listValuesToRemove.forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-
-            mapValuesToMutate.forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
-            
-            
-            keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
-            
-            ifConditions.forEach(condition -> update.onlyIf(condition));
-            getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
-            
-            return prepare(update).bind(values.toArray());
-
-            
-        // where condition-based update
-        } else {
-            valuesToMutate.forEach((name, optionalValue) -> update.with(set(name, toStatementValue(name, optionalValue.orElse(null)))));
-        
-            setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
-            setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
-
-            listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
-            listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
-            listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
-            
-            mapValuesToMutate.forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
-
-            getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
-            whereConditions.forEach(whereClause -> update.where(whereClause));
-            
-            return update;
-        }
+    protected Statement getStatement(Context ctx) {
+        return data.toStatement(ctx);
     }
     
     
@@ -357,7 +190,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         return super.executeAsync()
                     .thenApply(result ->  {
                                             // check cas result column '[applied]'
-                                            if (!ifConditions.isEmpty() && !result.wasApplied()) {
+                                            if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
                                                 throw new IfConditionException("if condition does not match");  
                                             } 
                                             return result;
@@ -367,41 +200,49 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     
     
-    private static final class CounterMutationQuery extends MutationQuery<CounterMutation> implements CounterMutation {
+    
+
+        
+    private static class CounterMutationQueryData extends QueryData {
+        
         private final ImmutableMap<String, Object> keys;
         private final ImmutableList<Clause> whereConditions;
 
         private final String name;
         private final long diff;
 
-        public CounterMutationQuery(Context ctx, 
-                                    QueryFactory queryFactory,
-                                    ImmutableMap<String, Object> keys,
-                                    ImmutableList<Clause> whereConditions,
-                                    String name,
-                                    long diff) {
-            super(ctx, queryFactory);
+        
+
+        public CounterMutationQueryData(ImmutableMap<String, Object> keys,
+                                        ImmutableList<Clause> whereConditions,
+                                        String name,
+                                        long diff) {
             this.keys = keys;
             this.whereConditions = whereConditions;
             this.name = name; 
             this.diff = diff;
         }
+       
         
-        @Override
-        protected CounterMutation newQuery(Context newContext) {
-            return new CounterMutationQuery(newContext, this, keys, whereConditions, name, diff);
+        public ImmutableMap<String, Object> getKeys() {
+            return keys;
         }
-   
-        @Override
-        public CounterBatchMutation combinedWith(CounterBatchable other) {
-            return newCounterBatchMutationQuery(ImmutableList.of(this, other));
+
+        public ImmutableList<Clause> getWhereConditions() {
+            return whereConditions;
         }
-   
+
+        public String getName() {
+            return name;
+        }
+
+        public long getDiff() {
+            return diff;
+        }
+
         
-        @Override 
-        protected Statement getStatement() {
-            
-            com.datastax.driver.core.querybuilder.Update update = update(getTable());
+        Statement toStatement(Context ctx) {
+            com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
             
             // key-based update
             if (whereConditions.isEmpty()) {
@@ -418,9 +259,9 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
          
                 keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
                 
-                getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
+                ctx.getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
                 
-                return prepare(update).bind(values.toArray());
+                return ctx.prepare(update).bind(values.toArray());
 
                 
             // where condition-based update
@@ -433,11 +274,38 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                     update.with(QueryBuilder.decr(name, 0 - diff));
                 }
                                 
-                getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+                ctx.getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
                 whereConditions.forEach(whereClause -> update.where(whereClause));
                 
                 return update;
             }
+        }
+    }
+        
+    
+    private static final class CounterMutationQuery extends MutationQuery<CounterMutation> implements CounterMutation {
+        
+        private final CounterMutationQueryData data;
+
+        public CounterMutationQuery(Context ctx, CounterMutationQueryData data) {
+            super(ctx);
+            this.data = data;
+        }
+        
+        @Override
+        protected CounterMutation newQuery(Context newContext) {
+            return new CounterMutationQuery(newContext, data);
+        }
+   
+        @Override
+        public CounterBatchMutation combinedWith(CounterBatchable other) {
+            return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
+        }
+   
+        
+        @Override 
+        protected Statement getStatement(Context ctx) {
+            return data.toStatement(ctx);
         }
     }
 }
