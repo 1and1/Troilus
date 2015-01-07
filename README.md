@@ -501,9 +501,9 @@ The interceptor below implements some constraints regarding the [phone_numbers](
 * By accessing the table entries the back relation should be check with cl one 
 ``` java
 class PhonenumbersConstraints implements InsertQueryPreInterceptor,
-							  UpdateQueryPreInterceptor,
-							  SingleReadQueryPreInterceptor, 
-							  SingleReadQueryPostInterceptor {
+	   						             UpdateQueryPreInterceptor,
+							             SingleReadQueryPreInterceptor, 
+							             SingleReadQueryPostInterceptor {
 
     private final Dao deviceDao;
     
@@ -590,18 +590,18 @@ class PhonenumbersConstraints implements InsertQueryPreInterceptor,
 ``` java
 // insert new  entry
 phoneNumbersDao.writeWithKey("number", "0089123234234")
-                        .value("device_id", "2333243")
-                        .value("active", true)
-                        .ifNotExits()
-                        .execute();
+               .value("device_id", "2333243")
+               .value("active", true)
+               .ifNotExits()
+               .execute();
         
 
 // insert new entry without device id 
 try {
    phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
-						.value("active, true)
-						.ifNotExits()
-						.execute();
+				           		 .value("active, true)
+								 .ifNotExits()
+						         .execute();
     Assert.fail("ConstraintException expected");
 } catch (ConstraintException expected) { }
 
@@ -609,15 +609,15 @@ try {
 
 // update modifyable column
 phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
-					     .value("active, false)
-					     .execute();
+					          .value("active, false)
+					          .execute();
         
         
 // update non-modifyable column
 try {
     phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
-                                                 .value("device_id", "dfacbsd")
-                                                 .execute();
+                                  .value("device_id", "dfacbsd")
+                                  .execute();
     Assert.fail("ConstraintException expected");
 } catch (ConstraintException expected) {  }
         
@@ -626,21 +626,21 @@ try {
         
 // read 
 phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
-                                             .execute()
-                                             .get();
+                              .execute()
+                              .get();
         
 
 // modify record to make it inconsistent 
 phoneNumbersDao.writeWithKey("number", "0089645454455")
-			.value("device_id", "2333243")
-			.execute();
+			   .value("device_id", "2333243")
+			   .execute();
 
         
 // read inconsistent record
 try {
    phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
-                                                .execute()
-                                                .get();
+                                 .execute()
+                                 .get();
    Assert.fail("ConstraintException expected");
 } catch (ConstraintException expected) { }
 

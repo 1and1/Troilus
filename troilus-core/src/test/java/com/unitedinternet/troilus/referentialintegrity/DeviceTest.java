@@ -94,7 +94,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         
         
         
-        
+        // insert new  entry
         phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
                        .value(PhonenumbersTable.DEVICE_ID, "2333243")
                        .value(PhonenumbersTable.ACTIVE, true)
