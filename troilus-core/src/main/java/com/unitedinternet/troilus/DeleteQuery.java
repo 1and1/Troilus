@@ -42,8 +42,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     private final DeleteQueryData data;
     
       
-    protected DeleteQuery(Context ctx, 
-                          DeleteQueryData data) {
+    protected DeleteQuery(Context ctx, DeleteQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -71,7 +70,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             ImmutableSet<Clause> whereClauses = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
             whereClauses.forEach(whereClause -> delete.where(whereClause));
             
-            return getContext().prepare(delete).bind(queryData.getKeyNameValuePairs().values().toArray());
+            return prepare(delete).bind(queryData.getKeyNameValuePairs().values().toArray());
 
             
         // where condition-based delete    

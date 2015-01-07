@@ -18,6 +18,7 @@ Session session = cluster.connect("hotel_reservation_system");
 ```
 
 
+
 This Session object will be used to create a new instance of a `Dao`. In the examples below the [hotels table](troilus-core/src/test/resources/com/unitedinternet/troilus/example/hotels.ddl) is used
 ``` java
 Dao hotelsDao = new DaoImpl(session, "hotels");
@@ -486,7 +487,7 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 
 
 #Interceptor Examples
-The interceptor support can be used to implement constraint checks on the client side (Cassandra also supports server-side trigger which can also be used to implement contraints). 
+The interceptor support can be used to implement constraint checks on the client-side (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
 
 ``` java
 Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
@@ -494,12 +495,16 @@ Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
 ```
 
-
+The interceptor below implements some constraints regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. The phone_numbers table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The
+1. insert operations ensures that an existing phone row will not be overridden. 
+2. it should not be allowed to update the device id column. This means assigning a phone number to new devices requires to remove the old entry first and to create a new phones row.
+4. A phone number will not be deleted, if the assigned device still exits
+5. by accessing the table entries the back relation should be check with cl one 
 ``` java
-class PhonenumbersConstraints implements InsertQueryPreInterceptor, 
-						          UpdateQueryPreInterceptor, 
-						          SingleReadQueryPreInterceptor,
-						          SingleReadQueryPostInterceptor {
+class PhonenumbersConstraints implements InsertQueryPreInterceptor,
+							  UpdateQueryPreInterceptor,
+							  SingleReadQueryPreInterceptor, 
+							  SingleReadQueryPostInterceptor {
 
     private final Dao deviceDao;
     
@@ -564,13 +569,15 @@ class PhonenumbersConstraints implements InsertQueryPreInterceptor,
             if (deviceId != null) {
                 deviceDao.readWithKey("device_id", deviceId)
                          .column("phone_numbers")
-                         .execute().ifPresent(rec -> {
-                                                         Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                         if (!set.isPresent() ||
-                                                             !set.get().contains(number)) {
-                                                             throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
-                                                         }
-                                                     });
+                         .withConsistency(ConsistencyLevel.ONE)
+                         .execute()
+                         .ifPresent(rec -> {
+                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                             if (!set.isPresent() ||
+                                                 !set.get().contains(number)) {
+                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
+                                             }                                                             
+                                          });
             }
             
         }

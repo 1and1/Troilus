@@ -133,23 +133,7 @@ class Context  {
         return entityMapper.toValues(entity);
     }
 
-   
-    protected ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
-    }
-  
-    protected ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
-    }
-  
-    protected Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
-        Map<Object, Object> m = Maps.newHashMap();
-        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
-        }
-        return m;
-    }
-    
+ 
     
     protected Object toStatementValue(String name, Object value) {
         if (isNullOrEmpty(value)) {

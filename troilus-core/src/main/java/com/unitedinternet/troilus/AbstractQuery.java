@@ -18,6 +18,8 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,16 +31,19 @@ import org.reactivestreams.Subscription;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.policies.RetryPolicy;
+import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 
  
@@ -84,15 +89,44 @@ abstract class AbstractQuery<Q> {
         return ctx.getSerialConsistencyLevel();
     }
 
+
+    protected Context getContext() {
+        return ctx; 
+    }
+    
     protected Optional<Duration> getTtl() {
         return ctx.getTtl();
     }
     
     
-    protected Context getContext() {
-        return ctx; 
+    protected Object toStatementValue(String name, Object value) {
+        return ctx.toStatementValue(name, value);
     }
-      
+    
+    protected ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
+    }
+
+    protected ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
+    }
+  
+
+
+    protected Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
+        Map<Object, Object> m = Maps.newHashMap();
+        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
+            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
+        }
+        return m;
+    }
+    
+    protected PreparedStatement prepare(BuiltStatement statement) {
+        return ctx.prepare(statement);
+    }
+     
+    
+   
     protected Record newRecord(Result result, Row row) {
         return new RecordImpl(result, row);
     }

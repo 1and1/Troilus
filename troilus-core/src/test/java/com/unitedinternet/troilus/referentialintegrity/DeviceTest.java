@@ -19,6 +19,8 @@ import org.junit.Test;
 
 
 
+
+import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
@@ -193,7 +195,10 @@ public class DeviceTest extends AbstractCassandraBasedTest {
        
     
     
-    private static final class PhonenumbersConstraints implements UpdateQueryPreInterceptor, InsertQueryPreInterceptor, SingleReadQueryPreInterceptor, SingleReadQueryPostInterceptor {
+    private static final class PhonenumbersConstraints implements InsertQueryPreInterceptor,
+                                                                  UpdateQueryPreInterceptor, 
+                                                                  SingleReadQueryPreInterceptor,
+                                                                  SingleReadQueryPostInterceptor {
 
         private final Dao deviceDao;
         
@@ -258,13 +263,15 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                 if (deviceId != null) {
                     deviceDao.readWithKey("device_id", deviceId)
                              .column("phone_numbers")
-                             .execute().ifPresent(rec -> {
-                                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                             if (!set.isPresent() ||
-                                                                 !set.get().contains(number)) {
-                                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
-                                                             }
-                                                         });
+                             .withConsistency(ConsistencyLevel.ONE)
+                             .execute()
+                             .ifPresent(rec -> {
+                                                 Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                                 if (!set.isPresent() ||
+                                                     !set.get().contains(number)) {
+                                                     throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
+                                                 }                                                             
+                                              });
                 }
                 
             }
@@ -302,3 +309,4 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     }
 
 }
+

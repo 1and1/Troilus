@@ -193,40 +193,40 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         if (queryData.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
-            queryData.getValuesToMutate().forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(getContext().toStatementValue(name, optionalValue.orElse(null))); });
+            queryData.getValuesToMutate().forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
 
-            queryData.getSetValuesToAdd().forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(getContext().toStatementValue(name, vals)); });
-            queryData.getSetValuesToRemove().forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(getContext().toStatementValue(name, vals)); });
+            queryData.getSetValuesToAdd().forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            queryData.getSetValuesToRemove().forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
             
-            queryData.getListValuesToPrepend().forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(getContext().toStatementValue(name, vals)); });
-            queryData.getListValuesToAppend().forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(getContext().toStatementValue(name, vals)); });
-            queryData.getListValuesToRemove().forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(getContext().toStatementValue(name, vals)); });
+            queryData.getListValuesToPrepend().forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            queryData.getListValuesToAppend().forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
+            queryData.getListValuesToRemove().forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
 
-            queryData.getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(getContext().toStatementValue(name, map)); });
+            queryData.getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
             
             
             queryData.getKeys().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(queryData.getKeys().get(keyname)); } );
             
             queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-            getContext().getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
+            getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
             
-            return getContext().prepare(update).bind(values.toArray());
+            return prepare(update).bind(values.toArray());
 
             
         // where condition-based update
         } else {
-            queryData.getValuesToMutate().forEach((name, optionalValue) -> update.with(set(name, getContext().toStatementValue(name, optionalValue.orElse(null)))));
+            queryData.getValuesToMutate().forEach((name, optionalValue) -> update.with(set(name, toStatementValue(name, optionalValue.orElse(null)))));
         
-            queryData.getSetValuesToAdd().forEach((name, vals) -> update.with(addAll(name, getContext().toStatementValue(name, vals))));
-            queryData.getSetValuesToRemove().forEach((name, vals) -> update.with(removeAll(name, getContext().toStatementValue(name, vals))));
+            queryData.getSetValuesToAdd().forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
+            queryData.getSetValuesToRemove().forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
 
-            queryData.getListValuesToPrepend().forEach((name, vals) -> update.with(prependAll(name, getContext().toStatementValue(name, vals))));
-            queryData.getListValuesToAppend().forEach((name, vals) -> update.with(appendAll(name, getContext().toStatementValue(name, vals))));
-            queryData.getListValuesToRemove().forEach((name, vals) -> update.with(discardAll(name, getContext().toStatementValue(name, vals))));
+            queryData.getListValuesToPrepend().forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
+            queryData.getListValuesToAppend().forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
+            queryData.getListValuesToRemove().forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
             
-            queryData.getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, getContext().toStatementValue(name, map))));
+            queryData.getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
 
-            getContext().getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+            getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
             queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
             
             return update;
@@ -364,9 +364,9 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
          
                 queryData.getKeys().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(queryData.getKeys().get(keyname)); } );
                 
-                getContext().getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
+                getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
                 
-                return getContext().prepare(update).bind(values.toArray());
+                return prepare(update).bind(values.toArray());
 
                 
             // where condition-based update
@@ -379,7 +379,8 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                     update.with(QueryBuilder.decr(queryData.getName(), 0 - queryData.getDiff()));
                 }
                                 
-                getContext().getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+                getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+                
                 queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
                 
                 return update;

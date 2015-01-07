@@ -60,16 +60,16 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
         Insert insert = insertInto(getContext().getTable());
         
         List<Object> values = Lists.newArrayList();
-        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(getContext().toStatementValue(name, optionalValue.orElse(null))); } ); 
+        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
         
         if (queryData.isIfNotExists()) {
             insert.ifNotExists();
             getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
         }
 
-        getContext().getTtl().ifPresent(ttl-> { insert.using(ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
+        getTtl().ifPresent(ttl-> { insert.using(ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
 
-        PreparedStatement stmt = getContext().prepare(insert);
+        PreparedStatement stmt = prepare(insert);
         return stmt.bind(values.toArray());
     }
 

@@ -136,7 +136,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         ImmutableSet<Clause> whereConditions = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
         whereConditions.forEach(whereCondition -> select.where(whereCondition));
 
-        return getContext().prepare(select).bind(queryData.getKeyNameValuePairs().values().toArray());
+        return prepare(select).bind(queryData.getKeyNameValuePairs().values().toArray());
     }
     
     
