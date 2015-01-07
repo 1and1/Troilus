@@ -20,12 +20,12 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.Immutables;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.interceptor.InsertQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
@@ -34,6 +34,7 @@ import com.unitedinternet.troilus.interceptor.UpdateQueryData;
 import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -245,7 +246,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             // force that device_id will be fetched 
             if (data.getColumnsToFetch().isPresent()) {
                 if (!data.getColumnsToFetch().get().containsKey("device_id")) {
-                    data = data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
+                    data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
                 }
             }
             return data;

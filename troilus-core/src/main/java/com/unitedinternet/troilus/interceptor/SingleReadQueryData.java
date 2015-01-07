@@ -44,13 +44,13 @@ public class SingleReadQueryData {
     
     
 
-    public SingleReadQueryData withKeys(ImmutableMap<String, Object> keyNameValuePairs) {
+    public SingleReadQueryData keys(ImmutableMap<String, Object> keyNameValuePairs) {
         return new SingleReadQueryData(keyNameValuePairs, 
                                        this.optionalColumnsToFetch);  
     }
     
 
-    public SingleReadQueryData withColumnsToFetch(Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
+    public SingleReadQueryData columnsToFetch(Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         return new SingleReadQueryData(this.keyNameValuePairs, 
                                        optionalColumnsToFetch);  
     }

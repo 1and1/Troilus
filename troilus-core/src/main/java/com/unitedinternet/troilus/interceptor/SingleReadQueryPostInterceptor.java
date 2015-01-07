@@ -17,7 +17,6 @@ package com.unitedinternet.troilus.interceptor;
 
 import java.util.Optional;
 
-import com.unitedinternet.troilus.QueryInterceptor;
 import com.unitedinternet.troilus.Record;
 
 

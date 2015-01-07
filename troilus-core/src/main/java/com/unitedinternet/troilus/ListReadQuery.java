@@ -30,6 +30,7 @@ import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -56,7 +57,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListReadQuery all() {
-        return new ListReadQuery(getContext(), data.withColumnsToFetch(Optional.empty()));
+        return new ListReadQuery(getContext(), data.columnsToFetch(Optional.empty()));
     }
     
  
@@ -73,44 +74,44 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListReadQuery column(String name) {
-        return new ListReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
-        return new ListReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
 
     @Override
     public ListReadQuery withLimit(int limit) {
-        return new ListReadQuery(getContext(), data.withLimit(Optional.of(limit)));
+        return new ListReadQuery(getContext(), data.limit(Optional.of(limit)));
     }
     
     @Override
     public ListReadQuery withAllowFiltering() {
-        return new ListReadQuery(getContext(), data.withAllowFiltering(Optional.of(true)));
+        return new ListReadQuery(getContext(), data.allowFiltering(Optional.of(true)));
     }
 
     @Override
     public ListReadQuery withFetchSize(int fetchSize) {
-        return new ListReadQuery(getContext(), data.withFetchSize(Optional.of(fetchSize)));
+        return new ListReadQuery(getContext(), data.fetchSize(Optional.of(fetchSize)));
     }
     
     @Override
     public ListReadQuery withDistinct() {
-        return new ListReadQuery(getContext(), data.withDistinct(Optional.of(true)));
+        return new ListReadQuery(getContext(), data.distinct(Optional.of(true)));
     }
     
    
     @Override
     public ListRead<Count> count() {
-        return new CountReadQuery(getContext(), new CountReadQueryData().withWhereClauses(data.getWhereClauses())
-                                                                        .withLimit(data.getLimit())
-                                                                        .withFetchSize(data.getFetchSize())
-                                                                        .withAllowFiltering(data.getAllowFiltering())
-                                                                        .withDistinct(data.getDistinct()));
+        return new CountReadQuery(getContext(), new CountReadQueryData().whereClauses(data.getWhereClauses())
+                                                                        .limit(data.getLimit())
+                                                                        .fetchSize(data.getFetchSize())
+                                                                        .allowFiltering(data.getAllowFiltering())
+                                                                        .distinct(data.getDistinct()));
     }
     
     @Override
@@ -258,7 +259,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
 
         
-        public CountReadQueryData withWhereClauses(ImmutableSet<Clause> whereClauses) {
+        public CountReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
             return new CountReadQueryData(whereClauses,
                                           this.optionalLimit,
                                           this.optionalAllowFiltering,
@@ -268,7 +269,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
 
         
-        public CountReadQueryData withLimit(Optional<Integer> optionalLimit) {
+        public CountReadQueryData limit(Optional<Integer> optionalLimit) {
             return new CountReadQueryData(this.whereClauses,
                                           optionalLimit,
                                           this.optionalAllowFiltering,
@@ -277,7 +278,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
 
         
-        public CountReadQueryData withAllowFiltering(Optional<Boolean> optionalAllowFiltering) {
+        public CountReadQueryData allowFiltering(Optional<Boolean> optionalAllowFiltering) {
             return new CountReadQueryData(this.whereClauses,
                                           this.optionalLimit,
                                           optionalAllowFiltering,
@@ -286,7 +287,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
 
         
-        public CountReadQueryData withFetchSize(Optional<Integer> optionalFetchSize) {
+        public CountReadQueryData fetchSize(Optional<Integer> optionalFetchSize) {
             return new CountReadQueryData(this.whereClauses,
                                           this.optionalLimit,
                                           this.optionalAllowFiltering,
@@ -295,7 +296,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
 
         
-        public CountReadQueryData withDistinct(Optional<Boolean> optionalDistinct) {
+        public CountReadQueryData distinct(Optional<Boolean> optionalDistinct) {
             return new CountReadQueryData(this.whereClauses,
                                           this.optionalLimit,
                                           this.optionalAllowFiltering,
@@ -346,26 +347,26 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         @Override
         public ListRead<Count> withLimit(int limit) {
             return new CountReadQuery(getContext(),
-                                      data.withLimit(Optional.of(limit))); 
+                                      data.limit(Optional.of(limit))); 
         }
         
         
         @Override
         public ListRead<Count> withAllowFiltering() {
             return new CountReadQuery(getContext(),
-                                      data.withAllowFiltering(Optional.of(true))); 
+                                      data.allowFiltering(Optional.of(true))); 
         }
     
         @Override
         public ListRead<Count> withFetchSize(int fetchSize) {
             return new CountReadQuery(getContext(),
-                                      data.withFetchSize(Optional.of(fetchSize)));
+                                      data.fetchSize(Optional.of(fetchSize)));
         }
         
         @Override
         public ListRead<Count> withDistinct() {
             return new CountReadQuery(getContext(),
-                                      data.withDistinct(Optional.of(true)));
+                                      data.distinct(Optional.of(true)));
         }
     
     

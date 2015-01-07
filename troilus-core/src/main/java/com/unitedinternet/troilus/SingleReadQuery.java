@@ -39,6 +39,7 @@ import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -63,7 +64,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleRead<Optional<Record>> all() {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Optional.empty()));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(Optional.empty()));
     }
     
     @Override
@@ -73,12 +74,12 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleReadQuery column(String name) {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     @Override

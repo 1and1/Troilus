@@ -550,7 +550,7 @@ class PhonenumbersConstraints implements InsertQueryPreInterceptor,
         // force that device_id will be fetched 
         if (data.getColumnsToFetch().isPresent()) {
             if (!data.getColumnsToFetch().get().containsKey("device_id")) {
-                data = data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
+                data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
             }
         }
         return data;

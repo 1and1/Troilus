@@ -79,7 +79,7 @@ public class UpdateQueryData {
     
     
 
-    public UpdateQueryData withKeys(ImmutableMap<String, Object> keys) {
+    public UpdateQueryData keys(ImmutableMap<String, Object> keys) {
         return new UpdateQueryData(keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -93,7 +93,7 @@ public class UpdateQueryData {
     }
     
     
-    public UpdateQueryData withWhereConditions(ImmutableList<Clause> whereConditions) {
+    public UpdateQueryData whereConditions(ImmutableList<Clause> whereConditions) {
         return new UpdateQueryData(this.keys, 
                                    whereConditions,
                                    this.valuesToMutate, 
@@ -106,7 +106,7 @@ public class UpdateQueryData {
                                    this.onlyIfConditions);
     }
     
-    public UpdateQueryData withValuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
+    public UpdateQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    valuesToMutate, 
@@ -120,7 +120,7 @@ public class UpdateQueryData {
     }
  
     
-    public UpdateQueryData withSetValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
+    public UpdateQueryData setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -134,7 +134,7 @@ public class UpdateQueryData {
     }
     
     
-    public UpdateQueryData withSetValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
+    public UpdateQueryData setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -148,7 +148,7 @@ public class UpdateQueryData {
     }
  
     
-    public UpdateQueryData withListValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
+    public UpdateQueryData listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -162,7 +162,7 @@ public class UpdateQueryData {
     }
    
     
-    public UpdateQueryData withListValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
+    public UpdateQueryData listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -176,7 +176,7 @@ public class UpdateQueryData {
     }
  
     
-    public UpdateQueryData withListValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
+    public UpdateQueryData listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -190,7 +190,7 @@ public class UpdateQueryData {
     }
  
 
-    public UpdateQueryData withMapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
+    public UpdateQueryData mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
@@ -204,7 +204,7 @@ public class UpdateQueryData {
     }
 
     
-    public UpdateQueryData withOnlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
+    public UpdateQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
         return new UpdateQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 

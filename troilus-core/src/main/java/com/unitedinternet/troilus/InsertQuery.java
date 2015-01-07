@@ -52,7 +52,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     
     @Override
     public Mutation<?> ifNotExits() {
-        return new InsertionQuery(getContext(), data.withIfNotExits(true));
+        return new InsertionQuery(getContext(), data.ifNotExits(true));
     }
 
     

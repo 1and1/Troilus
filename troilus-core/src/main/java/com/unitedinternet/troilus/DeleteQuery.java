@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -56,7 +57,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
-        return new DeleteQuery(getContext(), data.withOnlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
+        return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
     
     

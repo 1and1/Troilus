@@ -44,20 +44,20 @@ public class DeleteQueryData {
 
     
 
-    public DeleteQueryData withKeys(ImmutableMap<String, Object> keyNameValuePairs) {
+    public DeleteQueryData keys(ImmutableMap<String, Object> keyNameValuePairs) {
         return new DeleteQueryData(keyNameValuePairs, 
                                    this.whereConditions, 
                                    this.onlyIfConditions);  
     }
     
-    public DeleteQueryData withWhereConditions(ImmutableList<Clause> whereConditions) {
+    public DeleteQueryData whereConditions(ImmutableList<Clause> whereConditions) {
         return new DeleteQueryData(this.keyNameValuePairs, 
                                    whereConditions, 
                                    this.onlyIfConditions);  
     }
     
     
-    public DeleteQueryData withOnlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
+    public DeleteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
         return new DeleteQueryData(this.keyNameValuePairs, 
                                    this.whereConditions, 
                                    onlyIfConditions);  

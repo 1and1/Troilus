@@ -40,12 +40,12 @@ public class InsertQueryData {
     
     
 
-    public InsertQueryData withValuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
+    public InsertQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
         return new InsertQueryData(valuesToMutate, 
                                    this.ifNotExists);  
     }
     
-    public InsertQueryData withIfNotExits(boolean ifNotExists) {
+    public InsertQueryData ifNotExits(boolean ifNotExists) {
         return new InsertQueryData(this.valuesToMutate, 
                                    ifNotExists);  
     }

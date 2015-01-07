@@ -54,9 +54,12 @@ import com.google.common.collect.Sets;
 import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Exceptions;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -183,10 +186,10 @@ class Context  {
     
     Context interceptor(QueryInterceptor interceptor) {
         return new Context(session, 
-                entityMapper, 
-                table, 
-                executionSpec,
-                interceptors.add(interceptor));
+                           entityMapper, 
+                           table,      
+                           executionSpec,  
+                           interceptors.add(interceptor));
 
     }
     

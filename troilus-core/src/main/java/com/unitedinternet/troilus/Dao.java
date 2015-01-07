@@ -28,6 +28,8 @@ import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+import com.unitedinternet.troilus.utils.Exceptions;
 
 public interface Dao {
     

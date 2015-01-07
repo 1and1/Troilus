@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.utils.Immutables;
 
  
 abstract class AbstractQuery<Q> {

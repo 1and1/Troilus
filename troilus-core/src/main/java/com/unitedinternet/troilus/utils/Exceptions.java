@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.utils;
 
 import java.util.concurrent.ExecutionException;
 
 
 
 /**
- * Exceptions
+ * Exception utils
  *
  * @author grro
  */
-class Exceptions {    
+public class Exceptions {    
      
     
     public static RuntimeException unwrapIfNecessary(Throwable ex)  {
         return unwrapIfNecessary(ex, 5);
     }
         
+    
     public static RuntimeException unwrapIfNecessary(Throwable ex, int maxDepth)  {
         
         if (ExecutionException.class.isAssignableFrom(ex.getClass())) {

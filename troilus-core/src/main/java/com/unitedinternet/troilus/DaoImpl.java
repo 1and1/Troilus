@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.UpdateQueryData;
 
@@ -104,26 +105,26 @@ public class DaoImpl implements Dao {
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new UpdateQuery(ctx, new UpdateQueryData().withWhereConditions((ImmutableList.copyOf(clauses))));
+        return new UpdateQuery(ctx, new UpdateQueryData().whereConditions((ImmutableList.copyOf(clauses))));
     }
     
   
     
     @Override
     public WriteWithCounter writeWithKey(String keyName, Object keyValue) {
-        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName, keyValue)));
+        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName, keyValue)));
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1,
+        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1,
                                                                                    keyName2, keyValue2)));
         
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3)));
         
@@ -131,7 +132,7 @@ public class DaoImpl implements Dao {
 
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3, 
                                                                                    keyName4, keyValue4)));
@@ -141,7 +142,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new DeleteQuery(ctx, new DeleteQueryData().withWhereConditions(ImmutableList.copyOf(whereConditions)));
+        return new DeleteQuery(ctx, new DeleteQueryData().whereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
     
@@ -183,7 +184,7 @@ public class DaoImpl implements Dao {
     
 
     private DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQuery(ctx, new DeleteQueryData().withKeys(keyNameValuePairs));
+        return new DeleteQuery(ctx, new DeleteQueryData().keys(keyNameValuePairs));
     }
     
     
@@ -191,13 +192,13 @@ public class DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName, keyValue)));
+        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName, keyValue)));
     }
      
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                            keyName2, keyValue2)));
     }
     
@@ -205,7 +206,7 @@ public class DaoImpl implements Dao {
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2,
                                                             String keyName3, Object keyValue3) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                            keyName2, keyValue2, 
                                                                                            keyName3, keyValue3)));
     }
@@ -216,7 +217,7 @@ public class DaoImpl implements Dao {
                                                             String keyName2, Object keyValue2, 
                                                             String keyName3, Object keyValue3, 
                                                             String keyName4, Object keyValue4) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                            keyName2, keyValue2, 
                                                                                            keyName3, keyValue3, 
                                                                                            keyName4, keyValue4)));
@@ -225,12 +226,12 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
-        return new ListReadQuery(ctx, new ListReadQueryData().withWhereClauses(ImmutableSet.copyOf(clauses)));
+        return new ListReadQuery(ctx, new ListReadQueryData().whereClauses(ImmutableSet.copyOf(clauses)));
     }
      
     
     @Override
     public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryData().withColumnsToFetch(Optional.empty()));
+        return new ListReadQuery(ctx, new ListReadQueryData().columnsToFetch(Optional.empty()));
     }
 }

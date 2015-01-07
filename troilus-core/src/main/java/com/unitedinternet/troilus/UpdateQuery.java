@@ -41,6 +41,7 @@ import com.unitedinternet.troilus.Dao.CounterMutation;
 import com.unitedinternet.troilus.interceptor.InsertQueryData;
 import com.unitedinternet.troilus.interceptor.UpdateQueryData;
 import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
+import com.unitedinternet.troilus.utils.Immutables;
 
 
  
@@ -62,21 +63,21 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     public InsertionQuery entity(Object entity) {
         return new InsertionQuery(getContext(), 
-                                 new InsertQueryData().withValuesToMutate(getContext().toValues(entity)));
+                                 new InsertQueryData().valuesToMutate(getContext().toValues(entity)));
     }
         
     
     @Override
     public UpdateQuery value(String name, Object value) {
         return new UpdateQuery(getContext(), 
-                               data.withValuesToMutate(Immutables.merge(data.getValuesToMutate(), name, toOptional(value))));
+                               data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, toOptional(value))));
     }
 
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return new UpdateQuery(getContext(), 
-                              data.withValuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
+                              data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
     }
     
     
@@ -87,7 +88,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                               data.withSetValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
+                               data.setValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
     }
 
     
@@ -97,7 +98,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                               data.withSetValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
+                               data.setValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
     }
    
     
@@ -107,7 +108,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                               data.withListValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
+                               data.listValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
     } 
     
     
@@ -118,7 +119,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                               data.withListValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
+                               data.listValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
     }
     
     
@@ -129,7 +130,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                               data.withListValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
+                               data.listValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
     }
    
     
@@ -139,7 +140,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableMap.of(key, toOptional(value)) : Immutables.merge(values, key, toOptional(value));
 
         return new UpdateQuery(getContext(), 
-                               data.withMapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
+                               data.mapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
     }
     
     
@@ -147,14 +148,14 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
         return new UpdateQuery(getContext(), 
-                               data.withOnlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions()).addAll(ImmutableList.copyOf(conditions)).build()));
+                               data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions()).addAll(ImmutableList.copyOf(conditions)).build()));
     }
 
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionQuery(getContext(), new InsertQueryData().withValuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))))
-                                                                     .withIfNotExits(true));
+        return new InsertionQuery(getContext(), new InsertQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))))
+                                                                     .ifNotExits(true));
     }
 
         
@@ -166,7 +167,10 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery incr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData(data.getKeys(), data.getWhereConditions(), name, value));  
+                                        new CounterMutationQueryData().keys(data.getKeys())
+                                                                      .whereConditions(data.getWhereConditions())
+                                                                      .name(name)
+                                                                      .diff(value));  
     }
     
     
@@ -178,7 +182,10 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery decr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData(data.getKeys(), data.getWhereConditions(), name, 0 - value));  
+                                        new CounterMutationQueryData().keys(data.getKeys())
+                                                                      .whereConditions(data.getWhereConditions())
+                                                                      .name(name)
+                                                                      .diff(0 - value));  
     }
     
     
@@ -296,8 +303,13 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         private final long diff;
 
         
-
-        public CounterMutationQueryData(ImmutableMap<String, Object> keys,
+        public CounterMutationQueryData() {
+            this(ImmutableMap.of(),
+                 ImmutableList.of(),
+                 null,
+                 0);
+        }
+        private CounterMutationQueryData(ImmutableMap<String, Object> keys,
                                         ImmutableList<Clause> whereConditions,
                                         String name,
                                         long diff) {
@@ -307,6 +319,35 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             this.diff = diff;
         }
        
+        
+        public CounterMutationQueryData keys(ImmutableMap<String, Object> keys) {
+            return new CounterMutationQueryData(keys,
+                                                this.whereConditions, 
+                                                this.name,
+                                                this.diff);
+        }
+        
+        public CounterMutationQueryData whereConditions(ImmutableList<Clause> whereConditions) {
+            return new CounterMutationQueryData(this.keys,
+                                                whereConditions, 
+                                                this.name,
+                                                this.diff);
+        }
+        
+        public CounterMutationQueryData name(String name) {
+            return new CounterMutationQueryData(this.keys,
+                                                this.whereConditions, 
+                                                name,
+                                                this.diff);
+        }
+        
+        public CounterMutationQueryData diff(long diff) {
+            return new CounterMutationQueryData(this.keys,
+                                                this.whereConditions, 
+                                                this.name,
+                                                diff);
+        }
+        
         
         public ImmutableMap<String, Object> getKeys() {
             return keys;

@@ -15,7 +15,6 @@
  */
 package com.unitedinternet.troilus.interceptor;
 
-import com.unitedinternet.troilus.QueryInterceptor;
 import com.unitedinternet.troilus.RecordList;
 
 

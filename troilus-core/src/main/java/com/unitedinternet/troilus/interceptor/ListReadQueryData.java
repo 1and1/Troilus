@@ -61,7 +61,7 @@ public class ListReadQueryData {
     
 
     
-    public ListReadQueryData withWhereClauses(ImmutableSet<Clause> whereClauses) {
+    public ListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
         return new ListReadQueryData(whereClauses,
                                      this.columnsToFetch,
                                      this.optionalLimit,
@@ -71,7 +71,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData withColumnsToFetch(Optional<ImmutableMap<String, Boolean>> columnsToFetch) {
+    public ListReadQueryData columnsToFetch(Optional<ImmutableMap<String, Boolean>> columnsToFetch) {
         return new ListReadQueryData(this.whereClauses,
                                      columnsToFetch,
                                      this.optionalLimit,
@@ -81,7 +81,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData withLimit(Optional<Integer> optionalLimit) {
+    public ListReadQueryData limit(Optional<Integer> optionalLimit) {
         return new ListReadQueryData(this.whereClauses,
                                      this.columnsToFetch,
                                      optionalLimit,
@@ -91,7 +91,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData withAllowFiltering(Optional<Boolean> optionalAllowFiltering) {
+    public ListReadQueryData allowFiltering(Optional<Boolean> optionalAllowFiltering) {
         return new ListReadQueryData(this.whereClauses,
                                      this.columnsToFetch,
                                      this.optionalLimit,
@@ -101,7 +101,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData withFetchSize(Optional<Integer> optionalFetchSize) {
+    public ListReadQueryData fetchSize(Optional<Integer> optionalFetchSize) {
         return new ListReadQueryData(this.whereClauses,
                                      this.columnsToFetch,
                                      this.optionalLimit,
@@ -111,7 +111,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData withDistinct(Optional<Boolean> optionalDistinct) {
+    public ListReadQueryData distinct(Optional<Boolean> optionalDistinct) {
         return new ListReadQueryData(this.whereClauses,
                                      this.columnsToFetch,
                                      this.optionalLimit,
