@@ -599,7 +599,7 @@ phoneNumbersDao.writeWithKey("number", "0089123234234")
 // insert new entry without device id 
 try {
    phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
-				           		 .value("active, true)
+				           		 .value("active", true)
 								 .ifNotExits()
 						         .execute();
     Assert.fail("ConstraintException expected");
@@ -609,7 +609,7 @@ try {
 
 // update modifyable column
 phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
-					          .value("active, false)
+					          .value("active", false)
 					          .execute();
         
         
