@@ -487,7 +487,7 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 
 
 #Interceptor Examples
-The interceptor support can be used to implement constraint checks on the client-side (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
+The interceptor support can be used to implement constraint checks on the client-side (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). To register interceptors the `Dao` supports the `withInterceptor(...)` method.
 
 ``` java
 Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
