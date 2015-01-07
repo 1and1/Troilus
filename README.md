@@ -495,11 +495,10 @@ Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
 ```
 
-The interceptor below implements some constraints regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. The phone_numbers table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The
-1. insert operations ensures that an existing phone row will not be overridden. 
-2. it should not be allowed to update the device id column. This means assigning a phone number to new devices requires to remove the old entry first and to create a new phones row.
-4. A phone number will not be deleted, if the assigned device still exits
-5. by accessing the table entries the back relation should be check with cl one 
+The interceptor below implements some constraints regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. The phone_numbers table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The  insert operations ensures that an existing phone row will not be overridden. Constraints:
+* It should not be allowed to update the device id column. This means assigning a phone number to new devices requires to remove the old entry first and to create a new phones row.
+* A phone number will not be deleted, if the assigned device still exits
+* By accessing the table entries the back relation should be check with cl one 
 ``` java
 class PhonenumbersConstraints implements InsertQueryPreInterceptor,
 							  UpdateQueryPreInterceptor,
@@ -585,4 +584,64 @@ class PhonenumbersConstraints implements InsertQueryPreInterceptor,
         return optionalRecord;
     }
 }
+```
+
+
+``` java
+// insert new  entry
+phoneNumbersDao.writeWithKey("number", "0089123234234")
+                        .value("device_id", "2333243")
+                        .value("active", true)
+                        .ifNotExits()
+                        .execute();
+        
+
+// insert new entry without device id 
+try {
+   phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
+						.value("active, true)
+						.ifNotExits()
+						.execute();
+    Assert.fail("ConstraintException expected");
+} catch (ConstraintException expected) { }
+
+
+
+// update modifyable column
+phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
+					     .value("active, false)
+					     .execute();
+        
+        
+// update non-modifyable column
+try {
+    phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
+                                                 .value("device_id", "dfacbsd")
+                                                 .execute();
+    Assert.fail("ConstraintException expected");
+} catch (ConstraintException expected) {  }
+        
+        
+        
+        
+// read 
+phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
+                                             .execute()
+                                             .get();
+        
+
+// modify record to make it inconsistent 
+phoneNumbersDao.writeWithKey("number", "0089645454455")
+			.value("device_id", "2333243")
+			.execute();
+
+        
+// read inconsistent record
+try {
+   phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
+                                                .execute()
+                                                .get();
+   Assert.fail("ConstraintException expected");
+} catch (ConstraintException expected) { }
+
 ```
