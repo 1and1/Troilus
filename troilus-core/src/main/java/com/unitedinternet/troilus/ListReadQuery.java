@@ -170,14 +170,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         ListReadQueryData preprocessedData = getPreprocessedData(); 
         Statement statement = toStatement(preprocessedData);
         
-        return getContext().performAsync(statement)
-                           .thenApply(resultSet -> newRecordList(resultSet))
-                           .thenApply(recordList -> {
-                                                       for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptors(ListReadQueryPostInterceptor.class)) {
-                                                           recordList = interceptor.onPostListRead(preprocessedData, recordList);
-                                                       }
-                                                       return recordList;
-                                                    });
+        return performAsync(statement)
+                  .thenApply(resultSet -> newRecordList(resultSet))
+                  .thenApply(recordList -> {
+                                              for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptors(ListReadQueryPostInterceptor.class)) {
+                                                  recordList = interceptor.onPostListRead(preprocessedData, recordList);
+                                              }
+                                              return recordList;
+                                           });
     }        
     
  
@@ -393,7 +393,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         public CompletableFuture<Count> executeAsync() {
             Statement statement = toStatement(data);
-            return getContext().performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
+            return performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
         }        
     }  
 }

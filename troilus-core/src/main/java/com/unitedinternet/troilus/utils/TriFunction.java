@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.utils;
 
 
 
@@ -22,7 +22,7 @@ package com.unitedinternet.troilus;
  * TriFunction
  */
 @FunctionalInterface
-interface TriFunction<A,B,C,R> {
+public interface TriFunction<A,B,C,R> {
 
     R apply(A a, B b, C c);
 }

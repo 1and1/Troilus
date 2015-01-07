@@ -24,23 +24,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
-import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -58,14 +52,14 @@ import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Exceptions;
 import com.unitedinternet.troilus.utils.Immutables;
+import com.unitedinternet.troilus.utils.TriFunction;
 
 
 
 
 class Context  {
-    private final Cache<String, PreparedStatement> statementCache = CacheBuilder.newBuilder().maximumSize(100).build();
+    private final Cache<String, PreparedStatement> preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(100).build();
     private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
     private final LoadingCache<String, UserType> userTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader());
 
@@ -101,114 +95,6 @@ class Context  {
     }
  
     
-    protected UDTValueMapper getUDTValueMapper() {
-        return udtValueMapper;
-    }
-  
-    protected String getTable() {
-        return table;
-    }
-  
-    protected ProtocolVersion getProtocolVersion() {
-        return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
-    }
-    
-    protected ColumnMetadata getColumnMetadata(String columnName) {
-        try {
-            return columnMetadataCache.get(columnName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e.getCause());
-        }
-    }
-
-    
-    protected UserType getUserType(String usertypeName) {
-        try {
-            return userTypeCache.get(usertypeName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e.getCause());
-        }
-    }
-
-
-    
-    protected ImmutableMap<String, Optional<Object>> toValues(Object entity) {
-        return entityMapper.toValues(entity);
-    }
-
- 
-    
-    protected Object toStatementValue(String name, Object value) {
-        if (isNullOrEmpty(value)) {
-            return null;
-        } 
-        
-        DataType dataType = getColumnMetadata(name).getType();
-        return (isBuildInType(dataType)) ? value : toUdtValue(getColumnMetadata(name).getType(), value);
-    }
-    
-
-    boolean isBuildInType(DataType dataType) {        
-        if (dataType.isCollection()) {
-            for (DataType type : dataType.getTypeArguments()) {
-                if (!isBuildInType(type)) {
-                    return false;
-                }
-            }
-            return true;
-
-        } else {
-            return DataType.allPrimitiveTypes().contains(dataType);
-        }
-    }
-    
-
-    
-    protected Object toUdtValue(DataType datatype, Object value) {
-        return udtValueMapper.toUdtValue(datatype, value);
-    }
-    
-    
-    private boolean isNullOrEmpty(Object value) {
-        return (value == null) || 
-               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
-               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
-    }
-        
-    
-    
-
-
-    protected <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
-        return entityMapper.fromValues(clazz, datasource);
-    }
-    
-    
-    Context interceptor(QueryInterceptor interceptor) {
-        return new Context(session, 
-                           entityMapper, 
-                           table,      
-                           executionSpec,  
-                           interceptors.add(interceptor));
-
-    }
-    
-
-    
-    <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
-        return interceptors.getInterceptors(clazz);
-    }
-    
-    
-    
-    public Context withConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, 
-                           entityMapper, 
-                           table, 
-                           executionSpec.withConsistency(consistencyLevel),
-                           interceptors);
-    }
-
     public Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, 
                            entityMapper,
@@ -217,7 +103,7 @@ class Context  {
                            interceptors);
     }
 
-    public Context withTtl(Duration ttl) {
+    Context withTtl(Duration ttl) {
         return new Context(session, 
                            entityMapper, 
                            table, 
@@ -225,7 +111,7 @@ class Context  {
                            interceptors);        
     }
 
-    public Context withWritetime(long microsSinceEpoch) {
+    Context withWritetime(long microsSinceEpoch) {
         return new Context(session, 
                            entityMapper, 
                            table, 
@@ -266,63 +152,135 @@ class Context  {
         return executionSpec.getSerialConsistencyLevel();
     }
 
-
-    public Optional<Duration> getTtl() {
+    Optional<Duration> getTtl() {
         return executionSpec.getTtl();
     }
 
-  
-    
-    public PreparedStatement prepare(BuiltStatement statement) {
-        try {
-            return statementCache.get(statement.getQueryString(), () -> session.prepare(statement));
-        } catch (ExecutionException e) {
-            throw Exceptions.unwrapIfNecessary(e);
-        }
+    Optional<Long> getWritetime() {
+        return executionSpec.getWritetime();
+    }
+
+    Optional<Boolean> getEnableTracing() {
+        return executionSpec.getEnableTracing();
     }
     
-        
-    
-    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
-        
-        executionSpec.getConsistencyLevel().ifPresent(cl -> statement.setConsistencyLevel(cl));
-        executionSpec.getWritetime().ifPresent(writetimeMicrosSinceEpoch -> statement.setDefaultTimestamp(writetimeMicrosSinceEpoch));
-        executionSpec.getEnableTracing().ifPresent(enable -> {
-                                                                if (enable) {
-                                                                    statement.enableTracing();
-                                                                } else {
-                                                                    statement.disableTracing(); 
-                                                                }
-                                                             });
-        executionSpec.getRetryPolicy().ifPresent(policy -> statement.setRetryPolicy(policy));
-        
-        ResultSetFuture rsFuture = session.executeAsync(statement);
-        return new CompletableDbFuture(rsFuture);
+    Optional<RetryPolicy> getRetryPolicy() {
+        return executionSpec.getRetryPolicy();
     }
-    
-    
-    
-    private static class CompletableDbFuture extends CompletableFuture<ResultSet> {
-        
-        public CompletableDbFuture(ResultSetFuture rsFuture) {
-            
-            Runnable resultHandler = () -> { 
-                try {
-                    complete(rsFuture.get());
-                    
-                } catch (ExecutionException ee) {
-                    completeExceptionally(ee.getCause());
-                    
-                } catch (InterruptedException | RuntimeException e) {
-                    completeExceptionally(e);
-                }
-            };
-            rsFuture.addListener(resultHandler, ForkJoinPool.commonPool());
-        }
-    }   
 
     
+    Session getSession() {
+        return session;
+    }
     
+    UDTValueMapper getUDTValueMapper() {
+        return udtValueMapper;
+    }
+  
+    String getTable() {
+        return table;
+    }
+  
+  
+    ColumnMetadata getColumnMetadata(String columnName) {
+        try {
+            return columnMetadataCache.get(columnName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e.getCause());
+        }
+    }
+
+    
+    UserType getUserType(String usertypeName) {
+        try {
+            return userTypeCache.get(usertypeName);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e.getCause());
+        }
+    }
+
+
+    
+    ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+        return entityMapper.toValues(entity);
+    }
+
+ 
+    
+    Object toStatementValue(String name, Object value) {
+        if (isNullOrEmpty(value)) {
+            return null;
+        } 
+        
+        DataType dataType = getColumnMetadata(name).getType();
+        return (isBuildInType(dataType)) ? value : toUdtValue(getColumnMetadata(name).getType(), value);
+    }
+    
+
+    boolean isBuildInType(DataType dataType) {        
+        if (dataType.isCollection()) {
+            for (DataType type : dataType.getTypeArguments()) {
+                if (!isBuildInType(type)) {
+                    return false;
+                }
+            }
+            return true;
+
+        } else {
+            return DataType.allPrimitiveTypes().contains(dataType);
+        }
+    }
+    
+
+    
+    Object toUdtValue(DataType datatype, Object value) {
+        return udtValueMapper.toUdtValue(datatype, value);
+    }
+    
+    
+    private boolean isNullOrEmpty(Object value) {
+        return (value == null) || 
+               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
+               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
+    }
+       
+
+    <T> T fromValues(Class<?> clazz, TriFunction<String, Class<?>, Class<?>, Optional<?>> datasource) {
+        return entityMapper.fromValues(clazz, datasource);
+    }
+    
+    
+    Context interceptor(QueryInterceptor interceptor) {
+        return new Context(session, 
+                           entityMapper, 
+                           table,      
+                           executionSpec,  
+                           interceptors.add(interceptor));
+
+    }
+    
+
+    
+    <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
+        return interceptors.getInterceptors(clazz);
+    }
+    
+    
+    
+    public Context withConsistency(ConsistencyLevel consistencyLevel) {
+        return new Context(session, 
+                           entityMapper, 
+                           table, 
+                           executionSpec.withConsistency(consistencyLevel),
+                           interceptors);
+    }
+
+       
+    Cache<String, PreparedStatement> getPreparedStatementsCache() {
+        return preparedStatementsCache;
+    }
+    
+       
     static class Interceptors {
         
         private final ImmutableMap<Class<? extends QueryInterceptor>, ImmutableList<QueryInterceptor>> typeInterceptorMap;
@@ -539,6 +497,12 @@ class Context  {
     class UDTValueMapper {
         
         private UDTValueMapper() {  }
+        
+        
+        private ProtocolVersion getProtocolVersion() {
+            return session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+        }
+        
         
         
         public Optional<?> fromUdtValue(DataType datatype, 
@@ -771,8 +735,7 @@ class Context  {
                 }
             }
         }
-    }
-    
+    }    
 }
 
 

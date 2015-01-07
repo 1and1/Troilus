@@ -16,7 +16,6 @@
 package com.unitedinternet.troilus;
 
 
-import java.time.Duration;
 import java.util.Optional;
 
 import com.datastax.driver.core.Session;
@@ -60,17 +59,6 @@ public class DaoImpl implements Dao {
     }
  
     @Override
-    public Dao withTtl(Duration ttl) {
-        return new DaoImpl(ctx.withTtl(ttl));
-    }
-    
-    @Override
-    public Dao withWritetime(long microsSinceEpoch) {
-        return new DaoImpl(ctx.withWritetime(microsSinceEpoch));
-    }
-    
-    
-    @Override
     public Dao withEnableTracking() {
         return new DaoImpl(ctx.withEnableTracking());
     }
@@ -92,10 +80,11 @@ public class DaoImpl implements Dao {
     }
     
     
-    
     <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
         return ctx.getInterceptors(clazz);
     }
+    
+    
     
     
     @Override

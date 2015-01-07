@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,8 +34,11 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
@@ -45,6 +50,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.utils.Exceptions;
 import com.unitedinternet.troilus.utils.Immutables;
 
  
@@ -56,11 +62,10 @@ abstract class AbstractQuery<Q> {
         this.ctx = ctx;
     }
 
-    
-    
     abstract protected Q newQuery(Context newContext);
     
 
+    
     
     ////////////////////////
     // default implementations
@@ -68,7 +73,15 @@ abstract class AbstractQuery<Q> {
     public Q withConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(ctx.withConsistency(consistencyLevel));
     }
-  
+
+    public Q withWritetime(long microsSinceEpoch) {
+        return newQuery(ctx.withWritetime(microsSinceEpoch));
+    }
+
+    public Q withTtl(Duration ttl) {
+        return newQuery(ctx.withTtl(ttl));
+    }
+    
     public Q withEnableTracking() {
         return newQuery(ctx.withEnableTracking());
     }
@@ -91,14 +104,23 @@ abstract class AbstractQuery<Q> {
     }
 
 
-    protected Context getContext() {
-        return ctx; 
-    }
-    
     protected Optional<Duration> getTtl() {
         return ctx.getTtl();
     }
     
+    
+
+    
+    
+    ////////////////////////
+    // utility methods
+    protected Context getContext() {
+        return ctx; 
+    }
+    
+    protected ProtocolVersion getProtocolVersion() {
+        return ctx.getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+    }
     
     protected Object toStatementValue(String name, Object value) {
         return ctx.toStatementValue(name, value);
@@ -122,10 +144,54 @@ abstract class AbstractQuery<Q> {
         return m;
     }
     
+        
     protected PreparedStatement prepare(BuiltStatement statement) {
-        return ctx.prepare(statement);
+        try {
+            return ctx.getPreparedStatementsCache().get(statement.getQueryString(), () -> ctx.getSession().prepare(statement));
+        } catch (ExecutionException e) {
+            throw Exceptions.unwrapIfNecessary(e);
+        }
     }
-     
+    
+
+    protected CompletableFuture<ResultSet> performAsync(Statement statement) {
+        ctx.getConsistencyLevel().ifPresent(cl -> statement.setConsistencyLevel(cl));
+        ctx.getWritetime().ifPresent(writetimeMicrosSinceEpoch -> statement.setDefaultTimestamp(writetimeMicrosSinceEpoch));
+        ctx.getEnableTracing().ifPresent(enable -> {
+                                                        if (enable) {
+                                                            statement.enableTracing();
+                                                        } else {
+                                                            statement.disableTracing(); 
+                                                        }
+                                                   });
+        ctx.getRetryPolicy().ifPresent(policy -> statement.setRetryPolicy(policy));
+        
+        ResultSetFuture rsFuture = ctx.getSession().executeAsync(statement);
+        return new CompletableDbFuture(rsFuture);
+    }
+    
+    
+    
+    private static class CompletableDbFuture extends CompletableFuture<ResultSet> {
+        
+        public CompletableDbFuture(ResultSetFuture rsFuture) {
+            
+            Runnable resultHandler = () -> { 
+                try {
+                    complete(rsFuture.get());
+                    
+                } catch (ExecutionException ee) {
+                    completeExceptionally(ee.getCause());
+                    
+                } catch (InterruptedException | RuntimeException e) {
+                    completeExceptionally(e);
+                }
+            };
+            rsFuture.addListener(resultHandler, ForkJoinPool.commonPool());
+        }
+    }   
+
+
     
    
     protected Record newRecord(Result result, Row row) {
@@ -192,8 +258,7 @@ abstract class AbstractQuery<Q> {
         public RecordImpl(Result result, Row row) {
             super(result, row);
         }
-        
-
+  
         @SuppressWarnings("unchecked")
         public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
             if (isNull(name)) {
@@ -204,7 +269,7 @@ abstract class AbstractQuery<Q> {
             
             if (datatype != null) {
                 if (ctx.isBuildInType(datatype)) {
-                    return (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, ctx.getProtocolVersion()));
+                    return (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion()));
                 } else {
                     return Optional.ofNullable(ctx.getUDTValueMapper().fromUdtValue(datatype, getUDTValue(name).get(), elementsClass));
                 }
@@ -278,7 +343,7 @@ abstract class AbstractQuery<Q> {
                 return Optional.empty();
             } else {
                 StringBuilder builder = new StringBuilder();
-                builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getProtocolVersion()));
+                builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), getProtocolVersion()));
 
                 return Optional.of(builder.toString());
             }

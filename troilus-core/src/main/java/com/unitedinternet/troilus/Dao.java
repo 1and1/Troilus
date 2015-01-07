@@ -37,10 +37,6 @@ public interface Dao {
 
     Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-    Dao withTtl(Duration ttl);
-
-    Dao withWritetime(long microsSinceEpoch);
-
     Dao withEnableTracking();
 
     Dao withDisableTracking();

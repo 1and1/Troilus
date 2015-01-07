@@ -146,39 +146,39 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
         Statement statement = toStatement(preprocessedData);
         
-        return getContext().performAsync(statement)
-                           .thenApply(resultSet -> {
-                                                      Row row = resultSet.one();
-                                                      if (row == null) {
-                                                          return Optional.<Record>empty();
-                                                          
-                                                      } else {
-                                                          Record record = newRecord(new ResultImpl(resultSet), row);
-                                                          
-                                                          // paranoia check
-                                                          data.getKeyNameValuePairs().forEach((name, value) -> { 
-                                                                                                                  ByteBuffer in = DataType.serializeValue(value, getContext().getProtocolVersion());
-                                                                                                                  ByteBuffer out = record.getBytesUnsafe(name).get();
-                                                                          
-                                                                                                                  if (in.compareTo(out) != 0) {
-                                                                                                                       LOG.warn("Dataswap error for " + name);
-                                                                                                                       throw new ProtocolErrorException("Dataswap error for " + name); 
-                                                                                                                  }
-                                                                                                              });
-                                                          
-                                                          if (!resultSet.isExhausted()) {
-                                                              throw new TooManyResultsException("more than one record exists");
-                                                          }
-                                                          
-                                                          return Optional.of(record); 
-                                                      }
-                                                   })
-                           .thenApply(optionalRecord -> {
-                                                           for (SingleReadQueryPostInterceptor interceptor : getContext().getInterceptors(SingleReadQueryPostInterceptor.class)) {
-                                                               optionalRecord = interceptor.onPostSingleRead(preprocessedData, optionalRecord);
-                                                           }
-                                                           return optionalRecord;
-                                                        });
+        return performAsync(statement)
+                    .thenApply(resultSet -> {
+                                                Row row = resultSet.one();
+                                                if (row == null) {
+                                                    return Optional.<Record>empty();
+                                                    
+                                                } else {
+                                                    Record record = newRecord(new ResultImpl(resultSet), row);
+                                                    
+                                                    // paranoia check
+                                                    data.getKeyNameValuePairs().forEach((name, value) -> { 
+                                                                                                            ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
+                                                                                                            ByteBuffer out = record.getBytesUnsafe(name).get();
+                                                                    
+                                                                                                            if (in.compareTo(out) != 0) {
+                                                                                                                 LOG.warn("Dataswap error for " + name);
+                                                                                                                 throw new ProtocolErrorException("Dataswap error for " + name); 
+                                                                                                            }
+                                                                                                        });
+                                                    
+                                                    if (!resultSet.isExhausted()) {
+                                                        throw new TooManyResultsException("more than one record exists");
+                                                    }
+                                                    
+                                                    return Optional.of(record); 
+                                                }
+                                             })
+                    .thenApply(optionalRecord -> {
+                                                    for (SingleReadQueryPostInterceptor interceptor : getContext().getInterceptors(SingleReadQueryPostInterceptor.class)) {
+                                                        optionalRecord = interceptor.onPostSingleRead(preprocessedData, optionalRecord);
+                                                    }
+                                                    return optionalRecord;
+                                                 });
     }
     
     
