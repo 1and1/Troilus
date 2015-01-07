@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
-import java.util.Optional;
+
+import com.unitedinternet.troilus.QueryInterceptor;
 
 
 
 
  
-public interface SingleReadQueryAfterInterceptor extends QueryInterceptor {
+public interface DeleteQueryPreInterceptor extends QueryInterceptor {
     
-    Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record);
+    DeleteQueryData onPreDelete(DeleteQueryData data);
 }
  

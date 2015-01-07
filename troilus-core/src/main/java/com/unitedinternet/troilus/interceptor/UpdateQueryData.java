@@ -13,40 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
 
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.addAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.appendAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-
-
-
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.discardAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.prependAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.putAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.removeAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
-
-import java.util.List;
 import java.util.Optional;
-
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-
 
 
  
-public class UpdateQueryData extends QueryData {
+public class UpdateQueryData {
 
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
@@ -63,18 +41,30 @@ public class UpdateQueryData extends QueryData {
 
     
 
+    public UpdateQueryData() {
+        this(ImmutableMap.of(),
+             ImmutableList.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableMap.of(),
+             ImmutableList.of());
+    }
 
     
-    public UpdateQueryData(ImmutableMap<String, Object> keys, 
-                           ImmutableList<Clause> whereConditions, 
-                           ImmutableMap<String, Optional<Object>> valuesToMutate, 
-                           ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
-                           ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
-                           ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
-                           ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
-                           ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
-                           ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                           ImmutableList<Clause> onlyIfConditions) {
+    private UpdateQueryData(ImmutableMap<String, Object> keys, 
+                            ImmutableList<Clause> whereConditions, 
+                            ImmutableMap<String, Optional<Object>> valuesToMutate, 
+                            ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
+                            ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
+                            ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
+                            ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
+                            ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
+                            ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                            ImmutableList<Clause> onlyIfConditions) {
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
@@ -86,7 +76,35 @@ public class UpdateQueryData extends QueryData {
         this.mapValuesToMutate = mapValuesToMutate;
         this.onlyIfConditions = onlyIfConditions;
     }
-     
+    
+    
+
+    public UpdateQueryData withKeys(ImmutableMap<String, Object> keys) {
+        return new UpdateQueryData(keys, 
+                                   this.whereConditions,
+                                   this.valuesToMutate, 
+                                   this.setValuesToAdd,
+                                   this.setValuesToRemove,
+                                   this.listValuesToAppend,
+                                   this.listValuesToPrepend,
+                                   this.listValuesToRemove,
+                                   this.mapValuesToMutate,
+                                   this.onlyIfConditions);
+    }
+    
+    
+    public UpdateQueryData withWhereConditions(ImmutableList<Clause> whereConditions) {
+        return new UpdateQueryData(this.keys, 
+                                   whereConditions,
+                                   this.valuesToMutate, 
+                                   this.setValuesToAdd,
+                                   this.setValuesToRemove,
+                                   this.listValuesToAppend,
+                                   this.listValuesToPrepend,
+                                   this.listValuesToRemove,
+                                   this.mapValuesToMutate,
+                                   this.onlyIfConditions);
+    }
     
     public UpdateQueryData withValuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
         return new UpdateQueryData(this.keys, 
@@ -239,57 +257,5 @@ public class UpdateQueryData extends QueryData {
 
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
-    }
-
-
-    @Override
-    protected Statement toStatement(Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
-        
-        onlyIfConditions.forEach(condition -> update.onlyIf(condition));
-
-        
-        // key-based update
-        if (whereConditions.isEmpty()) {
-            List<Object> values = Lists.newArrayList();
-            
-            valuesToMutate.forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(ctx.toStatementValue(name, optionalValue.orElse(null))); });
-
-            setValuesToAdd.forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(ctx.toStatementValue(name, vals)); });
-            setValuesToRemove.forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(ctx.toStatementValue(name, vals)); });
-            
-            listValuesToPrepend.forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(ctx.toStatementValue(name, vals)); });
-            listValuesToAppend.forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(ctx.toStatementValue(name, vals)); });
-            listValuesToRemove.forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(ctx.toStatementValue(name, vals)); });
-
-            mapValuesToMutate.forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(ctx.toStatementValue(name, map)); });
-            
-            
-            keys.keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(keys.get(keyname)); } );
-            
-            onlyIfConditions.forEach(condition -> update.onlyIf(condition));
-            ctx.getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
-            
-            return ctx.prepare(update).bind(values.toArray());
-
-            
-        // where condition-based update
-        } else {
-            valuesToMutate.forEach((name, optionalValue) -> update.with(set(name, ctx.toStatementValue(name, optionalValue.orElse(null)))));
-        
-            setValuesToAdd.forEach((name, vals) -> update.with(addAll(name, ctx.toStatementValue(name, vals))));
-            setValuesToRemove.forEach((name, vals) -> update.with(removeAll(name, ctx.toStatementValue(name, vals))));
-
-            listValuesToPrepend.forEach((name, vals) -> update.with(prependAll(name, ctx.toStatementValue(name, vals))));
-            listValuesToAppend.forEach((name, vals) -> update.with(appendAll(name, ctx.toStatementValue(name, vals))));
-            listValuesToRemove.forEach((name, vals) -> update.with(discardAll(name, ctx.toStatementValue(name, vals))));
-            
-            mapValuesToMutate.forEach((name, map) -> update.with(putAll(name, ctx.toStatementValue(name, map))));
-
-            ctx.getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
-            whereConditions.forEach(whereClause -> update.where(whereClause));
-            
-            return update;
-        }
     }
 }

@@ -64,7 +64,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     }
 
     @Override
-    public Statement getStatement(Context ctx) {
+    public Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(type);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;
@@ -72,7 +72,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     
     
     public CompletableFuture<Result> executeAsync() {
-        return getContext().performAsync(getStatement(getContext())).thenApply(resultSet -> 
+        return getContext().performAsync(getStatement()).thenApply(resultSet -> 
         new ResultImpl(resultSet));
     }
 }

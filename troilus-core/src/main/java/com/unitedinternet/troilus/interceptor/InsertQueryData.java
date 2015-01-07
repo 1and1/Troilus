@@ -13,38 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
 
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-
-
-
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-
-import java.util.List;
 import java.util.Optional;
-
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
 
 
  
-public class InsertQueryData extends QueryData {
+public class InsertQueryData {
     
     private final ImmutableMap<String, Optional<Object>> valuesToMutate;
     private final boolean ifNotExists;
   
 
+    public InsertQueryData() {
+        this(ImmutableMap.of(), false);
+    }
 
-    public InsertQueryData(ImmutableMap<String, Optional<Object>> valuesToMutate, 
+
+    private InsertQueryData(ImmutableMap<String, Optional<Object>> valuesToMutate, 
                            boolean ifNotExists) {
         this.valuesToMutate = valuesToMutate;
         this.ifNotExists = ifNotExists;
@@ -69,25 +57,5 @@ public class InsertQueryData extends QueryData {
 
     public boolean isIfNotExists() {
         return ifNotExists;
-    }
-
-    
-    
-    @Override
-    protected Statement toStatement(Context ctx) {
-        Insert insert = insertInto(ctx.getTable());
-        
-        List<Object> values = Lists.newArrayList();
-        valuesToMutate.forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(ctx.toStatementValue(name, optionalValue.orElse(null))); } ); 
-        
-        if (ifNotExists) {
-            insert.ifNotExists();
-            ctx.getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
-        }
-
-        ctx.getTtl().ifPresent(ttl-> { insert.using(QueryBuilder.ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
-
-        PreparedStatement stmt = ctx.prepare(insert);
-        return stmt.bind(values.toArray());
     }
 }

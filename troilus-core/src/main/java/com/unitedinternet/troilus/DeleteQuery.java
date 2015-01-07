@@ -17,14 +17,22 @@ package com.unitedinternet.troilus;
 
 
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.querybuilder.Clause;
 
 
+import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.Deletion;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
+import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
 
 
 
@@ -53,15 +61,36 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     }
     
     
+    private Statement toStatement(DeleteQueryData queryData) {
+        Delete delete = delete().from(getContext().getTable());
+        
+        // key-based delete    
+        if (queryData.getWhereConditions().isEmpty()) {
+            queryData.getOnlyIfConditions().forEach(condition -> delete.onlyIf(condition));
+            
+            ImmutableSet<Clause> whereClauses = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
+            whereClauses.forEach(whereClause -> delete.where(whereClause));
+            
+            return getContext().prepare(delete).bind(queryData.getKeyNameValuePairs().values().toArray());
+
+            
+        // where condition-based delete    
+        } else {
+            queryData.getOnlyIfConditions().forEach(condition -> delete.onlyIf(condition));
+            queryData.getWhereConditions().forEach(whereClause -> delete.where(whereClause));
+           
+            return delete;
+        }        
+    }
  
     @Override
-    public Statement getStatement(Context ctx) {
-        DeleteQueryData d = data;
-        for (DeleteQueryBeforeInterceptor interceptor : ctx.getInterceptors(DeleteQueryBeforeInterceptor.class)) {
-            d = interceptor.onBeforeDelete(d); 
+    public Statement getStatement() {
+        DeleteQueryData queryData = data;
+        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptors(DeleteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreDelete(queryData); 
         }
 
-        return data.toStatement(ctx);
+        return toStatement(queryData);
     }
     
 

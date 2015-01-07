@@ -49,7 +49,7 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
     }
 
     @Override
-    public Statement getStatement(Context ctx) {
+    public Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;
@@ -57,6 +57,6 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
     
     
     public CompletableFuture<Result> executeAsync() {
-        return getContext().performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
+        return getContext().performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
     }
 }

@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
-
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-
-
-
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Delete;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 
 
  
-public class DeleteQueryData extends QueryData {
+public class DeleteQueryData {
     
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
      
 
-    DeleteQueryData(ImmutableMap<String, Object> keyNameValuePairs, 
+    public DeleteQueryData() {
+        this(ImmutableMap.of(), ImmutableList.of(), ImmutableList.of());
+    }
+    
+    
+    private DeleteQueryData(ImmutableMap<String, Object> keyNameValuePairs, 
                     ImmutableList<Clause> whereConditions, 
                     ImmutableList<Clause> onlyIfConditions) {
         this.keyNameValuePairs = keyNameValuePairs;
@@ -80,30 +74,5 @@ public class DeleteQueryData extends QueryData {
 
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
-    }
-    
-    
-    
-    @Override
-    protected Statement toStatement(Context ctx) {
-        Delete delete = delete().from(ctx.getTable());
-
-        // key-based delete    
-        if (whereConditions.isEmpty()) {
-            onlyIfConditions.forEach(condition -> delete.onlyIf(condition));
-            
-            ImmutableSet<Clause> whereClauses = keyNameValuePairs.keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
-            whereClauses.forEach(whereClause -> delete.where(whereClause));
-            
-            return ctx.prepare(delete).bind(keyNameValuePairs.values().toArray());
-
-            
-        // where condition-based delete    
-        } else {
-            onlyIfConditions.forEach(condition -> delete.onlyIf(condition));
-            whereConditions.forEach(whereClause -> delete.where(whereClause));
-           
-            return delete;
-        }
     }
 }

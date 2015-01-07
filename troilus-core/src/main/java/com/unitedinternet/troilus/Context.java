@@ -51,6 +51,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
 
 
 
@@ -280,7 +286,7 @@ class Context  {
 
   
     
-    protected PreparedStatement prepare(BuiltStatement statement) {
+    public PreparedStatement prepare(BuiltStatement statement) {
         try {
             return statementCache.get(statement.getQueryString(), () -> session.prepare(statement));
         } catch (ExecutionException e) {
@@ -345,13 +351,12 @@ class Context  {
         Interceptors add(QueryInterceptor interceptor) {
             Interceptors interceptors = this;
             
-            interceptors =  interceptors.addIfMatch(InsertQueryBeforeInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(UpdateQueryBeforeInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(DeleteQueryBeforeInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(SingleReadQueryBeforeInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(SingleReadQueryAfterInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(ListReadQueryBeforeInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(ListReadQueryAfterInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(InsertQueryPreInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(UpdateQueryPreInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(SingleReadQueryPreInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(SingleReadQueryPostInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(ListReadQueryPreInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(ListReadQueryPostInterceptor.class, interceptor);
 
             return interceptors;
         }
@@ -372,6 +377,8 @@ class Context  {
             }
         }
         
+        
+        @SuppressWarnings("unchecked")
         public <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
             ImmutableList<T> list = (ImmutableList<T>) typeInterceptorMap.get(clazz);
             if (list == null) {

@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
+
+import com.unitedinternet.troilus.QueryInterceptor;
+import com.unitedinternet.troilus.RecordList;
 
 
 
 
  
-public interface DeleteQueryAfterInterceptor extends QueryInterceptor {
+public interface ListReadQueryPostInterceptor extends QueryInterceptor {
     
-    Result onAfterDelete(Result result);
+    RecordList onPostListRead(ListReadQueryData data, RecordList recordList);
 }
  

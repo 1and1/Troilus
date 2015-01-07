@@ -8,18 +8,26 @@ import org.junit.Assert;
 import org.junit.Test;
 
 
+
+
+
+
+
+
+
+
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.DeleteQueryBeforeInterceptor;
-import com.unitedinternet.troilus.DeleteQueryData;
-import com.unitedinternet.troilus.InsertQueryBeforeInterceptor;
-import com.unitedinternet.troilus.InsertQueryData;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.SingleReadQueryAfterInterceptor;
-import com.unitedinternet.troilus.SingleReadQueryData;
-import com.unitedinternet.troilus.UpdateQueryBeforeInterceptor;
-import com.unitedinternet.troilus.UpdateQueryData;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
+import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.InsertQueryData;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+import com.unitedinternet.troilus.interceptor.UpdateQueryData;
+import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
 
 
 
@@ -29,8 +37,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
 
     
        @Test
-    public void testRI() throws Exception {
-           
+    public void testRI() throws Exception {           
            
         /*
             The phones table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The
@@ -105,7 +112,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
        
     
     
-    private static final class PhonenumbersConstraints implements UpdateQueryBeforeInterceptor, InsertQueryBeforeInterceptor, DeleteQueryBeforeInterceptor, SingleReadQueryAfterInterceptor {
+    private static final class PhonenumbersConstraints implements UpdateQueryPreInterceptor, InsertQueryPreInterceptor, DeleteQueryPreInterceptor, SingleReadQueryPostInterceptor {
 
         private final Dao deviceDao;
         
@@ -114,7 +121,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         }
             
         @Override
-        public InsertQueryData onBeforeInsert(InsertQueryData data) {
+        public InsertQueryData onPreInsert(InsertQueryData data) {
             data.getValuesToMutate().get("device_id").ifPresent(deviceid -> { /* check if device exits */ });
             
             return data;
@@ -122,14 +129,14 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     
 
         @Override
-        public DeleteQueryData onBeforeDelete(DeleteQueryData data) {
+        public DeleteQueryData onPreDelete(DeleteQueryData data) {
             /* check that the device not exists */
             return null;
         }
         
         
         @Override
-        public UpdateQueryData onBeforeUpdate(UpdateQueryData data) {
+        public UpdateQueryData onPreUpdate(UpdateQueryData data) {
 
             if (data.getValuesToMutate().containsKey("device_id")) {
                 throw new ConstraintException("columnn 'device_id' is unmodifiable");
@@ -141,7 +148,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
 
         
         @Override
-        public Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record) {
+        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> record) {
             // check is related device includes this number
             return record;
         }
@@ -150,7 +157,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     
     
 
-    private static final class DeviceConstraints implements SingleReadQueryAfterInterceptor {
+    private static final class DeviceConstraints implements SingleReadQueryPostInterceptor {
         private final Dao phoneNumbersDao;
                     
         public DeviceConstraints(Dao phoneNumbersDao) {
@@ -158,7 +165,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         }
         
         @Override
-        public Optional<Record> onAfterSingleRead(SingleReadQueryData data, Optional<Record> record) {
+        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> record) {
             // check is related phone numbers points to this device
             return record;
         }

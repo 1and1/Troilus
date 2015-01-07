@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
+import com.unitedinternet.troilus.QueryInterceptor;
 
 
 
  
-public interface ListReadQueryBeforeInterceptor extends QueryInterceptor {
+public interface InsertQueryPreInterceptor extends QueryInterceptor {
     
-    ListReadQueryData onBeforeListRead(ListReadQueryData data);
+    InsertQueryData onPreInsert(InsertQueryData data);
 }
  

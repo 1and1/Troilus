@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
-import com.datastax.driver.core.Statement;
+import com.unitedinternet.troilus.QueryInterceptor;
+
 
 
 
  
-abstract class QueryData  {
-  
-    abstract protected Statement toStatement(Context ctx);
-        
+public interface SingleReadQueryPreInterceptor extends QueryInterceptor {
+    
+    SingleReadQueryData onBeforeSingleRead(SingleReadQueryData data);
 }
+ 

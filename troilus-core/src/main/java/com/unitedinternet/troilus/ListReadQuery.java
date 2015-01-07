@@ -27,6 +27,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
+import com.unitedinternet.troilus.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
 
 
@@ -103,14 +106,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
    
     @Override
     public ListRead<Count> count() {
-        return new CountReadQuery(getContext(), new CountReadQueryData(data.getWhereClauses(), 
-                                                                       data.getLimit(),
-                                                                       data.getAllowFiltering(),
-                                                                       data.getFetchSize(),
-                                                                       data.getDistinct()));
+        return new CountReadQuery(getContext(), new CountReadQueryData().withWhereClauses(data.getWhereClauses())
+                                                                        .withLimit(data.getLimit())
+                                                                        .withFetchSize(data.getFetchSize())
+                                                                        .withAllowFiltering(data.getAllowFiltering())
+                                                                        .withDistinct(data.getDistinct()));
     }
     
-  
     @Override
     public <E> ListEntityReadQuery<E> asEntity(Class<E> objectClass) {
         return new ListEntityReadQuery<>(getContext(), this, objectClass) ;
@@ -123,28 +125,55 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     
+    private Statement toStatement(ListReadQueryData queryData) {
+        Select.Selection selection = select();
 
-    private ListReadQueryData getPreprocessedData(Context ctx) {
-        ListReadQueryData d = data;
-        for (ListReadQueryBeforeInterceptor interceptor : ctx.getInterceptors(ListReadQueryBeforeInterceptor.class)) {
-            d = interceptor.onBeforeListRead(d);
+        queryData.getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
+
+        
+        if (queryData.getColumnsToFetch().isPresent()) {
+            queryData.getColumnsToFetch().get().forEach((columnName, withMetaData) -> selection.column(columnName));
+            queryData.getColumnsToFetch().get().entrySet()
+                                               .stream()
+                                               .filter(entry -> entry.getValue())
+                                               .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
+        } else {
+            selection.all();
         }
         
-        return d;
+        Select select = selection.from(getContext().getTable());
+        
+        queryData.getWhereClauses().forEach(whereClause -> select.where(whereClause));
+
+        queryData.getLimit().ifPresent(limit -> select.limit(limit));
+        queryData.getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
+        queryData.getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
+        
+        return select;
+    }
+    
+
+    private ListReadQueryData getPreprocessedData() {
+        ListReadQueryData queryData = data;
+        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptors(ListReadQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreListRead(queryData);
+        }
+        
+        return queryData;
     }
     
     
 
     @Override
     public CompletableFuture<RecordList> executeAsync() {
-        ListReadQueryData preprocessedData = getPreprocessedData(getContext()); 
-        Statement statement = preprocessedData.toStatement(getContext());
+        ListReadQueryData preprocessedData = getPreprocessedData(); 
+        Statement statement = toStatement(preprocessedData);
         
         return getContext().performAsync(statement)
                            .thenApply(resultSet -> newRecordList(resultSet))
                            .thenApply(recordList -> {
-                                                       for (ListReadQueryAfterInterceptor interceptor : getContext().getInterceptors(ListReadQueryAfterInterceptor.class)) {
-                                                           recordList = interceptor.onAfterListRead(preprocessedData, recordList);
+                                                       for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptors(ListReadQueryPostInterceptor.class)) {
+                                                           recordList = interceptor.onPostListRead(preprocessedData, recordList);
                                                        }
                                                        return recordList;
                                                     });
@@ -198,18 +227,28 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     
-    private static final class CountReadQueryData extends QueryData {
+    private static final class CountReadQueryData {
         final ImmutableSet<Clause> whereClauses;
         final Optional<Integer> optionalLimit;
         final Optional<Boolean> optionalAllowFiltering;
         final Optional<Integer> optionalFetchSize;
         final Optional<Boolean> optionalDistinct;
 
-        public CountReadQueryData(ImmutableSet<Clause> whereClauses, 
-                                  Optional<Integer> optionalLimit, 
-                                  Optional<Boolean> optionalAllowFiltering,
-                                  Optional<Integer> optionalFetchSize,
-                                  Optional<Boolean> optionalDistinct) {
+        
+        
+        public CountReadQueryData() {
+            this(ImmutableSet.of(),
+                 Optional.empty(),
+                 Optional.empty(),
+                 Optional.empty(),
+                 Optional.empty());
+        }
+        
+        private CountReadQueryData(ImmutableSet<Clause> whereClauses, 
+                                   Optional<Integer> optionalLimit, 
+                                   Optional<Boolean> optionalAllowFiltering,
+                                   Optional<Integer> optionalFetchSize,
+                                   Optional<Boolean> optionalDistinct) {
             this.whereClauses = whereClauses;
             this.optionalLimit = optionalLimit;
             this.optionalAllowFiltering = optionalAllowFiltering;
@@ -269,11 +308,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             return whereClauses;
         }
 
-        public Optional<Integer> getOptionalLimit() {
+        public Optional<Integer> getLimit() {
             return optionalLimit;
         }
 
-        public Optional<Boolean> getOptionalAllowFiltering() {
+        public Optional<Boolean> getAllowFiltering() {
             return optionalAllowFiltering;
         }
 
@@ -283,33 +322,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         public Optional<Boolean> getDistinct() {
             return optionalDistinct;
-        }
-
-    
-        @Override
-        protected Statement toStatement(Context ctx) {
-            Select.Selection selection = select();
-            
-            optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });
-    
-     
-            selection.countAll();
-            
-            Select select = selection.from(ctx.getTable());
-            Select.Where where = null;
-            for (Clause clause : whereClauses) {
-                if (where == null) {
-                    where = select.where(clause);
-                } else {
-                    where = where.and(clause);
-                }
-            }
-    
-            optionalLimit.ifPresent(limit -> select.limit(limit));
-            optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
-            optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
-            
-            return select;
         }
     }
 
@@ -358,9 +370,28 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
         
-        public CompletableFuture<Count> executeAsync() {
-            Statement statement = data.toStatement(getContext());
+        private Statement toStatement(CountReadQueryData queryData) {
+            Select.Selection selection = select();
             
+            queryData.getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
+    
+     
+            selection.countAll();
+            
+            Select select = selection.from(getContext().getTable());
+            
+            queryData.getWhereClauses().forEach(whereClause -> select.where(whereClause));
+            
+            queryData.getLimit().ifPresent(limit -> select.limit(limit));
+            queryData.getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
+            queryData.getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
+            
+            return select;
+        }
+
+        
+        public CompletableFuture<Count> executeAsync() {
+            Statement statement = toStatement(data);
             return getContext().performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
         }        
     }  

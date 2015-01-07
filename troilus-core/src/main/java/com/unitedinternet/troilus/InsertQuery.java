@@ -16,11 +16,21 @@
 package com.unitedinternet.troilus;
 
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
+
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
+import com.unitedinternet.troilus.interceptor.InsertQueryData;
+import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 
 
  
@@ -45,15 +55,33 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
         return new InsertionQuery(getContext(), data.withIfNotExits(true));
     }
 
+    
+    private Statement toStatement(InsertQueryData queryData) {
+        Insert insert = insertInto(getContext().getTable());
+        
+        List<Object> values = Lists.newArrayList();
+        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(getContext().toStatementValue(name, optionalValue.orElse(null))); } ); 
+        
+        if (queryData.isIfNotExists()) {
+            insert.ifNotExists();
+            getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
+        }
+
+        getContext().getTtl().ifPresent(ttl-> { insert.using(ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
+
+        PreparedStatement stmt = getContext().prepare(insert);
+        return stmt.bind(values.toArray());
+    }
+
 
     @Override
-    protected Statement getStatement(Context ctx) {
-        InsertQueryData d = data;
-        for (InsertQueryBeforeInterceptor interceptor : ctx.getInterceptors(InsertQueryBeforeInterceptor.class)) {
-            d = interceptor.onBeforeInsert(d); 
+    protected Statement getStatement() {
+        InsertQueryData queryData = data;
+        for (InsertQueryPreInterceptor interceptor : getContext().getInterceptors(InsertQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreInsert(queryData); 
         }
         
-        return data.toStatement(ctx);
+        return toStatement(queryData);
     }
     
     

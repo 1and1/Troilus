@@ -26,6 +26,10 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
+import com.unitedinternet.troilus.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+import com.unitedinternet.troilus.interceptor.UpdateQueryData;
 
  
 
@@ -95,103 +99,49 @@ public class DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(), 
-                                                        ImmutableList.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of())).entity(entity);
+        return new UpdateQuery(ctx, new UpdateQueryData()).entity(entity);
     }
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(), 
-                                                        ImmutableList.copyOf(clauses),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of()));
+        return new UpdateQuery(ctx, new UpdateQueryData().withWhereConditions((ImmutableList.copyOf(clauses))));
     }
     
   
     
     @Override
     public WriteWithCounter writeWithKey(String keyName, Object keyValue) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(keyName, keyValue), 
-                                                        ImmutableList.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of()));
+        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName, keyValue)));
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(keyName1, keyValue1,
-                                                                        keyName2, keyValue2), 
-                                                        ImmutableList.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of()));
+        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1,
+                                                                                   keyName2, keyValue2)));
         
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(keyName1, keyValue1, 
-                                                                        keyName2, keyValue2, 
-                                                                        keyName3, keyValue3), 
-                                                        ImmutableList.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of()));
+        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+                                                                                   keyName2, keyValue2, 
+                                                                                   keyName3, keyValue3)));
         
     }
 
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return new UpdateQuery(ctx, new UpdateQueryData(ImmutableMap.of(keyName1, keyValue1, 
-                                                                        keyName2, keyValue2, 
-                                                                        keyName3, keyValue3, 
-                                                                        keyName4, keyValue4), 
-                                                        ImmutableList.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableMap.of(),
-                                                        ImmutableList.of()));
+        return new UpdateQuery(ctx, new UpdateQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+                                                                                   keyName2, keyValue2, 
+                                                                                   keyName3, keyValue3, 
+                                                                                   keyName4, keyValue4)));
     }
     
     
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new DeleteQuery(ctx, new DeleteQueryData(ImmutableMap.of(), ImmutableList.copyOf(whereConditions), ImmutableList.of()));
+        return new DeleteQuery(ctx, new DeleteQueryData().withWhereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
     
@@ -233,7 +183,7 @@ public class DaoImpl implements Dao {
     
 
     private DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQuery(ctx, new DeleteQueryData(keyNameValuePairs, ImmutableList.of(), ImmutableList.of()));
+        return new DeleteQuery(ctx, new DeleteQueryData().withKeys(keyNameValuePairs));
     }
     
     
@@ -241,59 +191,46 @@ public class DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData(ImmutableMap.of(keyName, keyValue),
-                                                                Optional.empty()));
+        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName, keyValue)));
     }
-    
+     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                keyName2, keyValue2), 
-                                                                Optional.of(ImmutableMap.of())));
+        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+                                                                                           keyName2, keyValue2)));
     }
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2,
                                                             String keyName3, Object keyValue3) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                keyName2, keyValue2, 
-                                                                                keyName3, keyValue3), 
-                                                                Optional.of(ImmutableMap.of())));
+        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+                                                                                           keyName2, keyValue2, 
+                                                                                           keyName3, keyValue3)));
     }
+    
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2, 
                                                             String keyName3, Object keyValue3, 
                                                             String keyName4, Object keyValue4) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                keyName2, keyValue2, 
-                                                                                keyName3, keyValue3, 
-                                                                                keyName4, keyValue4), 
-                                                                Optional.of(ImmutableMap.of())));
+        return new SingleReadQuery(ctx, new SingleReadQueryData().withKeys(ImmutableMap.of(keyName1, keyValue1, 
+                                                                                           keyName2, keyValue2, 
+                                                                                           keyName3, keyValue3, 
+                                                                                           keyName4, keyValue4)));
     }
 
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
-        return new ListReadQuery(ctx, new ListReadQueryData(ImmutableSet.copyOf(clauses), 
-                                                            Optional.of(ImmutableMap.of()), 
-                                                            Optional.empty(), 
-                                                            Optional.empty(), 
-                                                            Optional.empty(),
-                                                            Optional.empty()));
+        return new ListReadQuery(ctx, new ListReadQueryData().withWhereClauses(ImmutableSet.copyOf(clauses)));
     }
      
     
     @Override
     public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryData(ImmutableSet.of(), 
-                                                            Optional.of(ImmutableMap.of()), 
-                                                            Optional.empty(), 
-                                                            Optional.empty(), 
-                                                            Optional.empty(),
-                                                            Optional.empty()));
+        return new ListReadQuery(ctx, new ListReadQueryData().withColumnsToFetch(Optional.empty()));
     }
 }

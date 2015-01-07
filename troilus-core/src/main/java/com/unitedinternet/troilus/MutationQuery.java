@@ -66,15 +66,15 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
     @Override
     public void addTo(BatchStatement batchStatement) {
-        batchStatement.add(getStatement(getContext()));
+        batchStatement.add(getStatement());
     }
     
 
     public CompletableFuture<Result> executeAsync() {
-        return getContext().performAsync(getStatement(getContext())).thenApply(resultSet -> new ResultImpl(resultSet));
+        return getContext().performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
     }
     
-    protected abstract Statement getStatement(Context ctx);
+    protected abstract Statement getStatement();
    
   
     

@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.interceptor;
 
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.Optional;
 
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 
 
  
-public class ListReadQueryData extends QueryData {
+public class ListReadQueryData {
 
     final ImmutableSet<Clause> whereClauses;
     final Optional<ImmutableMap<String, Boolean>> columnsToFetch;
@@ -38,7 +34,18 @@ public class ListReadQueryData extends QueryData {
     final Optional<Integer> optionalFetchSize;
     final Optional<Boolean> optionalDistinct;
 
-    public ListReadQueryData(ImmutableSet<Clause> whereClauses, 
+    
+    public ListReadQueryData() {
+        this(ImmutableSet.of(), 
+             Optional.empty(),
+             Optional.empty(),
+             Optional.empty(),
+             Optional.empty(),
+             Optional.empty());
+    }
+
+    
+    private ListReadQueryData(ImmutableSet<Clause> whereClauses, 
                              Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
                              Optional<Integer> optionalLimit, 
                              Optional<Boolean> optionalAllowFiltering,
@@ -136,34 +143,5 @@ public class ListReadQueryData extends QueryData {
 
     public Optional<Boolean> getDistinct() {
         return optionalDistinct;
-    }
-
-    
-    @Override
-    protected Statement toStatement(Context ctx) {
-        Select.Selection selection = select();
-
-        optionalDistinct.ifPresent(distinct -> { if (distinct) selection.distinct(); });
-
-        
-        if (columnsToFetch.isPresent()) {
-            columnsToFetch.get().forEach((columnName, withMetaData) -> selection.column(columnName));
-            columnsToFetch.get().entrySet()
-                                .stream()
-                                .filter(entry -> entry.getValue())
-                                .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-        } else {
-            selection.all();
-        }
-        
-        Select select = selection.from(ctx.getTable());
-        
-        whereClauses.forEach(whereClause -> select.where(whereClause));
-
-        optionalLimit.ifPresent(limit -> select.limit(limit));
-        optionalAllowFiltering.ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
-        optionalFetchSize.ifPresent(fetchSize -> select.setFetchSize(fetchSize));
-        
-        return select;
     }
 }
