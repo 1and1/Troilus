@@ -50,7 +50,7 @@ public class SingleReadQueryData {
     }
     
 
-    public SingleReadQueryData withColumnsToFetchKeys(Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
+    public SingleReadQueryData withColumnsToFetch(Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
         return new SingleReadQueryData(this.keyNameValuePairs, 
                                        optionalColumnsToFetch);  
     }

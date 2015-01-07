@@ -483,3 +483,12 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
     }
 }
 ```
+
+
+#Interceptor Examples
+
+
+``` java
+
+```
+

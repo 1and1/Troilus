@@ -16,14 +16,18 @@ import org.junit.Test;
 
 
 
+
+
+
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
+import com.unitedinternet.troilus.Immutables;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.interceptor.DeleteQueryData;
-import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.InsertQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.UpdateQueryData;
 import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
@@ -40,12 +44,11 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     public void testRI() throws Exception {           
            
         /*
-            The phones table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The
+            The phones table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a mandatory device id column referring to the assigned device. The
             1, insert operations ensures that an existing phone row will not be overridden. 
             2, it should not be allowed to update the device id column. This means assigning a phone number to new devices requires to remove the old entry first and to create a new phones row.
             3, A phone number can not be assigned to a non-existing device. 
-            4, A phone number will not be deleted, if the assigned device still exits
-            5, by accessing the table entries the back relation should be check with cl one 
+            4, by accessing the table entries the back relation should be check with cl one 
          */
                 
         Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
@@ -73,21 +76,25 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                 .ifNotExits()
                                 .execute();
         
-    
-        
-        
         
         
         
         phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089645454455")
-                       .value(PhonenumbersTable.DEVICE_ID, "deaeea")
+                       .value(PhonenumbersTable.DEVICE_ID, "834343")
                        .value(PhonenumbersTable.ACTIVE, true)
                        .ifNotExits()
                        .execute();
+
+        deviceDaoWithConstraints.writeWithKey("device_id", "834343")
+                                .addSetValue("phone_numbers", "0089645454455")
+                                .execute();
+        
+        
+        
         
         
         phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
-                       .value(PhonenumbersTable.DEVICE_ID, "dfacbsd")
+                       .value(PhonenumbersTable.DEVICE_ID, "2333243")
                        .value(PhonenumbersTable.ACTIVE, true)
                        .ifNotExits()
                        .execute();
@@ -105,14 +112,88 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .value(PhonenumbersTable.DEVICE_ID, "dfacbsd")
                                           .execute();
             Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {  }
+        } catch (RuntimeException expected) { 
+            Assert.assertTrue(expected.getMessage().contains("columnn 'device_id' is unmodifiable"));
+        }
+        
+        
+  
+        // insert without device id 
+        try {
+            phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "08834334")
+                                          .value(PhonenumbersTable.ACTIVE, true)
+                                          .ifNotExits()
+                                          .execute();
+            Assert.fail("RuntimeException expected");
+        } catch (RuntimeException expected) {
+            Assert.assertTrue(expected.getMessage().contains("device id is mandatory"));
+        }
+        
+
+        // insert with unknown device id 
+        try {
+            phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "08834334")
+                                          .value(PhonenumbersTable.DEVICE_ID, "doesNotExits")
+                                          .value(PhonenumbersTable.ACTIVE, true)
+                                          .ifNotExits()
+                                          .execute();
+            Assert.fail("RuntimeException expected");
+        } catch (RuntimeException expected) {
+            Assert.assertTrue(expected.getMessage().contains("device with id"));
+        }
+        
+        
+      
+        
+        
+        // read 
+        phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                                      .execute()
+                                      .get();
+        
+
+        phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                                      .column("active")
+                                      .execute()
+                                      .get();
+
+        
+
+        // modify record to make it inconsistent 
+        phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                       .value("device_id", "2333243")
+                       .execute();
+
+        
+        // read inconsistent record
+        try {
+            phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                                          .execute()
+                                          .get();
+            Assert.fail("RuntimeException expected");
+        } catch (RuntimeException expected) {
+            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
+        }
+            
+
+        try {
+            phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                                          .column("active")
+                                          .execute()
+                                          .get();
+    
+            Assert.fail("RuntimeException expected");
+        } catch (RuntimeException expected) {
+            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
+        }
+        
     }       
  
        
        
     
     
-    private static final class PhonenumbersConstraints implements UpdateQueryPreInterceptor, InsertQueryPreInterceptor, DeleteQueryPreInterceptor, SingleReadQueryPostInterceptor {
+    private static final class PhonenumbersConstraints implements UpdateQueryPreInterceptor, InsertQueryPreInterceptor, SingleReadQueryPreInterceptor, SingleReadQueryPostInterceptor {
 
         private final Dao deviceDao;
         
@@ -120,24 +201,31 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             this.deviceDao = deviceDao;
         }
             
+        
         @Override
         public InsertQueryData onPreInsert(InsertQueryData data) {
-            data.getValuesToMutate().get("device_id").ifPresent(deviceid -> { /* check if device exits */ });
             
-            return data;
+            if (data.getValuesToMutate().containsKey("device_id")) {
+                data.getValuesToMutate()
+                    .get("device_id")
+                    .ifPresent(deviceId -> {
+                                              if (!deviceDao.readWithKey("device_id", deviceId)
+                                                            .execute()
+                                                            .isPresent()) {
+                                                  throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
+                                              }
+                                           });            
+                return data; 
+                
+            } else {
+                throw new ConstraintException("device id is mandatory");
+            }
         }
-    
-
-        @Override
-        public DeleteQueryData onPreDelete(DeleteQueryData data) {
-            /* check that the device not exists */
-            return null;
-        }
+  
         
         
         @Override
         public UpdateQueryData onPreUpdate(UpdateQueryData data) {
-
             if (data.getValuesToMutate().containsKey("device_id")) {
                 throw new ConstraintException("columnn 'device_id' is unmodifiable");
             }
@@ -148,9 +236,42 @@ public class DeviceTest extends AbstractCassandraBasedTest {
 
         
         @Override
-        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> record) {
-            // check is related device includes this number
-            return record;
+        public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
+            
+            // force that device_id will be fetched 
+            if (data.getColumnsToFetch().isPresent()) {
+                if (!data.getColumnsToFetch().get().containsKey("device_id")) {
+                    data = data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
+                }
+            }
+            
+            return data;
+        }
+        
+        
+        
+        @Override
+        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
+            String number = (String) data.getKeyNameValuePairs().get("number");
+            
+            if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
+                
+                String deviceId = optionalRecord.get().getString("device_id").get();
+                if (deviceId != null) {
+                    deviceDao.readWithKey("device_id", deviceId)
+                             .column("phone_numbers")
+                             .execute().ifPresent(rec -> {
+                                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                                             if (!set.isPresent() ||
+                                                                 !set.get().contains(number)) {
+                                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
+                                                             }
+                                                         });
+                }
+                
+            }
+            
+            return optionalRecord;
         }
     }
     

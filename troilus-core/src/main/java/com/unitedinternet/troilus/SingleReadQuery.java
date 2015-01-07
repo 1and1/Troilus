@@ -63,7 +63,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleRead<Optional<Record>> all() {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Optional.empty()));
+        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Optional.empty()));
     }
     
     @Override
@@ -73,12 +73,12 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleReadQuery column(String name) {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return new SingleReadQuery(getContext(), data.withColumnsToFetchKeys(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new SingleReadQuery(getContext(), data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
@@ -99,12 +99,12 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     
     private SingleReadQueryData getPreprocessedData(Context ctx) {
-        SingleReadQueryData d = data;
+        SingleReadQueryData queryData = data;
         for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptors(SingleReadQueryPreInterceptor.class)) {
-            d = interceptor.onBeforeSingleRead(d);
+            queryData = interceptor.onPreSingleRead(queryData);
         }
         
-        return d;
+        return queryData;
     }
     
     
@@ -138,6 +138,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
 
         return getContext().prepare(select).bind(queryData.getKeyNameValuePairs().values().toArray());
     }
+    
     
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {

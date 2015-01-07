@@ -33,7 +33,7 @@ import com.google.common.collect.Maps;
 
 
 
-class Immutables {
+public class Immutables {
 
 
     public static <T> ImmutableSet<T> merge(ImmutableSet<T> set, T entryToAdd) {

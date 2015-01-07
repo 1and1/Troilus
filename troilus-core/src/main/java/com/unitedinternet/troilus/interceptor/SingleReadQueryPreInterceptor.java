@@ -23,6 +23,6 @@ import com.unitedinternet.troilus.QueryInterceptor;
  
 public interface SingleReadQueryPreInterceptor extends QueryInterceptor {
     
-    SingleReadQueryData onBeforeSingleRead(SingleReadQueryData data);
+    SingleReadQueryData onPreSingleRead(SingleReadQueryData data);
 }
  
