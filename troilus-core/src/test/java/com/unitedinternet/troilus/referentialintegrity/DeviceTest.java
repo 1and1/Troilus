@@ -237,14 +237,12 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         
         @Override
         public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
-            
             // force that device_id will be fetched 
             if (data.getColumnsToFetch().isPresent()) {
                 if (!data.getColumnsToFetch().get().containsKey("device_id")) {
                     data = data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
                 }
             }
-            
             return data;
         }
         
@@ -304,5 +302,3 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     }
 
 }
-
-

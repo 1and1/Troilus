@@ -486,9 +486,96 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 
 
 #Interceptor Examples
+The interceptor support can be used to implement constraint checks on the client side (Cassandra also supports server-side trigger which can also be used to implement contraints). 
+
+``` java
+Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
+       
+Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
+```
 
 
 ``` java
+class PhonenumbersConstraints implements InsertQueryPreInterceptor, 
+						          UpdateQueryPreInterceptor, 
+						          SingleReadQueryPreInterceptor,
+						          SingleReadQueryPostInterceptor {
 
+    private final Dao deviceDao;
+    
+    public PhonenumbersConstraints(Dao deviceDao) {
+        this.deviceDao = deviceDao;
+    }
+        
+    
+    @Override
+    public InsertQueryData onPreInsert(InsertQueryData data) {
+        
+        if (data.getValuesToMutate().containsKey("device_id")) {
+            data.getValuesToMutate()
+                .get("device_id")
+                .ifPresent(deviceId -> {
+                                          if (!deviceDao.readWithKey("device_id", deviceId)
+                                                        .execute()
+                                                        .isPresent()) {
+                                              throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
+                                          }
+                                       });            
+            return data; 
+            
+        } else {
+            throw new ConstraintException("device id is mandatory");
+        }
+    }
+
+    
+    
+    @Override
+    public UpdateQueryData onPreUpdate(UpdateQueryData data) {
+        if (data.getValuesToMutate().containsKey("device_id")) {
+            throw new ConstraintException("columnn 'device_id' is unmodifiable");
+        }
+           
+        return data; 
+    }
+
+
+    
+    @Override
+    public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
+        // force that device_id will be fetched 
+        if (data.getColumnsToFetch().isPresent()) {
+            if (!data.getColumnsToFetch().get().containsKey("device_id")) {
+                data = data.withColumnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
+            }
+        }
+        return data;
+    }
+    
+    
+    
+    @Override
+    public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
+        String number = (String) data.getKeyNameValuePairs().get("number");
+        
+        if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
+            
+            String deviceId = optionalRecord.get().getString("device_id").get();
+            if (deviceId != null) {
+                deviceDao.readWithKey("device_id", deviceId)
+                         .column("phone_numbers")
+                         .execute().ifPresent(rec -> {
+                                                         Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                                         if (!set.isPresent() ||
+                                                             !set.get().contains(number)) {
+                                                             throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
+                                                         }
+                                                     });
+            }
+            
+        }
+        
+        return optionalRecord;
+    }
+}
 ```
-
