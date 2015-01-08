@@ -523,15 +523,14 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
                 throw new ConstraintException("columnn 'device_id' is mandatory");
             }
             
-            data.getValuesToMutate()
-                .get("device_id")
-                .ifPresent(deviceId -> {
-                                      if (!deviceDao.readWithKey("device_id", deviceId)
-                                                    .execute()
-                                                    .isPresent()) {
-                                          throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
-                                      }
-                                   });            
+            String deviceId = (String) data.getValuesToMutate().get("device_id").get();
+            if (!deviceDao.readWithKey("device_id", deviceId)
+                          .withConsistency(ConsistencyLevel.QUORUM)
+                          .execute()
+                          .isPresent()) {
+                throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
+            }
+            
             
         // no, update
         } else {
