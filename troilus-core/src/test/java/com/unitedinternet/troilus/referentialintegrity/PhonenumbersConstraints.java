@@ -29,7 +29,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
-        this.deviceDao = deviceDao;
+        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
     }
         
 
@@ -46,7 +46,6 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
             
             String deviceId = (String) data.getValuesToMutate().get("device_id").get();
             if (!deviceDao.readWithKey("device_id", deviceId)
-                          .withConsistency(ConsistencyLevel.QUORUM)
                           .execute()
                           .isPresent()) {
                 throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
