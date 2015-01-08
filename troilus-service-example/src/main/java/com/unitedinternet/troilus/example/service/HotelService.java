@@ -75,8 +75,8 @@ public class HotelService implements Closeable {
     @Path("hotels")
     @GET
     @Produces("text/event-stream")
-    public void getHotelsStreamAsync(@Context HttpServletResponse servletResponse,
-                                     @Suspended AsyncResponse asyncResponse) throws IOException {
+    public void getHotelsStreamAsync(@Context HttpServletResponse servletResponse, @Suspended AsyncResponse resp) throws IOException {
+        // AsyncResponse param has to be set to "switch" into async mode implicitly
         
         servletResponse.setHeader("Content-Type", "text/event-stream");
         ServletOutputStream out = servletResponse.getOutputStream();
