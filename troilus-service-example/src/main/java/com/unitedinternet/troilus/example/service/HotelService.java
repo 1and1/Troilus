@@ -82,11 +82,11 @@ public class HotelService implements Closeable {
         ServletOutputStream out = servletResponse.getOutputStream();
         
         hotelsDao.readAll()
-                .asEntity(Hotel.class)
-                .withConsistency(ConsistencyLevel.QUORUM)
-                .executeAsync()
-                .thenAccept(publisher -> Streams.newStream(publisher)
-                                                .map(hotel -> SSEEvent.newEvent().data(hotel.getName()))
-                                                .consume(ServerSentEvents.newSubscriber(out, executor)));
+                 .asEntity(Hotel.class)
+                 .withConsistency(ConsistencyLevel.QUORUM)
+                 .executeAsync()
+                 .thenAccept(publisher -> Streams.newStream(publisher)
+                                                 .map(hotel -> SSEEvent.newEvent().data(hotel.getName()))
+                                                 .consume(ServerSentEvents.newSubscriber(out, executor)));
     }   
 }

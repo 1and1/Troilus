@@ -120,23 +120,43 @@ public interface SSEEvent {
         
         
         public SSEBuildableEvent data(String data) {
-            return new SSEBuildableEvent(id, event, data, comment, retry); 
+            return new SSEBuildableEvent(this.id,
+                                         this.event, 
+                                         data, 
+                                         this.comment, 
+                                         this.retry); 
         }
         
         public SSEBuildableEvent id(String id) {
-            return new SSEBuildableEvent(id, event, data, comment, retry); 
+            return new SSEBuildableEvent(id, 
+                                         this.event, 
+                                         this.data, 
+                                         this.comment, 
+                                         this.retry); 
         }
         
         public SSEBuildableEvent comment(String comment) {
-            return new SSEBuildableEvent(id, event, data, comment, retry); 
+            return new SSEBuildableEvent(this.id, 
+                                         this.event, 
+                                         this.data, 
+                                         comment, 
+                                         this.retry); 
         }
         
         public SSEBuildableEvent event(String event) {
-            return new SSEBuildableEvent(id, event, data, comment, retry); 
+            return new SSEBuildableEvent(this.id, 
+                                         event, 
+                                         this.data, 
+                                         this.comment,
+                                         this.retry); 
         }
         
         public SSEBuildableEvent retry(Integer retry) {
-            return new SSEBuildableEvent(id, event, data, comment, retry); 
+            return new SSEBuildableEvent(this.id, 
+                                         this.event, 
+                                         this.data, 
+                                         this.comment,  
+                                         retry); 
         }
 
         @Override
@@ -177,11 +197,7 @@ public interface SSEEvent {
         
         @Override
         public boolean equals(Object other) {
-            if (other instanceof SSEEvent) {
-                return ((SSEEvent) other).toWire().equals(this.toWire());
-            } else {
-                return false;
-            }
+            return (other instanceof SSEEvent) ? ((SSEEvent) other).toWire().equals(this.toWire()) : false;
         }
         
         @Override
