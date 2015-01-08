@@ -48,7 +48,6 @@ class BeanMapper {
     
     
     
-    
     public BeanMapper() {        
         this.propertiesMapperCache = CacheBuilder.newBuilder()
                                                  .maximumSize(200)

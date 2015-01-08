@@ -17,6 +17,7 @@ package com.unitedinternet.troilus;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
@@ -29,16 +30,16 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
-import com.unitedinternet.troilus.interceptor.InsertQueryData;
-import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 
 
  
 class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     
-    private final InsertQueryData data;
+    private final WriteQueryData data;
   
-    public InsertionQuery(Context ctx, InsertQueryData data) {
+    public InsertionQuery(Context ctx, WriteQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -52,20 +53,21 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     
     @Override
     public Mutation<?> ifNotExits() {
-        return new InsertionQuery(getContext(), data.ifNotExits(true));
+        return new InsertionQuery(getContext(), data.ifNotExists(Optional.of(true)));
     }
 
     
-    private Statement toStatement(InsertQueryData queryData) {
+    private Statement toStatement(WriteQueryData queryData) {
         Insert insert = insertInto(getContext().getTable());
         
         List<Object> values = Lists.newArrayList();
         queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
         
-        if (queryData.isIfNotExists()) {
-            insert.ifNotExists();
-            getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
-        }
+        
+        queryData.getIfNotExits().ifPresent(ifNotExits -> {
+                                                            insert.ifNotExists();
+                                                            getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
+                                                          });
 
         getTtl().ifPresent(ttl-> { insert.using(ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
 
@@ -76,9 +78,9 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
 
     @Override
     protected Statement getStatement() {
-        InsertQueryData queryData = data;
-        for (InsertQueryPreInterceptor interceptor : getContext().getInterceptors(InsertQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreInsert(queryData); 
+        WriteQueryData queryData = data;
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptors(WriteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreWrite(queryData); 
         }
         
         return toStatement(queryData);
@@ -88,10 +90,14 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     @Override
     public CompletableFuture<Result> executeAsync() {
         return super.executeAsync().thenApply(result -> {
-                                                            // check cas result column '[applied]'
-                                                            if (data.isIfNotExists() && !result.wasApplied()) {
-                                                                throw new IfConditionException("duplicated entry");  
-                                                            } 
+                                                            data.getIfNotExits().ifPresent(ifNotExists -> {
+                                                                                                                // check cas result column '[applied]'
+                                                                                                                if (ifNotExists && !result.wasApplied()) {
+                                                                                                                    throw new IfConditionException("duplicated entry");  
+                                                                                                                }                                                                 
+                                                                                                          }) ;
+                                                            
+
                                                             return result;
                                                         });
     }

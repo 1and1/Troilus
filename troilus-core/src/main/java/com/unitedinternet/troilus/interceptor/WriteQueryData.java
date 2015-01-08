@@ -17,6 +17,8 @@ package com.unitedinternet.troilus.interceptor;
 
 
 import java.util.Optional;
+import java.util.function.Supplier;
+
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -24,7 +26,7 @@ import com.google.common.collect.ImmutableSet;
 
 
  
-public class UpdateQueryData {
+public class WriteQueryData {
 
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
@@ -38,10 +40,11 @@ public class UpdateQueryData {
     private final ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate;
     
     private final ImmutableList<Clause> onlyIfConditions;
-
+    private final Optional<Boolean> ifNotExists;
+    
     
 
-    public UpdateQueryData() {
+    public WriteQueryData() {
         this(ImmutableMap.of(),
              ImmutableList.of(),
              ImmutableMap.of(),
@@ -51,11 +54,12 @@ public class UpdateQueryData {
              ImmutableMap.of(),
              ImmutableMap.of(),
              ImmutableMap.of(),
-             ImmutableList.of());
+             ImmutableList.of(),
+             Optional.empty());
     }
 
     
-    private UpdateQueryData(ImmutableMap<String, Object> keys, 
+    private WriteQueryData(ImmutableMap<String, Object> keys, 
                             ImmutableList<Clause> whereConditions, 
                             ImmutableMap<String, Optional<Object>> valuesToMutate, 
                             ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
@@ -64,7 +68,8 @@ public class UpdateQueryData {
                             ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
                             ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
                             ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                            ImmutableList<Clause> onlyIfConditions) {
+                            ImmutableList<Clause> onlyIfConditions,
+                            Optional<Boolean> ifNotExists) {
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
@@ -75,12 +80,13 @@ public class UpdateQueryData {
         this.listValuesToRemove = listValuesToRemove;
         this.mapValuesToMutate = mapValuesToMutate;
         this.onlyIfConditions = onlyIfConditions;
+        this.ifNotExists = ifNotExists;
     }
     
     
 
-    public UpdateQueryData keys(ImmutableMap<String, Object> keys) {
-        return new UpdateQueryData(keys, 
+    public WriteQueryData keys(ImmutableMap<String, Object> keys) {
+        return new WriteQueryData(keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -89,12 +95,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
     
-    
-    public UpdateQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-        return new UpdateQueryData(this.keys, 
+  
+    public WriteQueryData whereConditions(ImmutableList<Clause> whereConditions) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+        
+        return new WriteQueryData(this.keys, 
                                    whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -103,11 +112,12 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
     
-    public UpdateQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    valuesToMutate, 
                                    this.setValuesToAdd,
@@ -116,12 +126,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
  
     
-    public UpdateQueryData setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+        
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    setValuesToAdd,
@@ -130,12 +143,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
     
     
-    public UpdateQueryData setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+        
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -144,12 +160,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
  
     
-    public UpdateQueryData listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -158,12 +177,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
    
     
-    public UpdateQueryData listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -172,12 +194,15 @@ public class UpdateQueryData {
                                    listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
  
     
-    public UpdateQueryData listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -186,12 +211,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
  
 
-    public UpdateQueryData mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -200,12 +228,15 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    mapValuesToMutate,
-                                   this.onlyIfConditions);
+                                   this.onlyIfConditions,
+                                   this.ifNotExists);
     }
 
     
-    public UpdateQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        return new UpdateQueryData(this.keys, 
+    public WriteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
+        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
+
+        return new WriteQueryData(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -214,10 +245,41 @@ public class UpdateQueryData {
                                    this.listValuesToPrepend,
                                    this.listValuesToRemove,
                                    this.mapValuesToMutate,
-                                   onlyIfConditions);
+                                   onlyIfConditions,
+                                   this.ifNotExists);
     }
 
+    public WriteQueryData ifNotExists(Optional<Boolean> ifNotExists) {
+        preCondition(onlyIfConditions.isEmpty(), IllegalStateException::new);
+        preCondition(whereConditions.isEmpty(), IllegalStateException::new);
+        preCondition(setValuesToAdd.isEmpty(), IllegalStateException::new);
+        preCondition(setValuesToRemove.isEmpty(), IllegalStateException::new);
+        preCondition(listValuesToAppend.isEmpty(), IllegalStateException::new);
+        preCondition(listValuesToPrepend.isEmpty(), IllegalStateException::new);
+        preCondition(listValuesToRemove.isEmpty(), IllegalStateException::new);
+        preCondition(mapValuesToMutate.isEmpty(), IllegalStateException::new);
+        
+        return new WriteQueryData(this.keys, 
+                                   this.whereConditions,
+                                   this.valuesToMutate, 
+                                   this.setValuesToAdd,
+                                   this.setValuesToRemove,
+                                   this.listValuesToAppend,
+                                   this.listValuesToPrepend,
+                                   this.listValuesToRemove,
+                                   this.mapValuesToMutate,
+                                   this.onlyIfConditions,
+                                   ifNotExists);
+    }
     
+
+    
+    private <T extends RuntimeException> void preCondition(boolean condition, Supplier<T> suppier) {
+        if (!condition) {
+            throw suppier.get();
+        }
+    }
+
     
     public ImmutableMap<String, Object> getKeys() {
         return keys;
@@ -257,5 +319,9 @@ public class UpdateQueryData {
 
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
+    }
+    
+    public Optional<Boolean> getIfNotExits() {
+        return ifNotExists;
     }
 }

@@ -20,7 +20,7 @@ package com.unitedinternet.troilus.interceptor;
 
 
  
-public interface UpdateQueryPreInterceptor extends QueryInterceptor {
+public interface WriteQueryPreInterceptor extends QueryInterceptor {
     
-    UpdateQueryData onPreUpdate(UpdateQueryData data);
+    WriteQueryData onPreWrite(WriteQueryData data);
 }

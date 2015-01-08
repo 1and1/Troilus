@@ -1,1 +1,6 @@
 /.project
+/troilus-service-example/target
+/troilus-service-example/tomcat.9080
+/troilus-service-example/.classpath
+/troilus-service-example/.project
+/troilus-service-example/.settings

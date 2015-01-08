@@ -36,8 +36,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     private final Type type;  
     
     
-  
-    protected BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+    BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
         super(ctx);
         this.type = type;
         this.batchables = batchables;

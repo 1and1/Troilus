@@ -29,7 +29,7 @@ import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.UpdateQueryData;
+import com.unitedinternet.troilus.interceptor.WriteQueryData;
 
  
 
@@ -89,31 +89,31 @@ public class DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new UpdateQuery(ctx, new UpdateQueryData()).entity(entity);
+        return new UpdateQuery(ctx, new WriteQueryData()).entity(entity);
     }
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new UpdateQuery(ctx, new UpdateQueryData().whereConditions((ImmutableList.copyOf(clauses))));
+        return new UpdateQuery(ctx, new WriteQueryData().whereConditions((ImmutableList.copyOf(clauses))));
     }
     
   
     
     @Override
     public WriteWithCounter writeWithKey(String keyName, Object keyValue) {
-        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName, keyValue)));
+        return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName, keyValue)));
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
-        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1,
+        return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1,
                                                                                    keyName2, keyValue2)));
         
     }
     
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
-        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
+        return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3)));
         
@@ -121,7 +121,7 @@ public class DaoImpl implements Dao {
 
     @Override
     public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
-        return new UpdateQuery(ctx, new UpdateQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
+        return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3, 
                                                                                    keyName4, keyValue4)));

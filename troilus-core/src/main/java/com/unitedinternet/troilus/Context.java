@@ -45,13 +45,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
-import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 import com.unitedinternet.troilus.utils.Immutables;
 import com.unitedinternet.troilus.utils.TriFunction;
 
@@ -295,9 +294,7 @@ class Context  {
 
         Interceptors add(QueryInterceptor interceptor) {
             Interceptors interceptors = this;
-            
-            interceptors =  interceptors.addIfMatch(InsertQueryPreInterceptor.class, interceptor);
-            interceptors =  interceptors.addIfMatch(UpdateQueryPreInterceptor.class, interceptor);
+            interceptors =  interceptors.addIfMatch(WriteQueryPreInterceptor.class, interceptor);
             interceptors =  interceptors.addIfMatch(SingleReadQueryPreInterceptor.class, interceptor);
             interceptors =  interceptors.addIfMatch(SingleReadQueryPostInterceptor.class, interceptor);
             interceptors =  interceptors.addIfMatch(ListReadQueryPreInterceptor.class, interceptor);

@@ -500,10 +500,10 @@ The interceptor below implements some constraints regarding the [phone_numbers](
 * A phone number will not be deleted, if the assigned device still exits
 * By accessing the table entries the back relation should be check with cl one 
 ``` java
-class PhonenumbersConstraints implements InsertQueryPreInterceptor,
-	   						             UpdateQueryPreInterceptor,
-							             SingleReadQueryPreInterceptor, 
-							             SingleReadQueryPostInterceptor {
+class PhonenumbersConstraints implements WriteQueryPreInterceptor, 
+                                         SingleReadQueryPreInterceptor,
+                                         SingleReadQueryPostInterceptor {
+    
 
     private final Dao deviceDao;
     
@@ -511,33 +511,33 @@ class PhonenumbersConstraints implements InsertQueryPreInterceptor,
         this.deviceDao = deviceDao;
     }
         
-    
-    @Override
-    public InsertQueryData onPreInsert(InsertQueryData data) {
-        
-        if (data.getValuesToMutate().containsKey("device_id")) {
-            data.getValuesToMutate()
-                .get("device_id")
-                .ifPresent(deviceId -> {
-                                          if (!deviceDao.readWithKey("device_id", deviceId)
-                                                        .execute()
-                                                        .isPresent()) {
-                                              throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
-                                          }
-                                       });            
-            return data; 
-            
-        } else {
-            throw new ConstraintException("device id is mandatory");
-        }
-    }
 
     
     
     @Override
-    public UpdateQueryData onPreUpdate(UpdateQueryData data) {
-        if (data.getValuesToMutate().containsKey("device_id")) {
-            throw new ConstraintException("columnn 'device_id' is unmodifiable");
+    public WriteQueryData onPreWrite(WriteQueryData data) {
+        
+        // unique insert?
+        if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
+            if (!data.getValuesToMutate().containsKey("device_id")) {
+                throw new ConstraintException("columnn 'device_id' is mandatory");
+            }
+            
+            data.getValuesToMutate()
+                .get("device_id")
+                .ifPresent(deviceId -> {
+                                      if (!deviceDao.readWithKey("device_id", deviceId)
+                                                    .execute()
+                                                    .isPresent()) {
+                                          throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
+                                      }
+                                   });            
+            
+        // no, update
+        } else {
+            if (data.getValuesToMutate().containsKey("device_id")) {
+                throw new ConstraintException("columnn 'device_id' is unmodifiable");
+            }
         }
            
         return data; 

@@ -7,34 +7,12 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import com.datastax.driver.core.ConsistencyLevel;
-import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.interceptor.InsertQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
-import com.unitedinternet.troilus.interceptor.UpdateQueryData;
-import com.unitedinternet.troilus.interceptor.InsertQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
-import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
 
@@ -114,8 +92,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
                                           .value(PhonenumbersTable.DEVICE_ID, "dfacbsd")
                                           .execute();
-            Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) { 
+            Assert.fail("ConstraintException expected");
+        } catch (ConstraintException expected) { 
             Assert.assertTrue(expected.getMessage().contains("columnn 'device_id' is unmodifiable"));
         }
         
@@ -127,9 +105,9 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .value(PhonenumbersTable.ACTIVE, true)
                                           .ifNotExits()
                                           .execute();
-            Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {
-            Assert.assertTrue(expected.getMessage().contains("device id is mandatory"));
+            Assert.fail("ConstraintException expected");
+        } catch (ConstraintException expected) {
+            Assert.assertTrue(expected.getMessage().contains("columnn 'device_id' is mandatory"));
         }
         
 
@@ -140,8 +118,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .value(PhonenumbersTable.ACTIVE, true)
                                           .ifNotExits()
                                           .execute();
-            Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {
+            Assert.fail("ConstraintException expected");
+        } catch (ConstraintException expected) {
             Assert.assertTrue(expected.getMessage().contains("device with id"));
         }
         
@@ -173,8 +151,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
                                           .execute()
                                           .get();
-            Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {
+            Assert.fail("ConstraintException expected");
+        } catch (ConstraintException expected) {
             Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
         }
             
@@ -185,8 +163,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .execute()
                                           .get();
     
-            Assert.fail("RuntimeException expected");
-        } catch (RuntimeException expected) {
+            Assert.fail("ConstraintException expected");
+        } catch (ConstraintException expected) {
             Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
         }
         
@@ -196,92 +174,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
        
     
     
-    private static final class PhonenumbersConstraints implements InsertQueryPreInterceptor,
-                                                                  UpdateQueryPreInterceptor, 
-                                                                  SingleReadQueryPreInterceptor,
-                                                                  SingleReadQueryPostInterceptor {
 
-        private final Dao deviceDao;
-        
-        public PhonenumbersConstraints(Dao deviceDao) {
-            this.deviceDao = deviceDao;
-        }
-            
-        
-        @Override
-        public InsertQueryData onPreInsert(InsertQueryData data) {
-            
-            if (data.getValuesToMutate().containsKey("device_id")) {
-                data.getValuesToMutate()
-                    .get("device_id")
-                    .ifPresent(deviceId -> {
-                                              if (!deviceDao.readWithKey("device_id", deviceId)
-                                                            .execute()
-                                                            .isPresent()) {
-                                                  throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
-                                              }
-                                           });            
-                return data; 
-                
-            } else {
-                throw new ConstraintException("device id is mandatory");
-            }
-        }
-  
-        
-        
-        @Override
-        public UpdateQueryData onPreUpdate(UpdateQueryData data) {
-            if (data.getValuesToMutate().containsKey("device_id")) {
-                throw new ConstraintException("columnn 'device_id' is unmodifiable");
-            }
-               
-            return data; 
-        }
-
-
-        
-        @Override
-        public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
-            // force that device_id will be fetched 
-            if (data.getColumnsToFetch().isPresent()) {
-                if (!data.getColumnsToFetch().get().containsKey("device_id")) {
-                    data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
-                }
-            }
-            return data;
-        }
-        
-        
-        
-        @Override
-        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
-            String number = (String) data.getKeyNameValuePairs().get("number");
-            
-            if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
-                
-                String deviceId = optionalRecord.get().getString("device_id").get();
-                if (deviceId != null) {
-                    deviceDao.readWithKey("device_id", deviceId)
-                             .column("phone_numbers")
-                             .withConsistency(ConsistencyLevel.ONE)
-                             .execute()
-                             .ifPresent(rec -> {
-                                                 Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                 if (!set.isPresent() ||
-                                                     !set.get().contains(number)) {
-                                                     throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
-                                                 }                                                             
-                                              });
-                }
-                
-            }
-            
-            return optionalRecord;
-        }
-    }
-    
-    
     
 
     private static final class DeviceConstraints implements SingleReadQueryPostInterceptor {
@@ -297,17 +190,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             return record;
         }
     }
-    
-    
-    
-
-    private static final class ConstraintException extends RuntimeException {
-        private static final long serialVersionUID = 9207265892679971373L;
-
-        public ConstraintException(String message) {
-            super(message);
-        }
-    }
 
 }
+
+
 

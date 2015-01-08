@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
+
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -38,19 +39,18 @@ import com.unitedinternet.troilus.Dao.UpdateWithValuesAndCounter;
 import com.unitedinternet.troilus.Dao.Write;
 import com.unitedinternet.troilus.Dao.WriteWithCounter;
 import com.unitedinternet.troilus.Dao.CounterMutation;
-import com.unitedinternet.troilus.interceptor.InsertQueryData;
-import com.unitedinternet.troilus.interceptor.UpdateQueryData;
-import com.unitedinternet.troilus.interceptor.UpdateQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 import com.unitedinternet.troilus.utils.Immutables;
 
 
  
 class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
-    private final UpdateQueryData data;
+    private final WriteQueryData data;
     
     
-    public UpdateQuery(Context ctx, UpdateQueryData data) {
+    public UpdateQuery(Context ctx, WriteQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -63,7 +63,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     public InsertionQuery entity(Object entity) {
         return new InsertionQuery(getContext(), 
-                                 new InsertQueryData().valuesToMutate(getContext().toValues(entity)));
+                                  new WriteQueryData().valuesToMutate(getContext().toValues(entity)));
     }
         
     
@@ -77,7 +77,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return new UpdateQuery(getContext(), 
-                              data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
+                               data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
     }
     
     
@@ -148,14 +148,16 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
         return new UpdateQuery(getContext(), 
-                               data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions()).addAll(ImmutableList.copyOf(conditions)).build()));
+                               data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions())
+                                                                                    .addAll(ImmutableList.copyOf(conditions))
+                                                                                    .build()));
     }
 
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionQuery(getContext(), new InsertQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))))
-                                                                     .ifNotExits(true));
+        return new InsertionQuery(getContext(), new WriteQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))))
+                                                                    .ifNotExists(Optional.of(true)));
     }
 
         
@@ -190,7 +192,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     
 
-    private Statement toStatement(UpdateQueryData queryData) {
+    private Statement toStatement(WriteQueryData queryData) {
         com.datastax.driver.core.querybuilder.Update update = update(getContext().getTable());
         
         queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
@@ -242,9 +244,9 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     protected Statement getStatement() {
-        UpdateQueryData queryData = data;
-        for (UpdateQueryPreInterceptor interceptor : getContext().getInterceptors(UpdateQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreUpdate(queryData);
+        WriteQueryData queryData = data;
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptors(WriteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreWrite(queryData);
         }
         
         return toStatement(queryData);
@@ -253,6 +255,9 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public CompletableFuture<Result> executeAsync() {
+        
+        
+        
         return super.executeAsync()
                     .thenApply(result ->  {
                                             // check cas result column '[applied]'
@@ -262,38 +267,23 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                                             return result;
                                           });
     }
-    
-    
+  
     
     private boolean isOptional(Object obj) {
-        if (obj == null) {
-            return false;
-        } else {
-            return (Optional.class.isAssignableFrom(obj.getClass()));
-        }
+        return (obj == null) ? false 
+                             : (Optional.class.isAssignableFrom(obj.getClass()));
     }
  
 
     @SuppressWarnings("unchecked")
     private <T> Optional<T> toOptional(T obj) {
-        if (obj == null) {
-            return Optional.empty();
-        } else {
-            if (isOptional(obj)) {
-                return (Optional<T>) obj;
-            } else {
-                return Optional.of(obj);
-            }
-        }
+        return (obj == null) ? Optional.empty() 
+                             : isOptional(obj) ? (Optional<T>) obj: Optional.of(obj);
     }
  
 
     
-    
-    
-    
-
-        
+            
     private static class CounterMutationQueryData {
         
         private final ImmutableMap<String, Object> keys;
@@ -365,7 +355,8 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             return diff;
         }
     }
-        
+    
+    
     
     private static final class CounterMutationQuery extends MutationQuery<CounterMutation> implements CounterMutation {
         
