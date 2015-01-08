@@ -1,4 +1,4 @@
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
 import java.io.File;
 import java.io.FileOutputStream;

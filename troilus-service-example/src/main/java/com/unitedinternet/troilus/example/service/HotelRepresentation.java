@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
 import java.util.Set;
 

@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
@@ -22,26 +29,32 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-
-import org.unitedinternet.troilus.example.utils.ResultConsumer;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.unitedinternet.troilus.Dao;
+import com.unitedinternet.troilus.example.utils.jaxrs.ResultConsumer;
+import com.unitedinternet.troilus.example.utils.reactive.sse.SSEEvent;
+import com.unitedinternet.troilus.example.utils.reactive.sse.ServerSentEvents;
+import com.unitedinternet.troilus.example.utils.reactive.stream.Streams;
 
 
 @Path("/")
-public class HotelService {
+public class HotelService implements Closeable {
 
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private final Dao hotelsDao;
  
-    public HotelService() {
-        this(null);
-    }
-    
     public HotelService(Dao hotelsDao) {
         this.hotelsDao = hotelsDao;
     }
+
+    @Override
+    public void close() throws IOException {
+        executor.shutdown();
+    }
+    
     
     @Path("hotels/{id}")
     @GET
@@ -56,4 +69,24 @@ public class HotelService {
                  .thenApply(hotel -> new HotelRepresentation(hotel.getId(), hotel.getName(), hotel.getRoomIds()))
                  .whenComplete(ResultConsumer.write(resp));
     }
+    
+    
+    
+    @Path("hotels")
+    @GET
+    @Produces("text/event-stream")
+    public void getHotelsStreamAsync(@Context HttpServletResponse servletResponse,
+                                     @Suspended AsyncResponse asyncResponse) throws IOException {
+        
+        servletResponse.setHeader("Content-Type", "text/event-stream");
+        ServletOutputStream out = servletResponse.getOutputStream();
+        
+        hotelsDao.readAll()
+                .asEntity(Hotel.class)
+                .withConsistency(ConsistencyLevel.QUORUM)
+                .executeAsync()
+                .thenAccept(publisher -> Streams.newStream(publisher)
+                                                .map(hotel -> SSEEvent.newEvent().data(hotel.getName()))
+                                                .consume(ServerSentEvents.newSubscriber(out, executor)));
+    }   
 }

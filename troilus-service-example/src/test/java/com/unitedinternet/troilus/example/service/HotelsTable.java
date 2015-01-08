@@ -1,4 +1,4 @@
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
 import com.unitedinternet.troilus.Schema;
 

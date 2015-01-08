@@ -1,8 +1,9 @@
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
+import com.unitedinternet.troilus.example.service.EmbeddedCassandra;
 
 
 

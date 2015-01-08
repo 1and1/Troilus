@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="cassandraSessionFactoryBean" class="org.unitedinternet.troilus.example.service.SessionBuilder"></bean>
+	<bean id="cassandraSessionFactoryBean" class="com.unitedinternet.troilus.example.service.SessionBuilder"></bean>
 
     <bean id="cassandraSession" class="com.datastax.driver.core.Session"
 						        factory-bean="cassandraSessionFactoryBean"
@@ -18,7 +18,7 @@
 
 
 
-	<bean id="hotelService" class="org.unitedinternet.troilus.example.service.HotelService">
+	<bean id="hotelService" class="com.unitedinternet.troilus.example.service.HotelService">
 		<constructor-arg ref="hotelsDao" />
 	</bean>
 

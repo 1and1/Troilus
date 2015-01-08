@@ -1,10 +1,14 @@
-package org.unitedinternet.troilus.example.service;
+package com.unitedinternet.troilus.example.service;
 
 import java.io.File;
 import java.util.Optional;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+
+
+
+
 
 
 
@@ -18,9 +22,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
+import com.unitedinternet.troilus.example.service.Hotel;
+import com.unitedinternet.troilus.example.service.HotelRepresentation;
 
 public class HotelServiceTest extends AbstractCassandraBasedTest {
     
@@ -56,8 +63,26 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                                         Optional.of(5), 
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm")
                                        ))
-                 .ifNotExits()
                  .execute();
+
+  
+        
+        
+        hotelsDao.writeWithKey("id", "BUP932432")
+                 .value("name", "City Budapest")
+                 .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
+                 .value("classification", 4)
+                 .execute();
+
+    
+        hotelsDao.writeEntity(new Hotel("BUP14334", 
+                                        "Richter Panzio",
+                                        ImmutableSet.of("1", "2", "3"),
+                                        Optional.of(2), 
+                                        Optional.empty())
+                                        )
+                  .withConsistency(ConsistencyLevel.ANY)
+                  .execute();
     }
 }
 
