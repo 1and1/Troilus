@@ -93,7 +93,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
                                              Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
                                              if (!set.isPresent() ||
                                                  !set.get().contains(number)) {
-                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exits");
+                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
                                              }                                                             
                                           });
             }
