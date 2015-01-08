@@ -153,7 +153,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .get();
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) {
-            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
+            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exit"));
         }
             
 
@@ -165,7 +165,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
     
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) {
-            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exits"));
+            Assert.assertTrue(expected.getMessage().contains("reverse reference devices table -> phone_numbers table does not exit"));
         }
         
     }       

@@ -8,6 +8,13 @@ class ConstraintException extends RuntimeException {
     public ConstraintException(String message) {
         super(message);
     }
+    
+    
+    public static void throwIf(boolean condition, String message) {
+        if (condition) {
+            throw new ConstraintException(message);
+        }
+    }
 }
 
 

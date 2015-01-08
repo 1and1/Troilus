@@ -40,23 +40,14 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
         
         // unique insert?
         if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
-            if (!data.getValuesToMutate().containsKey("device_id")) {
-                throw new ConstraintException("columnn 'device_id' is mandatory");
-            }
+            ConstraintException.throwIf(!data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
             
             String deviceId = (String) data.getValuesToMutate().get("device_id").get();
-            if (!deviceDao.readWithKey("device_id", deviceId)
-                          .execute()
-                          .isPresent()) {
-                throw new ConstraintException("device with id " + deviceId + " does not exits");                                                                                    
-            }
-            
+            ConstraintException.throwIf(!deviceDao.readWithKey("device_id", deviceId).execute().isPresent(), "device with id " + deviceId + " does not exits");                                                                                    
             
         // no, update
         } else {
-            if (data.getValuesToMutate().containsKey("device_id")) {
-                throw new ConstraintException("columnn 'device_id' is unmodifiable");
-            }
+            ConstraintException.throwIf(data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is unmodifiable");
         }
            
         return data; 
@@ -67,10 +58,8 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     @Override
     public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
         // force that device_id will be fetched 
-        if (data.getColumnsToFetch().isPresent()) {
-            if (!data.getColumnsToFetch().get().containsKey("device_id")) {
-                data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
-            }
+        if (data.getColumnsToFetch().isPresent() && !data.getColumnsToFetch().get().containsKey("device_id")) {
+            data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
         }
         return data;
     }
@@ -91,10 +80,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
                          .execute()
                          .ifPresent(rec -> {
                                              Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                             if (!set.isPresent() ||
-                                                 !set.get().contains(number)) {
-                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
-                                             }                                                             
+                                             ConstraintException.throwIf(!set.isPresent() || !set.get().contains(number), "reverse reference devices table -> phone_numbers table does not exit");
                                           });
             }
             
