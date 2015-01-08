@@ -17,8 +17,6 @@ package com.unitedinternet.troilus;
 
 
 
-import java.util.Iterator;
-
 import org.reactivestreams.Publisher;
 
 
@@ -29,7 +27,7 @@ import org.reactivestreams.Publisher;
  *
  * @author grro
  */
-public interface RecordList extends Result, Iterator<Record>, Publisher<Record> {
+public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {
 
     default public void remove() {
         throw new UnsupportedOperationException();

@@ -60,12 +60,12 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
         
-        
         ////////////////
         // reads
         ImmutableList<Record> recs = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
                                            .column(FeesTable.CUSTOMER_ID)
                                            .executeAsync()
+                                           .thenApply(iterable -> iterable.iterator())
                                            .thenApply(result -> ImmutableList.of(result.next(), result.next(), result.next()))
                                            .get();   // waits for completion
         Assert.assertEquals(3, recs.size());

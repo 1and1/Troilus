@@ -2,6 +2,7 @@ package com.unitedinternet.troilus.persistence;
 
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.Optional;
 
 import org.junit.Assert;
@@ -14,7 +15,6 @@ import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.EntityList;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.api.UsersTable;
 
@@ -59,10 +59,11 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
     
         
         
-        EntityList<User> list = userDao.readWhere()
-                                       .asEntity(User.class)
-                                       .withLimit(3)        
-                                       .execute();
+        Iterator<User> list = userDao.readWhere()
+                                     .asEntity(User.class)
+                                     .withLimit(3)        
+                                     .execute()
+                                     .iterator();
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
         ImmutableList.copyOf(list).forEach(user -> System.out.println(user.getAddresses()));
@@ -70,7 +71,8 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         
         list = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
                       .asEntity(User.class)   
-                      .execute();
+                      .execute()
+                      .iterator();
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
         

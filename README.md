@@ -2,7 +2,7 @@
 Troilus
 ======
 **Troilus** is a high level Cassandra Java8 client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
-It supports synchronous programming as well as asynchronous programming including the [reactive streams](http://www.reactive-streams.org) interface.
+It supports synchronous programming as well as asynchronous programming including [reactive streams](http://www.reactive-streams.org).
 
 
 #Examples
@@ -216,21 +216,21 @@ record.getTtl("description").ifPresent(ttl -> System.out.println("ttl=" + ttl)))
 
 Read all of the table
 ``` java  
-Iterator<Hotel> hotelIterator = hotelsDao.readAll()
+Iterable<Hotel> hotelIterator = hotelsDao.readAll()
                                          .asEntity(Hotel.class)
                                          .withLimit(5000)
                                          .execute();
-hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
+hotelIterator.forEach(hotel -> System.out.println(hotel));
 ```        
         
 
 Read specific ones by using conditions
 ``` java  
-Iterator<Hotel> hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+Iterable<Hotel> hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
                                          .asEntity(Hotel.class)
                                          .withAllowFiltering()
                                          .execute();
-hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));                
+hotelIterator.forEach(hotel -> System.out.println(hotel));                
 ```        
         
 
@@ -437,7 +437,7 @@ hotelsDao.readAll()
          .asEntity(Hotel.class)
          .withLimit(5000)
          .executeAsync()
-         .thenAccept(hotelIterator -> hotelIterator.forEachRemaining(hotel -> System.out.println(hotel)));
+         .thenAccept(hotelsIt -> hotelIt.forEach(hotel -> System.out.println(hotel)));
 ```
 
 For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) could be registered which will be executed in an asynchronous, reactive way

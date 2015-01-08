@@ -1,7 +1,9 @@
 package com.unitedinternet.troilus.api;
 
 
+import java.util.Iterator;
 import java.util.Optional;
+
 
 
 import org.junit.Assert;
@@ -13,7 +15,6 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.RecordList;
 import com.unitedinternet.troilus.TooManyResultsException;
 
 
@@ -52,9 +53,10 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         
-        RecordList list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
-                                .column(FeesTable.CUSTOMER_ID)
-                                .execute();
+        Iterator<Record> list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+                                      .column(FeesTable.CUSTOMER_ID)
+                                      .execute()
+                                      .iterator();
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
@@ -74,7 +76,8 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         list = feeDao.readWhere()
                      .column(FeesTable.CUSTOMER_ID)
                      .withLimit(2)
-                     .execute();
+                     .execute()
+                     .iterator();
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
@@ -82,9 +85,10 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         list = feeDao.readWhere()
-                .column(FeesTable.CUSTOMER_ID)
-                .withLimit(3)
-                .execute();
+                     .column(FeesTable.CUSTOMER_ID)
+                     .withLimit(3)
+                     .execute()
+                     .iterator();
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());

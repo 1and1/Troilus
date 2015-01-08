@@ -103,7 +103,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .asEntity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
-                 .thenAccept(hotelIterator -> hotelIterator.forEachRemaining(hotel -> System.out.println(hotel)));
+                 .thenAccept(hotelIterator -> hotelIterator.forEach(hotel -> System.out.println(hotel)));
         
         
         
@@ -118,11 +118,11 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        Iterator<Hotel> hotelIterator = hotelsDao.readAll()
+        Iterable<Hotel> hotelIterator = hotelsDao.readAll()
                                                  .asEntity(Hotel.class)
                                                  .withLimit(100)
                                                  .execute();
-        hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
+        hotelIterator.forEach(hotel -> System.out.println(hotel));
         
         
         
@@ -131,7 +131,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                  .asEntity(Hotel.class)
                                  .withAllowFiltering()
                                  .execute();
-        hotelIterator.forEachRemaining(hotel -> System.out.println(hotel));
+        hotelIterator.forEach(hotel -> System.out.println(hotel));
         
         
 

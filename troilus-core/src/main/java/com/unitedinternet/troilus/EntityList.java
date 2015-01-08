@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 
 
-public abstract class EntityList<E> implements Result, Iterator<E>, Publisher<E> {
+public abstract class EntityList<E> implements Result, Iterable<E>, Publisher<E> {
 
     public void remove() {
         throw new UnsupportedOperationException();
@@ -68,19 +68,26 @@ public abstract class EntityList<E> implements Result, Iterator<E>, Publisher<E>
             return recordList.wasApplied();
         }
 
-        
         @Override
-        public boolean hasNext() {
-            return recordList.hasNext();
+        public Iterator<F> iterator() {
+
+            return new Iterator<F>() {
+                private final Iterator<Record> recordIt = recordList.iterator();
+                
+                @Override
+                public boolean hasNext() {
+                    return recordIt.hasNext();
+                }
+            
+                
+                @Override
+                public F next() {
+                    return ctx.fromValues(clazz, recordIt.next().getAccessor());
+                }
+            };
         }
-    
         
-        @Override
-        public F next() {
-            return ctx.fromValues(clazz, recordList.next().getAccessor());
-        }
-        
-      
+         
         @Override
         public void subscribe(Subscriber<? super F> subscriber) {
             recordList.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));

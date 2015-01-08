@@ -73,7 +73,8 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
 
         Iterator<Record> records = userDao.readWhere(QueryBuilder.in(UsersTable.USER_ID, "2323", "935434"))
                                           .withAllowFiltering()
-                                          .execute();
+                                          .execute()
+                                          .iterator();
         
         Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER).get());
         Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER).get());

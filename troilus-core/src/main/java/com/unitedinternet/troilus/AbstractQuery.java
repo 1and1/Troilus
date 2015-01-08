@@ -377,15 +377,24 @@ abstract class AbstractQuery<Q> {
             return rs.wasApplied();
         }
         
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
         
         @Override
-        public Record next() {
-            return new RecordImpl(this, iterator.next());
+        public Iterator<Record> iterator() {
+            
+            return new Iterator<Record>() {
+
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+                
+                @Override
+                public Record next() {
+                    return new RecordImpl(RecordListImpl.this, iterator.next());
+                }
+            };
         }
+        
         
         @Override
         public void subscribe(Subscriber<? super Record> subscriber) {
@@ -404,11 +413,14 @@ abstract class AbstractQuery<Q> {
         private final class DatabaseSubscription implements Subscription {
             private final Subscriber<? super Record> subscriber;
             
+            private final Iterator<? extends Record> it;
+            
             private final AtomicLong numPendingReads = new AtomicLong();
             private final AtomicReference<Runnable> runningDatabaseQuery = new AtomicReference<>();
             
             public DatabaseSubscription(Subscriber<? super Record> subscriber) {
                 this.subscriber = subscriber;
+                this.it = RecordListImpl.this.iterator();
             }
             
             public void request(long n) {
@@ -432,7 +444,7 @@ abstract class AbstractQuery<Q> {
                     } else if (available >= numToRead) {
                         numPendingReads.addAndGet(-numToRead);
                         for (int i = 0; i < numToRead; i++) {
-                            subscriber.onNext(next());
+                            subscriber.onNext(it.next());
                         }                    
                         
                     // requested partly available                        
@@ -440,7 +452,7 @@ abstract class AbstractQuery<Q> {
                         requestDatabaseForMoreRecords();
                         numPendingReads.addAndGet(-available);
                         for (int i = 0; i < available; i++) {
-                            subscriber.onNext(next());
+                            subscriber.onNext(it.next());
                         }
                     }
                 }
