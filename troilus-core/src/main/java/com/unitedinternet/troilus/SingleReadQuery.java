@@ -16,6 +16,7 @@
 package com.unitedinternet.troilus;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,9 +33,11 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.SingleRead;
+import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
@@ -84,18 +87,35 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleReadQuery columns(String... names) {
-        return columns(ImmutableSet.copyOf(names));
+        return columns(ImmutableList.copyOf(names));
     }
+
     
-    @Override 
-    public SingleReadQuery columns(ImmutableCollection<String> namesToRead) {
+    private SingleReadQuery columns(ImmutableList<String> names) {
         SingleReadQuery read = this;
-        for (String columnName : namesToRead) {
+        for (String columnName : names) {
             read = read.column(columnName);
         }
         return read;
     }
-  
+
+    
+    @Override
+    public SingleReadWithColumns<Optional<Record>> column(Name<?> name) {
+        return column(name.getName());
+    }
+
+    @Override
+    public SingleReadWithColumns<Optional<Record>> columnWithMetadata(Name<?> name) {
+        return column(name.getName());
+    }
+    
+    
+    @Override
+    public SingleReadWithColumns<Optional<Record>> columns(Name<?>... names) {
+        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Immutables.toList()));
+    }
+    
 
     
     
@@ -136,8 +156,11 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         ImmutableSet<Clause> whereConditions = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
         whereConditions.forEach(whereCondition -> select.where(whereCondition));
+        
+        List<Object> values = Lists.newArrayList();
+        queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
 
-        return prepare(select).bind(queryData.getKeyNameValuePairs().values().toArray());
+        return prepare(select).bind(values.toArray());
     }
     
     

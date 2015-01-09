@@ -196,6 +196,32 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
 optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
 ```        
 
+Read a row in a column-oriented way with 'Name' definitions. 
+``` java        
+import static ....HotelTableFields.*;
+
+Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP14334")
+                                           .column(ID)
+                                           .column(NAME)
+                                           .withConsistency(ConsistencyLevel.LOCAL_ONE)
+                                           .execute();
+optionalRecord.ifPresent(record -> record.getValue(NAME).ifPresent(name -> System.out.println(name)));
+```        
+
+with definitions
+``` java        
+public final class HotelTableFields  {
+    public static final Name<String> ID = Name.defineString("id");
+    public static final Name<String> NAME = Name.defineString("name");
+    public static final SetName<String> ROOM_IDS = SetName.defineString("room_ids");
+    public static final Name<Address> ADDRESS = Name.define("address", Address.class);
+    public static final Name<String> DESCRIPTION = Name.defineString("description");
+    public static final Name<Integer> CLASSIFICATION = Name.defineInt("classification");
+}
+```        
+
+'Name's are also supported by the write operation. You can use 'Name' object instead 'String' as parameter for the column(...) method 
+
 
 Read with meta data (ttl, writetime)
 ``` java        
@@ -437,7 +463,7 @@ hotelsDao.readAll()
          .asEntity(Hotel.class)
          .withLimit(5000)
          .executeAsync()
-         .thenAccept(hotelsIt -> hotelIt.forEach(hotel -> System.out.println(hotel)));
+         .thenAccept(hotelIt -> hotelIt.forEach(hotel -> System.out.println(hotel)));
 ```
 
 For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) could be registered which will be executed in an asynchronous, reactive way

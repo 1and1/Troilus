@@ -49,7 +49,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         try {
             feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132")
-                  .columns(FeesTable.ALL)
+                  .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                   .executeAsync()
                   .get();   // waits for completion
             
@@ -74,7 +74,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
 
         Record record = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
-                              .columns(FeesTable.ALL)
+                              .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                               .executeAsync()
                               .thenApply(optionalRecord -> optionalRecord.<RuntimeException>orElseThrow(RuntimeException::new))
                               .get();   // waits for completion;

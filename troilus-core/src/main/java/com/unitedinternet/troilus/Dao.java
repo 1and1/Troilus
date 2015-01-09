@@ -16,7 +16,10 @@
 package com.unitedinternet.troilus;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +29,6 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.utils.Exceptions;
@@ -92,6 +94,16 @@ public interface Dao {
 
     WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
+    <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue);
+
+    <T, E> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+
+    <T, E, F> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+
+    <T, E, F, G> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
+
+    
+    
     Deletion deleteWithKey(String keyName, Object keyValue);
 
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
@@ -99,6 +111,14 @@ public interface Dao {
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
 
     Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+
+    <T> Deletion deleteWithKey(Name<T> keyName, T keyValue);
+
+    <T, E> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+
+    <T, E, F> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+
+    <T, E, F, G> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
 
     Deletion deleteWhere(Clause... whereConditions);
 
@@ -147,14 +167,7 @@ public interface Dao {
 
         Mutation<?> ifNotExits();
     }
-
-    public static interface InsertionWithValues extends BatchableMutation<Insertion> {
-
-        InsertionWithValues value(String name, Object value);
-
-        InsertionWithValues values(ImmutableMap<String, ? extends Object> nameValuePairsToAdd);
-    }
-
+  
     public static interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
 
         Mutation<?> onlyIf(Clause... conditions);
@@ -193,6 +206,14 @@ public interface Dao {
         U value(String name, Object value);
 
         U values(ImmutableMap<String, Object> nameValuePairsToAdd);
+        
+        <T> U value(Name<T> name, T value);
+        
+        <T> U value(SetName<T> name, Set<T> value);
+        
+        <T> U value(ListName<T> name, List<T> value);
+        
+        <K, V> U value(MapName<K, V> name, Map<K, V> value);
         
         U removeSetValue(String name, Object value);
 
@@ -265,6 +286,14 @@ public interface Dao {
 
     SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
+    <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue);
+
+    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+
+    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+
+    <T, E, F, G> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
+    
     ListReadWithUnit<RecordList> readAll();
 
     ListReadWithUnit<RecordList> readWhere(Clause... clauses);
@@ -289,8 +318,13 @@ public interface Dao {
         SingleReadWithColumns<T> columnWithMetadata(String name);
 
         SingleReadWithColumns<T> columns(String... names);
+        
+        SingleReadWithColumns<T> column(Name<?> name);
 
-        SingleReadWithColumns<T> columns(ImmutableCollection<String> nameToRead);
+        SingleReadWithColumns<T> columnWithMetadata(Name<?> name);
+
+        SingleReadWithColumns<T> columns(Name<?>... names);
+
     }
 
     public static interface SingleReadWithUnit<T> extends SingleReadWithColumns<T> {
@@ -321,9 +355,13 @@ public interface Dao {
 
         ListReadWithColumns<T> columns(String... names);
 
-        ListReadWithColumns<T> columns(ImmutableCollection<String> nameToRead);
-    }
+        ListReadWithColumns<T> column(Name<?> name);
 
+        ListReadWithColumns<T> columnWithMetadata(Name<?> name);
+
+        ListReadWithColumns<T> columns(Name<?>... names);
+    }
+    
     public static interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
 
         ListRead<T> all();

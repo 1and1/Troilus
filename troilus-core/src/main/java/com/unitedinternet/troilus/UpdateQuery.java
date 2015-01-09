@@ -19,9 +19,10 @@ package com.unitedinternet.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
-
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.Statement;
@@ -72,15 +73,35 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         return new UpdateQuery(getContext(), 
                                data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, toOptional(value))));
     }
+    
 
+    @Override
+    public <T> Write value(Name<T> name, T value) {
+        return value(name.getName(), (Object) value);
+    }
+
+    @Override
+    public <T> Write value(ListName<T> name, List<T> value) {
+        return value(name.getName(), (Object) value);
+    }
+    
+    @Override
+    public <T> Write value(SetName<T> name, Set<T> value) {
+        return value(name.getName(), (Object) value);
+    }
+    
+    @Override
+    public <K, V> Write value(MapName<K, V> name, Map<K, V> value) {
+        return value(name.getName(), (Object) value);
+    }
+    
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return new UpdateQuery(getContext(), 
                                data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(nameValuePairsToAdd, name -> name, value -> toOptional(value)))));
     }
-    
-    
+
 
     @Override
     public UpdateQuery removeSetValue(String name, Object value) {
@@ -156,7 +177,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionQuery(getContext(), new WriteQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeys(), name -> name, value -> toOptional(value))))
+        return new InsertionQuery(getContext(), new WriteQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeyNameValuePairs(), name -> name, value -> toOptional(value))))
                                                                     .ifNotExists(Optional.of(true)));
     }
 
@@ -169,7 +190,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery incr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(data.getKeys())
+                                        new CounterMutationQueryData().keys(data.getKeyNameValuePairs())
                                                                       .whereConditions(data.getWhereConditions())
                                                                       .name(name)
                                                                       .diff(value));  
@@ -184,7 +205,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery decr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(data.getKeys())
+                                        new CounterMutationQueryData().keys(data.getKeyNameValuePairs())
                                                                       .whereConditions(data.getWhereConditions())
                                                                       .name(name)
                                                                       .diff(0 - value));  
@@ -214,7 +235,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             queryData.getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
             
             
-            queryData.getKeys().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(queryData.getKeys().get(keyname)); } );
+            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))); } );
             
             queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
             getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });

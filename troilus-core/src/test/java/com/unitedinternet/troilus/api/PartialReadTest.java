@@ -45,7 +45,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         try {
             feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132")
-                  .columns(FeesTable.ALL)
+                  .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                   .execute();
             
             Assert.fail("TooManyResultsException expected");
@@ -67,7 +67,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
 
         Optional<Record> feeRecord = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
-                                           .columns(FeesTable.ALL)
+                                           .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                                            .execute();
         Assert.assertTrue(feeRecord.isPresent());
        
@@ -102,7 +102,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
         feeRecord = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
-                          .columns(FeesTable.ALL)
+                          .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                           .execute();
         Assert.assertFalse(feeRecord.isPresent());
     }        

@@ -24,6 +24,7 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
@@ -61,15 +62,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
  
-    @Override 
-    public ListReadQuery columns(ImmutableCollection<String> namesToRead) {
+    private ListReadQuery columns(ImmutableCollection<String> namesToRead) {
         ListReadQuery read = this;
         for (String columnName : namesToRead) {
             read = read.column(columnName);
         }
         return read;
     }
-    
     
     
     @Override
@@ -83,6 +82,27 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
+    
+    @Override
+    public ListReadWithUnit<RecordList> columns(String... names) {
+        return columns(ImmutableSet.copyOf(names));
+    }
+    
+    
+    @Override
+    public ListReadWithUnit<RecordList> column(Name<?> name) {
+        return column(name.getName());
+    }
+    
+    @Override
+    public ListReadWithUnit<RecordList> columnWithMetadata(Name<?> name) {
+        return columnWithMetadata(name.getName());
+    }
+    
+    @Override
+    public ListReadWithUnit<RecordList> columns(Name<?>... names) {
+        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Immutables.toList()));
+    }
 
     @Override
     public ListReadQuery withLimit(int limit) {
@@ -119,12 +139,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new ListEntityReadQuery<>(getContext(), this, objectClass) ;
     }
 
-    
-    @Override
-    public ListReadWithUnit<RecordList> columns(String... names) {
-        return columns(ImmutableSet.copyOf(names));
-    }
-    
+   
     
     private Statement toStatement(ListReadQueryData queryData) {
         Select.Selection selection = select();

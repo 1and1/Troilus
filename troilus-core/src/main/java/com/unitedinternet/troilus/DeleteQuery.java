@@ -21,6 +21,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.querybuilder.Clause;
@@ -30,6 +31,7 @@ import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
@@ -71,7 +73,10 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             ImmutableSet<Clause> whereClauses = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
             whereClauses.forEach(whereClause -> delete.where(whereClause));
             
-            return prepare(delete).bind(queryData.getKeyNameValuePairs().values().toArray());
+            List<Object> values = Lists.newArrayList();
+            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
+            
+            return prepare(delete).bind(values.toArray());
 
             
         // where condition-based delete    

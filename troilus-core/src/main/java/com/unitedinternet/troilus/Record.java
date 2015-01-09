@@ -173,6 +173,24 @@ public abstract class Record implements Result {
         return isNull(name) ? Optional.empty() : Optional.of(row.getUDTValue(name));
     }
 
+    
+    public <T> Optional<T> getValue(Name<T> name) {
+        return getObject(name.getName(), name.getType());
+    }
+
+    public <T> Optional<ImmutableSet<T>> getValue(SetName<T> name) {
+        return getSet(name.getName(), name.getType());
+    }
+
+    public <T> Optional<ImmutableList<T>> getValue(ListName<T> name) {
+        return getList(name.getName(), name.getType());
+    }
+
+    public <K, V> Optional<ImmutableMap<K, V>> getValue(MapName<K, V> name) {
+        return getMap(name.getName(), name.getType(), name.getValueType());
+    }
+
+    
     public abstract <T> Optional<T> getObject(String name, Class<T> elementsClass);    
     
     public abstract <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass);

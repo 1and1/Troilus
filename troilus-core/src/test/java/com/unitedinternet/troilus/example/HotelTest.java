@@ -2,15 +2,12 @@ package com.unitedinternet.troilus.example;
 
 
 import java.time.Duration;
-import java.util.Iterator;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-
-
 
 
 
@@ -26,6 +23,8 @@ import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
+
+import static com.unitedinternet.troilus.example.HotelTableFields.*;
 
 
 public class HotelTest extends AbstractCassandraBasedTest {
@@ -273,10 +272,40 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .combinedWith(delition)
                  .withLockedBatchType()
                  .execute();
+    }
+    
+    
+    
+    @Test
+    public void testWithName() throws Exception {
         
+        Dao hotelsDao = new DaoImpl(getSession(), HotelsTable.TABLE);
+
+
+        hotelsDao.writeWithKey("id", "BUP3443")
+                 .value(NAME, "Korona")
+                 .value(ROOM_IDS, ImmutableSet.of("7", "8", "9"))
+                 .value(CLASSIFICATION, 4)
+                 .value(ADDRESS, new Address("Sasadi út 123", "Budapest", "1112"))
+                 .ifNotExits()
+                 .execute();
+     
         
+        Record record = hotelsDao.readWithKey(ID, "BUP3443")
+                                 .column(NAME)
+                                 .column(CLASSIFICATION)
+                                 .column(ROOM_IDS)
+                                 .column(ADDRESS)
+                                 .execute()
+                                 .get();
         
-    }        
+        Assert.assertEquals("Korona", record.getValue(NAME).get());
+        Assert.assertEquals((Integer) 4, record.getValue(CLASSIFICATION).get());
+        Assert.assertTrue(record.getValue(ROOM_IDS).get().contains("8"));
+        Assert.assertEquals("Budapest", record.getValue(ADDRESS).get().getCity());
+        
+    }
+                
 }
 
 

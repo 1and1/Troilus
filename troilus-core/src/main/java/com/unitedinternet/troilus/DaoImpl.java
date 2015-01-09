@@ -105,14 +105,17 @@ public class DaoImpl implements Dao {
     }
     
     @Override
-    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, 
+                                         String keyName2, Object keyValue2) {
         return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1,
                                                                                    keyName2, keyValue2)));
         
     }
     
     @Override
-    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, 
+                                         String keyName2, Object keyValue2, 
+                                         String keyName3, Object keyValue3) {
         return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3)));
@@ -120,14 +123,47 @@ public class DaoImpl implements Dao {
     }
 
     @Override
-    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4) {
+    public WriteWithCounter writeWithKey(String keyName1, Object keyValue1, 
+                                         String keyName2, Object keyValue2, 
+                                         String keyName3, Object keyValue3, 
+                                         String keyName4, Object keyValue4) {
         return new UpdateQuery(ctx, new WriteQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
                                                                                    keyName2, keyValue2, 
                                                                                    keyName3, keyValue3, 
                                                                                    keyName4, keyValue4)));
     }
     
+    @Override
+    public <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue) {
+        return writeWithKey(keyName.getName(), (Object) keyValue); 
+    }
     
+    @Override
+    public <T, E> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1,
+                                                Name<E> keyName2, E keyValue2) {
+        return writeWithKey(keyName1.getName(), (Object) keyValue1,
+                            keyName2.getName(), (Object) keyValue2); 
+    }
+    
+    @Override
+    public <T, E, F> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, 
+                                                   Name<E> keyName2, E keyValue2, 
+                                                   Name<F> keyName3, F keyValue3) {
+        return writeWithKey(keyName1.getName(), (Object) keyValue1,
+                            keyName2.getName(), (Object) keyValue2,
+                            keyName3.getName(), (Object) keyValue3); 
+    }
+    
+    @Override
+    public <T, E, F, G> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, 
+                                                      Name<E> keyName2, E keyValue2,
+                                                      Name<F> keyName3, F keyValue3, 
+                                                      Name<G> keyName4, G keyValue4) {
+        return writeWithKey(keyName1.getName(), (Object) keyValue1,
+                            keyName2.getName(), (Object) keyValue2,
+                            keyName3.getName(), (Object) keyValue3,
+                            keyName4.getName(), (Object) keyValue4); 
+    }
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
@@ -170,8 +206,38 @@ public class DaoImpl implements Dao {
                                              keyName3, keyValue3, 
                                              keyName4, keyValue4));
     }
-    
 
+    @Override
+    public <T> Deletion deleteWithKey(Name<T> keyName, T keyValue) {
+        return deleteWithKey(keyName.getName(), (Object) keyValue);
+    }
+    
+    @Override
+    public <T, E> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
+                                         Name<E> keyName2, E keyValue2) {
+        return deleteWithKey(keyName1.getName(), (Object) keyValue1,
+                             keyName2.getName(), (Object) keyName2);
+
+    }
+    @Override
+    public <T, E, F> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
+                                            Name<E> keyName2, E keyValue2, 
+                                            Name<F> keyName3, F keyValue3) {
+        return deleteWithKey(keyName1.getName(), (Object) keyValue1,
+                             keyName2.getName(), (Object) keyName2,
+                             keyName3.getName(), (Object) keyName3);
+    }
+    @Override
+    public <T, E, F, G> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
+                                               Name<E> keyName2, E keyValue2, 
+                                               Name<F> keyName3, F keyValue3,
+                                               Name<G> keyName4, G keyValue4) {
+        return deleteWithKey(keyName1.getName(), (Object) keyValue1,
+                             keyName2.getName(), (Object) keyName2,
+                             keyName3.getName(), (Object) keyName3,
+                             keyName4.getName(), (Object) keyName4);
+    }
+    
     private DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
         return new DeleteQuery(ctx, new DeleteQueryData().keys(keyNameValuePairs));
     }
@@ -212,6 +278,38 @@ public class DaoImpl implements Dao {
                                                                                            keyName4, keyValue4)));
     }
 
+    @Override
+    public <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue) {
+        return readWithKey(keyName.getName(), (Object) keyValue);
+    }
+    
+    @Override
+    public <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1,
+                                                                   Name<E> keyName2, E keyValue2) {
+        return readWithKey(keyName1.getName(), (Object) keyValue1,
+                           keyName2.getName(), (Object) keyValue2);
+    }
+    
+    @Override
+    public <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, 
+                                                                      Name<E> keyName2, E keyValue2,
+                                                                      Name<F> keyName3, F keyValue3) {
+        return readWithKey(keyName1.getName(), (Object) keyValue1,
+                           keyName2.getName(), (Object) keyValue2,                         
+                           keyName3.getName(), (Object) keyValue3);
+    }
+    
+    @Override
+    public <T, E, F, G> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, 
+                                                                         Name<E> keyName2, E keyValue2,
+                                                                         Name<F> keyName3, F keyValue3, 
+                                                                         Name<G> keyName4, G keyValue4) {
+        return readWithKey(keyName1.getName(), (Object) keyValue1,
+                           keyName2.getName(), (Object) keyValue2,                         
+                           keyName3.getName(), (Object) keyValue3,
+                           keyName4.getName(), (Object) keyValue4);
+    }
+        
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {

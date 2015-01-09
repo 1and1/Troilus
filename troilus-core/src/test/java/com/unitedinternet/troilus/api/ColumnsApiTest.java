@@ -125,7 +125,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         Optional<Record> optionalRecord2 = usersDao.readWithKey(UsersTable.USER_ID, "95454")
-                                                   .columns(ImmutableList.of(UsersTable.PICTURE, UsersTable.ADDRESSES, UsersTable.PHONE_NUMBERS))
+                                                   .columns(UsersTable.PICTURE, UsersTable.ADDRESSES, UsersTable.PHONE_NUMBERS)
                                                    .execute();
         Assert.assertTrue(optionalRecord2.isPresent());
         optionalRecord2.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class).get()));
@@ -151,7 +151,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         ////////////////
         // deletes
         usersDao.deleteWithKey(UsersTable.USER_ID, "4545")
-               .execute();
+                .execute();
         
         // check
         optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "4545")
@@ -590,6 +590,28 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                          .get();
                          */
         
+        
+        
+        usersDao.writeWithKey(UsersTableFields.USER_ID, "343434")
+                .value(UsersTableFields.IS_CUSTOMER, true)
+                .value(UsersTable.ROLES, ImmutableMap.of("customer", "xe333"))
+                .value(UsersTableFields.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                .value(UsersTableFields.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
+                .value(UsersTableFields.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
+                .ifNotExits()
+                .withEnableTracking()
+                .execute();
+
+        record = usersDao.readWithKey(UsersTableFields.USER_ID, "343434")
+                .execute()
+                .get();
+        
+        Assert.assertEquals("343434", record.getValue(UsersTableFields.USER_ID).get());
+        Assert.assertFalse(record.getValue(UsersTableFields.IS_CUSTOMER).isPresent());
+        Assert.assertFalse(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("12142343"));
+        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("23234234"));
+        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().contains("karlsruhe"));
+        Assert.assertEquals("xe333", record.getValue(UsersTableFields.ROLES).get().get("customer"));
       }        
 }
 

@@ -281,7 +281,7 @@ public class WriteQueryData {
     }
 
     
-    public ImmutableMap<String, Object> getKeys() {
+    public ImmutableMap<String, Object> getKeyNameValuePairs() {
         return keys;
     }
 
