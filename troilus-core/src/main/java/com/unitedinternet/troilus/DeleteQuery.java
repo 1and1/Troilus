@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
 

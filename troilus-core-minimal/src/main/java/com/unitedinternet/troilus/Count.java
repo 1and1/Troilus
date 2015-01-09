@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  */
 package com.unitedinternet.troilus;
 
-
-
-
 import com.datastax.driver.core.ExecutionInfo;
+
 import com.datastax.driver.core.ResultSet;
 import com.google.common.collect.ImmutableList;
 
 
 
+/**
+ * The count result 
+ */
 public abstract class Count implements Result {
     
+    /**
+     * @return the count value
+     */
     public abstract long getCount();
  
+    /**
+     * @param rs  the result set
+     * @return the associated count result
+     */
     static Count newCountResult(ResultSet rs) {
         return new CountResultImpl(rs);
     }
@@ -38,7 +46,7 @@ public abstract class Count implements Result {
         private final long count;
 
         
-        public CountResultImpl(ResultSet rs) {
+        private CountResultImpl(ResultSet rs) {
             this.rs = rs;
             this.count = rs.one().getLong("count");
         }
@@ -57,7 +65,6 @@ public abstract class Count implements Result {
         public boolean wasApplied() {
             return rs.wasApplied();
         }
-
         
         @Override
         public long getCount() {

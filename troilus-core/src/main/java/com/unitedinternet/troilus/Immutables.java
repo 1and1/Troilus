@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.utils;
+package com.unitedinternet.troilus;
 
 
 
@@ -29,40 +29,12 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 
 
-
-public class Immutables {
-
-
-    public static <T> ImmutableSet<T> merge(ImmutableSet<T> set, T entryToAdd) {
-        return ImmutableSet.<T>builder().addAll(set).add(entryToAdd).build();
-    }
-    
-    public static <T> ImmutableSet<T> merge(ImmutableSet<T> set1, ImmutableSet<T> set2) {
-        return ImmutableSet.<T>builder().addAll(set1).addAll(set2).build();
-    }
-
-    
-    public static <T> ImmutableList<T> merge(ImmutableList<T> list, T entryToAdd) {
-        return ImmutableList.<T>builder().addAll(list).add(entryToAdd).build();
-    }
- 
-    public static <T> ImmutableList<T> merge(T entryToAdd, ImmutableList<T> list) {
-        return ImmutableList.<T>builder().add(entryToAdd).addAll(list).build();
-    }
-    
-    public static <T> ImmutableList<T> merge(ImmutableList<T> list1, ImmutableList<T> list2) {
-        return ImmutableList.<T>builder().addAll(list1).addAll(list2).build();
-    }
-
-    
-    public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map, K key, V value) {
-        Map<K, V> m = Maps.newHashMap(map);
-        m.put(key, value);
-        return ImmutableMap.copyOf(m);
-    }
+/**
+ * Immutable utility class
+ */
+class Immutables extends MinimalImmutables {
 
     
     public static <K, V> Optional<ImmutableMap<K, V>> merge(Optional<ImmutableMap<K, V>> map, K key, V value) {

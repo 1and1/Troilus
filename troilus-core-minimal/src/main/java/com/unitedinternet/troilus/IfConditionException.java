@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@ package com.unitedinternet.troilus;
 
 
 
-import org.reactivestreams.Publisher;
-
-
 
 
 /**
- * RecordList
- *
- * @author grro
+ * Exception thrown when the if-condition (ifNotExists or onlyIf) does not match
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {
+public class IfConditionException extends RuntimeException {
 
-    default public void remove() {
-        throw new UnsupportedOperationException();
+    private static final long serialVersionUID = 4270476820995364200L;
+
+    /**
+     * @param message the message to report
+     */
+    public IfConditionException(String message) {
+        super(message);
     }
+
 }
-
-
-

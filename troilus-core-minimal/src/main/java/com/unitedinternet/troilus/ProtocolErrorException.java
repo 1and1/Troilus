@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,17 @@ package com.unitedinternet.troilus;
 
 
 
-
+/**
+  * Exception thrown when a protocol-level error occurs
+ *
+ */
 public class ProtocolErrorException extends RuntimeException {
 
     private static final long serialVersionUID = 4270476820995364200L;
 
+    /**
+     * @param message the message to report
+     */
     public ProtocolErrorException(String message) {
         super(message);
     }

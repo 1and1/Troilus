@@ -50,8 +50,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.utils.Exceptions;
-import com.unitedinternet.troilus.utils.Immutables;
 
  
 abstract class AbstractQuery<Q> {
@@ -360,6 +358,10 @@ abstract class AbstractQuery<Q> {
         public RecordListImpl(ResultSet rs) {
             this.rs = rs;
             this.iterator = rs.iterator();
+        }
+        
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

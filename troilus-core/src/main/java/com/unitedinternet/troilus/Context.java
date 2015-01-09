@@ -51,8 +51,6 @@ import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
-import com.unitedinternet.troilus.utils.TriFunction;
 
 
 

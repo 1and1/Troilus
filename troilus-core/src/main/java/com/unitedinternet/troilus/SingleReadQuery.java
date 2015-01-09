@@ -42,7 +42,6 @@ import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
 

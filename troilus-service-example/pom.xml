@@ -5,20 +5,20 @@
 	<parent>
 		<groupId>com.unitedinternet</groupId>
 		<artifactId>troilus-parent</artifactId>
-		<version>1-SNAPSHOT</version>
+		<version>0-SNAPSHOT</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.unitedinternet</groupId>
 	<artifactId>troilus-service-example</artifactId>
-	<version>1-SNAPSHOT</version>
+	<version>0-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.unitedinternet</groupId>
 			<artifactId>troilus-core</artifactId>
-			<version>1-SNAPSHOT</version>
+			<version>0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>

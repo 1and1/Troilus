@@ -42,7 +42,6 @@ import com.unitedinternet.troilus.Dao.WriteWithCounter;
 import com.unitedinternet.troilus.Dao.CounterMutation;
 import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
  

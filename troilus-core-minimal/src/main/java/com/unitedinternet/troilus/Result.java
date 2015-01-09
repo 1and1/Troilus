@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,24 @@ import com.datastax.driver.core.ExecutionInfo;
 import com.google.common.collect.ImmutableList;
 
 
-
+/**
+ * The query result
+ */
 public interface Result {
 
+    /**
+     * @return the execution info for the last query made for this ResultSet
+     */
     ExecutionInfo getExecutionInfo();
     
+    /**
+     * @return a list of the execution info for all the queries made for this ResultSet
+     */
     ImmutableList<ExecutionInfo> getAllExecutionInfo();
     
+    /**
+     * @return if the query was a conditional update, whether it was applied. true for other types of queries.
+     */
     boolean wasApplied();
 }
 

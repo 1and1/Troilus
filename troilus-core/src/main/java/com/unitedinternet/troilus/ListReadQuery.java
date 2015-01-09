@@ -31,7 +31,6 @@ import com.unitedinternet.troilus.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
 

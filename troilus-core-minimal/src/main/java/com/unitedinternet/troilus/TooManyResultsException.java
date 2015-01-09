@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,17 @@ package com.unitedinternet.troilus;
 
 
 
-public class IfConditionException extends RuntimeException {
+/**
+ * Exception thrown when a more results (rows) are returned than expected
+ */
+public class TooManyResultsException extends RuntimeException {
 
     private static final long serialVersionUID = 4270476820995364200L;
 
-    public IfConditionException(String message) {
+    /**
+     * @param message the message to report
+     */
+    public TooManyResultsException(String message) {
         super(message);
     }
 

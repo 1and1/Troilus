@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Query;
-import com.unitedinternet.troilus.utils.Immutables;
 
 
  
