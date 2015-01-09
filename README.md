@@ -196,7 +196,7 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
 optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
 ```        
 
-Read a row in a column-oriented way with 'Name' definitions. 
+Read a row in a column-oriented way with `Name` definitions. 
 ``` java        
 import static ....HotelTableFields.*;
 
@@ -220,7 +220,6 @@ public final class HotelTableFields  {
 }
 ```        
 
-'Name's are also supported by the write operation. You can use 'Name' object instead 'String' as parameter for the column(...) method 
 
 
 Read with meta data (ttl, writetime)
