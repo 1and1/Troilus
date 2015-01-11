@@ -47,7 +47,7 @@ import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 
  
 
-class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
+class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
 
     final SingleReadQueryData data;
@@ -120,7 +120,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     private SingleReadQueryData getPreprocessedData(Context ctx) {
         SingleReadQueryData queryData = data;
-        for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptors(SingleReadQueryPreInterceptor.class)) {
+        for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryPreInterceptor.class)) {
             queryData = interceptor.onPreSingleRead(queryData);
         }
         
@@ -157,7 +157,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         whereConditions.forEach(whereCondition -> select.where(whereCondition));
         
         List<Object> values = Lists.newArrayList();
-        queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
+        queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
 
         return prepare(select).bind(values.toArray());
     }
@@ -168,14 +168,14 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
         Statement statement = toStatement(preprocessedData);
         
-        return performAsync(statement)
+        return new CompletableDbFuture(performAsync(statement))
                     .thenApply(resultSet -> {
                                                 Row row = resultSet.one();
                                                 if (row == null) {
                                                     return Optional.<Record>empty();
                                                     
                                                 } else {
-                                                    Record record = newRecord(new ResultImpl(resultSet), row);
+                                                    Record record = newRecord(Result.newResult(resultSet), row);
                                                     
                                                     // paranoia check
                                                     data.getKeyNameValuePairs().forEach((name, value) -> { 
@@ -196,7 +196,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                                                 }
                                              })
                     .thenApply(optionalRecord -> {
-                                                    for (SingleReadQueryPostInterceptor interceptor : getContext().getInterceptors(SingleReadQueryPostInterceptor.class)) {
+                                                    for (SingleReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryPostInterceptor.class)) {
                                                         optionalRecord = interceptor.onPostSingleRead(preprocessedData, optionalRecord);
                                                     }
                                                     return optionalRecord;
@@ -228,7 +228,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().fromValues(clazz, record.getAccessor())));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().getBeanMapper().fromValues(clazz, record)));
         }        
     }
 }

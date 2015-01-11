@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * The count result 
  */
-public abstract class Count implements Result {
+public abstract class Count extends Result {
     
     /**
      * @return the count value

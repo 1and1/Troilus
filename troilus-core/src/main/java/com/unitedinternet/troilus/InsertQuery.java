@@ -61,15 +61,20 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
         Insert insert = insertInto(getContext().getTable());
         
         List<Object> values = Lists.newArrayList();
-        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(toStatementValue(name, optionalValue.orElse(null))); } ); 
+        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(getContext().toStatementValue(name, optionalValue.orElse(null))); } ); 
         
         
         queryData.getIfNotExits().ifPresent(ifNotExits -> {
                                                             insert.ifNotExists();
-                                                            getContext().getSerialConsistencyLevel().ifPresent(serialCL -> insert.setSerialConsistencyLevel(serialCL));
+                                                            if (getContext().getSerialConsistencyLevel() != null) {
+                                                                insert.setSerialConsistencyLevel(getContext().getSerialConsistencyLevel());
+                                                            }
                                                           });
 
-        getTtl().ifPresent(ttl-> { insert.using(ttl(bindMarker()));  values.add((int) ttl.getSeconds()); });
+        if (getContext().getTtlSec() != null) {
+            insert.using(ttl(bindMarker()));  
+            values.add(getContext().getTtlSec().intValue());
+        }
 
         PreparedStatement stmt = prepare(insert);
         return stmt.bind(values.toArray());
@@ -79,7 +84,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     @Override
     protected Statement getStatement() {
         WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptors(WriteQueryPreInterceptor.class)) {
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData); 
         }
         
@@ -89,16 +94,18 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return super.executeAsync().thenApply(result -> {
-                                                            data.getIfNotExits().ifPresent(ifNotExists -> {
-                                                                                                                // check cas result column '[applied]'
-                                                                                                                if (ifNotExists && !result.wasApplied()) {
-                                                                                                                    throw new IfConditionException("duplicated entry");  
-                                                                                                                }                                                                 
-                                                                                                          }) ;
-                                                            
+        return new CompletableDbFuture(performAsync(getStatement()))
+                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(result -> {
+                                                data.getIfNotExits().ifPresent(ifNotExists -> {
+                                                    // check cas result column '[applied]'
+                                                    if (ifNotExists && !result.wasApplied()) {
+                                                        throw new IfConditionException("duplicated entry");  
+                                                    }                                                                 
+                                                });
+                    
+                                                return result;
 
-                                                            return result;
-                                                        });
+                                             });
     }
 }

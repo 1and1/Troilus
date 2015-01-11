@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.minimal;
 
 import java.time.Duration;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
+import com.unitedinternet.troilus.Name;
+import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
-public interface Dao {
+public interface MinimalDao {
     
-    Dao withConsistency(ConsistencyLevel consistencyLevel);
+    MinimalDao withConsistency(ConsistencyLevel consistencyLevel);
 
-    Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
+    MinimalDao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-    Dao withEnableTracking();
+    MinimalDao withEnableTracking();
 
-    Dao withDisableTracking();
+    MinimalDao withDisableTracking();
 
-    Dao withRetryPolicy(RetryPolicy policy);
+    MinimalDao withRetryPolicy(RetryPolicy policy);
         
-    Dao withInterceptor(QueryInterceptor queryInterceptor);
+    MinimalDao withInterceptor(QueryInterceptor queryInterceptor);
     
     
     public interface Query<T> {
 
-        CompletableFuture<T> executeAsync();
-
-        default T execute() {
-            try {
-                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
-            } catch (InterruptedException | ExecutionException
-                    | TimeoutException e) {
-                throw Exceptions.unwrapIfNecessary(e);
-            }
-        }
+        T execute();
     }
 
     
@@ -267,22 +255,22 @@ public interface Dao {
     
     ////////////////////////////////
     // READ
+/*
+    SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(String keyName, Object keyValue);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
+    SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    <T> SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(Name<T> keyName, T keyValue);
 
-    <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue);
+    <T, E> SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
 
-    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+    <T, E, F> SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
 
-    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
-
-    <T, E, F, G> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
+    <T, E, F, G> SingleReadWithUnit<Optional<MinimalRecord>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
     
     ListReadWithUnit<RecordList> readAll();
 
@@ -360,5 +348,5 @@ public interface Dao {
 
         <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
     }
-
+*/
 }

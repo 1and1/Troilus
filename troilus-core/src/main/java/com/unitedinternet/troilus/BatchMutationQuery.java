@@ -17,6 +17,7 @@ package com.unitedinternet.troilus;
 
 
 
+
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
@@ -46,7 +47,6 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
         return new BatchMutationQuery(newContext, type, batchables);
     }
     
-    
     @Override
     public Query<Result> withLockedBatchType() {
         return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
@@ -70,6 +70,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     }
     
     public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
+        return new CompletableDbFuture(performAsync(getStatement()))
+                        .thenApply(resultSet -> Result.newResult(resultSet));
     }
 }

@@ -8,13 +8,16 @@ import java.util.Optional;
 
 
 
+
+
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
-import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 import com.google.common.collect.ImmutableSet;
 

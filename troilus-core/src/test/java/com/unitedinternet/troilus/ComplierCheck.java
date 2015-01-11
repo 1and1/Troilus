@@ -1,8 +1,5 @@
 package com.unitedinternet.troilus;
 
-import com.datastax.driver.core.querybuilder.Clause;
-import com.unitedinternet.troilus.Dao.Batchable;
-
 
 
 

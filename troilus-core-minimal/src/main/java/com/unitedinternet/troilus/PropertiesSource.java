@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus;
+
+import com.google.common.base.Optional;
 
 
 
-
-
-
- 
-public interface WriteQueryPreInterceptor extends QueryInterceptor {
+interface PropertiesSource {
     
-    WriteQueryData onPreWrite(WriteQueryData data);
+    <T> Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2);
 }
+
+
+

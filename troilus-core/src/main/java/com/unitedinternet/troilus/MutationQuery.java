@@ -17,98 +17,43 @@ package com.unitedinternet.troilus;
 
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
 
 
 
  
+/**
+ * Mutation query base class
+ * @param <Q> the conrete query 
+ */
 abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
-    public MutationQuery(Context ctx) {
+    /**
+     * @param ctx the context 
+     */
+    MutationQuery(Context ctx) {
         super(ctx);
     }
     
-    
     public Q withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl));
-    }
-
-    public Q withWritetime(long writetimeMicrosSinceEpoch) {
-        return newQuery(getContext().withWritetime(writetimeMicrosSinceEpoch));
-    }
-       
-    public Q withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return newQuery(getContext().withSerialConsistency(consistencyLevel));
+        return newQuery(getContext().withTtl(ttl.getSeconds()));
     }
     
-       
-
     public BatchMutation combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
-    
-    
+       
     @Override
     public void addTo(BatchStatement batchStatement) {
         batchStatement.add(getStatement());
     }
-    
 
-    public CompletableFuture<Result> executeAsync() {
-        return performAsync(getStatement()).thenApply(resultSet -> new ResultImpl(resultSet));
-    }
-    
     protected abstract Statement getStatement();
-   
-  
-    
-    protected ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
-    }
-  
-    protected ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
-    }
-  
-    protected Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
-        Map<Object, Object> m = Maps.newHashMap();
-        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
-        }
-        return m;
-    }
-    
-    
-    protected Object toStatementValue(String name, Object value) {
-        if (isNullOrEmpty(value)) {
-            return null;
-        } 
-        
-        DataType dataType = getContext().getColumnMetadata(name).getType();
-        return (getContext().isBuildInType(dataType)) ? value : getContext().getUDTValueMapper().toUdtValue(getContext().getColumnMetadata(name).getType(), value);
-    }
-
-    
-    private boolean isNullOrEmpty(Object value) {
-        return (value == null) || 
-               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
-               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
-    }
 }
 

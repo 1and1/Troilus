@@ -15,14 +15,22 @@
  */
 package com.unitedinternet.troilus;
 
-
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 
 /**
- * TriFunction
+ * Annotation that allows to specify the name of the CQL field to which the Java field should be mapped.
+ *
  */
-@FunctionalInterface
-interface TriFunction<A,B,C,R> {
-
-    R apply(A a, B b, C c);
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Field {
+    
+    /**
+     * @return the CQL field
+     */
+    String name();
 }

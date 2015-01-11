@@ -22,7 +22,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.Statement;
@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.Dao.CounterBatchMutation;
 import com.unitedinternet.troilus.Dao.CounterBatchable;
 import com.unitedinternet.troilus.Dao.Insertion;
@@ -63,9 +64,13 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     public InsertionQuery entity(Object entity) {
         return new InsertionQuery(getContext(), 
-                                  new WriteQueryData().valuesToMutate(getContext().toValues(entity)));
+                                  new WriteQueryData().valuesToMutate(mapOptional(getContext().getBeanMapper().toValues(entity))));
     }
-        
+    
+    private ImmutableMap<String, Optional<Object>> mapOptional(ImmutableMap<String, com.google.common.base.Optional<Object>> m) {
+        return Immutables.transform(m, name -> name, guavaOptional -> Optional.ofNullable(guavaOptional.orNull())); 
+    }
+    
     
     @Override
     public UpdateQuery value(String name, Object value) {
@@ -76,24 +81,8 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
 
     @Override
     public <T> Write value(Name<T> name, T value) {
-        return value(name.getName(), (Object) value);
+        return value(name.getName(), value);
     }
-
-    @Override
-    public <T> Write value(ListName<T> name, List<T> value) {
-        return value(name.getName(), (Object) value);
-    }
-    
-    @Override
-    public <T> Write value(SetName<T> name, Set<T> value) {
-        return value(name.getName(), (Object) value);
-    }
-    
-    @Override
-    public <K, V> Write value(MapName<K, V> name, Map<K, V> value) {
-        return value(name.getName(), (Object) value);
-    }
-    
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
@@ -211,6 +200,31 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     }
     
     
+    private Object toStatementValue(String name, Object value) {
+        return getContext().toStatementValue(name, value);
+    }
+    
+    
+    private ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
+    }
+
+    
+    private ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
+        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
+    }
+  
+    
+    private Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
+        Map<Object, Object> m = Maps.newHashMap();
+        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
+            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
+        }
+        return m;
+    }
+    
+
+    
 
     private Statement toStatement(WriteQueryData queryData) {
         com.datastax.driver.core.querybuilder.Update update = update(getContext().getTable());
@@ -234,10 +248,14 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             queryData.getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
             
             
-            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))); } );
+            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))); } );
             
             queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-            getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
+            
+            if (getContext().getTtlSec() != null) {
+                update.using(QueryBuilder.ttl(bindMarker())); 
+                values.add(getContext().getTtlSec().intValue()); 
+            }
             
             return prepare(update).bind(values.toArray());
 
@@ -255,7 +273,10 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             
             queryData.getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
 
-            getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+            if (getContext().getTtlSec() != null) {
+                update.using(QueryBuilder.ttl(getContext().getTtlSec().intValue()));
+            }
+
             queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
             
             return update;
@@ -265,7 +286,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     protected Statement getStatement() {
         WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptors(WriteQueryPreInterceptor.class)) {
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData);
         }
         
@@ -275,17 +296,15 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        
-        
-        
-        return super.executeAsync()
-                    .thenApply(result ->  {
-                                            // check cas result column '[applied]'
-                                            if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
-                                                throw new IfConditionException("if condition does not match");  
-                                            } 
-                                            return result;
-                                          });
+        return new CompletableDbFuture(performAsync(getStatement()))
+                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(result ->  {
+                                                // check cas result column '[applied]'
+                                                if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
+                                                    throw new IfConditionException("if condition does not match");  
+                                                } 
+                                                return result;
+                                              });
     }
   
     
@@ -416,7 +435,10 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
          
                 queryData.getKeys().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(queryData.getKeys().get(keyname)); } );
                 
-                getTtl().ifPresent(ttl-> { update.using(QueryBuilder.ttl(bindMarker())); values.add((int) ttl.getSeconds()); });
+                if (getContext().getTtlSec() != null) {
+                    update.using(QueryBuilder.ttl(bindMarker())); 
+                    values.add(getContext().getTtlSec().intValue());
+                }
                 
                 return prepare(update).bind(values.toArray());
 
@@ -431,7 +453,9 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                     update.with(QueryBuilder.decr(queryData.getName(), 0 - queryData.getDiff()));
                 }
                                 
-                getTtl().ifPresent(ttl-> update.using(QueryBuilder.ttl((int) ttl.getSeconds())));
+                if (getContext().getTtlSec() != null) {
+                    update.using(QueryBuilder.ttl(getContext().getTtlSec().intValue()));
+                }
                 
                 queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
                 
@@ -442,6 +466,12 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         @Override 
         protected Statement getStatement() {
             return toStatement(data);
+        }
+
+        
+        public CompletableFuture<Result> executeAsync() {
+            return new CompletableDbFuture(performAsync(getStatement()))
+                            .thenApply(resultSet -> Result.newResult(resultSet));
         }
     }
 }

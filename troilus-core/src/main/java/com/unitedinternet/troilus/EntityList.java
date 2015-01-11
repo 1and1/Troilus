@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 
 
-public abstract class EntityList<E> implements Result, Iterable<E>, Publisher<E> {
+public abstract class EntityList<E> extends Result implements Iterable<E>, Publisher<E> {
 
     public void remove() {
         throw new UnsupportedOperationException();
@@ -82,7 +82,7 @@ public abstract class EntityList<E> implements Result, Iterable<E>, Publisher<E>
                 
                 @Override
                 public F next() {
-                    return ctx.fromValues(clazz, recordIt.next().getAccessor());
+                    return ctx.getBeanMapper().fromValues(clazz, recordIt.next());
                 }
             };
         }
@@ -112,7 +112,7 @@ public abstract class EntityList<E> implements Result, Iterable<E>, Publisher<E>
             
             @Override
             public void onNext(Record record) {
-                subscriber.onNext(ctx.fromValues(clazz, record.getAccessor()));
+                subscriber.onNext(ctx.getBeanMapper().fromValues(clazz, record));
             }
 
             @Override

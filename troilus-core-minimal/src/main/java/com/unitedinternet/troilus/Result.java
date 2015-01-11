@@ -17,28 +17,85 @@ package com.unitedinternet.troilus;
 
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 
 /**
  * The query result
  */
-public interface Result {
+public abstract class Result {
 
     /**
      * @return the execution info for the last query made for this ResultSet
      */
-    ExecutionInfo getExecutionInfo();
+    public abstract ExecutionInfo getExecutionInfo();
     
     /**
      * @return a list of the execution info for all the queries made for this ResultSet
      */
-    ImmutableList<ExecutionInfo> getAllExecutionInfo();
+    public abstract ImmutableList<ExecutionInfo> getAllExecutionInfo();
     
     /**
      * @return if the query was a conditional update, whether it was applied. true for other types of queries.
      */
-    boolean wasApplied();
+    public abstract boolean wasApplied();
+    
+    
+    /**
+     * @param rs  the underlying result set
+     * @return the new result 
+     */
+    static Result newResult(ResultSet rs) {
+        return new ResultImpl(rs);
+    }
+    
+    
+    private static class ResultImpl extends Result {
+        private final ResultSet rs;
+        
+        public ResultImpl(ResultSet rs) {
+            this.rs = rs;
+        }
+        
+        @Override
+        public boolean wasApplied() {
+            return rs.wasApplied();
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return rs.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return ImmutableList.copyOf(rs.getAllExecutionInfo());
+        }
+        
+
+        public String toString() {
+            StringBuilder builder = new StringBuilder(); 
+            for (ExecutionInfo info : getAllExecutionInfo())  {
+
+                builder.append("queried=" + info.getQueriedHost());
+                builder.append("\r\ntried=")
+                       .append(Joiner.on(",").join(info.getTriedHosts()));
+
+
+                if (info.getAchievedConsistencyLevel() != null) {
+                    builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
+                }
+                
+                if (info.getQueryTrace() != null) {
+                    builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
+                    builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
+                }
+            }
+            return builder.toString();
+        }
+    }    
 }
 
 

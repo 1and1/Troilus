@@ -37,7 +37,7 @@ import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
  
 
-class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
+class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     
     final ListReadQueryData data;
 
@@ -170,7 +170,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     private ListReadQueryData getPreprocessedData() {
         ListReadQueryData queryData = data;
-        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptors(ListReadQueryPreInterceptor.class)) {
+        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPreInterceptor.class)) {
             queryData = interceptor.onPreListRead(queryData);
         }
         
@@ -184,10 +184,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         ListReadQueryData preprocessedData = getPreprocessedData(); 
         Statement statement = toStatement(preprocessedData);
         
-        return performAsync(statement)
+        return new CompletableDbFuture(performAsync(statement))
                   .thenApply(resultSet -> newRecordList(resultSet))
                   .thenApply(recordList -> {
-                                              for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptors(ListReadQueryPostInterceptor.class)) {
+                                              for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class)) {
                                                   recordList = interceptor.onPostListRead(preprocessedData, recordList);
                                               }
                                               return recordList;
@@ -198,7 +198,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     
-     private static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
+     private class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
         private final ListReadQuery read;
         private final Class<E> clazz;
         
@@ -407,7 +407,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         public CompletableFuture<Count> executeAsync() {
             Statement statement = toStatement(data);
-            return performAsync(statement).thenApply(resultSet -> Count.newCountResult(resultSet));
+            return new CompletableDbFuture(performAsync(statement))
+                        .thenApply(resultSet -> Count.newCountResult(resultSet));
         }        
     }  
 }

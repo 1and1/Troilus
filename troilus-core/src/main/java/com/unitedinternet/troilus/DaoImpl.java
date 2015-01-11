@@ -76,15 +76,8 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withInterceptor(QueryInterceptor queryInterceptor) {
-        return new DaoImpl(ctx.interceptor(queryInterceptor));
+        return new DaoImpl(ctx.withInterceptor(queryInterceptor));
     }
-    
-    
-    <T extends QueryInterceptor> ImmutableList<T> getInterceptors(Class<T> clazz) {
-        return ctx.getInterceptors(clazz);
-    }
-    
-    
     
     
     @Override

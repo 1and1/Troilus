@@ -3,7 +3,6 @@ package com.unitedinternet.troilus.api;
 
 
 import java.util.Map;
-
 import java.util.Optional;
 
 import org.junit.Assert;

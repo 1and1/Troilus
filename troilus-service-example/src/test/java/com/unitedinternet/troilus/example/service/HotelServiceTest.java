@@ -1,10 +1,11 @@
 package com.unitedinternet.troilus.example.service;
 
 import java.io.File;
+
 import java.util.Optional;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+
 
 
 
@@ -17,11 +18,9 @@ import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.spi.ResteasyAsynchronousContext;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao;

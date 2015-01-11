@@ -48,7 +48,10 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         super(ctx);
         this.data = data;
     }
+
+
     
+
 
     @Override
     protected Deletion newQuery(Context newContext) {
@@ -73,7 +76,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             whereClauses.forEach(whereClause -> delete.where(whereClause));
             
             List<Object> values = Lists.newArrayList();
-            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
+            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
             
             return prepare(delete).bind(values.toArray());
 
@@ -90,22 +93,23 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     @Override
     public Statement getStatement() {
         DeleteQueryData queryData = data;
-        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptors(DeleteQueryPreInterceptor.class)) {
+        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreDelete(queryData); 
         }
 
         return toStatement(queryData);
     }
     
-
-    @Override
     public CompletableFuture<Result> executeAsync() {
-        return super.executeAsync().thenApply(result -> {
-                                                            // check cas result column '[applied]'
-                                                            if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
-                                                                throw new IfConditionException("if condition does not match");  
-                                                            } 
-                                                            return result;
-                                                        });
+        return new CompletableDbFuture(performAsync(getStatement()))
+                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(result -> {
+                                                // check cas result column '[applied]'
+                                                if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
+                                                    throw new IfConditionException("if condition does not match");  
+                                                } 
+                                                return result;
+
+                                             });
     }
 }

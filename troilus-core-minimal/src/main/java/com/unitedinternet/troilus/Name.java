@@ -21,9 +21,13 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.datastax.driver.core.TupleValue;
+import com.google.common.base.Optional;
 
 
  
@@ -32,20 +36,26 @@ import com.datastax.driver.core.TupleValue;
  *
  * @param <T> the value type
  */
-public class Name<T> {
-    
+public abstract class Name<T> {
+ 
     private final String name;
-    private final Class<T> type;
+    
+    private Name(String name) { 
+        this.name = name;
+    }
     
     
     /**
-     * @param name   the name
-     * @param type   the value type
+     * @return the name
      */
-    Name(String name, Class<T> type) {
-        this.name = name;
-        this.type = type;
+    public String getName() { 
+        return name;
     }
+    
+    
+    abstract Optional<T> read(PropertiesSource propertiesSource);
+    
+    
     
     
     /**
@@ -56,10 +66,48 @@ public class Name<T> {
      * @return a new instance
      */
     public static <E> Name<E> define(String name, Class<E> type) {
-        return new Name<>(name, type);
+        return new SkalarName<>(name, type);
     }
 
+    
+    /**
+     * defines a new list name 
+     * 
+     * @param name          the name 
+     * @param elementType   the list member value type
+     * @return a new instance
+     */
+    public static <E> Name<List<E>> defineList(String name, Class<E> elementType) {
+        return new ListName<>(name, elementType);
+    }
 
+    
+
+    /**
+     * defines a new set name 
+     * 
+     * @param name          the name 
+     * @param elementType   the set member value type
+     * @return a new instance
+     */
+    public static <E> Name<Set<E>> defineSet(String name, Class<E> elementType) {
+        return new SetName<>(name, elementType);
+    }
+        
+    
+    /**
+     * defines a new set name 
+     * 
+     * @param name      the name 
+     * @param keyType   the set member key type
+     * @param valueType the set member value type
+     * @return a new instance
+     */
+    public static <E, F> Name<Map<E, F>> defineMap(String name, Class<E> keyType,  Class<F> valueType) {
+        return new MapName<>(name, keyType, valueType);
+    }
+
+    
     /**
      * defines a new name with Long-typed value
      * 
@@ -190,17 +238,107 @@ public class Name<T> {
         return define(name, Instant.class);
     }
     
-    /**
-     * @return the name
-     */
-    String getName() {
-        return name;
+    
+    private static class SkalarName<T> extends Name<T> {
+        private final Class<T> type;
+        
+        
+        /**
+         * @param name   the name
+         * @param type   the value type
+         */
+        SkalarName(String name, Class<T> type) {
+            super(name);
+            this.type = type;
+        }
+        
+        @SuppressWarnings("unchecked")         
+        Optional<T> read(PropertiesSource propertiesSource) {
+            return (Optional<T>) propertiesSource.read(getName(), (Class<Object>) type, Object.class);
+        }
     }
     
+    
+    
     /**
-     * @return the value type
+     * A list name which defines the class type of the associated list member value type 
+     *
+     * @param <T> the list member value type
      */
-    Class<T> getType() {
-        return type;
+    private static class ListName<T> extends Name<List<T>> {
+        private final Class<T> elementType;
+        
+        /**
+         * @param name          the name
+         * @param elementType   the list member value type
+         */
+        private ListName(String name, Class<T> elementType) {
+            super(name);
+            this.elementType = elementType;
+        }
+        
+        @SuppressWarnings("unchecked")
+        @Override
+        Optional<List<T>> read(PropertiesSource propertiesSource) {
+            return propertiesSource.read(getName(), (Class<Object>) elementType, Object.class);
+        }
     }
+    
+    
+
+     
+    /**
+     * A set name which defines the class type of the associated set member value type 
+     *
+     * @param <T> the set member value type
+     */
+    private static class SetName<T> extends Name<Set<T>> {
+        private final Class<T> elementType;
+
+        /**
+         * @param name          the name
+         * @param elementType   the set member value type
+         */
+        private SetName(String name, Class<T> elementType) {
+            super(name);
+            this.elementType = elementType;
+        }
+        
+        @SuppressWarnings("unchecked")       
+        @Override
+        Optional<Set<T>> read(PropertiesSource propertiesSource) {
+            return propertiesSource.read(getName(), (Class<Object>) elementType, Object.class);
+        }
+    } 
+    
+    
+    /**
+     * A set name which defines the class type of the associated set member value type 
+     *
+     * @param <T> the set member key type
+     * @param <V> the set member value type
+     */
+    private static class MapName<T, V> extends Name<Map<T, V>> {
+        
+        private final Class<T> keyType;
+        private final Class<V> valueType;
+        
+        
+        /**
+         * @param name      the name
+         * @param keyType   the set member value type
+         * @param valueType the set member value type 
+         */
+        private MapName(String name, Class<T> keyType, Class<V> valueType) {
+            super(name);
+            this.keyType = keyType;
+            this.valueType = valueType;
+        }
+        
+        @SuppressWarnings("unchecked")        
+        @Override
+        Optional<Map<T, V>> read(PropertiesSource propertiesSource) {
+            return propertiesSource.read(getName(), (Class<Object>) (Class<Object>) keyType, (Class<Object>) valueType);
+        }
+    } 
 }
