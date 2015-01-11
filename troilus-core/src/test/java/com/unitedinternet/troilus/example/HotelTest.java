@@ -303,7 +303,16 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Assert.assertEquals(ClassifierEnum.FOUR, record.getValue(CLASSIFICATION).get());
         Assert.assertTrue(record.getValue(ROOM_IDS).get().contains("8"));
         Assert.assertEquals("Budapest", record.getValue(ADDRESS).get().getCity());
+
         
+        
+        Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP3443")
+                                                   .column(NAME)
+                                                   .column(CLASSIFICATION)
+                                                   .execute();
+        optionalRecord.ifPresent(rec -> rec.getValue(NAME).ifPresent(name -> System.out.println(name)));
+        optionalRecord.ifPresent(rec -> rec.getValue(CLASSIFICATION).ifPresent(classification -> System.out.println(classification)));
+
     }
                 
 }

@@ -289,7 +289,7 @@ public abstract class Record extends Result implements PropertiesSource {
      */
     public abstract <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
     
-    
+     
     @Override
     public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1) {
         return read(name, clazz1, Object.class);

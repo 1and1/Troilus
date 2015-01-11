@@ -71,10 +71,6 @@ public class Hotel  {
     
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
-
-    @Field(name = "address")
-    private Address address;
-
         
     
     @SuppressWarnings("unused")
@@ -84,14 +80,12 @@ public class Hotel  {
                  String name, 
                  ImmutableSet<String> roomIds,  
                  Optional<ClassifierEnum> classification, 
-                 Optional<String> description,
-                 Address address) {
+                 Optional<String> description) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
-        this.address = address;
     }
 
     public String getId() {
@@ -112,10 +106,6 @@ public class Hotel  {
 
     public Optional<String> getDescription() {
         return description;
-    }
-    
-    public Address getAddress() {
-        return address;
     }
 }
 ```
@@ -210,13 +200,14 @@ Read a row in a column-oriented way with `Name` definitions.
 ``` java        
 import static ....HotelTableFields.*;
 
-Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP14334")
-                                           .column(ID)
+Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP3443")
                                            .column(NAME)
-                                           .withConsistency(ConsistencyLevel.LOCAL_ONE)
+                                           .column(CLASSIFICATION)
                                            .execute();
 optionalRecord.ifPresent(record -> record.getValue(NAME).ifPresent(name -> System.out.println(name)));
+optionalRecord.ifPresent(record -> record.getValue(CLASSIFICATION).ifPresent(classification -> System.out.println(classification)));
 ```        
+
 
 with definitions
 ``` java        
@@ -447,7 +438,7 @@ System.out.println(record.getObject("address", Address.class));
 ##Async Write
 By calling `executeAsync()` instead `execute()` the method returns immediately without waiting for the database response. Further more the `executeAsync()` returns a Java8 [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) object which can be used for async processing
 ``` java
-CompletableFuture<Result> future = hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", Optional.of(2), Optional.empty()))
+CompletableFuture<Result> future = hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", Optional.of(ClassifierEnum.TWO), Optional.empty()))
                                             .withConsistency(ConsistencyLevel.ANY)
                                             .executeAsync();
 ```
