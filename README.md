@@ -121,9 +121,16 @@ hotelsDao.writeWithKey("id","BUP932432")
 ### removing values
 ``` java
 hotelsDao.writeWithKey("id","BUP932432")
-         .value("description", null)
+         .value(HotelsTable.DESCRIPTION, Optional.empty())  
          .execute();
-  ```             
+```             
+
+or
+``` java
+hotelsDao.writeWithKey("id","BUP932432")
+         .value(HotelsTable.DESCRIPTION, null)  
+         .execute();
+```  
 
 
 ### value update based on where conditions

@@ -206,7 +206,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         hotelsDao.writeWithKey(HotelsTable.ID,"BUP932432")
-                 .value(HotelsTable.DESCRIPTION, null)
+                 .value(HotelsTable.DESCRIPTION, Optional.empty())
                  .execute();
         
 
