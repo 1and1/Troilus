@@ -78,7 +78,7 @@ abstract class ReadQuery<Q> extends AbstractQuery<Q>  {
             super(result, row);
         }
   
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
             if (isNull(name)) {
                 return Optional.empty();
@@ -87,8 +87,20 @@ abstract class ReadQuery<Q> extends AbstractQuery<Q>  {
             DataType datatype = getColumnDefinitions().getType(name);
             
             if (datatype != null) {
+                
+                // build-in
                 if (UDTValueMapper.isBuildInType(datatype)) {
-                    return (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion()));
+                    Optional<T> optionalObject = (Optional<T>) getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion())); getBytesUnsafe(name).map(bytes -> datatype.deserialize(bytes, getProtocolVersion()));
+                    
+                    // enum
+                    if (optionalObject.isPresent() && getContext().isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {
+                        String obj = (String) optionalObject.get();
+                        optionalObject = (Optional<T>) Optional.of(Enum.valueOf((Class<Enum>) elementsClass, obj));
+                    }
+                    
+                    return optionalObject;
+                 
+                // udt
                 } else {
                     return Optional.ofNullable(getContext().getUDTValueMapper().fromUdtValue(datatype, getUDTValue(name).get(), elementsClass));
                 }

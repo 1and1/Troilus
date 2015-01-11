@@ -238,6 +238,16 @@ public abstract class Record extends Result implements PropertiesSource {
     public Optional<Instant> getInstant(String name) {
         return getLong(name).map(millis -> Instant.ofEpochMilli(millis));
     }
+  
+    
+    /**
+     * @param name      the column name 
+     * @param enumType  the enum type
+     * @return the value for column name as an enum value
+     */
+    public <T extends Enum<T>> Optional<T> getEnum(String name, Class<T> enumType) {
+        return getObject(name, enumType);
+    }
     
     /**
      * @param name the column name 
@@ -279,11 +289,16 @@ public abstract class Record extends Result implements PropertiesSource {
      */
     public abstract <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
     
+    
+    @Override
+    public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1) {
+        return read(name, clazz1, Object.class);
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> com.google.common.base.Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
-        Optional<Object> value = getObject(name, clazz1);
+    public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
+        Optional<?> value = getObject(name, clazz1);
         if (value.isPresent()) {
             return com.google.common.base.Optional.of((T) value.get());
         } else {

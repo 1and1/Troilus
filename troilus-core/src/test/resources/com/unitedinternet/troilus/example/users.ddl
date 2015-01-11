@@ -1,5 +1,6 @@
 CREATE TABLE users (
                     user_id text,
+                    user_type text,
                     name text,
                     is_customer boolean,
                     picture blob,

@@ -44,7 +44,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP45544", 
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
-                                        Optional.of(5), 
+                                        Optional.of(ClassifierEnum.FIVE), 
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
                                         new Address("Erzsébet körút 43", "Budapest", "1073"))
                                        )
@@ -75,7 +75,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         hotelsDao.writeWithKey("id", "BUP932432")
                  .value("name", "City Budapest")
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
-                 .value("classification", 4)
+                 .value("classification", ClassifierEnum.FOUR)
                  .value("address", new Address("Andrássy út", "Budapest", "1061"))
                  .ifNotExits()
                  .execute();
@@ -85,7 +85,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         CompletableFuture<Result> future = hotelsDao.writeEntity(new Hotel("BUP14334", 
                                                                            "Richter Panzio",
                                                                            ImmutableSet.of("1", "2", "3"),
-                                                                           Optional.of(2), 
+                                                                           Optional.of(ClassifierEnum.TWO), 
                                                                            Optional.empty(),
                                                                            new Address("Thököly Ut 111", "Budapest", "1145")))
                                                     .withConsistency(ConsistencyLevel.ANY)
@@ -169,8 +169,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .get();
         
         Assert.assertNotNull(record.getObject("address", Address.class));
-        System.out.println(record.getInt("classification"));
-        System.out.println(record.getObject("address", Address.class));
+        Assert.assertEquals("TWO",  record.getString("classification").get());
+        Assert.assertEquals("Budapest", record.getObject("address", Address.class).get().getCity());
 
 
         
@@ -217,14 +217,14 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .execute()
                           .get();
         
-        Assert.assertEquals((Integer) 4, record.getInt(HotelsTable.CLASSIFICATION).get());
+        Assert.assertEquals(ClassifierEnum.FOUR.toString(), record.getString(HotelsTable.CLASSIFICATION).get());
         Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
         Assert.assertFalse(record.getString(HotelsTable.DESCRIPTION).isPresent());
         
         
         hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
-                 .value(HotelsTable.CLASSIFICATION, 5)
-                 .onlyIf(QueryBuilder.eq(HotelsTable.CLASSIFICATION, 4))
+                 .value(HotelsTable.NAME, "Budapest City")
+                 .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
                  .execute();
 
@@ -236,7 +236,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
 
-        Assert.assertEquals((Integer) 5, record.getInt(HotelsTable.CLASSIFICATION).get());
+        Assert.assertEquals("Budapest City", record.getString(HotelsTable.NAME).get());
     
         
 
@@ -244,7 +244,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
-                 .value(HotelsTable.CLASSIFICATION, 4)
+                 .value(HotelsTable.CLASSIFICATION, "FOUR")
                  .execute();
 
 
@@ -255,7 +255,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
 
-        Assert.assertEquals((Integer) 4, record.getInt(HotelsTable.CLASSIFICATION).get());
+        Assert.assertEquals(ClassifierEnum.FOUR, record.getEnum(HotelsTable.CLASSIFICATION, ClassifierEnum.class).get());
         
         
         
@@ -285,7 +285,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         hotelsDao.writeWithKey("id", "BUP3443")
                  .value(NAME, "Korona")
                  .value(ROOM_IDS, ImmutableSet.of("7", "8", "9"))
-                 .value(CLASSIFICATION, 4)
+                 .value(CLASSIFICATION, ClassifierEnum.FOUR)
                  .value(ADDRESS, new Address("Sasadi út 123", "Budapest", "1112"))
                  .ifNotExits()
                  .execute();
@@ -300,7 +300,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                  .get();
         
         Assert.assertEquals("Korona", record.getValue(NAME).get());
-        Assert.assertEquals((Integer) 4, record.getValue(CLASSIFICATION).get());
+        Assert.assertEquals(ClassifierEnum.FOUR, record.getValue(CLASSIFICATION).get());
         Assert.assertTrue(record.getValue(ROOM_IDS).get().contains("8"));
         Assert.assertEquals("Budapest", record.getValue(ADDRESS).get().getCity());
         

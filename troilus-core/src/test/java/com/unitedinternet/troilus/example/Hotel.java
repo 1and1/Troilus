@@ -19,7 +19,7 @@ public class Hotel  {
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
     @Field(name = "classification")
-    private Optional<Integer> classification = Optional.empty();
+    private Optional<ClassifierEnum> classification = Optional.empty();
     
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
@@ -35,7 +35,7 @@ public class Hotel  {
     public Hotel(String id, 
                  String name, 
                  ImmutableSet<String> roomIds,  
-                 Optional<Integer> classification, 
+                 Optional<ClassifierEnum> classification, 
                  Optional<String> description,
                  Address address) {
         this.id = id;
@@ -58,7 +58,7 @@ public class Hotel  {
         return roomIds;
     }
 
-    public Optional<Integer> getClassification() {
+    public Optional<ClassifierEnum> getClassification() {
         return classification;
     }
 

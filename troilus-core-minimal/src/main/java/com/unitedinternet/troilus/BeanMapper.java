@@ -312,17 +312,18 @@ class BeanMapper {
             this.fieldName = fieldName;
             this.field = field;
             
+            
             if (Optional.class.isAssignableFrom(field.getType())) {
                 this.optionalWrapper = new GuavaOptionalWrapper();
                 
             } else if (field.getType().getName().equals("java.util.Optional")) {
-                    this.optionalWrapper = new JavaOptionalWrapper();
-
+                this.optionalWrapper = new JavaOptionalWrapper();
+                
             } else {
                 this.optionalWrapper = new NonOptionalWrapper();
             }
         }
-
+        
         
         public Entry<String, Optional<Object>> readProperty(Object bean) {
             
@@ -332,7 +333,6 @@ class BeanMapper {
                 value = field.get(bean);
             } catch (IllegalArgumentException | IllegalAccessException e) { }
             
-            
             return  Maps.immutableEntry(fieldName, optionalWrapper.wrap(value));
         }
 
@@ -340,6 +340,22 @@ class BeanMapper {
         private static interface OptionalWrapper {
             
             Optional<Object> wrap(Object obj);
+        }
+
+        
+        
+        private static class ValueMapper {
+            
+            Optional<Object> map(Optional<Object> value) {
+                return value;
+            }
+        }
+
+        private static final class EnumValueMapper extends ValueMapper {
+            
+            Optional<Object> map(Optional<Object> value) {
+                return value;
+            }
         }
 
         
@@ -387,6 +403,18 @@ class BeanMapper {
     }
     
 
+    
+    private static Type getActualTypeArgument(Type type, int argIndex) {
+        if (type instanceof ParameterizedType) {
+            ParameterizedType paramizedType = (ParameterizedType) type;
+            Type[] types = paramizedType.getActualTypeArguments();
+            if ((types != null) && (types.length > argIndex)) {
+                return types[argIndex];
+            }
+        }
+        
+        return Object.class;
+    }
     
     
     private static class PropertyWriter {
@@ -450,13 +478,13 @@ class BeanMapper {
             }
                 
             if (ImmutableSet.class.isAssignableFrom(clazz)) {
-                value = datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0), Object.class);
+                value = datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0));
                 if (value.isPresent()) {
                     return Optional.<Object>of(ImmutableSet.copyOf((Collection) value.get()));
                 }
 
             } else if (ImmutableList.class.isAssignableFrom(clazz)) {
-                value =  datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0), Object.class);
+                value =  datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0));
                 if (value.isPresent()) {
                     return Optional.<Object>of(ImmutableList.copyOf((Collection) value.get()));
                 }
@@ -469,7 +497,7 @@ class BeanMapper {
                 }
 
             } else {
-                value = datasource.read(fieldName, (Class<Object>) type, Object.class);
+                value = datasource.read(fieldName, (Class<Object>) type);
             }
             
             return value;
@@ -479,20 +507,6 @@ class BeanMapper {
         private boolean isOptional(Class<?> clazz) {
             return Optional.class.isAssignableFrom(clazz) || ((javaOptionalClass != null) && (javaOptionalClass.isAssignableFrom(clazz)));
         }
-        
-        
-        private static Type getActualTypeArgument(Type type, int argIndex) {
-            if (type instanceof ParameterizedType) {
-                ParameterizedType paramizedType = (ParameterizedType) type;
-                Type[] types = paramizedType.getActualTypeArguments();
-                if ((types != null) && (types.length > argIndex)) {
-                    return types[argIndex];
-                }
-            }
-            
-            return Object.class;
-        }
-        
         
         
         private static interface OptionalWrapper {

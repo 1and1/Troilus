@@ -37,7 +37,7 @@ Write a row in a column-oriented way
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
-         .value("classification", 4)
+         .value("classification", ClassifierEnum.FOUR)
          .withWritetime(microsSinceEpoch)
          .execute();
 ```
@@ -48,7 +48,7 @@ Write a row in an entity-oriented way.
 hotelsDao.writeEntity(new Hotel("BUP14334", 
                                 "Richter Panzio",
                                 ImmutableSet.of("1", "2", "3", "4", "5"),
-                                Optional.of(2),
+                                Optional.of(ClassifierEnum.TWO),
                                 Optional.empty()))
          .execute();
 ```
@@ -67,11 +67,15 @@ public class Hotel  {
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
     @Field(name = "classification")
-    private Optional<Integer> classification = Optional.empty();
+    private Optional<ClassifierEnum> classification = Optional.empty();
     
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
 
+    @Field(name = "address")
+    private Address address;
+
+        
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -79,13 +83,15 @@ public class Hotel  {
     public Hotel(String id, 
                  String name, 
                  ImmutableSet<String> roomIds,  
-                 Optional<Integer> classification, 
-                 Optional<String> description) {
+                 Optional<ClassifierEnum> classification, 
+                 Optional<String> description,
+                 Address address) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
+        this.address = address;
     }
 
     public String getId() {
@@ -100,12 +106,16 @@ public class Hotel  {
         return roomIds;
     }
 
-    public Optional<Integer> getClassification() {
+    public Optional<ClassifierEnum> getClassification() {
         return classification;
     }
 
     public Optional<String> getDescription() {
         return description;
+    }
+    
+    public Address getAddress() {
+        return address;
     }
 }
 ```
@@ -129,7 +139,7 @@ hotelsDao.writeWithKey("id","BUP932432")
 ### value update based on where conditions
 ``` java
 hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
-         .value(HotelsTable.CLASSIFICATION, 4)
+         .value(HotelsTable.CLASSIFICATION, ClassifierEnum.FOUR)
          .execute();
   ```               
         
@@ -140,7 +150,7 @@ hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
-         .value("classification", 4)
+         .value("classification", ClassifierEnum.FOUR)
          .withWritetime(microsSinceEpoch)
          .ifNotExits()
          .execute();
@@ -149,8 +159,8 @@ hotelsDao.writeWithKey("id", "BUP932432")
 ***concurrent-safe update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
-         .value("classification", 5)
-         .onlyIf(QueryBuilder.eq("classification", 4))
+         .value(HotelsTable.NAME, "Budapest City")
+         .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
          .execute();
   ```  
        
@@ -216,9 +226,7 @@ public final class HotelTableFields  {
     public static final Name<Set<String>> ROOM_IDS = Name.defineSet("room_ids", String.class);
     public static final Name<Address> ADDRESS = Name.define("address", Address.class);
     public static final Name<String> DESCRIPTION = Name.defineString("description");
-    public static final Name<Integer> CLASSIFICATION = Name.defineInt("classification");
-}
-
+    public static final Name<ClassifierEnum> CLASSIFICATION = Name.define("classification", ClassifierEnum.class);
 }
 ```        
 
@@ -317,7 +325,7 @@ Write a row in a column-oriented way
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
-         .value("classification", 4)
+         .value("classification", ClassifierEnum.FOUR)
          .value("address", new Address("Thököly Ut 111", "Budapest", "1145"))
          .withWritetime(microsSinceEpoch)
          .execute();
@@ -329,7 +337,7 @@ Write a row in a entity-oriented way
 hotelsDao.writeEntity(new Hotel("BUP14334", 
                                 "Richter Panzio",
                                 ImmutableSet.of("1", "2", "3", "4", "5"),
-                                Optional.of(2),
+                                Optional.of(ClassifierEnum.TWO),
                                 Optional.empty(),
                                 new Address("Thököly Ut 111", "Budapest", "1145")))
          .execute();
@@ -348,7 +356,7 @@ public class Hotel  {
     private ImmutableSet<String> roomIds = ImmutableSet.of();
 
     @Field(name = "classification")
-    private Optional<Integer> classification = Optional.empty();
+    private Optional<ClassifierEnum> classification = Optional.empty();
     
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
@@ -356,14 +364,15 @@ public class Hotel  {
     @Field(name = "address")
     private Address address;
 
+        
     
     @SuppressWarnings("unused")
     private Hotel() { }
     
-     public Hotel(String id, 
+    public Hotel(String id, 
                  String name, 
                  ImmutableSet<String> roomIds,  
-                 Optional<Integer> classification, 
+                 Optional<ClassifierEnum> classification, 
                  Optional<String> description,
                  Address address) {
         this.id = id;
@@ -373,7 +382,6 @@ public class Hotel  {
         this.description = description;
         this.address = address;
     }
-
 
     public String getId() {
         return id;
@@ -387,7 +395,7 @@ public class Hotel  {
         return roomIds;
     }
 
-    public Optional<Integer> getClassification() {
+    public Optional<ClassifierEnum> getClassification() {
         return classification;
     }
 
@@ -427,7 +435,7 @@ record = hotelsDao.readWithKey("id", "BUP14334")
                   .execute()
                   .get();
         
-System.out.println(record.getInt("classification"));
+System.out.println(record.getString("classification"));
 System.out.println(record.getObject("address", Address.class));
 ```
 

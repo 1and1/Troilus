@@ -12,6 +12,7 @@ import com.unitedinternet.troilus.Name;
 public final class UsersTableFields  {
     
     public static final Name<String> USER_ID = Name.defineString("user_id");
+    public static final Name<UserType> USER_TYPE = Name.define("user_type", UserType.class);
     public static final Name<String> NAME = Name.defineString("name");
     public static final Name<Boolean> IS_CUSTOMER = Name.defineBool("is_customer");
     public static final Name<ByteBuffer> PICTURE = Name.defineByte("picture");

@@ -9,6 +9,7 @@ public interface UsersTable  {
     public static final String TABLE = "users";
     
     public static final String USER_ID = "user_id";
+    public static final String USER_TYPE = "user_type";
     public static final String NAME = "name";
     public static final String IS_CUSTOMER = "is_customer";
     public static final String PICTURE = "picture";

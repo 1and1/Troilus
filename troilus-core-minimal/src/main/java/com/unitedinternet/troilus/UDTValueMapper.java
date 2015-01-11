@@ -149,9 +149,14 @@ class UDTValueMapper {
         
         PropertiesSource propsSource = new PropertiesSource() {
             
+            @Override
+            public <E> Optional<E> read(String name, Class<?> clazz1) {
+                return read(name, clazz1, Object.class);
+            }
+            
             @SuppressWarnings("unchecked")
             @Override
-            public <E> Optional<E> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+            public <E> Optional<E> read(String name, Class<?> clazz1, Class<?> clazz2) {
                 return Optional.fromNullable((E) fromUdtValue(((UserType) datatype).getFieldType(name), udtValue, clazz1, clazz2, name));
             }
         };
@@ -169,9 +174,14 @@ class UDTValueMapper {
             
             PropertiesSource propsSource = new PropertiesSource() {
                 
+                @Override
+                public <E> Optional<E> read(String name, Class<?> clazz1) {
+                    return read(name, clazz1, Object.class);
+                }
+                
                 @SuppressWarnings("unchecked")
                 @Override
-                public <E> Optional<E> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+                public <E> Optional<E> read(String name, Class<?> clazz1, Class<?> clazz2) {
                     return Optional.fromNullable((E) fromUdtValue(((UserType) datatype).getFieldType(name), elementUdtVal, clazz1, clazz2, name));
                 }
             };
@@ -195,9 +205,14 @@ class UDTValueMapper {
             
             PropertiesSource propsSource = new PropertiesSource() {
                 
+                @Override
+                public <E> Optional<E> read(String name, Class<?> clazz1) {
+                    return read(name, clazz1, Object.class);
+                }
+                
                 @SuppressWarnings("unchecked")
                 @Override
-                public <E> Optional<E>  read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+                public <E> Optional<E>  read(String name, Class<?> clazz1, Class<?> clazz2) {
                     return Optional.fromNullable((E) fromUdtValue(((UserType) datatype).getFieldType(name), elementUdtVal, clazz1, clazz2, name));
                 }
             };
@@ -229,7 +244,12 @@ class UDTValueMapper {
                 PropertiesSource propsSource = new PropertiesSource() {
                     
                     @Override
-                    public <T> Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+                    public <E> Optional<E> read(String name, Class<?> clazz1) {
+                        return read(name, clazz1, Object.class);
+                    }
+                    
+                    @Override
+                    public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
                         return Optional.fromNullable((T) fromUdtValue(((UserType) keyDatatype).getFieldType(name), keyUdtValue, clazz1, clazz2, name));
                     }
                 };
@@ -249,7 +269,12 @@ class UDTValueMapper {
                 PropertiesSource propsSource = new PropertiesSource() {
                     
                     @Override
-                    public <T> Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+                    public <E> Optional<E> read(String name, Class<?> clazz1) {
+                        return read(name, clazz1, Object.class);
+                    }
+                    
+                    @Override
+                    public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
                         return Optional.fromNullable((T) fromUdtValue(((UserType) valueDatatype).getFieldType(name), valueUdtValue, clazz1, clazz2, name));
                     }
                 };

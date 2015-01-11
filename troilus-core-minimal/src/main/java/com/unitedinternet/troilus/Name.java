@@ -51,7 +51,7 @@ public abstract class Name<T> {
     public String getName() { 
         return name;
     }
-    
+
     
     abstract Optional<T> read(PropertiesSource propertiesSource);
     
@@ -107,7 +107,7 @@ public abstract class Name<T> {
         return new MapName<>(name, keyType, valueType);
     }
 
-    
+ 
     /**
      * defines a new name with Long-typed value
      * 
@@ -254,11 +254,13 @@ public abstract class Name<T> {
         
         @SuppressWarnings("unchecked")         
         Optional<T> read(PropertiesSource propertiesSource) {
-            return (Optional<T>) propertiesSource.read(getName(), (Class<Object>) type, Object.class);
+            return (Optional<T>) propertiesSource.read(getName(), (Class<Object>) type);
         }
     }
     
     
+    
+        
     
     /**
      * A list name which defines the class type of the associated list member value type 
@@ -280,7 +282,7 @@ public abstract class Name<T> {
         @SuppressWarnings("unchecked")
         @Override
         Optional<List<T>> read(PropertiesSource propertiesSource) {
-            return propertiesSource.read(getName(), (Class<Object>) elementType, Object.class);
+            return propertiesSource.read(getName(), (Class<Object>) elementType);
         }
     }
     
@@ -307,7 +309,7 @@ public abstract class Name<T> {
         @SuppressWarnings("unchecked")       
         @Override
         Optional<Set<T>> read(PropertiesSource propertiesSource) {
-            return propertiesSource.read(getName(), (Class<Object>) elementType, Object.class);
+            return propertiesSource.read(getName(), (Class<Object>) elementType);
         }
     } 
     

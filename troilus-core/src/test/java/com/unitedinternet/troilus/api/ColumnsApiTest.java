@@ -612,6 +612,31 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("34324543"));
         Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().contains("karlsruhe"));
         Assert.assertEquals("xe333", record.getValue(UsersTableFields.ROLES).get().get("customer"));
+        
+        
+        
+        
+        
+        
+        
+   
+        
+        usersDao.writeWithKey(UsersTableFields.USER_ID, "45436")
+                .value(UsersTableFields.PHONE_NUMBERS, ImmutableSet.of("24234244"))
+                .value(UsersTableFields.IS_CUSTOMER, true)
+                .value(UsersTableFields.USER_TYPE, UserType.METAL)
+                .execute();
+
+        Assert.assertNotNull(info.getQueryTrace());
+        
+        
+        
+        record = usersDao.readWithKey(UsersTableFields.USER_ID, "45436")
+                .execute()
+                .get();
+        
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        
       }        
 }
 

@@ -243,9 +243,29 @@ class Context {
         } 
         
         DataType dataType = getColumnMetadata(name).getType();
-        return (UDTValueMapper.isBuildInType(dataType)) ? value : udtValueMapper.toUdtValue(userTypeCache, getColumnMetadata(name).getType(), value);
+        
+        // build in
+        if (UDTValueMapper.isBuildInType(dataType)) {
+            
+            // enum
+            if (isTextDataType(dataType) && Enum.class.isAssignableFrom(value.getClass())) {
+                return value.toString();
+            }
+            
+            return value;
+         
+        // udt    
+        } else {
+            return udtValueMapper.toUdtValue(userTypeCache, getColumnMetadata(name).getType(), value);
+        }
     }
     
+    
+    boolean isTextDataType(DataType dataType) {
+        return dataType.equals(DataType.text()) ||
+               dataType.equals(DataType.ascii()) ||
+               dataType.equals(DataType.varchar());
+    }
  
     
     private boolean isNullOrEmpty(Object value) {

@@ -21,7 +21,9 @@ import com.google.common.base.Optional;
 
 interface PropertiesSource {
     
-    <T> Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2);
+    <T> Optional<T> read(String name, Class<?> clazz1);
+    
+    <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2);
 }
 
 

@@ -45,6 +45,14 @@ public class BeanMapperWriteTest {
         
         bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.absent())));
         Assert.assertNull(bean.getSet());
+        
+        
+        
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("e", Optional.of(UserType.GOLD))));
+        Assert.assertEquals(UserType.GOLD, bean.getE());
+        
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("oe", Optional.of(UserType.GOLD))));
+        Assert.assertEquals(UserType.GOLD, bean.getOe().get());
     }        
     
     
@@ -63,7 +71,15 @@ public class BeanMapperWriteTest {
        
         @Field(name="set")
         private ImmutableSet<String> set;
+        
+        @Field(name="e")
+        private UserType e;
 
+        @Field(name="oe")
+        private Optional<UserType> oe;
+
+        
+        
         public String getS() {
             return s;
         }
@@ -78,6 +94,14 @@ public class BeanMapperWriteTest {
         
         public ImmutableSet<String> getSet() {
             return set;
+        }
+        
+        public UserType getE() {
+            return e;
+        }
+        
+        public Optional<UserType> getOe() {
+            return oe;
         }
     }
     
@@ -96,7 +120,13 @@ public class BeanMapperWriteTest {
         }
 
         @Override
-        public <T> Optional<T> read(String name, Class<Object> clazz1, Class<Object> clazz2) {
+        public <T> Optional<T> read(String name, Class<?> clazz1) {
+            return read(name, clazz1, Object.class);
+        }
+        
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
             if (properties.get(name) == null) {
                 return Optional.absent();
             }

@@ -2,7 +2,7 @@ CREATE TABLE hotels (
                      id text,
                      name text,
                      description text,	
-                     classification int,
+                     classification text,
                      room_ids set<text>,
                      address frozen<address>,
                      PRIMARY KEY (id)
