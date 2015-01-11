@@ -343,22 +343,6 @@ class BeanMapper {
         }
 
         
-        
-        private static class ValueMapper {
-            
-            Optional<Object> map(Optional<Object> value) {
-                return value;
-            }
-        }
-
-        private static final class EnumValueMapper extends ValueMapper {
-            
-            Optional<Object> map(Optional<Object> value) {
-                return value;
-            }
-        }
-
-        
         private static final class GuavaOptionalWrapper implements OptionalWrapper {
             
             @SuppressWarnings("unchecked")

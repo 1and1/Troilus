@@ -297,7 +297,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CompletableFuture<Result> executeAsync() {
         return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(resultSet -> newResult(resultSet))
                         .thenApply(result ->  {
                                                 // check cas result column '[applied]'
                                                 if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
@@ -471,7 +471,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         
         public CompletableFuture<Result> executeAsync() {
             return new CompletableDbFuture(performAsync(getStatement()))
-                            .thenApply(resultSet -> Result.newResult(resultSet));
+                            .thenApply(resultSet -> newResult(resultSet));
         }
     }
 }

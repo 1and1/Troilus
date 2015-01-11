@@ -175,7 +175,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
                                                     return Optional.<Record>empty();
                                                     
                                                 } else {
-                                                    Record record = newRecord(Result.newResult(resultSet), row);
+                                                    Record record = newRecord(newResult(resultSet), row);
                                                     
                                                     // paranoia check
                                                     data.getKeyNameValuePairs().forEach((name, value) -> { 
@@ -228,7 +228,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().getBeanMapper().fromValues(clazz, record)));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().getBeanMapper().fromValues(clazz, new PropertiesSourceAdapter(record))));
         }        
     }
 }

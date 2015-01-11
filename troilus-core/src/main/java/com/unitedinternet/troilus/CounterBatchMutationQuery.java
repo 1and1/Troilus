@@ -58,6 +58,6 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
     
     public CompletableFuture<Result> executeAsync() {
         return new CompletableDbFuture(performAsync(getStatement()))
-                    .thenApply(resultSet -> Result.newResult(resultSet));
+                    .thenApply(resultSet -> newResult(resultSet));
     }
 }

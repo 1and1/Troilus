@@ -22,13 +22,18 @@ import java.util.concurrent.ExecutionException;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 
 
  
@@ -136,5 +141,60 @@ abstract class AbstractQuery<Q> {
         
         return ctx.getSession().executeAsync(statement);
     }
+    
+    
+    /**
+     * @param rs  the underlying result set
+     * @return the new result 
+     */
+    Result newResult(ResultSet rs) {
+        return new ResultImpl(rs);
+    }
+    
+    
+    private static class ResultImpl implements Result {
+        private final ResultSet rs;
+        
+        public ResultImpl(ResultSet rs) {
+            this.rs = rs;
+        }
+        
+        @Override
+        public boolean wasApplied() {
+            return rs.wasApplied();
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return rs.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return ImmutableList.copyOf(rs.getAllExecutionInfo());
+        }
+        
+
+        public String toString() {
+            StringBuilder builder = new StringBuilder(); 
+            for (ExecutionInfo info : getAllExecutionInfo())  {
+
+                builder.append("queried=" + info.getQueriedHost());
+                builder.append("\r\ntried=")
+                       .append(Joiner.on(",").join(info.getTriedHosts()));
+
+
+                if (info.getAchievedConsistencyLevel() != null) {
+                    builder.append("\r\nachievedConsistencyLevel=" + info.getAchievedConsistencyLevel());
+                }
+                
+                if (info.getQueryTrace() != null) {
+                    builder.append("\r\ntraceid=" + info.getQueryTrace().getTraceId());
+                    builder.append("\r\nevents:\r\n" + Joiner.on("\r\n").join(info.getQueryTrace().getEvents()));
+                }
+            }
+            return builder.toString();
+        }
+    }    
 }
 

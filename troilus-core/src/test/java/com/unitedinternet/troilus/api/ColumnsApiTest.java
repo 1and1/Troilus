@@ -107,6 +107,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTable.IS_CUSTOMER, Optional.of(true))
                 .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                 .value(UsersTable.ADDRESSES, null)
+                .value(UsersTable.PHONE_NUMBERS, Optional.empty())
                 .execute();
 
 

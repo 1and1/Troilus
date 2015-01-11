@@ -16,8 +16,16 @@
 package com.unitedinternet.troilus;
 
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
@@ -36,7 +45,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
-
 
 
  
@@ -66,18 +74,174 @@ abstract class ReadQuery<Q> extends AbstractQuery<Q>  {
     }
     
     protected <E> EntityList<E> newEntityList(RecordList recordList, Class<E> clazz) {
-        return EntityList.newEntityList(getContext(), recordList, clazz); 
+        return newEntityList(getContext(), recordList, clazz); 
     }
     
 
   
     
-    private final class RecordImpl extends Record {
+    private final class RecordImpl implements Record {
+        private final Result result;
+        private final Row row;
+        private final PropertiesSourceAdapter propertiesSourceAdapter;
         
-        public RecordImpl(Result result, Row row) {
-            super(result, row);
+        RecordImpl(Result result, Row row) {
+            this.result = result;
+            this.row = row;
+            this.propertiesSourceAdapter = new PropertiesSourceAdapter(this);
         }
-  
+
+        /**
+         * @return the underlying row
+         */
+        Row getRow() {
+            return row;
+        }
+        
+        /**
+         * @return  the columns returned in this ResultSet
+         */
+        ColumnDefinitions getColumnDefinitions() {
+            return row.getColumnDefinitions();
+        }
+        
+   
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return result.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return result.getAllExecutionInfo();
+        }
+        
+
+        @Override
+        public boolean wasApplied() {
+            return result.wasApplied();
+        }
+
+      
+        @Override
+        public Optional<Long> getWritetime(String name) {
+            try {
+                return row.isNull("WRITETIME(" + name + ")") ? Optional.empty() : Optional.of(row.getLong("WRITETIME(" + name + ")"));
+            } catch (IllegalArgumentException iae) {
+                return Optional.empty();
+            }
+        }
+      
+        
+        @Override       
+        public Optional<Duration> getTtl(String name) {
+            try {
+                return row.isNull("TTL(" + name + ")") ? Optional.empty() : Optional.of(Duration.ofSeconds(row.getInt("TTL(" + name + ")")));
+            } catch (IllegalArgumentException iae) {
+                return Optional.empty();
+            }
+        }
+        
+
+        @Override
+        public boolean isNull(String name) {
+            return row.isNull(name);
+        }
+         
+
+        @Override
+        public Optional<Long> getLong(String name) {
+            return Optional.ofNullable(row.getLong(name));
+        }
+        
+
+        @Override
+        public Optional<String> getString(String name) {
+            return Optional.ofNullable(row.getString(name));
+        }
+        
+
+        @Override
+        public Optional<Boolean> getBool(String name) {
+            return Optional.ofNullable(row.getBool(name));
+        }
+        
+
+        @Override
+        public Optional<ByteBuffer> getBytes(String name) {
+            return Optional.ofNullable(row.getBytes(name));
+        }
+         
+
+        @Override
+        public Optional<ByteBuffer> getBytesUnsafe(String name) {
+            return Optional.ofNullable(row.getBytesUnsafe(name));
+        }
+        
+
+        @Override
+        public Optional<Float> getFloat(String name) {
+            return Optional.ofNullable(row.getFloat(name));
+        }
+
+
+        @Override
+        public Optional<Date> getDate(String name) {
+            return Optional.ofNullable(row.getDate(name));
+        }
+         
+
+        @Override
+        public Optional<BigDecimal> getDecimal(String name) {
+            return Optional.ofNullable(row.getDecimal(name));
+        }
+        
+
+        @Override
+        public Optional<Integer> getInt(String name) {
+            return Optional.ofNullable(row.getInt(name));
+        }
+        
+
+        @Override
+        public Optional<InetAddress> getInet(String name) {
+            return Optional.ofNullable(row.getInet(name));
+        }
+         
+
+        @Override
+        public Optional<BigInteger> getVarint(String name) {
+            return Optional.ofNullable(row.getVarint(name));
+        }
+      
+
+        @Override
+        public Optional<UUID> getUUID(String name) {
+            return Optional.ofNullable(row.getUUID(name));
+        }
+       
+
+        @Override
+        public Optional<UDTValue> getUDTValue(String name) {
+            return Optional.ofNullable(row.getUDTValue(name));
+        }
+        
+        
+        @Override
+        public Optional<Instant> getInstant(String name) {
+            return getLong(name).map(millis -> Instant.ofEpochMilli(millis));
+        }
+      
+        @Override
+        public <T extends Enum<T>> Optional<T> getEnum(String name, Class<T> enumType) {
+            return getObject(name, enumType);
+        }
+        
+        @Override
+        public <T> Optional<T> getValue(Name<T> name) {
+            return Optional.ofNullable(name.read(propertiesSourceAdapter).orNull());
+        }
+        
         @SuppressWarnings({ "unchecked", "rawtypes" })
         public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
             if (isNull(name)) {
@@ -182,7 +346,8 @@ abstract class ReadQuery<Q> extends AbstractQuery<Q>  {
     }
     
     
-    private final class RecordListImpl extends RecordList {
+    
+    private final class RecordListImpl implements RecordList {
         private final ResultSet rs;
 
         private final Iterator<Row> iterator;
@@ -309,6 +474,100 @@ abstract class ReadQuery<Q> extends AbstractQuery<Q>  {
             
             @Override
             public void cancel() {
+                subscriber.onComplete();
+            }
+        }
+    }
+    
+    
+    
+    static <F> EntityList<F> newEntityList(Context ctx, RecordList recordList, Class<F> clazz) {
+        return new EntityListImpl<>(ctx, recordList, clazz);
+    }
+    
+    
+
+    private static final class EntityListImpl<F> implements EntityList<F> {
+        private final Context ctx;
+        private final RecordList recordList;
+        private final Class<F> clazz;
+
+        
+        public EntityListImpl(Context ctx, RecordList recordList, Class<F> clazz) {
+            this.ctx = ctx;
+            this.recordList = recordList;
+            this.clazz = clazz;
+        }
+
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return recordList.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return recordList.getAllExecutionInfo();
+        }
+        
+        @Override
+        public boolean wasApplied() {
+            return recordList.wasApplied();
+        }
+
+        @Override
+        public Iterator<F> iterator() {
+
+            return new Iterator<F>() {
+                private final Iterator<Record> recordIt = recordList.iterator();
+                
+                @Override
+                public boolean hasNext() {
+                    return recordIt.hasNext();
+                }
+            
+                
+                @Override
+                public F next() {
+                    return ctx.getBeanMapper().fromValues(clazz, new PropertiesSourceAdapter(recordIt.next()));
+                }
+            };
+        }
+        
+         
+        @Override
+        public void subscribe(Subscriber<? super F> subscriber) {
+            recordList.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));
+        }
+        
+        private final class MappingSubscriber<G> implements Subscriber<Record> {
+            private final Context ctx;
+            private final Class<?> clazz;
+            
+            private Subscriber<? super G> subscriber;
+            
+            public MappingSubscriber(Context ctx, Class<?> clazz, Subscriber<? super G> subscriber) {
+                this.ctx = ctx;
+                this.clazz = clazz;
+                this.subscriber = subscriber;
+            }
+            
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subscriber.onSubscribe(subscription);
+            }
+            
+            @Override
+            public void onNext(Record record) {
+                subscriber.onNext(ctx.getBeanMapper().fromValues(clazz, new PropertiesSourceAdapter(record)));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                subscriber.onError(t);
+            }
+            
+            @Override
+            public void onComplete() {
                 subscriber.onComplete();
             }
         }

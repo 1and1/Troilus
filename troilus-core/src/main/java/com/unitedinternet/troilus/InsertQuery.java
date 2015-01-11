@@ -95,7 +95,7 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     @Override
     public CompletableFuture<Result> executeAsync() {
         return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(resultSet -> newResult(resultSet))
                         .thenApply(result -> {
                                                 data.getIfNotExits().ifPresent(ifNotExists -> {
                                                     // check cas result column '[applied]'

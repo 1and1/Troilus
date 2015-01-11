@@ -102,7 +102,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     public CompletableFuture<Result> executeAsync() {
         return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> Result.newResult(resultSet))
+                        .thenApply(resultSet -> newResult(resultSet))
                         .thenApply(result -> {
                                                 // check cas result column '[applied]'
                                                 if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
