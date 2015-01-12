@@ -25,11 +25,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.interceptor.DeleteQueryData;
-import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.WriteQueryData;
 
  
 
@@ -312,6 +308,6 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryData().columnsToFetch(Optional.empty()));
+        return new ListReadQuery(ctx, new ListReadQueryData().columnsToFetch(ImmutableMap.of()));
     }
 }

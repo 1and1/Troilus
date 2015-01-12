@@ -16,32 +16,22 @@
 package com.unitedinternet.troilus;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Select;
-import com.datastax.driver.core.querybuilder.Select.Selection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;;
 
 
 
@@ -128,45 +118,12 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
     }
     
     
-    private Statement toStatement(SingleReadQueryData queryData) {
-        Selection selection = select();
-        
-        if (queryData.getColumnsToFetch().isPresent()) {
-            
-            queryData.getColumnsToFetch().get().forEach((columnName, withMetaData) -> selection.column(columnName));
-            queryData.getColumnsToFetch().get().entrySet()
-                                               .stream()
-                                               .filter(entry -> entry.getValue())
-                                               .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-
-            // add key columns for paranoia checks
-            queryData.getKeyNameValuePairs().keySet()
-                                            .stream()
-                                            .filter(columnName -> !queryData.getColumnsToFetch().get().containsKey(columnName))
-                                            .forEach(columnName -> selection.column(columnName));  
-            
-        } else {
-            selection.all();
-        }
-        
-        
-        
-        Select select = selection.from(getContext().getTable());
-        
-        ImmutableSet<Clause> whereConditions = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
-        whereConditions.forEach(whereCondition -> select.where(whereCondition));
-        
-        List<Object> values = Lists.newArrayList();
-        queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
-
-        return prepare(select).bind(values.toArray());
-    }
-    
+  
     
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
         SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
-        Statement statement = toStatement(preprocessedData);
+        Statement statement = preprocessedData.toStatement(getContext());
         
         return new CompletableDbFuture(performAsync(statement))
                     .thenApply(resultSet -> {

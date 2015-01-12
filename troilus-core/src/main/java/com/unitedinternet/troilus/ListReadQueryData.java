@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus;
 
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.Optional;
 
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -28,16 +32,16 @@ import com.google.common.collect.ImmutableSet;
 public class ListReadQueryData {
 
     final ImmutableSet<Clause> whereClauses;
-    final Optional<ImmutableMap<String, Boolean>> columnsToFetch;
+    final ImmutableMap<String, Boolean> columnsToFetch;
     final Optional<Integer> optionalLimit;
     final Optional<Boolean> optionalAllowFiltering;
     final Optional<Integer> optionalFetchSize;
     final Optional<Boolean> optionalDistinct;
 
     
-    public ListReadQueryData() {
+    ListReadQueryData() {
         this(ImmutableSet.of(), 
-             Optional.empty(),
+             ImmutableMap.of(),
              Optional.empty(),
              Optional.empty(),
              Optional.empty(),
@@ -46,7 +50,7 @@ public class ListReadQueryData {
 
     
     private ListReadQueryData(ImmutableSet<Clause> whereClauses, 
-                             Optional<ImmutableMap<String, Boolean>> columnsToFetch, 
+                             ImmutableMap<String, Boolean> columnsToFetch, 
                              Optional<Integer> optionalLimit, 
                              Optional<Boolean> optionalAllowFiltering,
                              Optional<Integer> optionalFetchSize,
@@ -71,7 +75,7 @@ public class ListReadQueryData {
     }
 
     
-    public ListReadQueryData columnsToFetch(Optional<ImmutableMap<String, Boolean>> columnsToFetch) {
+    public ListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
         return new ListReadQueryData(this.whereClauses,
                                      columnsToFetch,
                                      this.optionalLimit,
@@ -125,7 +129,7 @@ public class ListReadQueryData {
         return whereClauses;
     }
 
-    public Optional<ImmutableMap<String, Boolean>> getColumnsToFetch() {
+    public ImmutableMap<String, Boolean> getColumnsToFetch() {
         return columnsToFetch;
     }
 
@@ -143,5 +147,33 @@ public class ListReadQueryData {
 
     public Optional<Boolean> getDistinct() {
         return optionalDistinct;
+    }
+    
+    
+    Statement toStatement(Context ctx) {
+        Select.Selection selection = select();
+
+        getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
+
+        
+        if (getColumnsToFetch().isEmpty()) {
+            selection.all();
+        } else {
+            getColumnsToFetch().forEach((columnName, withMetaData) -> selection.column(columnName));
+            getColumnsToFetch().entrySet()
+                                         .stream()
+                                         .filter(entry -> entry.getValue())
+                                         .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
+        }
+        
+        Select select = selection.from(ctx.getTable());
+        
+        getWhereClauses().forEach(whereClause -> select.where(whereClause));
+
+        getLimit().ifPresent(limit -> select.limit(limit));
+        getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
+        getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
+        
+        return select;
     }
 }

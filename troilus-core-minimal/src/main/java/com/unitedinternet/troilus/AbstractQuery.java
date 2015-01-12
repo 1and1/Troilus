@@ -16,22 +16,16 @@
 package com.unitedinternet.troilus;
 
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
-
 
 
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
-import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
@@ -93,30 +87,6 @@ abstract class AbstractQuery<Q> {
     }
 
   
-    
-    protected PreparedStatement prepare(BuiltStatement statement) {
-        try {
-            return ctx.getPreparedStatementsCache().get(statement.getQueryString(), new PreparedStatementLoader(statement));
-        } catch (ExecutionException e) {
-            throw Exceptions.unwrapIfNecessary(e);
-        }
-    }
-    
-    
-    public class PreparedStatementLoader implements Callable<PreparedStatement> { 
-        private final BuiltStatement statement;
-    
-        public PreparedStatementLoader(BuiltStatement statement) {
-            this.statement = statement;
-        }
-
-        @Override
-        public PreparedStatement call() throws Exception {
-            return ctx.getSession().prepare(statement);
-        } 
-     }
-    
-    
     
     protected ResultSetFuture performAsync(Statement statement) {
         if (getContext().getConsistencyLevel() != null) {

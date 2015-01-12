@@ -98,13 +98,13 @@ public interface Record extends Result {
     
     /**
      * @param name the column name 
-     * @return
+     * @return value of column name as a date
      */
     Optional<Date> getDate(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a date
+     * @return the value of column name as a dedcimal
      */
     Optional<BigDecimal> getDecimal(String name);
     

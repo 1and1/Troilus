@@ -19,12 +19,14 @@ package com.unitedinternet.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
+
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -32,7 +34,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.CounterBatchMutation;
 import com.unitedinternet.troilus.Dao.CounterBatchable;
 import com.unitedinternet.troilus.Dao.Insertion;
@@ -41,12 +44,11 @@ import com.unitedinternet.troilus.Dao.UpdateWithValuesAndCounter;
 import com.unitedinternet.troilus.Dao.Write;
 import com.unitedinternet.troilus.Dao.WriteWithCounter;
 import com.unitedinternet.troilus.Dao.CounterMutation;
-import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 
 
  
-class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
     private final WriteQueryData data;
     
@@ -59,6 +61,19 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     @Override
     protected UpdateQuery newQuery(Context newContext) {
         return new UpdateQuery(newContext, data);
+    }
+    
+    public UpdateQuery withTtl(Duration ttl) {
+        return newQuery(getContext().withTtl(ttl.getSeconds()));
+    }
+    
+    public BatchMutation combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+    }
+       
+    @Override
+    public void addTo(BatchStatement batchStatement) {
+        batchStatement.add(getStatement());
     }
     
     
@@ -200,97 +215,14 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     }
     
     
-    private Object toStatementValue(String name, Object value) {
-        return getContext().toStatementValue(name, value);
-    }
-    
-    
-    private ImmutableSet<Object> toStatementValue(String name, ImmutableSet<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toSet());
-    }
-
-    
-    private ImmutableList<Object> toStatementValue(String name, ImmutableList<Object> values) {
-        return values.stream().map(value -> toStatementValue(name, value)).collect(Immutables.toList());
-    }
-  
-    
-    private Map<Object, Object> toStatementValue(String name, ImmutableMap<Object, Optional<Object>> map) {
-        Map<Object, Object> m = Maps.newHashMap();
-        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(name, toStatementValue(name, entry.getKey())), toStatementValue(name, entry.getValue().orElse(null)));
-        }
-        return m;
-    }
-    
-
-    
-
-    private Statement toStatement(WriteQueryData queryData) {
-        com.datastax.driver.core.querybuilder.Update update = update(getContext().getTable());
         
-        queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-
-        
-        // key-based update
-        if (queryData.getWhereConditions().isEmpty()) {
-            List<Object> values = Lists.newArrayList();
-            
-            queryData.getValuesToMutate().forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(name, optionalValue.orElse(null))); });
-
-            queryData.getSetValuesToAdd().forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            queryData.getSetValuesToRemove().forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            
-            queryData.getListValuesToPrepend().forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            queryData.getListValuesToAppend().forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-            queryData.getListValuesToRemove().forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(name, vals)); });
-
-            queryData.getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(name, map)); });
-            
-            
-            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))); } );
-            
-            queryData.getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-            
-            if (getContext().getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add(getContext().getTtlSec().intValue()); 
-            }
-            
-            return prepare(update).bind(values.toArray());
-
-            
-        // where condition-based update
-        } else {
-            queryData.getValuesToMutate().forEach((name, optionalValue) -> update.with(set(name, toStatementValue(name, optionalValue.orElse(null)))));
-        
-            queryData.getSetValuesToAdd().forEach((name, vals) -> update.with(addAll(name, toStatementValue(name, vals))));
-            queryData.getSetValuesToRemove().forEach((name, vals) -> update.with(removeAll(name, toStatementValue(name, vals))));
-
-            queryData.getListValuesToPrepend().forEach((name, vals) -> update.with(prependAll(name, toStatementValue(name, vals))));
-            queryData.getListValuesToAppend().forEach((name, vals) -> update.with(appendAll(name, toStatementValue(name, vals))));
-            queryData.getListValuesToRemove().forEach((name, vals) -> update.with(discardAll(name, toStatementValue(name, vals))));
-            
-            queryData.getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, toStatementValue(name, map))));
-
-            if (getContext().getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(getContext().getTtlSec().intValue()));
-            }
-
-            queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
-            
-            return update;
-        }
-    }
-    
-    @Override
-    protected Statement getStatement() {
+    private Statement getStatement() {
         WriteQueryData queryData = data;
         for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData);
         }
         
-        return toStatement(queryData);
+        return queryData.toStatement(getContext());
     }
     
     
@@ -397,7 +329,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
     
     
     
-    private static final class CounterMutationQuery extends MutationQuery<CounterMutation> implements CounterMutation {
+    private static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
         
         private final CounterMutationQueryData data;
 
@@ -412,10 +344,19 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         }
    
         @Override
+        public CounterMutation withTtl(Duration ttl) {
+            return newQuery(getContext().withTtl(ttl.getSeconds()));
+        }
+        
+        @Override
         public CounterBatchMutation combinedWith(CounterBatchable other) {
             return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
         }
    
+        @Override
+        public void addTo(BatchStatement batchStatement) {
+            batchStatement.add(getStatement());
+        }
         
         private Statement toStatement(CounterMutationQueryData queryData) {
             com.datastax.driver.core.querybuilder.Update update = update(getContext().getTable());
@@ -440,7 +381,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
                     values.add(getContext().getTtlSec().intValue());
                 }
                 
-                return prepare(update).bind(values.toArray());
+                return getContext().prepare(update).bind(values.toArray());
 
                 
             // where condition-based update
@@ -463,8 +404,7 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
             }
         }
         
-        @Override 
-        protected Statement getStatement() {
+        private Statement getStatement() {
             return toStatement(data);
         }
 

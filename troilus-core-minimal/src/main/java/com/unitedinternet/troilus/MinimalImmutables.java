@@ -30,6 +30,10 @@ import com.google.common.collect.Maps;
  */
 class MinimalImmutables {
 
+    /*
+     * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
+     */
+    
 
     /**
      * merges a new entry into a set

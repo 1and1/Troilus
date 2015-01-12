@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import com.datastax.driver.core.ColumnMetadata;
@@ -28,6 +29,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
+import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -224,10 +226,6 @@ class Context {
         return interceptorRegistry;
     }
 
-    Cache<String, PreparedStatement> getPreparedStatementsCache() {
-        return preparedStatementsCache;
-    }
-     
     ColumnMetadata getColumnMetadata(String columnName) {
         try {
             return columnMetadataCache.get(columnName);
@@ -273,6 +271,30 @@ class Context {
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
                (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
+    
+    
+
+    PreparedStatement prepare(BuiltStatement statement) {
+        try {
+            return preparedStatementsCache.get(statement.getQueryString(), new PreparedStatementLoader(statement));
+        } catch (ExecutionException e) {
+            throw Exceptions.unwrapIfNecessary(e);
+        }
+    }
+    
+    
+    private class PreparedStatementLoader implements Callable<PreparedStatement> { 
+        private final BuiltStatement statement;
+    
+        public PreparedStatementLoader(BuiltStatement statement) {
+            this.statement = statement;
+        }
+
+        @Override
+        public PreparedStatement call() throws Exception {
+            return getSession().prepare(statement);
+        } 
+     }
     
     
     protected static class ExecutionSpec {

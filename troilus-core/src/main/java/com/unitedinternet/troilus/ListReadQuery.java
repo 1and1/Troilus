@@ -25,10 +25,10 @@ import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
-import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
@@ -57,7 +57,7 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
     
     @Override
     public ListReadQuery all() {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Optional.empty()));
+        return new ListReadQuery(getContext(), data.columnsToFetch(ImmutableMap.of()));
     }
     
  
@@ -138,34 +138,6 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
         return new ListEntityReadQuery<>(getContext(), this, objectClass) ;
     }
 
-   
-    
-    private Statement toStatement(ListReadQueryData queryData) {
-        Select.Selection selection = select();
-
-        queryData.getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
-
-        
-        if (queryData.getColumnsToFetch().isPresent()) {
-            queryData.getColumnsToFetch().get().forEach((columnName, withMetaData) -> selection.column(columnName));
-            queryData.getColumnsToFetch().get().entrySet()
-                                               .stream()
-                                               .filter(entry -> entry.getValue())
-                                               .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-        } else {
-            selection.all();
-        }
-        
-        Select select = selection.from(getContext().getTable());
-        
-        queryData.getWhereClauses().forEach(whereClause -> select.where(whereClause));
-
-        queryData.getLimit().ifPresent(limit -> select.limit(limit));
-        queryData.getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
-        queryData.getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
-        
-        return select;
-    }
     
 
     private ListReadQueryData getPreprocessedData() {
@@ -182,7 +154,7 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
     @Override
     public CompletableFuture<RecordList> executeAsync() {
         ListReadQueryData preprocessedData = getPreprocessedData(); 
-        Statement statement = toStatement(preprocessedData);
+        Statement statement = preprocessedData.toStatement(getContext());
         
         return new CompletableDbFuture(performAsync(statement))
                   .thenApply(resultSet -> newRecordList(resultSet))

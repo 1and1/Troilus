@@ -17,32 +17,26 @@ package com.unitedinternet.troilus;
 
 
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-
-import java.util.List;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.querybuilder.Clause;
 
-
-import com.datastax.driver.core.querybuilder.Delete;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Deletion;
-import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
 
 
 
  
-class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
+class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
     private final DeleteQueryData data;
-    
       
     protected DeleteQuery(Context ctx, DeleteQueryData data) {
         super(ctx);
@@ -50,7 +44,18 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     }
 
 
+    public Deletion withTtl(Duration ttl) {
+        return newQuery(getContext().withTtl(ttl.getSeconds()));
+    }
     
+    public BatchMutation combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+    }
+       
+    @Override
+    public void addTo(BatchStatement batchStatement) {
+        batchStatement.add(getStatement());
+    }
 
 
     @Override
@@ -64,40 +69,14 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
     
-    
-    private Statement toStatement(DeleteQueryData queryData) {
-        Delete delete = delete().from(getContext().getTable());
-        
-        // key-based delete    
-        if (queryData.getWhereConditions().isEmpty()) {
-            queryData.getOnlyIfConditions().forEach(condition -> delete.onlyIf(condition));
-            
-            ImmutableSet<Clause> whereClauses = queryData.getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
-            whereClauses.forEach(whereClause -> delete.where(whereClause));
-            
-            List<Object> values = Lists.newArrayList();
-            queryData.getKeyNameValuePairs().keySet().forEach(keyname -> values.add(getContext().toStatementValue(keyname, queryData.getKeyNameValuePairs().get(keyname))));
-            
-            return prepare(delete).bind(values.toArray());
-
-            
-        // where condition-based delete    
-        } else {
-            queryData.getOnlyIfConditions().forEach(condition -> delete.onlyIf(condition));
-            queryData.getWhereConditions().forEach(whereClause -> delete.where(whereClause));
-           
-            return delete;
-        }        
-    }
- 
-    @Override
-    public Statement getStatement() {
+   
+    private Statement getStatement() {
         DeleteQueryData queryData = data;
         for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreDelete(queryData); 
         }
 
-        return toStatement(queryData);
+        return queryData.toStatement(getContext());
     }
     
     public CompletableFuture<Result> executeAsync() {

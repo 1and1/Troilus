@@ -11,7 +11,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+import com.unitedinternet.troilus.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 
 

@@ -360,7 +360,7 @@ public class Hotel  {
     private Optional<String> description = Optional.empty();
 
     @Field(name = "address")
-    private Address address;
+    private Address address = null;
 
         
     

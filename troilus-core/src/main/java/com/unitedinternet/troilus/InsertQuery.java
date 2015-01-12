@@ -16,26 +16,24 @@
 package com.unitedinternet.troilus;
 
 
-import java.util.List;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
 
-import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import com.unitedinternet.troilus.Dao.BatchMutation;
+import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
-import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 
 
  
-class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
+class InsertionQuery extends AbstractQuery<Insertion> implements Insertion {
     
     private final WriteQueryData data;
   
@@ -49,6 +47,19 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
     protected InsertionQuery newQuery(Context newContext) {
         return new InsertionQuery(newContext, data);
     }
+    
+    public InsertionQuery withTtl(Duration ttl) {
+        return newQuery(getContext().withTtl(ttl.getSeconds()));
+    }
+    
+    public BatchMutation combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+    }
+       
+    @Override
+    public void addTo(BatchStatement batchStatement) {
+        batchStatement.add(getStatement());
+    }
 
     
     @Override
@@ -56,39 +67,14 @@ class InsertionQuery extends MutationQuery<Insertion> implements Insertion {
         return new InsertionQuery(getContext(), data.ifNotExists(Optional.of(true)));
     }
 
-    
-    private Statement toStatement(WriteQueryData queryData) {
-        Insert insert = insertInto(getContext().getTable());
-        
-        List<Object> values = Lists.newArrayList();
-        queryData.getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(getContext().toStatementValue(name, optionalValue.orElse(null))); } ); 
-        
-        
-        queryData.getIfNotExits().ifPresent(ifNotExits -> {
-                                                            insert.ifNotExists();
-                                                            if (getContext().getSerialConsistencyLevel() != null) {
-                                                                insert.setSerialConsistencyLevel(getContext().getSerialConsistencyLevel());
-                                                            }
-                                                          });
-
-        if (getContext().getTtlSec() != null) {
-            insert.using(ttl(bindMarker()));  
-            values.add(getContext().getTtlSec().intValue());
-        }
-
-        PreparedStatement stmt = prepare(insert);
-        return stmt.bind(values.toArray());
-    }
-
-
-    @Override
-    protected Statement getStatement() {
+  
+    private Statement getStatement() {
         WriteQueryData queryData = data;
         for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData); 
         }
         
-        return toStatement(queryData);
+        return queryData.toStatement(getContext());
     }
     
     

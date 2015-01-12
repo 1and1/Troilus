@@ -13,30 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus;
+
+
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+
+
+
+import java.util.List;
+import java.util.Map.Entry;
 
 import com.datastax.driver.core.querybuilder.Clause;
+
+
+import com.datastax.driver.core.querybuilder.Delete;
+import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
 
 
 
  
 public class DeleteQueryData {
-    
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
      
 
-    public DeleteQueryData() {
-        this(ImmutableMap.of(), ImmutableList.of(), ImmutableList.of());
+    DeleteQueryData() {
+        this(ImmutableMap.<String, Object>of(), 
+             ImmutableList.<Clause>of(), 
+             ImmutableList.<Clause>of());
     }
     
     
     private DeleteQueryData(ImmutableMap<String, Object> keyNameValuePairs, 
-                    ImmutableList<Clause> whereConditions, 
-                    ImmutableList<Clause> onlyIfConditions) {
+                            ImmutableList<Clause> whereConditions, 
+                            ImmutableList<Clause> onlyIfConditions) {   
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.onlyIfConditions = onlyIfConditions;
@@ -74,5 +92,38 @@ public class DeleteQueryData {
 
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
+    }
+    
+    
+    Statement toStatement(Context ctx) {
+        Delete delete = delete().from(ctx.getTable());
+
+        for (Clause onlyIfCondition : getOnlyIfConditions()) {
+            delete.onlyIf(onlyIfCondition);
+        }
+
+        
+        // key-based delete    
+        if (getWhereConditions().isEmpty()) {
+            List<Object> values = Lists.newArrayList();
+            
+            for (Entry<String, Object> entry : getKeyNameValuePairs().entrySet()) {
+                Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
+                delete.where(keybasedWhereClause);
+                                
+                values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
+            }
+            
+            return ctx.prepare(delete).bind(values.toArray());
+
+            
+        // where condition-based delete    
+        } else {
+            for (Clause whereCondition : getWhereConditions()) {
+                delete.where(whereCondition);
+            }
+           
+            return delete;
+        }        
     }
 }

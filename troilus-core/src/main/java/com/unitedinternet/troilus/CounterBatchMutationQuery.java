@@ -29,7 +29,7 @@ import com.unitedinternet.troilus.Dao.CounterBatchable;
 
  
 
-class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> implements CounterBatchMutation {
+class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> implements CounterBatchMutation {
     private final ImmutableList<CounterBatchable> batchables;
     
     
@@ -48,8 +48,7 @@ class CounterBatchMutationQuery extends MutationQuery<CounterBatchMutation> impl
         return new CounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
     }
 
-    @Override
-    public Statement getStatement() {
+    private Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;

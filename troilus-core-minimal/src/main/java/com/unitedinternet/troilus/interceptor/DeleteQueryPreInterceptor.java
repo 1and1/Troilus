@@ -15,6 +15,9 @@
  */
 package com.unitedinternet.troilus.interceptor;
 
+import com.unitedinternet.troilus.DeleteQueryData;
+
+
 
 
 

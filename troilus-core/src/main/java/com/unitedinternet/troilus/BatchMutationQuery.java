@@ -31,7 +31,7 @@ import com.unitedinternet.troilus.Dao.Query;
 
  
 
-class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMutation {
+class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
@@ -62,8 +62,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
         return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
-    @Override
-    public Statement getStatement() {
+    private Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(type);
         batchables.forEach(batchable -> batchable.addTo(batchStmt));
         return batchStmt;

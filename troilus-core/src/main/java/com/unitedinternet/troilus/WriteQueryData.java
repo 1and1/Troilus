@@ -13,16 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus;
 
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.addAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.appendAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.discardAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.prependAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.putAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.removeAll;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.function.Supplier;
 
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 
  
@@ -44,7 +66,7 @@ public class WriteQueryData {
     
     
 
-    public WriteQueryData() {
+    WriteQueryData() {
         this(ImmutableMap.of(),
              ImmutableList.of(),
              ImmutableMap.of(),
@@ -323,5 +345,123 @@ public class WriteQueryData {
     
     public Optional<Boolean> getIfNotExits() {
         return ifNotExists;
+    }
+    
+    
+    
+    Statement toStatement(Context ctx) {
+        if (getIfNotExits().isPresent() || 
+            (getKeyNameValuePairs().isEmpty() && getWhereConditions().isEmpty())) {
+            return toInsertStatement(ctx);
+        } else {
+            return toUpdateStatement(ctx);
+        }
+    }
+    
+    
+    private Statement toInsertStatement(Context ctx) {
+        Insert insert = insertInto(ctx.getTable());
+        
+        List<Object> values = Lists.newArrayList();
+        getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(ctx.toStatementValue(name, optionalValue.orElse(null))); } ); 
+        
+        
+        getIfNotExits().ifPresent(ifNotExits -> {
+                                                            insert.ifNotExists();
+                                                            if (ctx.getSerialConsistencyLevel() != null) {
+                                                                insert.setSerialConsistencyLevel(ctx.getSerialConsistencyLevel());
+                                                            }
+                                                          });
+
+        if (ctx.getTtlSec() != null) {
+            insert.using(ttl(bindMarker()));  
+            values.add(ctx.getTtlSec().intValue());
+        }
+
+        PreparedStatement stmt = ctx.prepare(insert);
+        return stmt.bind(values.toArray());
+    }
+    
+    
+    
+    private Statement toUpdateStatement(Context ctx) {
+        com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
+        
+        getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
+
+        
+        // key-based update
+        if (getWhereConditions().isEmpty()) {
+            List<Object> values = Lists.newArrayList();
+            
+            getValuesToMutate().forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(ctx, name, optionalValue.orElse(null))); });
+
+            getSetValuesToAdd().forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
+            getSetValuesToRemove().forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
+            
+            getListValuesToPrepend().forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
+            getListValuesToAppend().forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
+            getListValuesToRemove().forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
+
+            getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(ctx, name, map)); });
+            
+            
+            getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(toStatementValue(ctx, keyname, getKeyNameValuePairs().get(keyname))); } );
+            
+            getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
+            
+            if (ctx.getTtlSec() != null) {
+                update.using(QueryBuilder.ttl(bindMarker())); 
+                values.add(ctx.getTtlSec().intValue()); 
+            }
+            
+            return ctx.prepare(update).bind(values.toArray());
+
+            
+        // where condition-based update
+        } else {
+            getValuesToMutate().forEach((name, optionalValue) -> update.with(set(name, toStatementValue(ctx, name, optionalValue.orElse(null)))));
+        
+            getSetValuesToAdd().forEach((name, vals) -> update.with(addAll(name, toStatementValue(ctx, name, vals))));
+            getSetValuesToRemove().forEach((name, vals) -> update.with(removeAll(name, toStatementValue(ctx, name, vals))));
+
+            getListValuesToPrepend().forEach((name, vals) -> update.with(prependAll(name, toStatementValue(ctx, name, vals))));
+            getListValuesToAppend().forEach((name, vals) -> update.with(appendAll(name, toStatementValue(ctx, name, vals))));
+            getListValuesToRemove().forEach((name, vals) -> update.with(discardAll(name, toStatementValue(ctx, name, vals))));
+            
+            getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, toStatementValue(ctx, name, map))));
+
+            if (ctx.getTtlSec() != null) {
+                update.using(QueryBuilder.ttl(ctx.getTtlSec().intValue()));
+            }
+
+            getWhereConditions().forEach(whereClause -> update.where(whereClause));
+            
+            return update;
+        }
+    }
+    
+
+    private Object toStatementValue(Context ctx, String name, Object value) {
+        return ctx.toStatementValue(name, value);
+    }
+    
+    
+    private ImmutableSet<Object> toStatementValue(Context ctx, String name, ImmutableSet<Object> values) {
+        return values.stream().map(value -> toStatementValue(ctx, name, value)).collect(Immutables.toSet());
+    }
+
+    
+    private ImmutableList<Object> toStatementValue(Context ctx, String name, ImmutableList<Object> values) {
+        return values.stream().map(value -> toStatementValue(ctx, name, value)).collect(Immutables.toList());
+    }
+  
+    
+    private Map<Object, Object> toStatementValue(Context ctx, String name, ImmutableMap<Object, Optional<Object>> map) {
+        Map<Object, Object> m = Maps.newHashMap();
+        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
+            m.put(toStatementValue(ctx, name, toStatementValue(ctx, name, entry.getKey())), toStatementValue(ctx, name, entry.getValue().orElse(null)));
+        }
+        return m;
     }
 }
