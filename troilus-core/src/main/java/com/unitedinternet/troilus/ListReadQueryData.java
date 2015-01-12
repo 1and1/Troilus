@@ -16,13 +16,10 @@
 package com.unitedinternet.troilus;
 
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-
 import java.util.Optional;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -31,149 +28,67 @@ import com.google.common.collect.ImmutableSet;
  
 public class ListReadQueryData {
 
-    final ImmutableSet<Clause> whereClauses;
-    final ImmutableMap<String, Boolean> columnsToFetch;
-    final Optional<Integer> optionalLimit;
-    final Optional<Boolean> optionalAllowFiltering;
-    final Optional<Integer> optionalFetchSize;
-    final Optional<Boolean> optionalDistinct;
+    private final MinimalListReadQueryData data;
 
     
     ListReadQueryData() {
-        this(ImmutableSet.of(), 
-             ImmutableMap.of(),
-             Optional.empty(),
-             Optional.empty(),
-             Optional.empty(),
-             Optional.empty());
+        this(new MinimalListReadQueryData());
     }
 
-    
-    private ListReadQueryData(ImmutableSet<Clause> whereClauses, 
-                             ImmutableMap<String, Boolean> columnsToFetch, 
-                             Optional<Integer> optionalLimit, 
-                             Optional<Boolean> optionalAllowFiltering,
-                             Optional<Integer> optionalFetchSize,
-                             Optional<Boolean> optionalDistinct) {
-        this.whereClauses = whereClauses;
-        this.columnsToFetch = columnsToFetch;
-        this.optionalLimit = optionalLimit;
-        this.optionalAllowFiltering = optionalAllowFiltering;
-        this.optionalFetchSize = optionalFetchSize;
-        this.optionalDistinct = optionalDistinct;
+    private ListReadQueryData(MinimalListReadQueryData data) {
+        this.data = data;
     }
-    
-
     
     public ListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
-        return new ListReadQueryData(whereClauses,
-                                     this.columnsToFetch,
-                                     this.optionalLimit,
-                                     this.optionalAllowFiltering,
-                                     this.optionalFetchSize,
-                                     this.optionalDistinct);  
+        return new ListReadQueryData(data.whereClauses(whereClauses));  
     }
 
-    
     public ListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
-        return new ListReadQueryData(this.whereClauses,
-                                     columnsToFetch,
-                                     this.optionalLimit,
-                                     this.optionalAllowFiltering,
-                                     this.optionalFetchSize,
-                                     this.optionalDistinct);  
+        return new ListReadQueryData(data.columnsToFetch(columnsToFetch));  
     }
 
-    
     public ListReadQueryData limit(Optional<Integer> optionalLimit) {
-        return new ListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     optionalLimit,
-                                     this.optionalAllowFiltering,
-                                     this.optionalFetchSize,
-                                     this.optionalDistinct);  
+        return new ListReadQueryData(data.limit(optionalLimit.orElse(null)));  
     }
 
-    
     public ListReadQueryData allowFiltering(Optional<Boolean> optionalAllowFiltering) {
-        return new ListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.optionalLimit,
-                                     optionalAllowFiltering,
-                                     this.optionalFetchSize,
-                                     this.optionalDistinct);  
+        return new ListReadQueryData(data.allowFiltering(optionalAllowFiltering.orElse(null)));  
     }
 
-    
     public ListReadQueryData fetchSize(Optional<Integer> optionalFetchSize) {
-        return new ListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.optionalLimit,
-                                     this.optionalAllowFiltering,
-                                     optionalFetchSize,
-                                     this.optionalDistinct);  
+        return new ListReadQueryData(data.fetchSize(optionalFetchSize.orElse(null)));  
     }
 
-    
     public ListReadQueryData distinct(Optional<Boolean> optionalDistinct) {
-        return new ListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.optionalLimit,
-                                     this.optionalAllowFiltering,
-                                     this.optionalFetchSize,
-                                     optionalDistinct);  
+        return new ListReadQueryData(data.distinct(optionalDistinct.orElse(null)));  
     }
-    
     
     public ImmutableSet<Clause> getWhereClauses() {
-        return whereClauses;
+        return data.getWhereClauses();
     }
 
     public ImmutableMap<String, Boolean> getColumnsToFetch() {
-        return columnsToFetch;
+        return data.getColumnsToFetch();
     }
 
     public Optional<Integer> getLimit() {
-        return optionalLimit;
+        return Optional.ofNullable(data.getLimit());
     }
 
     public Optional<Boolean> getAllowFiltering() {
-        return optionalAllowFiltering;
+        return Optional.ofNullable(data.getAllowFiltering());
     }
 
     public Optional<Integer> getFetchSize() {
-        return optionalFetchSize;
+        return Optional.ofNullable(data.getFetchSize());
     }
 
     public Optional<Boolean> getDistinct() {
-        return optionalDistinct;
+        return Optional.ofNullable(data.getDistinct());
     }
     
     
     Statement toStatement(Context ctx) {
-        Select.Selection selection = select();
-
-        getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
-
-        
-        if (getColumnsToFetch().isEmpty()) {
-            selection.all();
-        } else {
-            getColumnsToFetch().forEach((columnName, withMetaData) -> selection.column(columnName));
-            getColumnsToFetch().entrySet()
-                                         .stream()
-                                         .filter(entry -> entry.getValue())
-                                         .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-        }
-        
-        Select select = selection.from(ctx.getTable());
-        
-        getWhereClauses().forEach(whereClause -> select.where(whereClause));
-
-        getLimit().ifPresent(limit -> select.limit(limit));
-        getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
-        getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
-        
-        return select;
+        return data.toStatement(ctx);
     }
 }

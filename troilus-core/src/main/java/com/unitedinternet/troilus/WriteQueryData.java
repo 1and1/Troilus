@@ -16,452 +16,165 @@
 package com.unitedinternet.troilus;
 
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.addAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.appendAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.discardAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.prependAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.putAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.removeAll;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.Insert;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 
  
 public class WriteQueryData {
 
-    private final ImmutableMap<String, Object> keys;
-    private final ImmutableList<Clause> whereConditions;
-    
-    private final ImmutableMap<String, Optional<Object>> valuesToMutate;
-    private final ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd;
-    private final ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToAppend;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend;
-    private final ImmutableMap<String, ImmutableList<Object>> listValuesToRemove;
-    private final ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate;
-    
-    private final ImmutableList<Clause> onlyIfConditions;
-    private final Optional<Boolean> ifNotExists;
-    
+    private final MinimalWriteQueryData data;
+        
     
 
     WriteQueryData() {
-        this(ImmutableMap.of(),
-             ImmutableList.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableMap.of(),
-             ImmutableList.of(),
-             Optional.empty());
+        this(new MinimalWriteQueryData());
     }
 
     
-    private WriteQueryData(ImmutableMap<String, Object> keys, 
-                            ImmutableList<Clause> whereConditions, 
-                            ImmutableMap<String, Optional<Object>> valuesToMutate, 
-                            ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
-                            ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
-                            ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                            ImmutableList<Clause> onlyIfConditions,
-                            Optional<Boolean> ifNotExists) {
-        this.keys = keys;
-        this.whereConditions = whereConditions;
-        this.valuesToMutate = valuesToMutate;
-        this.setValuesToAdd = setValuesToAdd;
-        this.setValuesToRemove = setValuesToRemove;
-        this.listValuesToAppend = listValuesToAppend;
-        this.listValuesToPrepend = listValuesToPrepend;
-        this.listValuesToRemove = listValuesToRemove;
-        this.mapValuesToMutate = mapValuesToMutate;
-        this.onlyIfConditions = onlyIfConditions;
-        this.ifNotExists = ifNotExists;
+    private WriteQueryData(MinimalWriteQueryData data) {
+        this.data = data;
     }
     
     
 
     public WriteQueryData keys(ImmutableMap<String, Object> keys) {
-        return new WriteQueryData(keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.keys(keys));
     }
     
   
     public WriteQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-        
-        return new WriteQueryData(this.keys, 
-                                   whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.whereConditions(whereConditions));
     }
     
     public WriteQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        // convert java optional to guava optional
+        Map<String, com.google.common.base.Optional<Object>> result = Maps.newHashMap();
+        for (Entry<String, Optional<Object>> entry : valuesToMutate.entrySet()) {
+            result.put(entry.getKey(), com.google.common.base.Optional.fromNullable(entry.getValue().orElse(null)));
+        }
+        
+        return new WriteQueryData(data.valuesToMutate(ImmutableMap.copyOf(result)));
     }
  
-    
     public WriteQueryData setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-        
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.setValuesToAdd(setValuesToAdd));
     }
     
     
     public WriteQueryData setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-        
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.setValuesToRemove(setValuesToRemove));
     }
  
     
     public WriteQueryData listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.listValuesToAppend(listValuesToAppend));
     }
    
     
     public WriteQueryData listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.listValuesToPrepend(listValuesToPrepend));
     }
  
     
     public WriteQueryData listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.listValuesToRemove(listValuesToRemove));
     }
  
 
     public WriteQueryData mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+        // convert java optional to guava optional
+       Map<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> result = Maps.newHashMap();
+        
+        for (Entry<String, ImmutableMap<Object, Optional<Object>>> entry : mapValuesToMutate.entrySet()) {
+            Map<Object, com.google.common.base.Optional<Object>> iresult = Maps.newHashMap();
+            for (Entry<Object, Optional<Object>> entry2 : entry.getValue().entrySet()) {
+                iresult.put(entry2.getKey(), com.google.common.base.Optional.fromNullable(entry2.getValue().orElse(null)));
+            }
+            result.put(entry.getKey(), ImmutableMap.copyOf(iresult));
+        }
+        
+        return new WriteQueryData(data.mapValuesToMutate(ImmutableMap.copyOf(result)));
     }
 
     
     public WriteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        preCondition(!ifNotExists.isPresent(), IllegalStateException::new);
-
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   onlyIfConditions,
-                                   this.ifNotExists);
+        return new WriteQueryData(data.onlyIfConditions(onlyIfConditions));
     }
 
     public WriteQueryData ifNotExists(Optional<Boolean> ifNotExists) {
-        preCondition(onlyIfConditions.isEmpty(), IllegalStateException::new);
-        preCondition(whereConditions.isEmpty(), IllegalStateException::new);
-        preCondition(setValuesToAdd.isEmpty(), IllegalStateException::new);
-        preCondition(setValuesToRemove.isEmpty(), IllegalStateException::new);
-        preCondition(listValuesToAppend.isEmpty(), IllegalStateException::new);
-        preCondition(listValuesToPrepend.isEmpty(), IllegalStateException::new);
-        preCondition(listValuesToRemove.isEmpty(), IllegalStateException::new);
-        preCondition(mapValuesToMutate.isEmpty(), IllegalStateException::new);
-        
-        return new WriteQueryData(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   ifNotExists);
+        return new WriteQueryData(data.ifNotExists(ifNotExists.orElse(null)));
     }
     
-
-    
-    private <T extends RuntimeException> void preCondition(boolean condition, Supplier<T> suppier) {
-        if (!condition) {
-            throw suppier.get();
-        }
-    }
 
     
     public ImmutableMap<String, Object> getKeyNameValuePairs() {
-        return keys;
+        return data.getKeyNameValuePairs();
     }
 
     public ImmutableList<Clause> getWhereConditions() {
-        return whereConditions;
+        return data.getWhereConditions();
     }
 
     public ImmutableMap<String, Optional<Object>> getValuesToMutate() {
-        return valuesToMutate;
+        Map<String, Optional<Object>> result = Maps.newHashMap();
+        for (Entry<String, com.google.common.base.Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
+            result.put(entry.getKey(), Optional.ofNullable(entry.getValue().orNull()));
+        }
+        
+        return ImmutableMap.copyOf(result);
     }
 
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToAdd() {
-        return setValuesToAdd;
+        return data.getSetValuesToAdd();
     }
 
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToRemove() {
-        return setValuesToRemove;
+        return data.getSetValuesToRemove();
     }
 
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToAppend() {
-        return listValuesToAppend;
+        return data.getListValuesToAppend();
     }
 
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToPrepend() {
-        return listValuesToPrepend;
+        return data.getListValuesToPrepend();
     }
 
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToRemove() {
-        return listValuesToRemove;
+        return data.getListValuesToRemove();
     }
 
     public ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> getMapValuesToMutate() {
-        return mapValuesToMutate;
+        Map<String, ImmutableMap<Object, Optional<Object>>> result = Maps.newHashMap();
+        for (Entry<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
+            Map<Object, Optional<Object>> iresult = Maps.newHashMap();
+            for (Entry<Object, com.google.common.base.Optional<Object>> entry2 : entry.getValue().entrySet()) {
+                iresult.put(entry2.getKey(), Optional.ofNullable(entry2.getValue().orNull()));
+            }
+            result.put(entry.getKey(), ImmutableMap.copyOf(iresult));
+        }
+        
+        return ImmutableMap.copyOf(result);
     }
 
     public ImmutableList<Clause> getOnlyIfConditions() {
-        return onlyIfConditions;
+        return data.getOnlyIfConditions();
     }
     
     public Optional<Boolean> getIfNotExits() {
-        return ifNotExists;
+        return Optional.ofNullable(data.getIfNotExits());
     }
-    
-    
     
     Statement toStatement(Context ctx) {
-        if (getIfNotExits().isPresent() || 
-            (getKeyNameValuePairs().isEmpty() && getWhereConditions().isEmpty())) {
-            return toInsertStatement(ctx);
-        } else {
-            return toUpdateStatement(ctx);
-        }
-    }
-    
-    
-    private Statement toInsertStatement(Context ctx) {
-        Insert insert = insertInto(ctx.getTable());
-        
-        List<Object> values = Lists.newArrayList();
-        getValuesToMutate().forEach((name, optionalValue) -> { insert.value(name, bindMarker());  values.add(ctx.toStatementValue(name, optionalValue.orElse(null))); } ); 
-        
-        
-        getIfNotExits().ifPresent(ifNotExits -> {
-                                                            insert.ifNotExists();
-                                                            if (ctx.getSerialConsistencyLevel() != null) {
-                                                                insert.setSerialConsistencyLevel(ctx.getSerialConsistencyLevel());
-                                                            }
-                                                          });
-
-        if (ctx.getTtlSec() != null) {
-            insert.using(ttl(bindMarker()));  
-            values.add(ctx.getTtlSec().intValue());
-        }
-
-        PreparedStatement stmt = ctx.prepare(insert);
-        return stmt.bind(values.toArray());
-    }
-    
-    
-    
-    private Statement toUpdateStatement(Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
-        
-        getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-
-        
-        // key-based update
-        if (getWhereConditions().isEmpty()) {
-            List<Object> values = Lists.newArrayList();
-            
-            getValuesToMutate().forEach((name, optionalValue) -> { update.with(set(name, bindMarker())); values.add(toStatementValue(ctx, name, optionalValue.orElse(null))); });
-
-            getSetValuesToAdd().forEach((name, vals) -> { update.with(addAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
-            getSetValuesToRemove().forEach((name, vals) -> { update.with(removeAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
-            
-            getListValuesToPrepend().forEach((name, vals) -> { update.with(prependAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
-            getListValuesToAppend().forEach((name, vals) -> { update.with(appendAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
-            getListValuesToRemove().forEach((name, vals) -> { update.with(discardAll(name, bindMarker())); values.add(toStatementValue(ctx, name, vals)); });
-
-            getMapValuesToMutate().forEach((name, map) -> { update.with(putAll(name, bindMarker())); values.add(toStatementValue(ctx, name, map)); });
-            
-            
-            getKeyNameValuePairs().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(toStatementValue(ctx, keyname, getKeyNameValuePairs().get(keyname))); } );
-            
-            getOnlyIfConditions().forEach(condition -> update.onlyIf(condition));
-            
-            if (ctx.getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add(ctx.getTtlSec().intValue()); 
-            }
-            
-            return ctx.prepare(update).bind(values.toArray());
-
-            
-        // where condition-based update
-        } else {
-            getValuesToMutate().forEach((name, optionalValue) -> update.with(set(name, toStatementValue(ctx, name, optionalValue.orElse(null)))));
-        
-            getSetValuesToAdd().forEach((name, vals) -> update.with(addAll(name, toStatementValue(ctx, name, vals))));
-            getSetValuesToRemove().forEach((name, vals) -> update.with(removeAll(name, toStatementValue(ctx, name, vals))));
-
-            getListValuesToPrepend().forEach((name, vals) -> update.with(prependAll(name, toStatementValue(ctx, name, vals))));
-            getListValuesToAppend().forEach((name, vals) -> update.with(appendAll(name, toStatementValue(ctx, name, vals))));
-            getListValuesToRemove().forEach((name, vals) -> update.with(discardAll(name, toStatementValue(ctx, name, vals))));
-            
-            getMapValuesToMutate().forEach((name, map) -> update.with(putAll(name, toStatementValue(ctx, name, map))));
-
-            if (ctx.getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(ctx.getTtlSec().intValue()));
-            }
-
-            getWhereConditions().forEach(whereClause -> update.where(whereClause));
-            
-            return update;
-        }
-    }
-    
-
-    private Object toStatementValue(Context ctx, String name, Object value) {
-        return ctx.toStatementValue(name, value);
-    }
-    
-    
-    private ImmutableSet<Object> toStatementValue(Context ctx, String name, ImmutableSet<Object> values) {
-        return values.stream().map(value -> toStatementValue(ctx, name, value)).collect(Immutables.toSet());
-    }
-
-    
-    private ImmutableList<Object> toStatementValue(Context ctx, String name, ImmutableList<Object> values) {
-        return values.stream().map(value -> toStatementValue(ctx, name, value)).collect(Immutables.toList());
-    }
-  
-    
-    private Map<Object, Object> toStatementValue(Context ctx, String name, ImmutableMap<Object, Optional<Object>> map) {
-        Map<Object, Object> m = Maps.newHashMap();
-        for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(ctx, name, toStatementValue(ctx, name, entry.getKey())), toStatementValue(ctx, name, entry.getValue().orElse(null)));
-        }
-        return m;
+        return data.toStatement(ctx);
     }
 }

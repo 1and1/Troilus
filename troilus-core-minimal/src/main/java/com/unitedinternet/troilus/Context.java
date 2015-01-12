@@ -73,7 +73,7 @@ class Context {
     }    
 
     
-    public Context(Session session, String table) {
+    Context(Session session, String table) {
         this(session, 
              table,
              new BeanMapper());
@@ -167,7 +167,7 @@ class Context {
                            udtValueMapper);        
     }
     
-    public Context withConsistency(ConsistencyLevel consistencyLevel) {
+    Context withConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(session, 
                            table, 
                            executionSpec.withConsistency(consistencyLevel),
