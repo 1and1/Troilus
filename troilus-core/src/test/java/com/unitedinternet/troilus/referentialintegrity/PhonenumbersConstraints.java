@@ -66,7 +66,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     @Override
     public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
         // force that device_id will be fetched 
-        if (data.getColumnsToFetch().isPresent() && !data.getColumnsToFetch().get().containsKey("device_id")) {
+        if (!data.getColumnsToFetch().isEmpty() && !data.getColumnsToFetch().containsKey("device_id")) {
             data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
         }
         return data;

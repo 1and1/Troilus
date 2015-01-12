@@ -23,10 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
@@ -56,7 +58,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
     
     @Override
     public SingleRead<Optional<Record>> all() {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(Optional.empty()));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(ImmutableMap.of()));
     }
     
     @Override

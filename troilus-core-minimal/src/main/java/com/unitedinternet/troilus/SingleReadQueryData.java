@@ -22,14 +22,12 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map.Entry;
 
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 
@@ -38,33 +36,33 @@ import com.google.common.collect.Lists;
 public class SingleReadQueryData {
 
     final ImmutableMap<String, Object> keyNameValuePairs;
-    final Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch;
+    final ImmutableMap<String, Boolean> columnsToFetch;
 
 
     
     SingleReadQueryData() {
         this(ImmutableMap.<String, Object>of(), 
-             Optional.<ImmutableMap<String, Boolean>>empty());
+             ImmutableMap.<String, Boolean>of());
     }
     
 
     private SingleReadQueryData(ImmutableMap<String, Object> keyNameValuePairs,
-                                Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetchs) {
+                                ImmutableMap<String, Boolean> columnsToFetchs) {
         this.keyNameValuePairs = keyNameValuePairs;
-        this.optionalColumnsToFetch = optionalColumnsToFetchs;
+        this.columnsToFetch = columnsToFetchs;
     }
     
     
 
     public SingleReadQueryData keys(ImmutableMap<String, Object> keyNameValuePairs) {
         return new SingleReadQueryData(keyNameValuePairs, 
-                                       this.optionalColumnsToFetch);  
+                                       this.columnsToFetch);  
     }
     
 
-    public SingleReadQueryData columnsToFetch(Optional<ImmutableMap<String, Boolean>> optionalColumnsToFetch) {
+    public SingleReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs) {
         return new SingleReadQueryData(this.keyNameValuePairs, 
-                                       optionalColumnsToFetch);  
+                                       columnsToFetchs);  
     }
     
     
@@ -73,8 +71,8 @@ public class SingleReadQueryData {
         return keyNameValuePairs;
     }
 
-    public Optional<ImmutableMap<String, Boolean>> getColumnsToFetch() {
-        return optionalColumnsToFetch;
+    public ImmutableMap<String, Boolean> getColumnsToFetch() {
+        return columnsToFetch;
     }
 
 
@@ -82,38 +80,40 @@ public class SingleReadQueryData {
     Statement toStatement(Context ctx) {
         Selection selection = select();
         
-        if (getColumnsToFetch().isPresent()) {
-            
-            getColumnsToFetch().get().forEach((columnName, withMetaData) -> selection.column(columnName));
-            getColumnsToFetch().get().entrySet()
-                                     .stream()
-                                     .filter(entry -> entry.getValue())
-                                     .forEach(entry -> { selection.ttl(entry.getKey()); selection.writeTime(entry.getKey()); });
-
-            // add key columns for paranoia checks
-            getKeyNameValuePairs().keySet()
-                                  .stream()
-                                  .filter(columnName -> !getColumnsToFetch().get().containsKey(columnName))
-                                  .forEach(columnName -> selection.column(columnName));  
-            
-        } else {
+        
+        // set the columns to fetch 
+        if (getColumnsToFetch().isEmpty()) {
             selection.all();
+
+        } else {
+            for (Entry<String, Boolean> entry : columnsToFetch.entrySet()) {
+                selection.column(entry.getKey());
+                if (entry.getValue()) {
+                    selection.ttl(entry.getKey());
+                    selection.writeTime(entry.getKey());
+                }
+            }
+
+            // add key columns to requested columns (for paranoia checks)
+            for (String keyname : keyNameValuePairs.keySet()) {
+                if (columnsToFetch.get(keyname) == null) {
+                    selection.column(keyname);
+                }
+            }
         }
         
         
         
         Select select = selection.from(ctx.getTable());
         
-        ImmutableSet<Clause> whereConditions = getKeyNameValuePairs().keySet().stream().map(name -> eq(name, bindMarker())).collect(Immutables.toSet());
-        whereConditions.forEach(whereCondition -> select.where(whereCondition));
-        
+        // set the query conditions 
         List<Object> values = Lists.newArrayList();
-        getKeyNameValuePairs().keySet().forEach(keyname -> values.add(ctx.toStatementValue(keyname, getKeyNameValuePairs().get(keyname))));
+        for (Entry<String, Object> entry : getKeyNameValuePairs().entrySet()) {
+            select.where(eq(entry.getKey(), bindMarker()));
+            values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
+        }
+        
 
         return ctx.prepare(select).bind(values.toArray());
     }
-    
-
-
- 
 }
