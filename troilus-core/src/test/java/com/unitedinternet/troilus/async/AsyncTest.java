@@ -29,6 +29,14 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         Dao feeDao = new DaoImpl(getSession(), FeesTable.TABLE);
 
         
+        // delete records of previous tests
+        for (Record record : feeDao.readAll().execute()) {
+            feeDao.deleteWithKey(FeesTable.CUSTOMER_ID, record.getString(FeesTable.CUSTOMER_ID),
+                                 FeesTable.YEAR, record.getInt(FeesTable.YEAR));
+        }
+        
+        
+        
         ////////////////
         // inserts
         CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 3)
