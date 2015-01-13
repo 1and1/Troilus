@@ -17,11 +17,8 @@ package com.unitedinternet.troilus;
 
 
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
-
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,11 +26,9 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.CounterBatchMutation;
@@ -77,8 +72,8 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     }
     
     
-    public InsertionQuery entity(Object entity) {
-        return new InsertionQuery(getContext(), 
+    public InsertQuery entity(Object entity) {
+        return new InsertQuery(getContext(), 
                                   new WriteQueryData().valuesToMutate(mapOptional(getContext().getBeanMapper().toValues(entity))));
     }
     
@@ -180,7 +175,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
 
     @Override
     public Insertion ifNotExits() {
-        return new InsertionQuery(getContext(), new WriteQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeyNameValuePairs(), name -> name, value -> toOptional(value))))
+        return new InsertQuery(getContext(), new WriteQueryData().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Immutables.transform(data.getKeyNameValuePairs(), name -> name, value -> toOptional(value))))
                                                                     .ifNotExists(Optional.of(true)));
     }
 
@@ -230,13 +225,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     public CompletableFuture<Result> executeAsync() {
         return new CompletableDbFuture(performAsync(getStatement()))
                         .thenApply(resultSet -> newResult(resultSet))
-                        .thenApply(result ->  {
-                                                // check cas result column '[applied]'
-                                                if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
-                                                    throw new IfConditionException("if condition does not match");  
-                                                } 
-                                                return result;
-                                              });
+                        .thenApply(result -> assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match"));
     }
   
     
@@ -254,81 +243,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
  
 
     
-            
-    private static class CounterMutationQueryData {
-        
-        private final ImmutableMap<String, Object> keys;
-        private final ImmutableList<Clause> whereConditions;
-
-        private final String name;
-        private final long diff;
-
-        
-        public CounterMutationQueryData() {
-            this(ImmutableMap.of(),
-                 ImmutableList.of(),
-                 null,
-                 0);
-        }
-        private CounterMutationQueryData(ImmutableMap<String, Object> keys,
-                                        ImmutableList<Clause> whereConditions,
-                                        String name,
-                                        long diff) {
-            this.keys = keys;
-            this.whereConditions = whereConditions;
-            this.name = name; 
-            this.diff = diff;
-        }
-       
-        
-        public CounterMutationQueryData keys(ImmutableMap<String, Object> keys) {
-            return new CounterMutationQueryData(keys,
-                                                this.whereConditions, 
-                                                this.name,
-                                                this.diff);
-        }
-        
-        public CounterMutationQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-            return new CounterMutationQueryData(this.keys,
-                                                whereConditions, 
-                                                this.name,
-                                                this.diff);
-        }
-        
-        public CounterMutationQueryData name(String name) {
-            return new CounterMutationQueryData(this.keys,
-                                                this.whereConditions, 
-                                                name,
-                                                this.diff);
-        }
-        
-        public CounterMutationQueryData diff(long diff) {
-            return new CounterMutationQueryData(this.keys,
-                                                this.whereConditions, 
-                                                this.name,
-                                                diff);
-        }
-        
-        
-        public ImmutableMap<String, Object> getKeys() {
-            return keys;
-        }
-
-        public ImmutableList<Clause> getWhereConditions() {
-            return whereConditions;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public long getDiff() {
-            return diff;
-        }
-    }
-    
-    
-    
+      
     private static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
         
         private final CounterMutationQueryData data;
@@ -358,54 +273,9 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
             batchStatement.add(getStatement());
         }
         
-        private Statement toStatement(CounterMutationQueryData queryData) {
-            com.datastax.driver.core.querybuilder.Update update = update(getContext().getTable());
-            
-            // key-based update
-            if (queryData.getWhereConditions().isEmpty()) {
-                List<Object> values = Lists.newArrayList();
-                
-                if (queryData.getDiff() > 0) {
-                    update.with(QueryBuilder.incr(queryData.getName(), bindMarker()));
-                    values.add(queryData.getDiff());
-                    
-                } else {
-                    update.with(QueryBuilder.decr(queryData.getName(), bindMarker()));
-                    values.add(0 - queryData.getDiff());
-                }
-         
-                queryData.getKeys().keySet().forEach(keyname -> { update.where(eq(keyname, bindMarker())); values.add(queryData.getKeys().get(keyname)); } );
-                
-                if (getContext().getTtlSec() != null) {
-                    update.using(QueryBuilder.ttl(bindMarker())); 
-                    values.add(getContext().getTtlSec().intValue());
-                }
-                
-                return getContext().prepare(update).bind(values.toArray());
-
-                
-            // where condition-based update
-            } else {
-                
-                if (queryData.getDiff() > 0) {
-                    update.with(QueryBuilder.incr(queryData.getName(), queryData.getDiff()));
-                    
-                } else {
-                    update.with(QueryBuilder.decr(queryData.getName(), 0 - queryData.getDiff()));
-                }
-                                
-                if (getContext().getTtlSec() != null) {
-                    update.using(QueryBuilder.ttl(getContext().getTtlSec().intValue()));
-                }
-                
-                queryData.getWhereConditions().forEach(whereClause -> update.where(whereClause));
-                
-                return update;
-            }
-        }
         
         private Statement getStatement() {
-            return toStatement(data);
+            return data.toStatement(getContext());
         }
 
         

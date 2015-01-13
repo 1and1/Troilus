@@ -7,6 +7,8 @@ import java.util.Optional;
 
 
 
+
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -94,6 +96,17 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         Assert.assertNotNull(list.next());
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
+        
+        
+
+        list = feeDao.readWithKeys(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, ImmutableList.of(3, 4, 6876767))
+                     .column(FeesTable.CUSTOMER_ID)
+                     .execute()
+                     .iterator();
+        Assert.assertNotNull(list.next());
+        Assert.assertNotNull(list.next());
+        Assert.assertFalse(list.hasNext());
+        
         
         
         

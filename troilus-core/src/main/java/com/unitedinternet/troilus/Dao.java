@@ -26,8 +26,12 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+
+
+
 
 public interface Dao {
     
@@ -82,39 +86,50 @@ public interface Dao {
 
     Insertion writeEntity(Object entity);
 
+    
+    WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts);
+    
     WriteWithCounter writeWithKey(String keyName, Object keyValue);
 
-    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    WriteWithCounter writeWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                  String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
-
-    WriteWithCounter writeWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    WriteWithCounter writeWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                  String composedKeyNamePart2, Object composedKeyValuePart2, 
+                                  String composedKeyNamePart3, Object composedKeyValuePart3);
 
     <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue);
 
-    <T, E> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+    <T, E> WriteWithCounter writeWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                         Name<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+    <T, E, F> WriteWithCounter writeWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                            Name<F> composedKeyNamePart3, F composedKeyValuePart3);
 
-    <T, E, F, G> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
 
+
+
+    Deletion deleteWithKey(ImmutableMap<String, Object> composedKeyParts);
     
-    
-    Deletion deleteWithKey(String keyName, Object keyValue);
+    Deletion deleteWithKey(String keyname, Object keyValue);
 
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    Deletion deleteWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                           String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
-
-    Deletion deleteWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
+    Deletion deleteWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                           String composedKeyNamePart2, Object composedKeyValuePart2, 
+                           String composedKeyNamePart3, Object composedKeyValuePart3);
 
     <T> Deletion deleteWithKey(Name<T> keyName, T keyValue);
 
-    <T, E> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+    <T, E> Deletion deleteWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                  Name<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+    <T, E, F> Deletion deleteWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                     Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                     Name<F> composedKeyNamePart3, F composedKeyValuePart3);
 
-    <T, E, F, G> Deletion deleteWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
 
     Deletion deleteWhere(Clause... whereConditions);
 
@@ -268,21 +283,45 @@ public interface Dao {
     ////////////////////////////////
     // READ
 
+    SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+    
     SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                     String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3);
+    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                     String composedKeyNamePart2, Object composedKeyValuePart2,
+                                                     String composedKeyNamePart3, Object composedKeyValuePart3);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, String keyName2, Object keyValue2, String keyName3, Object keyValue3, String keyName4, Object keyValue4);
 
     <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue);
 
-    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2);
+    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3);
+    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                               Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                                               Name<F> composedKeyNamePart3, F composedKeyValuePart3);
+    
+    ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values);
 
-    <T, E, F, G> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, Name<E> keyName2, E keyValue2, Name<F> keyName3, F keyValue3, Name<G> keyName4, G keyValue4);
+    ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                              String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2);
+
+    ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                              String composedKeyNamePart2, Object composedKeyValuePart2,
+                                              String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
+
+    
+    <T> ListReadWithUnit<RecordList> readWithKeys(Name<T> name, ImmutableList<T> values);
+
+    <T, E> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                     Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
+
+    <T, E, F> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                        Name<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                        Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
     
     ListReadWithUnit<RecordList> readAll();
 

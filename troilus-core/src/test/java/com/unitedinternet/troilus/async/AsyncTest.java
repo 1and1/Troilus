@@ -3,6 +3,7 @@ package com.unitedinternet.troilus.async;
 
 
 import java.util.concurrent.CompletableFuture;
+
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;

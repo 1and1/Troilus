@@ -17,39 +17,35 @@ package com.unitedinternet.troilus;
 
 
 
-import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-
 import com.datastax.driver.core.querybuilder.Clause;
-
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.BatchMutation;
-import com.unitedinternet.troilus.Dao.Batchable;
-import com.unitedinternet.troilus.Dao.Deletion;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
+import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
+import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
+import com.unitedinternet.troilus.minimal.MinimalDao.Deletion;
 
 
 
  
-class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
+class MinimalDeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
     private final DeleteQueryData data;
       
-    protected DeleteQuery(Context ctx, DeleteQueryData data) {
+    protected MinimalDeleteQuery(Context ctx, DeleteQueryData data) {
         super(ctx);
         this.data = data;
     }
 
 
-    public Deletion withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl.getSeconds()));
+    public Deletion withTtl(long ttlSec) {
+        return newQuery(getContext().withTtl(ttlSec));
     }
     
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+        return new MinimalBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
     @Override
@@ -60,13 +56,13 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
     @Override
     protected Deletion newQuery(Context newContext) {
-        return new DeleteQuery(newContext, data);
+        return new MinimalDeleteQuery(newContext, data);
     }
     
     
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
-        return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
+        return new MinimalDeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
     
    
@@ -79,9 +75,11 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         return queryData.toStatement(getContext());
     }
     
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> newResult(resultSet))
-                        .thenApply(result -> assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match"));
+    @Override
+    public Result execute() {
+        Result result = newResult(performAsync(getStatement()).getUninterruptibly());
+        assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match");
+        return result;
     }
+    
 }

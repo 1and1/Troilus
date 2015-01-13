@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -37,6 +38,11 @@ public class ListReadQueryData {
 
     private ListReadQueryData(MinimalListReadQueryData data) {
         this.data = data;
+    }
+    
+
+    public ListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys) {
+        return new ListReadQueryData(data.keys(keys));  
     }
     
     public ListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {

@@ -18,6 +18,7 @@ package com.unitedinternet.troilus;
 
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +35,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
 
@@ -234,6 +237,16 @@ class Context {
         }
     }
   
+    
+    ImmutableList<Object> toStatementValues(String name, ImmutableList<Object> values) {
+        List<Object> result = Lists.newArrayList(); 
+
+        for (Object value : values) {
+            result.add(toStatementValue(name, value));
+        }
+        
+        return ImmutableList.copyOf(result);
+    }
 
     Object toStatementValue(String name, Object value) {
         if (isNullOrEmpty(value)) {

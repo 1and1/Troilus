@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
  
 public class SingleReadQueryData {
 
-    final ImmutableMap<String, Object> keyNameValuePairs;
+    final ImmutableMap<String, Object> keyNameValuePartPairs;
     final ImmutableMap<String, Boolean> columnsToFetch;
 
 
@@ -46,29 +46,29 @@ public class SingleReadQueryData {
     }
     
 
-    private SingleReadQueryData(ImmutableMap<String, Object> keyNameValuePairs,
+    private SingleReadQueryData(ImmutableMap<String, Object> keyNameValuePartPairs,
                                 ImmutableMap<String, Boolean> columnsToFetchs) {
-        this.keyNameValuePairs = keyNameValuePairs;
+        this.keyNameValuePartPairs = keyNameValuePartPairs;
         this.columnsToFetch = columnsToFetchs;
     }
     
     
 
-    public SingleReadQueryData keys(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new SingleReadQueryData(keyNameValuePairs, 
+    public SingleReadQueryData keyParts(ImmutableMap<String, Object> keyNameValuePartPairs) {
+        return new SingleReadQueryData(keyNameValuePartPairs, 
                                        this.columnsToFetch);  
     }
     
 
     public SingleReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs) {
-        return new SingleReadQueryData(this.keyNameValuePairs, 
+        return new SingleReadQueryData(this.keyNameValuePartPairs, 
                                        columnsToFetchs);  
     }
     
     
     
-    public ImmutableMap<String, Object> getKeyNameValuePairs() {
-        return keyNameValuePairs;
+    public ImmutableMap<String, Object> getKeyParts() {
+        return keyNameValuePartPairs;
     }
 
     public ImmutableMap<String, Boolean> getColumnsToFetch() {
@@ -95,7 +95,7 @@ public class SingleReadQueryData {
             }
 
             // add key columns to requested columns (for paranoia checks)
-            for (String keyname : keyNameValuePairs.keySet()) {
+            for (String keyname : getKeyParts().keySet()) {
                 if (columnsToFetch.get(keyname) == null) {
                     selection.column(keyname);
                 }
@@ -108,7 +108,7 @@ public class SingleReadQueryData {
         
         // set the query conditions 
         List<Object> values = Lists.newArrayList();
-        for (Entry<String, Object> entry : getKeyNameValuePairs().entrySet()) {
+        for (Entry<String, Object> entry : getKeyParts().entrySet()) {
             select.where(eq(entry.getKey(), bindMarker()));
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
         }

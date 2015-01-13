@@ -16,15 +16,20 @@
 package com.unitedinternet.troilus;
 
 
+import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
+import java.util.List;
 import java.util.Map.Entry;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 
 
@@ -35,17 +40,18 @@ public class MinimalListReadQueryData {
      * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
      */
     
-    
-    final ImmutableSet<Clause> whereClauses;
-    final ImmutableMap<String, Boolean> columnsToFetch;
-    final Integer limit;
-    final Boolean allowFiltering;
-    final Integer fetchSize;
-    final Boolean distinct;
+    private final ImmutableMap<String, ImmutableList<Object>> keys;
+    private final ImmutableSet<Clause> whereClauses;
+    private final ImmutableMap<String, Boolean> columnsToFetch;
+    private final Integer limit;
+    private final Boolean allowFiltering;
+    private final Integer fetchSize;
+    private final Boolean distinct;
 
     
     MinimalListReadQueryData() {
-        this(ImmutableSet.<Clause>of(), 
+        this(ImmutableMap.<String, ImmutableList<Object>>of(),
+             ImmutableSet.<Clause>of(), 
              ImmutableMap.<String, Boolean>of(),
              null,
              null,
@@ -54,12 +60,14 @@ public class MinimalListReadQueryData {
     }
 
     
-    private MinimalListReadQueryData(ImmutableSet<Clause> whereClauses, 
-                             ImmutableMap<String, Boolean> columnsToFetch, 
-                             Integer limit, 
-                             Boolean allowFiltering,
-                             Integer fetchSize,
-                             Boolean distinct) {
+    private MinimalListReadQueryData(ImmutableMap<String, ImmutableList<Object>> keys,
+                                     ImmutableSet<Clause> whereClauses, 
+                                     ImmutableMap<String, Boolean> columnsToFetch, 
+                                     Integer limit, 
+                                     Boolean allowFiltering,
+                                     Integer fetchSize,
+                                     Boolean distinct) {
+        this.keys = keys;
         this.whereClauses = whereClauses;
         this.columnsToFetch = columnsToFetch;
         this.limit = limit;
@@ -70,65 +78,90 @@ public class MinimalListReadQueryData {
     
 
     
+
+    public MinimalListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys) {
+        preCondition(whereClauses.isEmpty());
+        
+        return new MinimalListReadQueryData(keys,
+                                            this.whereClauses,
+                                            this.columnsToFetch,
+                                            this.limit,
+                                            this.allowFiltering,
+                                            this.fetchSize,
+                                            this.distinct);  
+    }
+    
     public MinimalListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
-        return new MinimalListReadQueryData(whereClauses,
-                                     this.columnsToFetch,
-                                     this.limit,
-                                     this.allowFiltering,
-                                     this.fetchSize,
-                                     this.distinct);  
+        preCondition(keys.isEmpty());
+
+        return new MinimalListReadQueryData(this.keys,
+                                            whereClauses,
+                                            this.columnsToFetch,
+                                            this.limit,
+                                            this.allowFiltering,
+                                            this.fetchSize,
+                                            this.distinct);  
     }
 
     
     public MinimalListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
-        return new MinimalListReadQueryData(this.whereClauses,
-                                     columnsToFetch,
-                                     this.limit,
-                                     this.allowFiltering,
-                                     this.fetchSize,
-                                     this.distinct);  
+        return new MinimalListReadQueryData(this.keys,
+                                            this.whereClauses,
+                                            columnsToFetch,
+                                            this.limit,
+                                            this.allowFiltering,
+                                            this.fetchSize,
+                                            this.distinct);  
     }
 
     
     public MinimalListReadQueryData limit(Integer limit) {
-        return new MinimalListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     limit,
-                                     this.allowFiltering,
-                                     this.fetchSize,
-                                     this.distinct);  
+        return new MinimalListReadQueryData(this.keys,
+                                            this.whereClauses,
+                                            this.columnsToFetch,
+                                            limit,
+                                            this.allowFiltering,
+                                            this.fetchSize,
+                                            this.distinct);  
     }
 
     
     public MinimalListReadQueryData allowFiltering(Boolean allowFiltering) {
-        return new MinimalListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.limit,
-                                     allowFiltering,
-                                     this.fetchSize,
-                                     this.distinct);  
+        return new MinimalListReadQueryData(this.keys,
+                                            this.whereClauses,
+                                            this.columnsToFetch,
+                                            this.limit,
+                                            allowFiltering,
+                                            this.fetchSize,
+                                            this.distinct);  
     }
 
     
     public MinimalListReadQueryData fetchSize(Integer fetchSize) {
-        return new MinimalListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.limit,
-                                     this.allowFiltering,
-                                     fetchSize,
-                                     this.distinct);  
+        return new MinimalListReadQueryData(this.keys,
+                                            this.whereClauses,
+                                            this.columnsToFetch,
+                                            this.limit,
+                                            this.allowFiltering,
+                                            fetchSize,
+                                            this.distinct);  
     }
 
     
     public MinimalListReadQueryData distinct(Boolean distinct) {
-        return new MinimalListReadQueryData(this.whereClauses,
-                                     this.columnsToFetch,
-                                     this.limit,
-                                     this.allowFiltering,
-                                     this.fetchSize,
-                                     distinct);  
+        return new MinimalListReadQueryData(this.keys,
+                                            this.whereClauses,
+                                            this.columnsToFetch,
+                                            this.limit,
+                                            this.allowFiltering,
+                                            this.fetchSize,
+                                            distinct);  
     }
     
+    
+    public ImmutableMap<String, ImmutableList<Object>> getKeys() {
+        return keys;
+    }
     
     public ImmutableSet<Clause> getWhereClauses() {
         return whereClauses;
@@ -178,11 +211,7 @@ public class MinimalListReadQueryData {
         }
         
         Select select = selection.from(ctx.getTable());
-        
-        for (Clause whereClause : whereClauses) {
-            select.where(whereClause);
-        }
-
+  
         if (getLimit() != null) {
             select.limit(getLimit());
         }
@@ -195,6 +224,37 @@ public class MinimalListReadQueryData {
             select.setFetchSize(getFetchSize());
         }
         
-        return select;
+        
+        
+        // where-based selection
+        if (getKeys().isEmpty()) {
+            for (Clause whereClause : whereClauses) {
+                select.where(whereClause);
+            }
+            
+            return select;
+
+            
+        // key-based selection    
+        } else {
+            List<Object> values = Lists.newArrayList();
+
+            for (Entry<String, ImmutableList<Object>> entry : getKeys().entrySet()) {
+                select.where(in(entry.getKey(), bindMarker()));
+                values.add(ctx.toStatementValues(entry.getKey(), entry.getValue()));
+                
+            }
+
+            return ctx.prepare(select).bind(values.toArray());
+        }
+    }
+
+    
+    
+    
+    private <T extends RuntimeException> void preCondition(boolean condition) {
+        if (!condition) {
+            throw new IllegalStateException();
+        }
     }
 }

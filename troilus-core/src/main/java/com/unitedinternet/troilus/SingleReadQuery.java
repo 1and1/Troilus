@@ -137,15 +137,15 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
                                                     Record record = newRecord(newResult(resultSet), row);
                                                     
                                                     // paranoia check
-                                                    data.getKeyNameValuePairs().forEach((name, value) -> { 
-                                                                                                            ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
-                                                                                                            ByteBuffer out = record.getBytesUnsafe(name).get();
-                                                                    
-                                                                                                            if (in.compareTo(out) != 0) {
-                                                                                                                 LOG.warn("Dataswap error for " + name);
-                                                                                                                 throw new ProtocolErrorException("Dataswap error for " + name); 
-                                                                                                            }
-                                                                                                        });
+                                                    data.getKeyParts().forEach((name, value) -> {
+                                                                                                    ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
+                                                                                                    ByteBuffer out = record.getBytesUnsafe(name).get();
+                                                            
+                                                                                                    if (in.compareTo(out) != 0) {
+                                                                                                         LOG.warn("Dataswap error for " + name);
+                                                                                                         throw new ProtocolErrorException("Dataswap error for " + name); 
+                                                                                                    }
+                                                                                                });
                                                     
                                                     if (!resultSet.isExhausted()) {
                                                         throw new TooManyResultsException("more than one record exists");

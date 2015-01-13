@@ -16,44 +16,39 @@
 package com.unitedinternet.troilus;
 
 
-import java.time.Duration;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.BatchMutation;
-import com.unitedinternet.troilus.Dao.Batchable;
-import com.unitedinternet.troilus.Dao.Insertion;
-import com.unitedinternet.troilus.Dao.Mutation;
-import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
+import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
+import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
+import com.unitedinternet.troilus.minimal.MinimalDao.Mutation;
+import com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor;
 
 
  
-class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
+class MinimalInsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
-    private final WriteQueryData data;
+    private final MinimalWriteQueryData data;
   
-    public InsertQuery(Context ctx, WriteQueryData data) {
+    public MinimalInsertQuery(Context ctx, MinimalWriteQueryData data) {
         super(ctx);
         this.data = data;
     }
     
     
     @Override
-    protected InsertQuery newQuery(Context newContext) {
-        return new InsertQuery(newContext, data);
+    protected MinimalInsertQuery newQuery(Context newContext) {
+        return new MinimalInsertQuery(newContext, data);
     }
     
-    public InsertQuery withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl.getSeconds()));
+    public MinimalInsertQuery withTtl(long ttlSec) {
+        return newQuery(getContext().withTtl(ttlSec));
     }
     
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+        return new MinimalBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
     @Override
@@ -64,12 +59,12 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
     @Override
     public Mutation<?> ifNotExits() {
-        return new InsertQuery(getContext(), data.ifNotExists(Optional.of(true)));
+        return new MinimalInsertQuery(getContext(), data.ifNotExists(true));
     }
 
   
     private Statement getStatement() {
-        WriteQueryData queryData = data;
+        MinimalWriteQueryData queryData = data;
         for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData); 
         }
@@ -77,11 +72,11 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
         return queryData.toStatement(getContext());
     }
     
-    
     @Override
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> newResult(resultSet))
-                        .thenApply(result -> assertResultIsAppliedWhen(data.getIfNotExits().isPresent(), result, "duplicated entry"));
+    public Result execute() {
+        Result result = newResult(performAsync(getStatement()).getUninterruptibly());
+        assertResultIsAppliedWhen((data.getIfNotExits() != null) && (data.getIfNotExits()), result, "duplicated entry");
+        
+        return result;
     }
 }
