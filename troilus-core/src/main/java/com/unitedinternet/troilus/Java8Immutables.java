@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Immutable utility class
  */
-class Immutables extends MinimalImmutables {
+class Java8Immutables extends Immutables {
 
     
     public static <K, V> Optional<ImmutableMap<K, V>> merge(Optional<ImmutableMap<K, V>> map, K key, V value) {

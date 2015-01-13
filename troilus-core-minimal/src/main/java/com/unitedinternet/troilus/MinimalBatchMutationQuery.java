@@ -56,7 +56,7 @@ class MinimalBatchMutationQuery extends AbstractQuery<BatchMutation> implements 
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new MinimalBatchMutationQuery(getContext(), type, MinimalImmutables.merge(batchables, other));
+        return new MinimalBatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
     private Statement getStatement() {

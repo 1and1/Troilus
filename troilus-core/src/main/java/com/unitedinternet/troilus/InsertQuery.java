@@ -21,6 +21,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 
+
+
+
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
@@ -29,6 +32,8 @@ import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
+import com.unitedinternet.troilus.DaoImpl.WriteQueryDataAdapter;
+import com.unitedinternet.troilus.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
 
 
@@ -74,7 +79,7 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
             queryData = interceptor.onPreWrite(queryData); 
         }
         
-        return queryData.toStatement(getContext());
+        return WriteQueryDataAdapter.toStatement(queryData, getContext());
     }
     
     

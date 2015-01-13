@@ -15,7 +15,6 @@
  */
 package com.unitedinternet.troilus.minimal;
 
-import com.unitedinternet.troilus.MinimalWriteQueryData;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
 
@@ -26,5 +25,5 @@ import com.unitedinternet.troilus.interceptor.QueryInterceptor;
  
 public interface WriteQueryPreInterceptor extends QueryInterceptor {
     
-    MinimalWriteQueryData onPreWrite(MinimalWriteQueryData data);
+    WriteQueryData onPreWrite(WriteQueryData data); 
 }

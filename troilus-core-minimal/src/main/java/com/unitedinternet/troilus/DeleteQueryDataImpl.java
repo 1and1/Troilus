@@ -23,6 +23,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 
 
+
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -34,25 +35,26 @@ import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 
 
 
 
  
-public class DeleteQueryData {
+class DeleteQueryDataImpl implements DeleteQueryData {
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
      
 
-    DeleteQueryData() {
+    DeleteQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
              ImmutableList.<Clause>of());
     }
     
     
-    private DeleteQueryData(ImmutableMap<String, Object> keyNameValuePairs, 
+    private DeleteQueryDataImpl(ImmutableMap<String, Object> keyNameValuePairs, 
                             ImmutableList<Clause> whereConditions, 
                             ImmutableList<Clause> onlyIfConditions) {   
         this.keyNameValuePairs = keyNameValuePairs;
@@ -62,21 +64,21 @@ public class DeleteQueryData {
 
     
 
-    public DeleteQueryData keys(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQueryData(keyNameValuePairs, 
+    public DeleteQueryDataImpl keys(ImmutableMap<String, Object> keyNameValuePairs) {
+        return new DeleteQueryDataImpl(keyNameValuePairs, 
                                    this.whereConditions, 
                                    this.onlyIfConditions);  
     }
     
-    public DeleteQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-        return new DeleteQueryData(this.keyNameValuePairs, 
+    public DeleteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
+        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
                                    whereConditions, 
                                    this.onlyIfConditions);  
     }
     
     
-    public DeleteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        return new DeleteQueryData(this.keyNameValuePairs, 
+    public DeleteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
+        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
                                    this.whereConditions, 
                                    onlyIfConditions);  
     }
@@ -95,19 +97,19 @@ public class DeleteQueryData {
     }
     
     
-    Statement toStatement(Context ctx) {
+    static Statement toStatement(DeleteQueryData data, Context ctx) {
         Delete delete = delete().from(ctx.getTable());
 
-        for (Clause onlyIfCondition : getOnlyIfConditions()) {
+        for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
         }
 
         
         // key-based delete    
-        if (getWhereConditions().isEmpty()) {
+        if (data.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
-            for (Entry<String, Object> entry : getKeyNameValuePairs().entrySet()) {
+            for (Entry<String, Object> entry : data.getKeyNameValuePairs().entrySet()) {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 
@@ -119,7 +121,7 @@ public class DeleteQueryData {
             
         // where condition-based delete    
         } else {
-            for (Clause whereCondition : getWhereConditions()) {
+            for (Clause whereCondition : data.getWhereConditions()) {
                 delete.where(whereCondition);
             }
            

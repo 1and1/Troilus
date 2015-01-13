@@ -75,18 +75,18 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new MinimalUpdateQuery(ctx, new MinimalWriteQueryData()).entity(entity);
+        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl()).entity(entity);
     }
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new MinimalUpdateQuery(ctx, new MinimalWriteQueryData().whereConditions((ImmutableList.copyOf(clauses))));
+        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses))));
     }
   
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new MinimalUpdateQuery(ctx, new MinimalWriteQueryData().keys(composedKeyParts));
+        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts));
     }
   
     
@@ -137,7 +137,7 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new MinimalDeleteQuery(ctx, new DeleteQueryData().whereConditions(ImmutableList.copyOf(whereConditions)));
+        return new MinimalDeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
     
@@ -189,7 +189,7 @@ public class MinimalDaoImpl implements MinimalDao {
     }
     
     public MinimalDeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new MinimalDeleteQuery(ctx, new DeleteQueryData().keys(keyNameValuePairs));
+        return new MinimalDeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
     }
     
     

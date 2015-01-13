@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
 
 
  
-public class MinimalListReadQueryData {
+class ListReadQueryDataImpl {
 
     /*
      * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
@@ -49,7 +49,7 @@ public class MinimalListReadQueryData {
     private final Boolean distinct;
 
     
-    MinimalListReadQueryData() {
+    ListReadQueryDataImpl() {
         this(ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
              ImmutableMap.<String, Boolean>of(),
@@ -60,7 +60,7 @@ public class MinimalListReadQueryData {
     }
 
     
-    private MinimalListReadQueryData(ImmutableMap<String, ImmutableList<Object>> keys,
+    private ListReadQueryDataImpl(ImmutableMap<String, ImmutableList<Object>> keys,
                                      ImmutableSet<Clause> whereClauses, 
                                      ImmutableMap<String, Boolean> columnsToFetch, 
                                      Integer limit, 
@@ -79,10 +79,8 @@ public class MinimalListReadQueryData {
 
     
 
-    public MinimalListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys) {
-        preCondition(whereClauses.isEmpty());
-        
-        return new MinimalListReadQueryData(keys,
+    public ListReadQueryDataImpl keys(ImmutableMap<String, ImmutableList<Object>> keys) {
+        return new ListReadQueryDataImpl(keys,
                                             this.whereClauses,
                                             this.columnsToFetch,
                                             this.limit,
@@ -91,10 +89,8 @@ public class MinimalListReadQueryData {
                                             this.distinct);  
     }
     
-    public MinimalListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
-        preCondition(keys.isEmpty());
-
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl whereConditions(ImmutableSet<Clause> whereClauses) {
+        return new ListReadQueryDataImpl(this.keys,
                                             whereClauses,
                                             this.columnsToFetch,
                                             this.limit,
@@ -104,8 +100,8 @@ public class MinimalListReadQueryData {
     }
 
     
-    public MinimalListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
+        return new ListReadQueryDataImpl(this.keys,
                                             this.whereClauses,
                                             columnsToFetch,
                                             this.limit,
@@ -115,8 +111,8 @@ public class MinimalListReadQueryData {
     }
 
     
-    public MinimalListReadQueryData limit(Integer limit) {
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl limit(Integer limit) {
+        return new ListReadQueryDataImpl(this.keys,
                                             this.whereClauses,
                                             this.columnsToFetch,
                                             limit,
@@ -126,8 +122,8 @@ public class MinimalListReadQueryData {
     }
 
     
-    public MinimalListReadQueryData allowFiltering(Boolean allowFiltering) {
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl allowFiltering(Boolean allowFiltering) {
+        return new ListReadQueryDataImpl(this.keys,
                                             this.whereClauses,
                                             this.columnsToFetch,
                                             this.limit,
@@ -137,8 +133,8 @@ public class MinimalListReadQueryData {
     }
 
     
-    public MinimalListReadQueryData fetchSize(Integer fetchSize) {
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl fetchSize(Integer fetchSize) {
+        return new ListReadQueryDataImpl(this.keys,
                                             this.whereClauses,
                                             this.columnsToFetch,
                                             this.limit,
@@ -148,8 +144,8 @@ public class MinimalListReadQueryData {
     }
 
     
-    public MinimalListReadQueryData distinct(Boolean distinct) {
-        return new MinimalListReadQueryData(this.keys,
+    public ListReadQueryDataImpl distinct(Boolean distinct) {
+        return new ListReadQueryDataImpl(this.keys,
                                             this.whereClauses,
                                             this.columnsToFetch,
                                             this.limit,
@@ -246,15 +242,6 @@ public class MinimalListReadQueryData {
             }
 
             return ctx.prepare(select).bind(values.toArray());
-        }
-    }
-
-    
-    
-    
-    private <T extends RuntimeException> void preCondition(boolean condition) {
-        if (!condition) {
-            throw new IllegalStateException();
         }
     }
 }

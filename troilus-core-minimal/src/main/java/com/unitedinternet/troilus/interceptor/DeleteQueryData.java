@@ -17,14 +17,32 @@ package com.unitedinternet.troilus.interceptor;
 
 
 
+import com.datastax.driver.core.querybuilder.Clause;
 
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 
 
 
  
-public interface SingleReadQueryPreInterceptor extends QueryInterceptor {
+public interface DeleteQueryData {
+
+    DeleteQueryData keys(ImmutableMap<String, Object> keyNameValuePairs);
+
     
-    SingleReadQueryData onPreSingleRead(SingleReadQueryData data);
+    DeleteQueryData whereConditions(ImmutableList<Clause> whereConditions);
+
+    
+    DeleteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions);
+
+    
+    ImmutableMap<String, Object> getKeyNameValuePairs();
+
+
+    ImmutableList<Clause> getWhereConditions();
+
+    ImmutableList<Clause> getOnlyIfConditions();
+
 }
- 

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 
 
+
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
@@ -32,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;;
 
@@ -68,12 +70,12 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
     
     @Override
     public SingleReadQuery column(String name) {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new SingleReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
@@ -104,7 +106,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
     
     @Override
     public SingleReadWithColumns<Optional<Record>> columns(Name<?>... names) {
-        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Immutables.toList()));
+        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Java8Immutables.toList()));
     }
     
 
@@ -125,7 +127,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
         SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
-        Statement statement = preprocessedData.toStatement(getContext());
+        Statement statement = SingleReadQueryDataImpl.toStatement(preprocessedData, getContext());
         
         return new CompletableDbFuture(performAsync(statement))
                     .thenApply(resultSet -> {

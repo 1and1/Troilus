@@ -22,6 +22,7 @@ import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
 import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
 import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
@@ -72,7 +73,7 @@ class MinimalDeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             queryData = interceptor.onPreDelete(queryData); 
         }
 
-        return queryData.toStatement(getContext());
+        return DeleteQueryDataImpl.toStatement(queryData, getContext());
     }
     
     @Override

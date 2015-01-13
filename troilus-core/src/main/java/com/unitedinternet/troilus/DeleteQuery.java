@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.querybuilder.Clause;
-
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
@@ -29,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Deletion;
+import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
 
 
@@ -76,7 +76,7 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             queryData = interceptor.onPreDelete(queryData); 
         }
 
-        return queryData.toStatement(getContext());
+        return DeleteQueryDataImpl.toStatement(queryData, getContext());
     }
     
     public CompletableFuture<Result> executeAsync() {

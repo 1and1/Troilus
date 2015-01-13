@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 /**
  * Immutable utility class
  */
-class MinimalImmutables {
+class Immutables {
 
     /*
      * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT

@@ -24,15 +24,16 @@ import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
 import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
 import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
 import com.unitedinternet.troilus.minimal.MinimalDao.Mutation;
+import com.unitedinternet.troilus.minimal.WriteQueryData;
 import com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor;
 
 
  
 class MinimalInsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
-    private final MinimalWriteQueryData data;
+    private final WriteQueryDataImpl data;
   
-    public MinimalInsertQuery(Context ctx, MinimalWriteQueryData data) {
+    public MinimalInsertQuery(Context ctx, WriteQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
@@ -64,12 +65,12 @@ class MinimalInsertQuery extends AbstractQuery<Insertion> implements Insertion {
 
   
     private Statement getStatement() {
-        MinimalWriteQueryData queryData = data;
+        WriteQueryData queryData = data;
         for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
             queryData = interceptor.onPreWrite(queryData); 
         }
         
-        return queryData.toStatement(getContext());
+        return WriteQueryDataImpl.toStatement(queryData, getContext());
     }
     
     @Override

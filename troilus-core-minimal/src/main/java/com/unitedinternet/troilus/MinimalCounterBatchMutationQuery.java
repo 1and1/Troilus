@@ -43,7 +43,7 @@ class MinimalCounterBatchMutationQuery extends AbstractQuery<CounterBatchMutatio
     
         @Override
     public CounterBatchMutation combinedWith(CounterBatchable other) {
-        return new MinimalCounterBatchMutationQuery(getContext(), MinimalImmutables.merge(batchables, other));
+        return new MinimalCounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
     }
 
     private Statement getStatement() {

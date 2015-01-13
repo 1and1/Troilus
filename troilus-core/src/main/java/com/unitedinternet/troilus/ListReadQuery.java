@@ -29,6 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
+import com.unitedinternet.troilus.DaoImpl.ListReadQueryDataAdapter;
+import com.unitedinternet.troilus.interceptor.ListReadQueryData;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
@@ -72,13 +74,13 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
     
     @Override
     public ListReadQuery column(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new ListReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new ListReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     
@@ -100,7 +102,7 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
     
     @Override
     public ListReadWithUnit<RecordList> columns(Name<?>... names) {
-        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Immutables.toList()));
+        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Java8Immutables.toList()));
     }
 
     @Override
@@ -154,7 +156,7 @@ class ListReadQuery extends ReadQuery<ListReadQuery> implements ListReadWithUnit
     @Override
     public CompletableFuture<RecordList> executeAsync() {
         ListReadQueryData preprocessedData = getPreprocessedData(); 
-        Statement statement = preprocessedData.toStatement(getContext());
+        Statement statement = ListReadQueryDataAdapter.toStatement(preprocessedData, getContext());
         
         return new CompletableDbFuture(performAsync(statement))
                   .thenApply(resultSet -> newRecordList(resultSet))

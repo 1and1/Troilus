@@ -29,24 +29,25 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 
 
 
  
-public class SingleReadQueryData {
+class SingleReadQueryDataImpl implements SingleReadQueryData {
 
     final ImmutableMap<String, Object> keyNameValuePartPairs;
     final ImmutableMap<String, Boolean> columnsToFetch;
 
 
     
-    SingleReadQueryData() {
+    SingleReadQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(), 
              ImmutableMap.<String, Boolean>of());
     }
     
 
-    private SingleReadQueryData(ImmutableMap<String, Object> keyNameValuePartPairs,
+    private SingleReadQueryDataImpl(ImmutableMap<String, Object> keyNameValuePartPairs,
                                 ImmutableMap<String, Boolean> columnsToFetchs) {
         this.keyNameValuePartPairs = keyNameValuePartPairs;
         this.columnsToFetch = columnsToFetchs;
@@ -54,14 +55,14 @@ public class SingleReadQueryData {
     
     
 
-    public SingleReadQueryData keyParts(ImmutableMap<String, Object> keyNameValuePartPairs) {
-        return new SingleReadQueryData(keyNameValuePartPairs, 
+    public SingleReadQueryDataImpl keyParts(ImmutableMap<String, Object> keyNameValuePartPairs) {
+        return new SingleReadQueryDataImpl(keyNameValuePartPairs, 
                                        this.columnsToFetch);  
     }
     
 
-    public SingleReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs) {
-        return new SingleReadQueryData(this.keyNameValuePartPairs, 
+    public SingleReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs) {
+        return new SingleReadQueryDataImpl(this.keyNameValuePartPairs, 
                                        columnsToFetchs);  
     }
     
@@ -77,16 +78,16 @@ public class SingleReadQueryData {
 
 
     
-    Statement toStatement(Context ctx) {
+    static Statement toStatement(SingleReadQueryData data, Context ctx) {
         Selection selection = select();
         
         
         // set the columns to fetch 
-        if (getColumnsToFetch().isEmpty()) {
+        if (data.getColumnsToFetch().isEmpty()) {
             selection.all();
 
         } else {
-            for (Entry<String, Boolean> entry : columnsToFetch.entrySet()) {
+            for (Entry<String, Boolean> entry : data.getColumnsToFetch().entrySet()) {
                 selection.column(entry.getKey());
                 if (entry.getValue()) {
                     selection.ttl(entry.getKey());
@@ -95,8 +96,8 @@ public class SingleReadQueryData {
             }
 
             // add key columns to requested columns (for paranoia checks)
-            for (String keyname : getKeyParts().keySet()) {
-                if (columnsToFetch.get(keyname) == null) {
+            for (String keyname : data.getKeyParts().keySet()) {
+                if (data.getColumnsToFetch().get(keyname) == null) {
                     selection.column(keyname);
                 }
             }
@@ -108,7 +109,7 @@ public class SingleReadQueryData {
         
         // set the query conditions 
         List<Object> values = Lists.newArrayList();
-        for (Entry<String, Object> entry : getKeyParts().entrySet()) {
+        for (Entry<String, Object> entry : data.getKeyParts().entrySet()) {
             select.where(eq(entry.getKey(), bindMarker()));
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
         }

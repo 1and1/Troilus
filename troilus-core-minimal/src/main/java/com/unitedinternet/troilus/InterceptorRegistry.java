@@ -77,7 +77,7 @@ class InterceptorRegistry {
      * @return a new instance of the interceptor registry which also includes the new interceptor
      */
     <T extends QueryInterceptor> InterceptorRegistry withInterceptor(T interceptor) {
-        return new InterceptorRegistry(MinimalImmutables.merge(interceptors, interceptor));
+        return new InterceptorRegistry(Immutables.merge(interceptors, interceptor));
     }
 
 

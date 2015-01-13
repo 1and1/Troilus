@@ -15,16 +15,18 @@
  */
 package com.unitedinternet.troilus.interceptor;
 
-
-
-
-
+import com.google.common.collect.ImmutableMap;
 
 
 
  
-public interface SingleReadQueryPreInterceptor extends QueryInterceptor {
+public interface SingleReadQueryData {
+
+    SingleReadQueryData keyParts(ImmutableMap<String, Object> keyNameValuePartPairs);
     
-    SingleReadQueryData onPreSingleRead(SingleReadQueryData data);
+    SingleReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs);
+    
+    ImmutableMap<String, Object> getKeyParts();
+    
+    ImmutableMap<String, Boolean> getColumnsToFetch();
 }
- 

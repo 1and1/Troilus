@@ -44,10 +44,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.unitedinternet.troilus.minimal.WriteQueryData;
 
 
  
-public class MinimalWriteQueryData {
+class WriteQueryDataImpl implements WriteQueryData {
 
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
@@ -65,7 +66,7 @@ public class MinimalWriteQueryData {
     
     
 
-    MinimalWriteQueryData() {
+    WriteQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),
              ImmutableMap.<String, Optional<Object>>of(),
@@ -80,7 +81,7 @@ public class MinimalWriteQueryData {
     }
 
     
-    private MinimalWriteQueryData(ImmutableMap<String, Object> keys, 
+    private WriteQueryDataImpl(ImmutableMap<String, Object> keys, 
                             ImmutableList<Clause> whereConditions, 
                             ImmutableMap<String, Optional<Object>> valuesToMutate, 
                             ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
@@ -106,8 +107,8 @@ public class MinimalWriteQueryData {
     
     
 
-    public MinimalWriteQueryData keys(ImmutableMap<String, Object> keys) {
-        return new MinimalWriteQueryData(keys, 
+    public WriteQueryDataImpl keys(ImmutableMap<String, Object> keys) {
+        return new WriteQueryDataImpl(keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -121,10 +122,8 @@ public class MinimalWriteQueryData {
     }
     
   
-    public MinimalWriteQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-        preCondition(ifNotExists == null);
-        
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
+        return new WriteQueryDataImpl(this.keys, 
                                    whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -137,8 +136,8 @@ public class MinimalWriteQueryData {
                                    this.ifNotExists);
     }
     
-    public MinimalWriteQueryData valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    valuesToMutate, 
                                    this.setValuesToAdd,
@@ -152,10 +151,8 @@ public class MinimalWriteQueryData {
     }
  
     
-    public MinimalWriteQueryData setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
-        preCondition(ifNotExists == null);
-        
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    setValuesToAdd,
@@ -169,10 +166,8 @@ public class MinimalWriteQueryData {
     }
     
     
-    public MinimalWriteQueryData setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
-        preCondition(ifNotExists == null);
-        
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -186,10 +181,8 @@ public class MinimalWriteQueryData {
     }
  
     
-    public MinimalWriteQueryData listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
-        preCondition(ifNotExists == null);
-
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -203,10 +196,8 @@ public class MinimalWriteQueryData {
     }
    
     
-    public MinimalWriteQueryData listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
-        preCondition(ifNotExists == null);
-
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -220,10 +211,8 @@ public class MinimalWriteQueryData {
     }
  
     
-    public MinimalWriteQueryData listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
-        preCondition(ifNotExists == null);
-
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
+         return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -237,10 +226,8 @@ public class MinimalWriteQueryData {
     }
  
 
-    public MinimalWriteQueryData mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
-        preCondition(ifNotExists == null);
-
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -254,10 +241,8 @@ public class MinimalWriteQueryData {
     }
 
     
-    public MinimalWriteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        preCondition(ifNotExists == null);
-
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -270,17 +255,8 @@ public class MinimalWriteQueryData {
                                    this.ifNotExists);
     }
 
-    public MinimalWriteQueryData ifNotExists(Boolean ifNotExists) {
-        preCondition(onlyIfConditions.isEmpty());
-        preCondition(whereConditions.isEmpty());
-        preCondition(setValuesToAdd.isEmpty());
-        preCondition(setValuesToRemove.isEmpty());
-        preCondition(listValuesToAppend.isEmpty());
-        preCondition(listValuesToPrepend.isEmpty());
-        preCondition(listValuesToRemove.isEmpty());
-        preCondition(mapValuesToMutate.isEmpty());
-        
-        return new MinimalWriteQueryData(this.keys, 
+    public WriteQueryDataImpl ifNotExists(Boolean ifNotExists) {
+        return new WriteQueryDataImpl(this.keys, 
                                    this.whereConditions,
                                    this.valuesToMutate, 
                                    this.setValuesToAdd,
@@ -293,14 +269,6 @@ public class MinimalWriteQueryData {
                                    ifNotExists);
     }
     
-
-    
-    private <T extends RuntimeException> void preCondition(boolean condition) {
-        if (!condition) {
-            throw new IllegalStateException();
-        }
-    }
-
     
     public ImmutableMap<String, Object> getKeyNameValuePairs() {
         return keys;
@@ -348,26 +316,26 @@ public class MinimalWriteQueryData {
     
     
     
-    Statement toStatement(Context ctx) {
-        if ((ifNotExists != null) || (getKeyNameValuePairs().isEmpty() && getWhereConditions().isEmpty())) {
-            return toInsertStatement(ctx);
+    static Statement toStatement(WriteQueryData data, Context ctx) {
+        if ((data.getIfNotExits() != null) || (data.getKeyNameValuePairs().isEmpty() && data.getWhereConditions().isEmpty())) {
+            return toInsertStatement(data, ctx);
         } else {
-            return toUpdateStatement(ctx);
+            return toUpdateStatement(data, ctx);
         }
     }
     
     
-    private Statement toInsertStatement(Context ctx) {
+    private static Statement toInsertStatement(WriteQueryData data,Context ctx) {
         Insert insert = insertInto(ctx.getTable());
         
         List<Object> values = Lists.newArrayList();
         
-        for(Entry<String, Optional<Object>> entry : getValuesToMutate().entrySet()) {
+        for(Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
             insert.value(entry.getKey(), bindMarker());  
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue().orNull())); 
         }
         
-        if (ifNotExists != null) {
+        if (data.getIfNotExits() != null) {
             insert.ifNotExists();
             if (ctx.getSerialConsistencyLevel() != null) {
                 insert.setSerialConsistencyLevel(ctx.getSerialConsistencyLevel());
@@ -387,53 +355,53 @@ public class MinimalWriteQueryData {
     
     
     
-    private Statement toUpdateStatement(Context ctx) {
+    private static Statement toUpdateStatement(WriteQueryData data,Context ctx) {
         com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
         
         
-        for (Clause onlyIfCondition : getOnlyIfConditions()) {
+        for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             update.onlyIf(onlyIfCondition);
         }
 
         
         // key-based update
-        if (getWhereConditions().isEmpty()) {
+        if (data.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
-            for (Entry<String, Optional<Object>> entry : getValuesToMutate().entrySet()) {
+            for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
                 update.with(set(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue().orNull()));
             }
 
-            for (Entry<String, ImmutableSet<Object>> entry : getSetValuesToAdd().entrySet()) {
+            for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
                 update.with(addAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             }
-            for(Entry<String, ImmutableSet<Object>> entry : getSetValuesToRemove().entrySet()) {
+            for(Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
                 update.with(removeAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             }
 
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToPrepend().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
                 update.with(prependAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             } 
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToAppend().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
                 update.with(appendAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             } 
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToRemove().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
                 update.with(discardAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             } 
 
-            for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : getMapValuesToMutate().entrySet()) {
+            for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 update.with(putAll(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
             }
             
             
-            for(Entry<String, Object> entry : getKeyNameValuePairs().entrySet()) {
+            for(Entry<String, Object> entry : data.getKeyNameValuePairs().entrySet()) {
                 update.where(eq(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue())); 
             }
@@ -448,28 +416,28 @@ public class MinimalWriteQueryData {
             
         // where condition-based update
         } else {
-            for (Entry<String, Optional<Object>> entry : getValuesToMutate().entrySet()) {
+            for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
                 update.with(set(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue().orNull())));
             }
 
-            for (Entry<String, ImmutableSet<Object>> entry : getSetValuesToAdd().entrySet()) {
+            for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
                 update.with(addAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             }
-            for (Entry<String, ImmutableSet<Object>> entry : getSetValuesToRemove().entrySet()) {
+            for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
                 update.with(removeAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             }
             
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToPrepend().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
                 update.with(prependAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             } 
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToAppend().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
                 update.with(appendAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             } 
-            for (Entry<String, ImmutableList<Object>> entry : getListValuesToRemove().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
                 update.with(discardAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             } 
 
-            for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : getMapValuesToMutate().entrySet()) {
+            for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 update.with(putAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
             }
 
@@ -477,7 +445,7 @@ public class MinimalWriteQueryData {
                 update.using(QueryBuilder.ttl(ctx.getTtlSec().intValue()));
             }
 
-            for (Clause whereCondition : getWhereConditions()) {
+            for (Clause whereCondition : data.getWhereConditions()) {
                 update.where(whereCondition);
             }
                         
@@ -486,17 +454,17 @@ public class MinimalWriteQueryData {
     }
     
 
-    private Object toStatementValue(Context ctx, String name, Object value) {
+    private static Object toStatementValue(Context ctx, String name, Object value) {
         return ctx.toStatementValue(name, value);
     }
     
     
-    private ImmutableSet<Object> toStatementValue(Context ctx, String name, ImmutableSet<Object> values) {
+    private static ImmutableSet<Object> toStatementValue(Context ctx, String name, ImmutableSet<Object> values) {
         return ImmutableSet.copyOf(toStatementValue(ctx, name, ImmutableList.copyOf(values))); 
     }
 
     
-    private ImmutableList<Object> toStatementValue(Context ctx, String name, ImmutableList<Object> values) {
+    private static ImmutableList<Object> toStatementValue(Context ctx, String name, ImmutableList<Object> values) {
         
         List<Object> result = Lists.newArrayList();
 
@@ -508,7 +476,7 @@ public class MinimalWriteQueryData {
     }
   
     
-    private Map<Object, Object> toStatementValue(Context ctx, String name, ImmutableMap<Object, Optional<Object>> map) {
+    private static Map<Object, Object> toStatementValue(Context ctx, String name, ImmutableMap<Object, Optional<Object>> map) {
         Map<Object, Object> m = Maps.newHashMap();
         for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
             m.put(toStatementValue(ctx, name, toStatementValue(ctx, name, entry.getKey())), toStatementValue(ctx, name, entry.getValue().orNull()));
