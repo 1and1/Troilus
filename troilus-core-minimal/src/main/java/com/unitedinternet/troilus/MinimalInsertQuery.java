@@ -44,7 +44,7 @@ class MinimalInsertQuery extends AbstractQuery<Insertion> implements Insertion {
         return new MinimalInsertQuery(newContext, data);
     }
     
-    public MinimalInsertQuery withTtl(long ttlSec) {
+    public MinimalInsertQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     

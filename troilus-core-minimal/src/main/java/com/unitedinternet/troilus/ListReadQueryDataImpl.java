@@ -31,10 +31,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
+import com.unitedinternet.troilus.minimal.ListReadQueryData;
 
 
  
-class ListReadQueryDataImpl {
+class ListReadQueryDataImpl implements ListReadQueryData {
 
     /*
      * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
@@ -183,20 +184,20 @@ class ListReadQueryDataImpl {
         return distinct;
     }
     
-    
-    Statement toStatement(Context ctx) {
+     
+    static Statement toStatement(ListReadQueryData data, Context ctx) {
         Select.Selection selection = select();
 
-        if ((getDistinct() != null) && getDistinct()) {
+        if ((data.getDistinct() != null) && data.getDistinct()) {
             selection.distinct(); 
         }
 
         
-        if (getColumnsToFetch().isEmpty()) {
+        if (data.getColumnsToFetch().isEmpty()) {
             selection.all();
             
         } else {
-            for (Entry<String, Boolean> entry : columnsToFetch.entrySet()) {
+            for (Entry<String, Boolean> entry : data.getColumnsToFetch().entrySet()) {
                 selection.column(entry.getKey());
                 
                 if (entry.getValue()) {
@@ -208,23 +209,23 @@ class ListReadQueryDataImpl {
         
         Select select = selection.from(ctx.getTable());
   
-        if (getLimit() != null) {
-            select.limit(getLimit());
+        if (data.getLimit() != null) {
+            select.limit(data.getLimit());
         }
 
-        if ((getAllowFiltering() != null) && getAllowFiltering()) {
+        if ((data.getAllowFiltering() != null) && data.getAllowFiltering()) {
             select.allowFiltering();
         } 
 
-        if (getFetchSize() != null) {
-            select.setFetchSize(getFetchSize());
+        if (data.getFetchSize() != null) {
+            select.setFetchSize(data.getFetchSize());
         }
         
         
         
         // where-based selection
-        if (getKeys().isEmpty()) {
-            for (Clause whereClause : whereClauses) {
+        if (data.getKeys().isEmpty()) {
+            for (Clause whereClause : data.getWhereClauses()) {
                 select.where(whereClause);
             }
             
@@ -235,7 +236,7 @@ class ListReadQueryDataImpl {
         } else {
             List<Object> values = Lists.newArrayList();
 
-            for (Entry<String, ImmutableList<Object>> entry : getKeys().entrySet()) {
+            for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 select.where(in(entry.getKey(), bindMarker()));
                 values.add(ctx.toStatementValues(entry.getKey(), entry.getValue()));
                 

@@ -16,14 +16,18 @@
 package com.unitedinternet.troilus;
 
 
+
 import com.datastax.driver.core.Session;
+
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.minimal.MinimalDao;
+import com.unitedinternet.troilus.minimal.Record;
 
  
 
@@ -53,12 +57,12 @@ public class MinimalDaoImpl implements MinimalDao {
     }
  
     @Override
-    public MinimalDao withEnableTracking() {
+    public MinimalDao withTracking() {
         return new MinimalDaoImpl(ctx.withEnableTracking());
     }
     
     @Override
-    public MinimalDao withDisableTracking() {
+    public MinimalDao withoutTracking() {
         return new MinimalDaoImpl(ctx.withDisableTracking());
     }
 
@@ -193,55 +197,49 @@ public class MinimalDaoImpl implements MinimalDao {
     }
     
     
-    /*
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName, keyValue)));
+    public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
+        return new MinimalSingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey));
+    }
+    
+    
+    @Override
+    public SingleReadWithUnit<Record> readWithKey(String keyName, Object keyValue) {
+        return readWithKey(ImmutableMap.of(keyName, keyValue));
     }
      
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
+    public SingleReadWithUnit<Record> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                           keyName2, keyValue2)));
+        return readWithKey(ImmutableMap.of(keyName1, keyValue1, 
+                           keyName2, keyValue2));
     }
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
+    public SingleReadWithUnit<Record> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2,
                                                             String keyName3, Object keyValue3) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                           keyName2, keyValue2, 
-                                                                                           keyName3, keyValue3)));
+        return readWithKey(ImmutableMap.of(keyName1, keyValue1, 
+                                           keyName2, keyValue2, 
+                                           keyName3, keyValue3));
     }
     
     
     @Override
-    public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName1, Object keyValue1, 
-                                                            String keyName2, Object keyValue2, 
-                                                            String keyName3, Object keyValue3, 
-                                                            String keyName4, Object keyValue4) {
-        return new SingleReadQuery(ctx, new SingleReadQueryData().keys(ImmutableMap.of(keyName1, keyValue1, 
-                                                                                           keyName2, keyValue2, 
-                                                                                           keyName3, keyValue3, 
-                                                                                           keyName4, keyValue4)));
-    }
-
-    @Override
-    public <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue) {
+    public <T> SingleReadWithUnit<Record> readWithKey(Name<T> keyName, T keyValue) {
         return readWithKey(keyName.getName(), (Object) keyValue);
     }
     
     @Override
-    public <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1,
+    public <T, E> SingleReadWithUnit<Record> readWithKey(Name<T> keyName1, T keyValue1,
                                                                    Name<E> keyName2, E keyValue2) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,
                            keyName2.getName(), (Object) keyValue2);
     }
     
     @Override
-    public <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, 
+    public <T, E, F> SingleReadWithUnit<Record> readWithKey(Name<T> keyName1, T keyValue1, 
                                                                       Name<E> keyName2, E keyValue2,
                                                                       Name<F> keyName3, F keyValue3) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,
@@ -249,28 +247,63 @@ public class MinimalDaoImpl implements MinimalDao {
                            keyName3.getName(), (Object) keyValue3);
     }
     
-    @Override
-    public <T, E, F, G> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, 
-                                                                         Name<E> keyName2, E keyValue2,
-                                                                         Name<F> keyName3, F keyValue3, 
-                                                                         Name<G> keyName4, G keyValue4) {
-        return readWithKey(keyName1.getName(), (Object) keyValue1,
-                           keyName2.getName(), (Object) keyValue2,                         
-                           keyName3.getName(), (Object) keyValue3,
-                           keyName4.getName(), (Object) keyValue4);
-    }
-        
+    
     
     @Override
-    public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
-        return new ListReadQuery(ctx, new ListReadQueryData().whereClauses(ImmutableSet.copyOf(clauses)));
+    public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
+        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
+    }
+    
+    @Override
+    public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                     String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
+        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                composedKeyNamePart2, composedKeyValuesPart2)));        
+    }
+    
+    @Override
+    public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                     String composedKeyNamePart2, Object composedKeyValuePart2,
+                                                     String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
+        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                       composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
+                                                                                       composedKeyNamePart3, composedKeyValuesPart3)));        
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> ListReadWithUnit<RecordList> readWithKeys(Name<T> name, ImmutableList<T> values) {
+        return readWithKeys(name.getName(), (ImmutableList<Object>) values);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T, E> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                            Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
+        return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                            composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
+    }
+    
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T, E, F> ListReadWithUnit<RecordList> readWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                Name<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                                Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
+        return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                            composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
+                            composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
+        
+    }
+    
+    @Override
+    public MinimalListReadQuery readWhere(Clause... clauses) {
+        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
     }
      
     
     @Override
-    public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryData().columnsToFetch(ImmutableMap.of()));
+    public MinimalListReadQuery readAll() {
+        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
-    
-    */
 }

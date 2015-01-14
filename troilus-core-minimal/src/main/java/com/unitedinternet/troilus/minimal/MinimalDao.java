@@ -15,11 +15,16 @@
  */
 package com.unitedinternet.troilus.minimal;
 
+
+import org.reactivestreams.Publisher;
+
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.unitedinternet.troilus.Count;
 import com.unitedinternet.troilus.Name;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
@@ -35,9 +40,9 @@ public interface MinimalDao {
 
     MinimalDao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-    MinimalDao withEnableTracking();
+    MinimalDao withTracking();
 
-    MinimalDao withDisableTracking();
+    MinimalDao withoutTracking();
 
     MinimalDao withRetryPolicy(RetryPolicy policy);
         
@@ -127,7 +132,7 @@ public interface MinimalDao {
 
         Mutation<Q> withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-        Mutation<Q> withTtl(long ttlSec);
+        Mutation<Q> withTtl(int ttlSec);
 
         Mutation<Q> withWritetime(long microsSinceEpoch);
     }
@@ -238,7 +243,7 @@ public interface MinimalDao {
 
         CounterMutation withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-        CounterMutation withTtl(long ttlSec);
+        CounterMutation withTtl(int ttlSec);
 
         CounterMutation withWritetime(long microsSinceEpoch);
         
@@ -263,33 +268,31 @@ public interface MinimalDao {
 
 
     
-    /*
-    
     
     ////////////////////////////////
     // READ
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+    SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
     
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
+    SingleReadWithUnit<Record> readWithKey(String keyName, Object keyValue);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2);
+    SingleReadWithUnit<Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                           String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2,
-                                                     String composedKeyNamePart3, Object composedKeyValuePart3);
+    SingleReadWithUnit<Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                           String composedKeyNamePart2, Object composedKeyValuePart2,
+                                           String composedKeyNamePart3, Object composedKeyValuePart3);
 
 
-    <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue);
+    <T> SingleReadWithUnit<Record> readWithKey(Name<T> keyName, T keyValue);
 
-    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> SingleReadWithUnit<Record> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                  Name<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                               Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                                               Name<F> composedKeyNamePart3, F composedKeyValuePart3);
-    
+    <T, E, F> SingleReadWithUnit<Record> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                     Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                                     Name<F> composedKeyNamePart3, F composedKeyValuePart3);
+
     ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values);
 
     ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
@@ -314,6 +317,11 @@ public interface MinimalDao {
     ListReadWithUnit<RecordList> readWhere(Clause... clauses);
 
     
+    
+    public static interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
+        
+    }
+
     
     
     
@@ -346,10 +354,10 @@ public interface MinimalDao {
 
         SingleRead<T> all();
 
-        <E> SingleRead<Optional<E>> asEntity(Class<E> objectClass);
+        <E> SingleRead<E> asEntity(Class<E> objectClass);
     }
-
     
+
        
     public static interface ListRead<T> extends SingleRead<T> {
 
@@ -384,5 +392,10 @@ public interface MinimalDao {
         ListRead<Count> count();
 
         <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
-    } */
+    } 
+    
+
+    public static interface EntityList<E> extends Result, Iterable<E>, Publisher<E> {
+
+    }
 }

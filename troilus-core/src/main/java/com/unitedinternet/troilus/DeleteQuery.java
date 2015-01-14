@@ -45,7 +45,7 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
 
     public Deletion withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl.getSeconds()));
+        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }
     
     public BatchMutation combinedWith(Batchable other) {

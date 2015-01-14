@@ -41,7 +41,7 @@ class MinimalDeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     }
 
 
-    public Deletion withTtl(long ttlSec) {
+    public Deletion withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     

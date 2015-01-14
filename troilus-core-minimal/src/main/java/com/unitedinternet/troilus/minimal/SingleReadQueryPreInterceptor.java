@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus.minimal;
 
-import com.unitedinternet.troilus.Dao.RecordList;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+
+
 
 
 
@@ -23,8 +26,8 @@ import com.unitedinternet.troilus.Dao.RecordList;
 
 
  
-public interface ListReadQueryPostInterceptor extends QueryInterceptor {
+public interface SingleReadQueryPreInterceptor extends QueryInterceptor {
     
-    RecordList onPostListRead(ListReadQueryData data, RecordList recordList);
+    SingleReadQueryData onPreSingleRead(SingleReadQueryData data);
 }
  

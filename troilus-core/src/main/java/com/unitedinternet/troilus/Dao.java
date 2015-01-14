@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.reactivestreams.Publisher;
+
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -39,9 +41,9 @@ public interface Dao {
 
     Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-    Dao withEnableTracking();
+    Dao withTracking();
 
-    Dao withDisableTracking();
+    Dao withoutTracking();
 
     Dao withRetryPolicy(RetryPolicy policy);
         
@@ -329,6 +331,12 @@ public interface Dao {
 
     
     
+        
+    public static interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
+        
+    }
+
+    
     
     
     public static interface SingleRead<T> extends Query<T> {
@@ -400,4 +408,8 @@ public interface Dao {
         <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
     }
 
+    
+    public static interface EntityList<E> extends Result, Iterable<E>, Publisher<E> {
+
+    }
 }

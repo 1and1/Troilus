@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.minimal;
 
-import org.reactivestreams.Publisher;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 
 
-
-
-
-/**
- * record list result 
- */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {
-
+ 
+public interface SingleReadQueryPostInterceptor extends QueryInterceptor {
+    
+    Record onPostSingleRead(SingleReadQueryData data, Record optionalRecord);
 }
-
-
-
+ 

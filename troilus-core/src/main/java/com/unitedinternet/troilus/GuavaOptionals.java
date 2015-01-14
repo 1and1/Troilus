@@ -37,6 +37,15 @@ class GuavaOptionals {
     private GuavaOptionals() {  }
 
     
+    public static <T> com.google.common.base.Optional<T> toOptional(Optional<T> optional) {
+        if (optional.isPresent()) {
+            return com.google.common.base.Optional.of((T) optional.get());
+        } else {
+            return com.google.common.base.Optional.absent();
+        }
+    }
+    
+    
     public static ImmutableMap<String, Optional<Object>> fromStringOptionalMap(ImmutableMap<String, com.google.common.base.Optional<Object>> map) {
         Map<String, Optional<Object>> result = Maps.newHashMap();
         for (Entry<String, com.google.common.base.Optional<Object>> entry : map.entrySet()) {

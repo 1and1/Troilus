@@ -54,7 +54,7 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     }
     
     public InsertQuery withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl.getSeconds()));
+        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }
     
     public BatchMutation combinedWith(Batchable other) {

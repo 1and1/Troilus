@@ -68,12 +68,12 @@ public class DaoImpl implements Dao {
     }
  
     @Override
-    public Dao withEnableTracking() {
+    public Dao withTracking() {
         return new DaoImpl(ctx.withEnableTracking());
     }
     
     @Override
-    public Dao withDisableTracking() {
+    public Dao withoutTracking() {
         return new DaoImpl(ctx.withDisableTracking());
     }
 
@@ -407,14 +407,14 @@ public class DaoImpl implements Dao {
         }
         
         static Statement toStatement(ListReadQueryData data, Context ctx) {
-            return new ListReadQueryDataImpl().keys(data.getKeys())
+            com.unitedinternet.troilus.minimal.ListReadQueryData q = new ListReadQueryDataImpl().keys(data.getKeys())
                                                  .whereConditions(data.getWhereClauses())
                                                  .columnsToFetch(data.getColumnsToFetch())
                                                  .limit(data.getLimit().orElse(null))
                                                  .allowFiltering(data.getAllowFiltering().orElse(null))
                                                  .fetchSize(data.getFetchSize().orElse(null))
-                                                 .distinct(data.getDistinct().orElse(null))
-                                                 .toStatement(ctx);
+                                                 .distinct(data.getDistinct().orElse(null));
+            return ListReadQueryDataImpl.toStatement(q, ctx);
         }
     }
     

@@ -18,8 +18,7 @@ package com.unitedinternet.troilus;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.Iterator;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,27 +36,28 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.Dao.EntityList;
-import com.unitedinternet.troilus.Dao.ListRead;
-import com.unitedinternet.troilus.Dao.ListReadWithUnit;
-import com.unitedinternet.troilus.Dao.RecordList;
-import com.unitedinternet.troilus.DaoImpl.ListReadQueryDataAdapter;
-import com.unitedinternet.troilus.interceptor.ListReadQueryData;
-import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
-import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.minimal.ListReadQueryData;
+import com.unitedinternet.troilus.minimal.ListReadQueryPostInterceptor;
+import com.unitedinternet.troilus.minimal.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.minimal.MinimalDao.EntityList;
+import com.unitedinternet.troilus.minimal.MinimalDao.ListRead;
+import com.unitedinternet.troilus.minimal.MinimalDao.ListReadWithUnit;
+import com.unitedinternet.troilus.minimal.MinimalDao.RecordList;
+import com.unitedinternet.troilus.minimal.Record;
 
 
 
 
  
 
-class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
+class MinimalListReadQuery extends AbstractQuery<MinimalListReadQuery> implements ListReadWithUnit<RecordList> {
     
-    final ListReadQueryData data;
+    final ListReadQueryDataImpl data;
 
     
-    public ListReadQuery(Context ctx, ListReadQueryData data) {
+    public MinimalListReadQuery(Context ctx, ListReadQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
@@ -65,19 +65,19 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     @Override
-    protected ListReadQuery newQuery(Context newContext) {
-        return new ListReadQuery(newContext, data);
+    protected MinimalListReadQuery newQuery(Context newContext) {
+        return new MinimalListReadQuery(newContext, data);
     }
     
     
     @Override
-    public ListReadQuery all() {
-        return new ListReadQuery(getContext(), data.columnsToFetch(ImmutableMap.of()));
+    public MinimalListReadQuery all() {
+        return new MinimalListReadQuery(getContext(), data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
     
  
-    private ListReadQuery columns(ImmutableCollection<String> namesToRead) {
-        ListReadQuery read = this;
+    private MinimalListReadQuery columns(ImmutableCollection<String> namesToRead) {
+        MinimalListReadQuery read = this;
         for (String columnName : namesToRead) {
             read = read.column(columnName);
         }
@@ -86,14 +86,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     @Override
-    public ListReadQuery column(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, false)));
+    public MinimalListReadQuery column(String name) {
+        return new MinimalListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     
     @Override
-    public ListReadQuery columnWithMetadata(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Java8Immutables.merge(data.getColumnsToFetch(), name, true)));
+    public MinimalListReadQuery columnWithMetadata(String name) {
+        return new MinimalListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     
@@ -115,33 +115,38 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListReadWithUnit<RecordList> columns(Name<?>... names) {
-        return columns(ImmutableList.copyOf(names).stream().map(name -> name.getName()).collect(Java8Immutables.toList()));
+        List<String> ns = Lists.newArrayList();
+        for (Name<?> name : names) {
+            ns.add(name.getName());
+        }
+        return columns(ImmutableList.copyOf(ns));
     }
 
     @Override
-    public ListReadQuery withLimit(int limit) {
-        return new ListReadQuery(getContext(), data.limit(Optional.of(limit)));
+    public MinimalListReadQuery withLimit(int limit) {
+        return new MinimalListReadQuery(getContext(), data.limit(limit));
     }
     
     @Override
-    public ListReadQuery withAllowFiltering() {
-        return new ListReadQuery(getContext(), data.allowFiltering(Optional.of(true)));
+    public MinimalListReadQuery withAllowFiltering() {
+        return new MinimalListReadQuery(getContext(), data.allowFiltering(true));
     }
 
     @Override
-    public ListReadQuery withFetchSize(int fetchSize) {
-        return new ListReadQuery(getContext(), data.fetchSize(Optional.of(fetchSize)));
+    public MinimalListReadQuery withFetchSize(int fetchSize) {
+        return new MinimalListReadQuery(getContext(), data.fetchSize(fetchSize));
     }
     
     @Override
-    public ListReadQuery withDistinct() {
-        return new ListReadQuery(getContext(), data.distinct(Optional.of(true)));
+    public MinimalListReadQuery withDistinct() {
+        return new MinimalListReadQuery(getContext(), data.distinct(true));
     }
     
    
+
     @Override
     public ListRead<Count> count() {
-        return new CountReadQuery(getContext(), new CountReadQueryData().whereClauses(data.getWhereClauses())
+        return new CountReadQuery(getContext(), new CountReadQueryData().whereConditions(data.getWhereClauses())
                                                                         .limit(data.getLimit())
                                                                         .fetchSize(data.getFetchSize())
                                                                         .allowFiltering(data.getAllowFiltering())
@@ -165,31 +170,33 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     
-
     @Override
-    public CompletableFuture<RecordList> executeAsync() {
+    public RecordList execute() {
         ListReadQueryData preprocessedData = getPreprocessedData(); 
-        Statement statement = ListReadQueryDataAdapter.toStatement(preprocessedData, getContext());
+        Statement statement = ListReadQueryDataImpl.toStatement(preprocessedData, getContext());
         
-        return new CompletableDbFuture(performAsync(statement))
-                  .<RecordList>thenApply(resultSet -> new RecordListImpl(getContext(), resultSet))
-                  .thenApply(recordList -> {
-                                              for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class)) {
-                                                  recordList = interceptor.onPostListRead(preprocessedData, recordList);
-                                              }
-                                              return recordList;
-                                           });
-    }        
+        RecordList recordList = new RecordListImpl(getContext(), performAsync(statement).getUninterruptibly());
+        
+        return processPostInterceptor(preprocessedData, recordList);
+    }
     
+
+    private RecordList processPostInterceptor(ListReadQueryData preprocessedData, RecordList recordList) {
+        for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class)) {
+            recordList = interceptor.onPostListRead(preprocessedData, recordList);
+        }
+        return recordList;
+    }
+        
  
     
     
     
      private class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
-        private final ListReadQuery read;
+        private final MinimalListReadQuery read;
         private final Class<E> clazz;
         
-        public ListEntityReadQuery(Context ctx, ListReadQuery read, Class<E> clazz) {
+        public ListEntityReadQuery(Context ctx, MinimalListReadQuery read, Class<E> clazz) {
             super(ctx);
             this.read = read;
             this.clazz = clazz;
@@ -197,7 +204,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         @Override
         protected ListEntityReadQuery<E> newQuery(Context newContext) {
-            return new ListReadQuery(newContext, read.data).asEntity(clazz);
+            return new MinimalListReadQuery(newContext, read.data).asEntity(clazz);
         }
 
         @Override
@@ -221,8 +228,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
 
         @Override
-        public CompletableFuture<EntityList<E>> executeAsync() {
-            return read.executeAsync().thenApply(recordList -> new EntityListImpl<>(getContext(), recordList, clazz));
+        public EntityList<E> execute() {
+            return new EntityListImpl<>(getContext(), read.execute(), clazz);
         }
     }
     
@@ -269,7 +276,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  
                  @Override
                  public Record next() {
-                     return new RecordAdapter(new RecordImpl(ctx, RecordListImpl.this, iterator.next()));
+                     return new RecordImpl(ctx, RecordListImpl.this, iterator.next());
                  }
              };
          }
@@ -345,7 +352,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  
                  synchronized (this) {
                      if (runningDatabaseQuery.get() == null) {
-                         Runnable databaseRequest = () -> { runningDatabaseQuery.set(null); processReadRequests(); };
+                         Runnable databaseRequest = new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            runningDatabaseQuery.set(null); processReadRequests();                                 
+                                                                        }
+                                                                   };
                          runningDatabaseQuery.set(databaseRequest);
                          
                          ListenableFuture<Void> future = rs.fetchMoreResults();
@@ -404,7 +416,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return ctx.getBeanMapper().fromValues(clazz, RecordAdapter.toPropertiesSource(recordIt.next()));
+                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()));
                 }
             };
         }
@@ -434,7 +446,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             
             @Override
             public void onNext(Record record) {
-                subscriber.onNext(ctx.getBeanMapper().fromValues(clazz, RecordAdapter.toPropertiesSource(record)));
+                subscriber.onNext((G) ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record)));
             }
     
             @Override
@@ -453,99 +465,99 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private static final class CountReadQueryData {
         final ImmutableSet<Clause> whereClauses;
-        final Optional<Integer> optionalLimit;
-        final Optional<Boolean> optionalAllowFiltering;
-        final Optional<Integer> optionalFetchSize;
-        final Optional<Boolean> optionalDistinct;
+        final Integer limit;
+        final Boolean allowFiltering;
+        final Integer fetchSize;
+        final Boolean distinct;
 
         
         
         public CountReadQueryData() {
-            this(ImmutableSet.of(),
-                 Optional.empty(),
-                 Optional.empty(),
-                 Optional.empty(),
-                 Optional.empty());
+            this(ImmutableSet.<Clause>of(),
+                 null,
+                 null,
+                 null,
+                 null);
         }
         
         private CountReadQueryData(ImmutableSet<Clause> whereClauses, 
-                                   Optional<Integer> optionalLimit, 
-                                   Optional<Boolean> optionalAllowFiltering,
-                                   Optional<Integer> optionalFetchSize,
-                                   Optional<Boolean> optionalDistinct) {
+                                   Integer limit, 
+                                   Boolean allowFiltering,
+                                   Integer fetchSize,
+                                   Boolean distinct) {
             this.whereClauses = whereClauses;
-            this.optionalLimit = optionalLimit;
-            this.optionalAllowFiltering = optionalAllowFiltering;
-            this.optionalFetchSize = optionalFetchSize;
-            this.optionalDistinct = optionalDistinct;
+            this.limit = limit;
+            this.allowFiltering = allowFiltering;
+            this.fetchSize = fetchSize;
+            this.distinct = distinct;
         }
         
 
         
-        public CountReadQueryData whereClauses(ImmutableSet<Clause> whereClauses) {
+        public CountReadQueryData whereConditions(ImmutableSet<Clause> whereClauses) {
             return new CountReadQueryData(whereClauses,
-                                          this.optionalLimit,
-                                          this.optionalAllowFiltering,
-                                          this.optionalFetchSize,
-                                          this.optionalDistinct);  
+                                          this.limit,
+                                          this.allowFiltering,
+                                          this.fetchSize,
+                                          this.distinct);  
         }
 
 
         
-        public CountReadQueryData limit(Optional<Integer> optionalLimit) {
+        public CountReadQueryData limit(Integer limit) {
             return new CountReadQueryData(this.whereClauses,
-                                          optionalLimit,
-                                          this.optionalAllowFiltering,
-                                          this.optionalFetchSize,
-                                          this.optionalDistinct);  
+                    limit,
+                                          this.allowFiltering,
+                                          this.fetchSize,
+                                          this.distinct);  
         }
 
         
-        public CountReadQueryData allowFiltering(Optional<Boolean> optionalAllowFiltering) {
+        public CountReadQueryData allowFiltering(Boolean allowFiltering) {
             return new CountReadQueryData(this.whereClauses,
-                                          this.optionalLimit,
-                                          optionalAllowFiltering,
-                                          this.optionalFetchSize,
-                                          this.optionalDistinct);  
+                                          this.limit,
+                                          allowFiltering,
+                                          this.fetchSize,
+                                          this.distinct);  
         }
 
         
-        public CountReadQueryData fetchSize(Optional<Integer> optionalFetchSize) {
+        public CountReadQueryData fetchSize(Integer fetchSize) {
             return new CountReadQueryData(this.whereClauses,
-                                          this.optionalLimit,
-                                          this.optionalAllowFiltering,
-                                          optionalFetchSize,
-                                          this.optionalDistinct);  
+                                          this.limit,
+                                          this.allowFiltering,
+                                          fetchSize,
+                                          this.distinct);  
         }
 
         
-        public CountReadQueryData distinct(Optional<Boolean> optionalDistinct) {
+        public CountReadQueryData distinct(Boolean distinct) {
             return new CountReadQueryData(this.whereClauses,
-                                          this.optionalLimit,
-                                          this.optionalAllowFiltering,
-                                          this.optionalFetchSize,
-                                          optionalDistinct);  
+                                          this.limit,
+                                          this.allowFiltering,
+                                          this.fetchSize,
+                                          distinct);  
         }
         
         
-        public ImmutableSet<Clause> getWhereClauses() {
+        public ImmutableSet<Clause> getWhereConditions() {
             return whereClauses;
         }
 
-        public Optional<Integer> getLimit() {
-            return optionalLimit;
+        public Integer getLimit() {
+            return limit;
         }
 
-        public Optional<Boolean> getAllowFiltering() {
-            return optionalAllowFiltering;
+        public Boolean getAllowFiltering() {
+            return allowFiltering;
         }
 
-        public Optional<Integer> getFetchSize() {
-            return optionalFetchSize;
+        public Integer getFetchSize() {
+            return fetchSize;
         }
 
-        public Optional<Boolean> getDistinct() {
-            return optionalDistinct;
+        public Boolean getDistinct() {
+            return distinct;
         }
     }
 
@@ -570,26 +582,26 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         @Override
         public ListRead<Count> withLimit(int limit) {
             return new CountReadQuery(getContext(),
-                                      data.limit(Optional.of(limit))); 
+                                      data.limit(limit)); 
         }
         
         
         @Override
         public ListRead<Count> withAllowFiltering() {
             return new CountReadQuery(getContext(),
-                                      data.allowFiltering(Optional.of(true))); 
+                                      data.allowFiltering(true)); 
         }
     
         @Override
         public ListRead<Count> withFetchSize(int fetchSize) {
             return new CountReadQuery(getContext(),
-                                      data.fetchSize(Optional.of(fetchSize)));
+                                      data.fetchSize(fetchSize));
         }
         
         @Override
         public ListRead<Count> withDistinct() {
             return new CountReadQuery(getContext(),
-                                      data.distinct(Optional.of(true)));
+                                      data.distinct(true));
         }
     
     
@@ -597,27 +609,43 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         private Statement toStatement(CountReadQueryData queryData) {
             Select.Selection selection = select();
             
-            queryData.getDistinct().ifPresent(distinct -> { if (distinct) selection.distinct(); });
+            if (queryData.getDistinct() != null) {
+                if (queryData.getDistinct()) {
+                    selection.distinct(); 
+                };
+            }
     
      
             selection.countAll();
             
             Select select = selection.from(getContext().getTable());
             
-            queryData.getWhereClauses().forEach(whereClause -> select.where(whereClause));
+            for (Clause whereCondition : queryData.getWhereConditions()) {
+                select.where(whereCondition);
+            }
             
-            queryData.getLimit().ifPresent(limit -> select.limit(limit));
-            queryData.getAllowFiltering().ifPresent(allowFiltering -> { if (allowFiltering)  select.allowFiltering(); });
-            queryData.getFetchSize().ifPresent(fetchSize -> select.setFetchSize(fetchSize));
+            if (queryData.getLimit() != null) {
+                select.limit(queryData.getLimit());
+            }
+            
+            if (queryData.getAllowFiltering() != null) {
+                if (queryData.getAllowFiltering()) {
+                    select.allowFiltering();
+                }
+            }
+            
+            if (queryData.getFetchSize() != null) {
+                select.setFetchSize(queryData.getFetchSize());
+            }
             
             return select;
         }
 
         
-        public CompletableFuture<Count> executeAsync() {
+        @Override
+        public Count execute() {
             Statement statement = toStatement(data);
-            return new CompletableDbFuture(performAsync(statement))
-                        .thenApply(resultSet -> Count.newCountResult(resultSet));
+            return Count.newCountResult(performAsync(statement).getUninterruptibly());
         }        
     }  
 }

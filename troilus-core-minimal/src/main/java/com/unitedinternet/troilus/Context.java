@@ -27,6 +27,7 @@ import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -125,7 +126,7 @@ class Context {
                            udtValueMapper);
     }
 
-    Context withTtl(long ttlSec) {
+    Context withTtl(int ttlSec) {
         return new Context(session, 
                            table, 
                            executionSpec.withTtl(ttlSec),
@@ -189,7 +190,7 @@ class Context {
         return executionSpec.getSerialConsistencyLevel();
     }
 
-    Long getTtlSec() {
+    Integer getTtlSec() {
         return executionSpec.getTtl();
     }
 
@@ -228,6 +229,11 @@ class Context {
     InterceptorRegistry getInterceptorRegistry() {
         return interceptorRegistry;
     }
+    
+    ProtocolVersion getProtocolVersion() {
+        return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+    }
+
 
     ColumnMetadata getColumnMetadata(String columnName) {
         try {
@@ -314,7 +320,7 @@ class Context {
         
         private final ConsistencyLevel consistencyLevel;
         private final ConsistencyLevel serialConsistencyLevel;
-        private final Long ttlSec;
+        private final Integer ttlSec;
         private final Long writetimeMicrosSinceEpoch;
         private final Boolean enableTracing;
         private final RetryPolicy retryPolicy;
@@ -332,7 +338,7 @@ class Context {
         
         public ExecutionSpec(ConsistencyLevel consistencyLevel, 
                              ConsistencyLevel serialConsistencyLevel,
-                             Long ttlSec,
+                             Integer ttlSec,
                              Long writetimeMicrosSinceEpoch,
                              Boolean enableTracking,
                              RetryPolicy retryPolicy) {
@@ -366,7 +372,7 @@ class Context {
         }
     
         
-        ExecutionSpec withTtl(long ttlSec) {
+        ExecutionSpec withTtl(int ttlSec) {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      ttlSec,
@@ -424,7 +430,7 @@ class Context {
         }
     
     
-        public Long getTtl() {
+        public Integer getTtl() {
             return ttlSec;
         }
     

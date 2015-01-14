@@ -21,7 +21,6 @@ package com.unitedinternet.troilus;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
@@ -82,11 +81,6 @@ abstract class AbstractQuery<Q> {
         return ctx; 
     }
     
-    protected ProtocolVersion getProtocolVersion() {
-        return ctx.getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
-    }
-
-  
     
     protected ResultSetFuture performAsync(Statement statement) {
         if (getContext().getConsistencyLevel() != null) {

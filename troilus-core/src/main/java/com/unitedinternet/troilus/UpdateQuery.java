@@ -61,7 +61,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     }
     
     public UpdateQuery withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl(ttl.getSeconds()));
+        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }
     
     public BatchMutation combinedWith(Batchable other) {
@@ -262,7 +262,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
    
         @Override
         public CounterMutation withTtl(Duration ttl) {
-            return newQuery(getContext().withTtl(ttl.getSeconds()));
+            return newQuery(getContext().withTtl((int) ttl.getSeconds()));
         }
         
         @Override

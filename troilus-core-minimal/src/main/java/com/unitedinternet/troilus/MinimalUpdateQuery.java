@@ -53,13 +53,19 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
         super(ctx);
         this.data = data;
     }
-    
+     
     @Override
     protected MinimalUpdateQuery newQuery(Context newContext) {
         return new MinimalUpdateQuery(newContext, data);
     }
     
-    public MinimalUpdateQuery withTtl(long ttlSec) {
+    
+    MinimalInsertQuery entity(Object entity) {
+        return new MinimalInsertQuery(getContext(), 
+                               new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity)));
+    }
+    
+    public MinimalUpdateQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
@@ -72,11 +78,6 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
         batchStatement.add(getStatement());
     }
     
-    
-    public MinimalInsertQuery entity(Object entity) {
-        return new MinimalInsertQuery(getContext(), 
-                                      new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity)));
-    }
     
     @Override
     public MinimalUpdateQuery value(String name, Object value) {
@@ -266,7 +267,7 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
         }
    
         @Override
-        public CounterMutation withTtl(long ttlSec) {
+        public CounterMutation withTtl(int ttlSec) {
             return newQuery(getContext().withTtl(ttlSec));
         }
         

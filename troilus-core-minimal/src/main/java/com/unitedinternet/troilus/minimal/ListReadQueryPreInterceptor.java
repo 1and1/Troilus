@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus;
+package com.unitedinternet.troilus.minimal;
 
 
 
-import org.reactivestreams.Publisher;
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
-
-
-public interface EntityList<E> extends Result, Iterable<E>, Publisher<E> {
-
+ 
+public interface ListReadQueryPreInterceptor extends QueryInterceptor {
+    
+    ListReadQueryData onPreListRead(ListReadQueryData data);
 }
-
-
-
+ 

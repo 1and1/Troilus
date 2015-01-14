@@ -42,6 +42,7 @@ import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 
  
 class DeleteQueryDataImpl implements DeleteQueryData {
+ 
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;

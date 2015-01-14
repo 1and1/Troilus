@@ -41,7 +41,7 @@ import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;;
 
  
 
-class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
+class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Optional<Record>> {
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
 
     final SingleReadQueryData data;
@@ -136,11 +136,11 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
                                                     return Optional.<Record>empty();
                                                     
                                                 } else {
-                                                    Record record = newRecord(newResult(resultSet), row);
+                                                    Record record = new RecordAdapter(new RecordImpl(getContext(), newResult(resultSet), row));
                                                     
                                                     // paranoia check
                                                     data.getKeyParts().forEach((name, value) -> {
-                                                                                                    ByteBuffer in = DataType.serializeValue(value, getProtocolVersion());
+                                                                                                    ByteBuffer in = DataType.serializeValue(value, getContext().getProtocolVersion());
                                                                                                     ByteBuffer out = record.getBytesUnsafe(name).get();
                                                             
                                                                                                     if (in.compareTo(out) != 0) {
@@ -189,7 +189,7 @@ class SingleReadQuery extends ReadQuery<SingleReadQuery> implements SingleReadWi
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
-            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().getBeanMapper().fromValues(clazz, new PropertiesSourceAdapter(record))));
+            return read.executeAsync().thenApply(optionalRecord -> optionalRecord.map(record -> getContext().getBeanMapper().fromValues(clazz, RecordAdapter.toPropertiesSource(record))));
         }        
     }
 }
