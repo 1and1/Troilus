@@ -138,11 +138,20 @@ hotelsDao.writeWithKey("id","BUP932432")
 hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
          .value(HotelsTable.CLASSIFICATION, ClassifierEnum.FOUR)
          .execute();
-  ```               
+```               
+                
+        
+##Delete
+
+``` java
+hotelsDao.deleteWithKey("id", "BUP932432")
+         .execute();
+```
+
         
 
 ### lightweight transactions 
-***ransaction-safe, unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
+***transaction-safe, unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
 ``` java
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
@@ -153,37 +162,30 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .execute();
   ```  
         
-***ransaction-safe, conditional update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
+***transaction-safe, conditional update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
-         .value(HotelsTable.NAME, "Budapest City")
-         .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
+         .value("name" "Budapest City")
+         .onlyIf(QueryBuilder.eq("name", "City Budapest"))
          .execute();
   ```  
        
 
 ***transaction-safe, conditional delete*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
-hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
-         .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "Budapest City"))
+hotelsDao.deleteWithKey("id","BUP932432")
+         .onlyIf(QueryBuilder.eq("name", "Budapest City"))
          .execute();
   ```  
   
   
 ***transaction-safe delete*** with `ifExists` 
 ``` java
-hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+hotelsDao.deleteWithKey("id","BUP932432")
          .ifExists()
          .execute();
   ```  
 
-
-##Delete
-
-``` java
-hotelsDao.deleteWithKey("id", "BUP932432")
-         .execute();
-```
 
 
 ##Batching        
