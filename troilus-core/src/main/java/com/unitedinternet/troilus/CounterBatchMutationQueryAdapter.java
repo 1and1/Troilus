@@ -54,6 +54,12 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
         return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(new CounterBatchableAdapter(other)));
     }
     
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    @Override
     public CompletableFuture<Result> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
     }

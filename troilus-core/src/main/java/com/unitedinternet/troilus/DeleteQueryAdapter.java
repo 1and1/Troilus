@@ -74,6 +74,11 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
     public void addTo(BatchStatement batchStatement) {
         query.addTo(batchStatement);
     }
+   
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
     
     @Override
     public CompletableFuture<Result> executeAsync() {

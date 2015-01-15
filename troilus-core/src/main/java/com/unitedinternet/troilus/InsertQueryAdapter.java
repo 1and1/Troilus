@@ -18,6 +18,7 @@ package com.unitedinternet.troilus;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+
 import com.datastax.driver.core.BatchStatement;
 import com.unitedinternet.troilus.Dao.BatchMutation;
 import com.unitedinternet.troilus.Dao.Batchable;
@@ -66,6 +67,11 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     @Override
     public void addTo(BatchStatement batchStatement) {
         query.addTo(batchStatement);
+    }
+    
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
     }
     
     @Override

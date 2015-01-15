@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 import java.util.concurrent.CompletableFuture;
 
 
+
 import com.unitedinternet.troilus.Dao.EntityList;
 import com.unitedinternet.troilus.Dao.ListRead;
 import com.unitedinternet.troilus.Dao.ListReadWithUnit;
@@ -116,7 +117,11 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         return new ListEntityReadQueryAdapter<>(getContext(), query.asEntity(objectClass)) ;
     }
 
-
+    @Override
+    public RecordList execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
     @Override
     public CompletableFuture<RecordList> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync())
@@ -166,6 +171,11 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         @Override
         public ListRead<EntityList<E>> withLimit(int limit) {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withLimit(limit));
+        }
+
+        @Override
+        public EntityList<E> execute() {
+            return getUninterruptibly(executeAsync());
         }
 
         @Override
@@ -220,7 +230,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         public ListRead<Count> withDistinct() {
             return new CountReadQueryAdapter(getContext(), query.withDistinct());
         }
-    
+        
+        @Override
+        public Count execute() {
+            return getUninterruptibly(executeAsync());
+        }
+
         @Override
         public CompletableFuture<Count> executeAsync() {
             return new ListenableToCompletableFutureAdapter<>(query.executeAsync());

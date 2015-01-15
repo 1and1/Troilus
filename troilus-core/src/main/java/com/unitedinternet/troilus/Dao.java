@@ -18,9 +18,6 @@ package com.unitedinternet.troilus;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.reactivestreams.Publisher;
 
@@ -54,14 +51,7 @@ public interface Dao {
 
         CompletableFuture<T> executeAsync();
 
-        default T execute() {
-            try {
-                return executeAsync().get(Long.MAX_VALUE, TimeUnit.DAYS);
-            } catch (InterruptedException | ExecutionException
-                    | TimeoutException e) {
-                throw Exceptions.unwrapIfNecessary(e);
-            }
-        }
+        T execute();
     }
 
     

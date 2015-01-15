@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 
 
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -49,6 +50,7 @@ abstract class AbstractQuery<Q> {
     
     ////////////////////////
     // default implementations
+  
   
     public Q withConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(ctx.withConsistency(consistencyLevel));
@@ -114,9 +116,51 @@ abstract class AbstractQuery<Q> {
         try {
             return future.get();
         } catch (ExecutionException | InterruptedException e) {
-            throw Exceptions.unwrapIfNecessary(e);
+            throw unwrapIfNecessary(e);
         }
     }
+    
+    
+    protected <T> T getUninterruptibly(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw unwrapIfNecessary(e);
+        }
+    }
+    
+    
+    /**
+     * @param throwable the Throwable to unwrap
+     * @return the unwrapped throwable
+     */
+    protected static RuntimeException unwrapIfNecessary(Throwable throwable )  {
+        return unwrapIfNecessary(throwable, 5);
+    }
+    
+    /**
+     * @param throwable the Throwable to unwrap
+     * @param maxDepth  the max depth
+     * @return the unwrapped throwable
+     */
+    private static RuntimeException unwrapIfNecessary(Throwable throwable , int maxDepth)  {
+        
+        if (ExecutionException.class.isAssignableFrom(throwable.getClass())) {
+            Throwable e = ((ExecutionException) throwable).getCause();
+
+            if (maxDepth > 1) {
+                throwable = unwrapIfNecessary(e, maxDepth - 1);
+            }
+        }
+        
+        if (throwable instanceof RuntimeException) {
+            throw (RuntimeException) throwable;
+        } else {
+            throw new RuntimeException(throwable);
+        }
+    }   
+
+    
 
     protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws IfConditionException {
         if (additionalCondition && !result.wasApplied()) {
@@ -125,6 +169,8 @@ abstract class AbstractQuery<Q> {
         
         return result;
     }
+    
+
     
     /**
      * @param rs  the underlying result set

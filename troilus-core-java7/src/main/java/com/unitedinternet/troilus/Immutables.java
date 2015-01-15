@@ -30,11 +30,7 @@ import com.google.common.collect.Maps;
  */
 class Immutables {
 
-    /*
-     * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
-     */
     
-
     /**
      * merges a new entry into a set
      * 
@@ -71,8 +67,6 @@ class Immutables {
     }
  
  
-    
-    
     /**
      * merges 2 lists
      * 
@@ -110,5 +104,4 @@ class Immutables {
     public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map1, ImmutableMap<K, V> map2) {
         return ImmutableMap.<K, V>builder().putAll(map1).putAll(map2).build();
     }
-}
-   
+}  

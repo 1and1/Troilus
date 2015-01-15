@@ -89,6 +89,11 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     }
     
     @Override
+    public Optional<Record> execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync())
                             .thenApply(record -> (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))); 
@@ -120,6 +125,11 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
             return new SingleEntityReadQueryAdapter<>(newContext, query.newQuery(newContext)); 
         }
         
+        @Override
+        public Optional<E> execute() {
+            return getUninterruptibly(executeAsync());
+        }
+
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {
             return new ListenableToCompletableFutureAdapter<>(query.executeAsync())

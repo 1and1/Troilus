@@ -55,7 +55,7 @@ public interface MinimalDao {
         ListenableFuture<T> executeAsync();
         
         T execute();
-    }
+    } 
 
     
     public static interface ConfiguredQuery<Q, R> extends Query<R> {

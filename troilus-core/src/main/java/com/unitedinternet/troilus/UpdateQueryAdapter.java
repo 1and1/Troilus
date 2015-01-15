@@ -155,6 +155,11 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     }
     
     @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    @Override
     public CompletableFuture<Result> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
     }
@@ -204,6 +209,11 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
             query.addTo(batchStatement);
         }
 
+        @Override
+        public Result execute() {
+            return getUninterruptibly(executeAsync());
+        }
+        
         @Override
         public CompletableFuture<Result> executeAsync() {
             return new ListenableToCompletableFutureAdapter<>(query.executeAsync());

@@ -14,7 +14,7 @@ First a DataStax Java Driver [Session](https://github.com/datastax/java-driver) 
 Cluster cluster = Cluster.builder()
                          .addContactPoint(node)
                          .build();
-Session session = cluster.connect("hotel_reservation_system");
+Session session = cluster.connect("ks_hotel_reservation_system");
 ```
 
 

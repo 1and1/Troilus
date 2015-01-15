@@ -65,6 +65,12 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchableAdapter(other)));
     }
     
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    @Override
     public CompletableFuture<Result> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
     }
