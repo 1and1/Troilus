@@ -142,7 +142,7 @@ hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "
         
 
 ### lightweight transactions 
-***unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
+***ransaction-safe, unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
 ``` java
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
@@ -153,7 +153,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .execute();
   ```  
         
-***concurrent-safe update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
+***ransaction-safe, conditional update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
 hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
          .value(HotelsTable.NAME, "Budapest City")
@@ -161,7 +161,23 @@ hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
          .execute();
   ```  
        
-        
+
+***transaction-safe, conditional delete*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
+``` java
+hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+         .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "Budapest City"))
+         .execute();
+  ```  
+  
+  
+***transaction-safe delete*** with `ifExists` 
+``` java
+hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+         .ifExists()
+         .execute();
+  ```  
+
+
 ##Delete
 
 ``` java

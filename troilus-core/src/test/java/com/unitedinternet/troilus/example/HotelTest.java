@@ -2,12 +2,12 @@ package com.unitedinternet.troilus.example;
 
 
 import java.time.Duration;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 
 
 
@@ -22,6 +22,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.DaoImpl;
+import com.unitedinternet.troilus.IfConditionException;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
@@ -267,13 +268,36 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // deletions
-        Batchable delition = hotelsDao.deleteWithKey("id", "BUP932432");
+  
+        
+        try {
+            hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+                     .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
+                     .execute();
+            Assert.fail("IfConditionException expected");
+        } catch (IfConditionException expected) { }
+        
+
+        hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+                 .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "Budapest City"))
+                 .execute();
+
+ 
+        
+        hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
+                 .ifExists()
+                 .execute();
+
         
         
+        
+        Batchable deletion = hotelsDao.deleteWithKey("id", "BUP45544");
         hotelsDao.deleteWithKey("id", "BUP14334")
-                 .combinedWith(delition)
+                 .combinedWith(deletion)
                  .withLockedBatchType()
                  .execute();
+        
+
     }
     
     
