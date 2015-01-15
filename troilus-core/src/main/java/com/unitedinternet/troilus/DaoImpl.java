@@ -359,14 +359,14 @@ public class DaoImpl implements Dao {
      */
     static class ListReadQueryDataAdapter implements ListReadQueryData {
 
-        private final com.unitedinternet.troilus.minimal.ListReadQueryData data;
+        private final com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data;
 
         
         ListReadQueryDataAdapter() {
             this(new ListReadQueryDataImpl());
         }
 
-        private ListReadQueryDataAdapter(com.unitedinternet.troilus.minimal.ListReadQueryData data) {
+        private ListReadQueryDataAdapter(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data) {
             this.data = data;
         }
         
@@ -441,7 +441,7 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getDistinct());
         }
         
-        static com.unitedinternet.troilus.minimal.ListReadQueryData convert(ListReadQueryData data) {
+        static com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData convert(ListReadQueryData data) {
             return new ListReadQueryDataImpl().keys(data.getKeys())
                                               .whereConditions(data.getWhereClauses())
                                               .columnsToFetch(data.getColumnsToFetch())
@@ -635,9 +635,9 @@ public class DaoImpl implements Dao {
     
     private static class WriteQueryDataAdapter implements WriteQueryData {
 
-        private final com.unitedinternet.troilus.minimal.WriteQueryData data;
+        private final com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data;
             
-        WriteQueryDataAdapter(com.unitedinternet.troilus.minimal.WriteQueryData data) {
+        WriteQueryDataAdapter(com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data) {
             this.data = data;
         }
         
@@ -806,7 +806,7 @@ public class DaoImpl implements Dao {
             return ImmutableMap.copyOf(result);
         }
         
-        static com.unitedinternet.troilus.minimal.WriteQueryData convert(WriteQueryData data) {
+        static com.unitedinternet.troilus.minimal.interceptor.WriteQueryData convert(WriteQueryData data) {
             return new WriteQueryDataImpl().keys(data.getKeys())
                                            .whereConditions(data.getWhereConditions())
                                            .valuesToMutate(toGuavaOptional(data.getValuesToMutate()))
@@ -824,7 +824,7 @@ public class DaoImpl implements Dao {
     
 
     
-    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.ListReadQueryPreInterceptor {
+    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPreInterceptor {
         
         private ListReadQueryPreInterceptor interceptor;
         
@@ -833,7 +833,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.ListReadQueryData onPreListRead(com.unitedinternet.troilus.minimal.ListReadQueryData data) {
+        public com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData onPreListRead(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data) {
             return ListReadQueryDataAdapter.convert(interceptor.onPreListRead(new ListReadQueryDataAdapter(data)));
         }
         
@@ -844,7 +844,7 @@ public class DaoImpl implements Dao {
     }
    
     
-    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.ListReadQueryPostInterceptor {
+    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPostInterceptor {
         
         private ListReadQueryPostInterceptor interceptor;
         
@@ -853,7 +853,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.MinimalDao.RecordList onPostListRead(com.unitedinternet.troilus.minimal.ListReadQueryData data, com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
+        public com.unitedinternet.troilus.minimal.MinimalDao.RecordList onPostListRead(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data, com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
             return RecordListAdapter.convert(interceptor.onPostListRead(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
         }
         
@@ -864,7 +864,7 @@ public class DaoImpl implements Dao {
     }
     
 
-    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.SingleReadQueryPostInterceptor {
+    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.SingleReadQueryPostInterceptor {
         
         private SingleReadQueryPostInterceptor interceptor;
         
@@ -885,7 +885,7 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor {
+    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.WriteQueryPreInterceptor {
          
         private WriteQueryPreInterceptor interceptor;
         
@@ -894,7 +894,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.WriteQueryData onPreWrite(com.unitedinternet.troilus.minimal.WriteQueryData data) {
+        public com.unitedinternet.troilus.minimal.interceptor.WriteQueryData onPreWrite(com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data) {
             return WriteQueryDataAdapter.convert(interceptor.onPreWrite(new WriteQueryDataAdapter(data)));
         }
         
