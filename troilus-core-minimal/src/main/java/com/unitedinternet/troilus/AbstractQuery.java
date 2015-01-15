@@ -19,6 +19,8 @@ package com.unitedinternet.troilus;
 
 
 
+import java.util.concurrent.ExecutionException;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
@@ -27,6 +29,7 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -106,6 +109,14 @@ abstract class AbstractQuery<Q> {
         return ctx.getSession().executeAsync(statement);
     }
     
+    
+    protected <T> T getUninterruptibly(ListenableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw Exceptions.unwrapIfNecessary(e);
+        }
+    }
 
     protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws IfConditionException {
         if (additionalCondition && !result.wasApplied()) {

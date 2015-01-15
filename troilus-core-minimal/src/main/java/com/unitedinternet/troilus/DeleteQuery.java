@@ -17,19 +17,20 @@ package com.unitedinternet.troilus;
 
 
 
-import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.BatchMutation;
-import com.unitedinternet.troilus.Dao.Batchable;
-import com.unitedinternet.troilus.Dao.Deletion;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
+import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
+import com.unitedinternet.troilus.minimal.MinimalDao.Deletion;
 
 
 
@@ -44,11 +45,11 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     }
 
 
-    public Deletion withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
+    public Deletion withTtl(int ttlSec) {
+        return newQuery(getContext().withTtl(ttlSec));
     }
     
-    public BatchMutation combinedWith(Batchable other) {
+    public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
@@ -59,13 +60,13 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
 
     @Override
-    protected Deletion newQuery(Context newContext) {
+    protected DeleteQuery newQuery(Context newContext) {
         return new DeleteQuery(newContext, data);
     }
     
     
     @Override
-    public Deletion onlyIf(Clause... onlyIfConditions) {
+    public DeleteQuery onlyIf(Clause... onlyIfConditions) {
         return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
     
@@ -78,10 +79,27 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
         return DeleteQueryDataImpl.toStatement(queryData, getContext());
     }
+
     
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> newResult(resultSet))
-                        .thenApply(result -> assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match"));
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    
+    @Override
+    public ListenableFuture<Result> executeAsync() {
+        ResultSetFuture future = performAsync(getStatement());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                Result result = newResult(resultSet);
+                assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match");
+                return result;
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
     }
 }

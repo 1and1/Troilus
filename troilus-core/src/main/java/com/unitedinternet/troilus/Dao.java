@@ -217,7 +217,7 @@ public interface Dao {
     public static interface UpdateWithValues<U extends Update<U>> extends Update<U> {
 
         U value(String name, Object value);
-
+        
         U values(ImmutableMap<String, Object> nameValuePairsToAdd);
         
         <T> U value(Name<T> name, T value);

@@ -79,18 +79,18 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl()).entity(entity);
+        return new UpdateQuery(ctx, new WriteQueryDataImpl()).entity(entity);
     }
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses))));
+        return new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses))));
     }
   
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new MinimalUpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts));
+        return new UpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts));
     }
   
     
@@ -141,7 +141,7 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new MinimalDeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
+        return new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
     
@@ -192,15 +192,15 @@ public class MinimalDaoImpl implements MinimalDao {
                              keyName3.getName(), (Object) keyName3);
     }
     
-    public MinimalDeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new MinimalDeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
+    public DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
+        return new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
     }
     
     
     
     @Override
     public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new MinimalSingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey));
+        return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey));
     }
     
     
@@ -251,13 +251,13 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
-        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
-        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                 composedKeyNamePart2, composedKeyValuesPart2)));        
     }
     
@@ -265,7 +265,7 @@ public class MinimalDaoImpl implements MinimalDao {
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
-        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
                                                                                        composedKeyNamePart3, composedKeyValuesPart3)));        
     }
@@ -297,13 +297,13 @@ public class MinimalDaoImpl implements MinimalDao {
     }
     
     @Override
-    public MinimalListReadQuery readWhere(Clause... clauses) {
-        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
+    public ListReadQuery readWhere(Clause... clauses) {
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
     }
      
     
     @Override
-    public MinimalListReadQuery readAll() {
-        return new MinimalListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
+    public ListReadQuery readAll() {
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
 }

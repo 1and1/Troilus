@@ -21,25 +21,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
+
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
 /**
- * Adapter which maps a datastax driver ResultSetFuture into a CompletableFuture  
+ * Adapter which maps a ListenableFuture into a CompletableFuture  
  *
  */
-class CompletableDbFuture extends CompletableFuture<ResultSet> {
+class ListenableToCompletableFutureAdapter<T> extends CompletableFuture<T> {
     
     /**
      * @param rsFuture the underlying ResultSetFuture
      */
-    public CompletableDbFuture(ResultSetFuture rsFuture) {
+    public ListenableToCompletableFutureAdapter(ListenableFuture<T> future) {
         
         Runnable resultHandler = () -> { 
             try {
-                complete(rsFuture.get());
+                complete(future.get());
                 
             } catch (ExecutionException ee) {
                 completeExceptionally(ee.getCause());
@@ -49,7 +49,7 @@ class CompletableDbFuture extends CompletableFuture<ResultSet> {
             }
         };
         
-        rsFuture.addListener(resultHandler, ForkJoinPool.commonPool());
+        future.addListener(resultHandler, ForkJoinPool.commonPool());
     }
 }   
 

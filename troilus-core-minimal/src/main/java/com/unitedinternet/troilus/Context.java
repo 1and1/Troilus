@@ -52,7 +52,7 @@ class Context {
     private final BeanMapper beanMapper;
     private final UDTValueMapper udtValueMapper;
     
-    private final Cache<String, PreparedStatement> preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(100).build();
+    private final Cache<String, PreparedStatement> preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(300).build();
     private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
 
 

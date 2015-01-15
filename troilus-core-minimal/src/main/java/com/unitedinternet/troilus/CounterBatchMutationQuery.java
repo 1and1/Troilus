@@ -17,15 +17,18 @@ package com.unitedinternet.troilus;
 
 
 
-import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.CounterBatchMutation;
-import com.unitedinternet.troilus.Dao.CounterBatchable;
-
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchMutation;
+import com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchable;
 
  
 
@@ -39,24 +42,41 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
     }
     
     @Override
-    protected CounterBatchMutation newQuery(Context newContext) {
+    protected CounterBatchMutationQuery newQuery(Context newContext) {
         return new CounterBatchMutationQuery(newContext, batchables);
     }
     
         @Override
-    public CounterBatchMutation combinedWith(CounterBatchable other) {
-        return new CounterBatchMutationQuery(getContext(), Java8Immutables.merge(batchables, other));
+    public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
+        return new CounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
     }
 
     private Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
-        batchables.forEach(batchable -> batchable.addTo(batchStmt));
+        
+        for (CounterBatchable batchable : batchables) {
+            batchable.addTo(batchStmt);
+        }
+        
         return batchStmt;
     }
     
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
     
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                    .thenApply(resultSet -> newResult(resultSet));
+    @Override
+    public ListenableFuture<Result> executeAsync() {
+        ResultSetFuture future = performAsync(getStatement());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                return newResult(resultSet);
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
     }
 }

@@ -16,6 +16,8 @@
 package com.unitedinternet.troilus.minimal;
 
 
+import java.util.concurrent.CompletableFuture;
+
 import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.BatchStatement;
@@ -24,6 +26,7 @@ import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.Count;
 import com.unitedinternet.troilus.Name;
 import com.unitedinternet.troilus.Result;
@@ -51,6 +54,8 @@ public interface MinimalDao {
     
     public interface Query<T> {
 
+        ListenableFuture<T> executeAsync();
+        
         T execute();
     }
 

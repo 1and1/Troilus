@@ -27,15 +27,17 @@ import java.util.Optional;
 
 import java.util.Map.Entry;
 
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
  
-
+@Deprecated
 class GuavaOptionals {
 
     private GuavaOptionals() {  }
 
+    
     
     public static <T> com.google.common.base.Optional<T> toOptional(Optional<T> optional) {
         if (optional.isPresent()) {
@@ -44,6 +46,8 @@ class GuavaOptionals {
             return com.google.common.base.Optional.absent();
         }
     }
+    
+
     
     
     public static ImmutableMap<String, Optional<Object>> fromStringOptionalMap(ImmutableMap<String, com.google.common.base.Optional<Object>> map) {

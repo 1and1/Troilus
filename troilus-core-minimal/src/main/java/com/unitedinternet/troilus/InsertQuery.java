@@ -16,33 +16,28 @@
 package com.unitedinternet.troilus;
 
 
-import java.time.Duration;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-
-
-
-
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.BatchMutation;
-import com.unitedinternet.troilus.Dao.Batchable;
-import com.unitedinternet.troilus.Dao.Insertion;
-import com.unitedinternet.troilus.Dao.Mutation;
-import com.unitedinternet.troilus.DaoImpl.WriteQueryDataAdapter;
-import com.unitedinternet.troilus.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
+import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
+import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
+import com.unitedinternet.troilus.minimal.WriteQueryData;
+import com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor;
 
 
  
 class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
-    private final WriteQueryData data;
+    private final WriteQueryDataImpl data;
   
-    public InsertQuery(Context ctx, WriteQueryData data) {
+    public InsertQuery(Context ctx, WriteQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
@@ -53,11 +48,11 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
         return new InsertQuery(newContext, data);
     }
     
-    public InsertQuery withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
+    public InsertQuery withTtl(int ttlSec) {
+        return newQuery(getContext().withTtl(ttlSec));
     }
     
-    public BatchMutation combinedWith(Batchable other) {
+    public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
@@ -68,8 +63,8 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
 
     
     @Override
-    public Mutation<?> ifNotExits() {
-        return new InsertQuery(getContext(), data.ifNotExists(Optional.of(true)));
+    public InsertQuery ifNotExits() {
+        return new InsertQuery(getContext(), data.ifNotExists(true));
     }
 
   
@@ -79,14 +74,30 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
             queryData = interceptor.onPreWrite(queryData); 
         }
         
-        return WriteQueryDataAdapter.toStatement(queryData, getContext());
+        return WriteQueryDataImpl.toStatement(queryData, getContext());
     }
     
     
     @Override
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> newResult(resultSet))
-                        .thenApply(result -> assertResultIsAppliedWhen(data.getIfNotExits().isPresent(), result, "duplicated entry"));
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    
+    @Override
+    public ListenableFuture<Result> executeAsync() {
+        ResultSetFuture future = performAsync(getStatement());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                Result result = newResult(resultSet);
+                assertResultIsAppliedWhen((data.getIfNotExits() != null) && (data.getIfNotExits()), result, "duplicated entry");
+
+                return result;
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
     }
 }

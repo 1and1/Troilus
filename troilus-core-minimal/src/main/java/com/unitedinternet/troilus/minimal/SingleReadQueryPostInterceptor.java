@@ -23,6 +23,6 @@ import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
  
 public interface SingleReadQueryPostInterceptor extends QueryInterceptor {
     
-    Record onPostSingleRead(SingleReadQueryData data, Record optionalRecord);
+    Record onPostSingleRead(SingleReadQueryData data, Record record);
 }
  

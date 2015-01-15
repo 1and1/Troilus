@@ -17,16 +17,18 @@ package com.unitedinternet.troilus;
 
 
 
-
-import java.util.concurrent.CompletableFuture;
-
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.unitedinternet.troilus.Dao.BatchMutation;
-import com.unitedinternet.troilus.Dao.Batchable;
-import com.unitedinternet.troilus.Dao.Query;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
+import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
+import com.unitedinternet.troilus.minimal.MinimalDao.Query;
 
 
  
@@ -43,33 +45,51 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
     }
     
     @Override
-    protected BatchMutation newQuery(Context newContext) {
+    protected BatchMutationQuery newQuery(Context newContext) {
         return new BatchMutationQuery(newContext, type, batchables);
     }
     
     @Override
-    public Query<Result> withLockedBatchType() {
+    public BatchMutationQuery withLockedBatchType() {
         return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
     }
     
     @Override
-    public Query<Result> withUnlockedBatchType() {
+    public BatchMutationQuery withUnlockedBatchType() {
         return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
     }
 
     @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), type, Java8Immutables.merge(batchables, other));
+    public BatchMutationQuery combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
     private Statement getStatement() {
         BatchStatement batchStmt = new BatchStatement(type);
-        batchables.forEach(batchable -> batchable.addTo(batchStmt));
+        for (Batchable batchable : batchables) {
+            batchable.addTo(batchStmt);
+        }
         return batchStmt;
     }
     
-    public CompletableFuture<Result> executeAsync() {
-        return new CompletableDbFuture(performAsync(getStatement()))
-                        .thenApply(resultSet -> newResult(resultSet));
+    
+    @Override
+    public Result execute() {
+        return getUninterruptibly(executeAsync());
+    }
+    
+    
+    @Override
+    public ListenableFuture<Result> executeAsync() {
+        ResultSetFuture future = performAsync(getStatement());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                return newResult(resultSet);
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
     }
 }

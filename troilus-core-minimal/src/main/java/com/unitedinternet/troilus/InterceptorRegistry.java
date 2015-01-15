@@ -19,6 +19,7 @@ package com.unitedinternet.troilus;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -92,5 +93,11 @@ class InterceptorRegistry {
         } catch (ExecutionException e) {
             throw new RuntimeException(e.getCause());
         }            
+    }
+    
+    
+    @Override
+    public String toString() {
+        return Joiner.on("\n").join(interceptors);
     }
 }

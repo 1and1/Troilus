@@ -17,60 +17,57 @@ package com.unitedinternet.troilus;
 
 
 
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchMutation;
 import com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchable;
 import com.unitedinternet.troilus.minimal.MinimalDao.CounterMutation;
-import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
-import com.unitedinternet.troilus.minimal.MinimalDao.Update;
 import com.unitedinternet.troilus.minimal.MinimalDao.UpdateWithValuesAndCounter;
-import com.unitedinternet.troilus.minimal.MinimalDao.Write;
 import com.unitedinternet.troilus.minimal.MinimalDao.WriteWithCounter;
 import com.unitedinternet.troilus.minimal.WriteQueryData;
 import com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor;
 
 
  
-class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
     private final WriteQueryDataImpl data;
     
     
-    public MinimalUpdateQuery(Context ctx, WriteQueryDataImpl data) {
+    public UpdateQuery(Context ctx, WriteQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
      
     @Override
-    protected MinimalUpdateQuery newQuery(Context newContext) {
-        return new MinimalUpdateQuery(newContext, data);
+    protected UpdateQuery newQuery(Context newContext) {
+        return new UpdateQuery(newContext, data);
     }
     
     
-    MinimalInsertQuery entity(Object entity) {
-        return new MinimalInsertQuery(getContext(), 
+    InsertQuery entity(Object entity) {
+        return new InsertQuery(getContext(), 
                                new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity)));
     }
     
-    public MinimalUpdateQuery withTtl(int ttlSec) {
+    public UpdateQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
-    public BatchMutation combinedWith(Batchable other) {
-        return new MinimalBatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+    public BatchMutationQuery combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
     @Override
@@ -80,90 +77,90 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
     
     
     @Override
-    public MinimalUpdateQuery value(String name, Object value) {
-        return new MinimalUpdateQuery(getContext(), 
-                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, Optional.fromNullable(value))));
+    public UpdateQuery value(String name, Object value) {
+        return new UpdateQuery(getContext(), 
+                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
     }
     
 
     @Override
-    public <T> Write value(Name<T> name, T value) {
+    public <T> UpdateQuery value(Name<T> name, T value) {
         return value(name.getName(), value);
     }
     
     @Override
-    public MinimalUpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new MinimalUpdateQuery(getContext(), 
-                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), toOptional(nameValuePairsToAdd))));
+    public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
+        return new UpdateQuery(getContext(), 
+                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
     }
 
 
     @Override
-    public MinimalUpdateQuery removeSetValue(String name, Object value) {
+    public UpdateQuery removeSetValue(String name, Object value) {
         ImmutableSet<Object> values = data.getSetValuesToRemove().get(name);
         values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.setValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
     }
 
     
     @Override
-    public MinimalUpdateQuery addSetValue(String name, Object value) {
+    public UpdateQuery addSetValue(String name, Object value) {
         ImmutableSet<Object> values = data.getSetValuesToAdd().get(name);
         values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.setValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
     }
    
     
     @Override
-    public Write prependListValue(String name, Object value) {
+    public UpdateQuery prependListValue(String name, Object value) {
         ImmutableList<Object> values = data.getListValuesToPrepend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.listValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
     } 
     
     
 
     @Override
-    public Write appendListValue(String name, Object value) {
+    public UpdateQuery appendListValue(String name, Object value) {
         ImmutableList<Object> values = data.getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.listValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
     }
     
     
     
     @Override
-    public Write removeListValue(String name, Object value) {
+    public UpdateQuery removeListValue(String name, Object value) {
         ImmutableList<Object> values = data.getListValuesToRemove().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.listValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
     }
    
     
     @Override
-    public Write putMapValue(String name, Object key, Object value) {
+    public UpdateQuery putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = data.getMapValuesToMutate().get(name);
-        values = (values == null) ? ImmutableMap.of(key, toOptional(value)) : Immutables.merge(values, key, toOptional(value));
+        values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.merge(values, key, Optionals.toGuavaOptional(value));
 
-        return new MinimalUpdateQuery(getContext(), 
+        return new UpdateQuery(getContext(), 
                                       data.mapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
     }
     
     
 
     @Override
-    public Update<Write> onlyIf(Clause... conditions) {
-        return new MinimalUpdateQuery(getContext(), 
+    public UpdateQuery onlyIf(Clause... conditions) {
+        return new UpdateQuery(getContext(), 
                                       data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions())
                                                                                            .addAll(ImmutableList.copyOf(conditions))
                                                                                            .build()));
@@ -171,8 +168,8 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
 
 
     @Override
-    public Insertion ifNotExits() {
-        return new MinimalInsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), toOptional(data.getKeyNameValuePairs())))
+    public InsertQuery ifNotExits() {
+        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(data.getKeyNameValuePairs())))
                                                                                .ifNotExists(true));
     }
 
@@ -220,39 +217,31 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
     
     @Override
     public Result execute() {
-        Result result = newResult(performAsync(getStatement()).getUninterruptibly());
-        assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match");
-        
-        return result;
-    }
-    
-
-    private boolean isOptional(Object obj) {
-        return (obj == null) ? false 
-                             : (Optional.class.isAssignableFrom(obj.getClass()));
-    }
- 
-
-    @SuppressWarnings("unchecked")
-    private <T> Optional<T> toOptional(T obj) {
-        return (obj == null) ? Optional.<T>absent() 
-                             : isOptional(obj) ? (Optional<T>) obj: Optional.of(obj);
-    }
- 
-
-
-    private ImmutableMap<String, Optional<Object>> toOptional(ImmutableMap<String, Object> map) {
-        Map<String, Optional<Object>> result = Maps.newHashMap();
-        
-        for (Entry<String, Object> entry : map.entrySet()) {
-            result.put(entry.getKey(), toOptional(entry.getValue()));
-        }
-        
-        return ImmutableMap.copyOf(result);
+        return getUninterruptibly(executeAsync());
     }
     
     
-    private static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
+    @Override
+    public ListenableFuture<Result> executeAsync() {
+        ResultSetFuture future = performAsync(getStatement());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                Result result = newResult(resultSet);
+                assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match");
+                
+                return result;
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
+    }
+
+  
+    
+    
+    static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
         
         private final CounterMutationQueryData data;
 
@@ -262,18 +251,18 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
         }
         
         @Override
-        protected CounterMutation newQuery(Context newContext) {
+        protected CounterMutationQuery newQuery(Context newContext) {
             return new CounterMutationQuery(newContext, data);
         }
    
         @Override
-        public CounterMutation withTtl(int ttlSec) {
+        public CounterMutationQuery withTtl(int ttlSec) {
             return newQuery(getContext().withTtl(ttlSec));
         }
         
         @Override
-        public CounterBatchMutation combinedWith(CounterBatchable other) {
-            return new MinimalCounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
+        public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
+            return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
         }
    
         @Override
@@ -288,7 +277,22 @@ class MinimalUpdateQuery extends AbstractQuery<WriteWithCounter> implements Writ
 
         @Override
         public Result execute() {
-            return newResult(performAsync(getStatement()).getUninterruptibly());
+            return getUninterruptibly(executeAsync());
+        }
+        
+        
+        @Override
+        public ListenableFuture<Result> executeAsync() {
+            ResultSetFuture future = performAsync(getStatement());
+            
+            Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+                @Override
+                public Result apply(ResultSet resultSet) {
+                    return newResult(resultSet);
+                }
+            };
+            
+            return Futures.transform(future, mapEntity);
         }
     }
 }

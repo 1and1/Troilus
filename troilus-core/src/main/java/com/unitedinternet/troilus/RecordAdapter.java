@@ -38,9 +38,9 @@ import com.google.common.collect.ImmutableSet;
  
 class RecordAdapter implements Record {
     
-    private final RecordImpl record;
+    private final com.unitedinternet.troilus.minimal.Record record;
     
-    RecordAdapter(RecordImpl record) {
+    RecordAdapter(com.unitedinternet.troilus.minimal.Record record) {
         this.record = record;
     }
 
@@ -196,7 +196,7 @@ class RecordAdapter implements Record {
         return record.toString();
     }
     
-        
+    
     static PropertiesSource toPropertiesSource(Record record) {
         return new PropertiesSourceAdapter(record);
     }
@@ -220,6 +220,137 @@ class RecordAdapter implements Record {
         public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
             return GuavaOptionals.toOptional((Optional<T>) record.getObject(name, clazz1));
         }
+    }
+    
+    static com.unitedinternet.troilus.minimal.Record convert(Record record) {
+        
+        return new com.unitedinternet.troilus.minimal.Record() {
+            
+            @Override
+            public boolean wasApplied() {
+                return record.wasApplied();
+            }
+            
+            @Override
+            public ExecutionInfo getExecutionInfo() {
+                return record.getExecutionInfo();
+            }
+            
+            @Override
+            public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+                return record.getAllExecutionInfo();
+            }
+            
+            @Override
+            public boolean isNull(String name) {
+                return record.isNull(name);
+            }
+            
+            @Override
+            public Long getWritetime(String name) {
+                return record.getWritetime(name).orElse(null);
+            }
+            
+            @Override
+            public BigInteger getVarint(String name) {
+                return record.getVarint(name).orElse(null);
+            }
+            
+            @Override
+            public <T> T getValue(Name<T> name) {
+                return record.getValue(name).orElse(null);
+            }
+            
+            @Override
+            public UUID getUUID(String name) {
+                return record.getUUID(name).orElse(null);
+            }
+            
+            @Override
+            public UDTValue getUDTValue(String name) {
+                return record.getUDTValue(name).orElse(null);           
+            }
+         
+            @Override
+            public Integer getTtl(String name) {
+                return record.getTtl(name).map(duration -> (int) duration.getSeconds()).orElse(null);
+            }
+            
+            @Override
+            public String getString(String name) {
+                return record.getString(name).orElse(null);
+            }
+            
+            @Override
+            public <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass) {
+                return record.getSet(name, elementsClass).orElse(null);
+            }
+            
+            @Override
+            public <T> T getObject(String name, Class<T> type) {
+                return record.getObject(name, type).orElse(null);
+            }
+            
+            @Override
+            public <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
+                return record.getMap(name, keysClass, valuesClass).orElse(null);
+            }
+            
+            @Override
+            public Long getLong(String name) {
+                return record.getLong(name).orElse(null);
+            }
+            
+            @Override
+            public <T> ImmutableList<T> getList(String name, Class<T> elementsClass) {
+                return record.getList(name, elementsClass).orElse(null);
+            }
+            
+            @Override
+            public Integer getInt(String name) {
+                return record.getInt(name).orElse(null);
+            }
+            
+            @Override
+            public InetAddress getInet(String name) {
+                return record.getInet(name).orElse(null);
+            }
+            
+            @Override
+            public Float getFloat(String name) {
+                return record.getFloat(name).orElse(null);
+            }
+            
+            @Override
+            public <T extends Enum<T>> T getEnum(String name, Class<T> enumType) {
+                return record.getEnum(name, enumType).orElse(null);
+            }
+            
+            @Override
+            public BigDecimal getDecimal(String name) {
+                return record.getDecimal(name).orElse(null);
+            }
+            
+            @Override
+            public Date getDate(String name) {
+                return record.getDate(name).orElse(null);
+            }
+            
+            @Override
+            public ByteBuffer getBytesUnsafe(String name) {
+                return record.getBytesUnsafe(name).orElse(null);
+            }
+            
+            @Override
+            public ByteBuffer getBytes(String name) {
+                return record.getBytes(name).orElse(null);
+            }
+            
+            @Override
+            public Boolean getBool(String name) {
+                return record.getBool(name).orElse(null);
+            }
+        };
     }
 }
 

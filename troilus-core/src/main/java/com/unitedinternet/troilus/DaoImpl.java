@@ -16,6 +16,7 @@
 package com.unitedinternet.troilus;
 
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,8 +28,11 @@ import java.util.Optional;
 
 import java.util.Map.Entry;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -37,8 +41,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
 import com.unitedinternet.troilus.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
  
 
@@ -85,24 +94,43 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withInterceptor(QueryInterceptor queryInterceptor) {
-        return new DaoImpl(ctx.withInterceptor(queryInterceptor));
+         
+        Context context = ctx.withInterceptor(queryInterceptor);
+        
+        if (ListReadQueryPreInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryPreInterceptorAdapter((ListReadQueryPreInterceptor) queryInterceptor));
+        }
+
+        if (ListReadQueryPostInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryPostInterceptorAdapter((ListReadQueryPostInterceptor) queryInterceptor));
+        } 
+                
+        if (SingleReadQueryPostInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new SingleReadQueryPostInterceptorAdapter((SingleReadQueryPostInterceptor) queryInterceptor));
+        } 
+        
+        if (WriteQueryPreInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new WriteQueryPreInterceptorAdapter((WriteQueryPreInterceptor) queryInterceptor));
+        } 
+        
+        return new DaoImpl(context);
     }
     
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new UpdateQuery(ctx, new WriteQueryDataAdapter()).entity(entity);
+        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl())).entity(entity);
     }
     
     @Override
     public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
-        return new UpdateQuery(ctx, new WriteQueryDataAdapter().whereConditions((ImmutableList.copyOf(clauses))));
+        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses)))));
     }
     
   
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new UpdateQuery(ctx, new WriteQueryDataAdapter().keys(composedKeyParts));
+        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts)));
     }
     
     
@@ -154,7 +182,8 @@ public class DaoImpl implements Dao {
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
+        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions))));      
+//        return new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
     
@@ -205,15 +234,15 @@ public class DaoImpl implements Dao {
                              keyName3.getName(), (Object) keyName3);
     }
     
-    public DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
+    public Deletion deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
+        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs)));      
     }
     
     
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey));
+        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey)));
     }
     
     
@@ -263,23 +292,23 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
-        return new ListReadQuery(ctx, new ListReadQueryDataAdapter().keys(ImmutableMap.of(name, values)));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
-        return new ListReadQuery(ctx, new ListReadQueryDataAdapter().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                       composedKeyNamePart2, composedKeyValuesPart2)));        
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
-        return new ListReadQuery(ctx, new ListReadQueryDataAdapter().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
-                                                                                       composedKeyNamePart3, composedKeyValuesPart3)));        
+                                                                                       composedKeyNamePart3, composedKeyValuesPart3))));        
     }
 
     @SuppressWarnings("unchecked")
@@ -310,28 +339,27 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
-        return new ListReadQuery(ctx, new ListReadQueryDataAdapter().whereClauses(ImmutableSet.copyOf(clauses)));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
     
     @Override
     public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryDataAdapter().columnsToFetch(ImmutableMap.of()));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
     }
-    
-    
+
     
     
     static class ListReadQueryDataAdapter implements ListReadQueryData {
 
-        private final ListReadQueryDataImpl data;
+        private final com.unitedinternet.troilus.minimal.ListReadQueryData data;
 
         
         ListReadQueryDataAdapter() {
             this(new ListReadQueryDataImpl());
         }
 
-        private ListReadQueryDataAdapter(ListReadQueryDataImpl data) {
+        private ListReadQueryDataAdapter(com.unitedinternet.troilus.minimal.ListReadQueryData data) {
             this.data = data;
         }
         
@@ -406,28 +434,202 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getDistinct());
         }
         
-        static Statement toStatement(ListReadQueryData data, Context ctx) {
-            com.unitedinternet.troilus.minimal.ListReadQueryData q = new ListReadQueryDataImpl().keys(data.getKeys())
-                                                 .whereConditions(data.getWhereClauses())
-                                                 .columnsToFetch(data.getColumnsToFetch())
-                                                 .limit(data.getLimit().orElse(null))
-                                                 .allowFiltering(data.getAllowFiltering().orElse(null))
-                                                 .fetchSize(data.getFetchSize().orElse(null))
-                                                 .distinct(data.getDistinct().orElse(null));
-            return ListReadQueryDataImpl.toStatement(q, ctx);
+        static com.unitedinternet.troilus.minimal.ListReadQueryData convert(ListReadQueryData data) {
+            return new ListReadQueryDataImpl().keys(data.getKeys())
+                                              .whereConditions(data.getWhereClauses())
+                                              .columnsToFetch(data.getColumnsToFetch())
+                                              .limit(data.getLimit().orElse(null))
+                                              .allowFiltering(data.getAllowFiltering().orElse(null))
+                                              .fetchSize(data.getFetchSize().orElse(null))
+                                              .distinct(data.getDistinct().orElse(null));
         }
     }
     
     
-    static class WriteQueryDataAdapter implements WriteQueryData {
-
-        private final WriteQueryDataImpl data;
-            
-        WriteQueryDataAdapter() {
-            this(new WriteQueryDataImpl());
+    static class RecordListAdapter implements RecordList {
+        private final com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList;
+        
+        public RecordListAdapter(com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
+            this.recordList = recordList;
+        }
+        
+        @Override
+        public ExecutionInfo getExecutionInfo() {
+            return recordList.getExecutionInfo();
+        }
+        
+        @Override
+        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+            return recordList.getAllExecutionInfo();
         }
 
-        private WriteQueryDataAdapter(WriteQueryDataImpl data) {
+        @Override
+        public boolean wasApplied() {
+            return recordList.wasApplied();
+        }
+        
+        
+        @Override
+        public Iterator<Record> iterator() {
+            
+            return new Iterator<Record>() {
+                
+                private final Iterator<com.unitedinternet.troilus.minimal.Record> iterator = recordList.iterator();
+
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+                
+                @Override
+                public Record next() {
+                    return new RecordAdapter(iterator.next());
+                }
+            };
+        }
+        
+        
+        
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @Override
+        public void subscribe(Subscriber<? super Record> subscriber) {
+            recordList.subscribe(new SubscriberAdapter(subscriber));
+        }
+        
+        
+        static com.unitedinternet.troilus.minimal.MinimalDao.RecordList convert(RecordList recordList) {
+            
+            return new com.unitedinternet.troilus.minimal.MinimalDao.RecordList() {
+                
+                @Override
+                public boolean wasApplied() {
+                    return recordList.wasApplied();
+                }
+                
+                @Override
+                public ExecutionInfo getExecutionInfo() {
+                    return recordList.getExecutionInfo();
+                }
+                
+                @Override
+                public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+                    return recordList.getAllExecutionInfo();
+                }
+                
+                public void subscribe(Subscriber<? super com.unitedinternet.troilus.minimal.Record> subscriber) {
+                    recordList.subscribe(new SubscriberAdapter(subscriber));
+                }
+                
+                public Iterator<com.unitedinternet.troilus.minimal.Record> iterator() {
+                    
+                    return new Iterator<com.unitedinternet.troilus.minimal.Record>() {
+                        
+                        private final Iterator<Record> iterator = recordList.iterator();
+
+                        @Override
+                        public boolean hasNext() {
+                            return iterator.hasNext();
+                        }
+                        
+                        @Override
+                        public com.unitedinternet.troilus.minimal.Record next() {
+                            return RecordAdapter.convert(iterator.next());
+                        }
+                    };
+                }
+            };
+        }
+   }
+
+   
+   
+   static final class SubscriberAdapter<T> implements Subscriber<T> {
+       private final Subscriber<T> subscriber;
+       
+       public SubscriberAdapter(Subscriber<T> subscriber) {
+           this.subscriber = subscriber;
+      }
+
+      @Override
+      public void onSubscribe(Subscription s) {
+          subscriber.onSubscribe(s);
+      }
+
+      @Override
+      public void onNext(T t) {
+          subscriber.onNext(t);
+      }
+
+      @Override
+      public void onError(Throwable t) {
+          subscriber.onError(t);
+      }
+   
+      @Override
+      public void onComplete() {
+          subscriber.onComplete();
+      }
+   }
+
+   
+        
+   static class EntityListAdapter<F> implements EntityList<F> {
+       private final com.unitedinternet.troilus.minimal.MinimalDao.EntityList<F> entityList;
+   
+       
+       public EntityListAdapter(com.unitedinternet.troilus.minimal.MinimalDao.EntityList<F> entityList) {
+           this.entityList = entityList;
+       }
+   
+       @Override
+       public ExecutionInfo getExecutionInfo() {
+           return entityList.getExecutionInfo();
+       }
+       
+       @Override
+       public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+           return entityList.getAllExecutionInfo();
+       }
+       
+       @Override
+       public boolean wasApplied() {
+           return entityList.wasApplied();
+       }
+   
+       @Override
+       public Iterator<F> iterator() {
+   
+           return new Iterator<F>() {
+               final Iterator<F> recordIt = entityList.iterator();
+               
+               @Override
+               public boolean hasNext() {
+                   return recordIt.hasNext();
+               }
+           
+               @Override
+               public F next() {
+                   return recordIt.next();
+               }
+           };
+       }
+       
+        
+       @SuppressWarnings({ "unchecked", "rawtypes" })
+       @Override
+       public void subscribe(Subscriber<? super F> subscriber) {
+           entityList.subscribe(new SubscriberAdapter(subscriber));
+       }
+   }
+   
+
+   
+    
+    private static class WriteQueryDataAdapter implements WriteQueryData {
+
+        private final com.unitedinternet.troilus.minimal.WriteQueryData data;
+            
+        WriteQueryDataAdapter(com.unitedinternet.troilus.minimal.WriteQueryData data) {
             this.data = data;
         }
         
@@ -552,19 +754,101 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getIfNotExits());
         }
         
-        static Statement toStatement(WriteQueryData data, Context ctx) {
-            WriteQueryDataImpl wqd = new WriteQueryDataImpl().keys(data.getKeys())
-                                                             .whereConditions(data.getWhereConditions())
-                                                             .valuesToMutate(GuavaOptionals.toStringOptionalMap(data.getValuesToMutate()))
-                                                             .setValuesToAdd(data.getSetValuesToAdd())
-                                                             .setValuesToRemove(data.getSetValuesToRemove())
-                                                             .listValuesToAppend(data.getListValuesToAppend())
-                                                             .listValuesToPrepend(data.getListValuesToPrepend())
-                                                             .listValuesToRemove(data.getListValuesToRemove())
-                                                             .mapValuesToMutate(GuavaOptionals.toStringObjectOptionalMap(data.getMapValuesToMutate()))
-                                                             .onlyIfConditions(data.getOnlyIfConditions())
-                                                             .ifNotExists(data.getIfNotExits().orElse(null));
-            return WriteQueryDataImpl.toStatement(wqd, ctx);
+        static com.unitedinternet.troilus.minimal.WriteQueryData convert(WriteQueryData data) {
+            return new WriteQueryDataImpl().keys(data.getKeys())
+                                           .whereConditions(data.getWhereConditions())
+                                           .valuesToMutate(GuavaOptionals.toStringOptionalMap(data.getValuesToMutate()))
+                                           .setValuesToAdd(data.getSetValuesToAdd())
+                                           .setValuesToRemove(data.getSetValuesToRemove())
+                                           .listValuesToAppend(data.getListValuesToAppend())
+                                           .listValuesToPrepend(data.getListValuesToPrepend())
+                                           .listValuesToRemove(data.getListValuesToRemove())
+                                           .mapValuesToMutate(GuavaOptionals.toStringObjectOptionalMap(data.getMapValuesToMutate()))
+                                           .onlyIfConditions(data.getOnlyIfConditions())
+                                           .ifNotExists(data.getIfNotExits().orElse(null));
+        }
+    }
+    
+    
+
+    
+    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.ListReadQueryPreInterceptor {
+        
+        private ListReadQueryPreInterceptor interceptor;
+        
+        public ListReadQueryPreInterceptorAdapter(ListReadQueryPreInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        @Override
+        public com.unitedinternet.troilus.minimal.ListReadQueryData onPreListRead(com.unitedinternet.troilus.minimal.ListReadQueryData data) {
+            return ListReadQueryDataAdapter.convert(interceptor.onPreListRead(new ListReadQueryDataAdapter(data)));
+        }
+        
+        @Override
+        public String toString() {
+            return "ListReadQueryPreInterceptor (with " + interceptor + ")";
+        }
+    }
+   
+    
+    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.ListReadQueryPostInterceptor {
+        
+        private ListReadQueryPostInterceptor interceptor;
+        
+        public ListReadQueryPostInterceptorAdapter(ListReadQueryPostInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        @Override
+        public com.unitedinternet.troilus.minimal.MinimalDao.RecordList onPostListRead(com.unitedinternet.troilus.minimal.ListReadQueryData data, com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
+            return RecordListAdapter.convert(interceptor.onPostListRead(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
+        }
+        
+        @Override
+        public String toString() {
+            return "ListReadQueryPostInterceptor (with " + interceptor + ")";
+        }
+    }
+    
+
+    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.SingleReadQueryPostInterceptor {
+        
+        private SingleReadQueryPostInterceptor interceptor;
+        
+        public SingleReadQueryPostInterceptorAdapter(SingleReadQueryPostInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        @Override
+        public com.unitedinternet.troilus.minimal.Record onPostSingleRead(SingleReadQueryData data, com.unitedinternet.troilus.minimal.Record record) {
+            return RecordAdapter.convert(interceptor.onPostSingleRead(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))).orElse(null));
+        }
+        
+        @Override
+        public String toString() {
+            return "SingleReadQueryPostInterceptorAdapter (with " + interceptor + ")";
+        }
+    }
+    
+    
+    
+    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.WriteQueryPreInterceptor {
+         
+        private WriteQueryPreInterceptor interceptor;
+        
+        public WriteQueryPreInterceptorAdapter(WriteQueryPreInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        @Override
+        public com.unitedinternet.troilus.minimal.WriteQueryData onPreWrite(com.unitedinternet.troilus.minimal.WriteQueryData data) {
+            return WriteQueryDataAdapter.convert(interceptor.onPreWrite(new WriteQueryDataAdapter(data)));
+        }
+        
+        @Override
+        public String toString() {
+            return "WriteQueryPreInterceptorAdapter (with " + interceptor + ")";
         }
     }
 }
