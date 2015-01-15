@@ -20,7 +20,6 @@ package com.unitedinternet.troilus;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import com.datastax.driver.core.ColumnMetadata;
@@ -32,6 +31,8 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -52,29 +53,10 @@ class Context {
     private final BeanMapper beanMapper;
     private final UDTValueMapper udtValueMapper;
     
-    private final Cache<String, PreparedStatement> preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(300).build();
-    private final LoadingCache<String, ColumnMetadata> columnMetadataCache = CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader());
-
-
-    private final class ColumnMetadataCacheLoader extends CacheLoader<String, ColumnMetadata> {
-        
-        @Override
-        public ColumnMetadata load(String columnName) throws Exception {
-            return  session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
-        }
-    }
- 
+    private final LoadingCache<String, PreparedStatement> preparedStatementsCache;
+    private final LoadingCache<String, ColumnMetadata> columnMetadataCache;
     
-    
-    private final LoadingCache<String, UserType> userTypeCache = CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader());
-
-    private final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
-        
-        @Override
-        public UserType load(String usertypeName) throws Exception {
-            return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
-        }
-    }    
+    private final LoadingCache<String, UserType> userTypeCache;
 
     
     Context(Session session, String table) {
@@ -89,7 +71,10 @@ class Context {
              new ExecutionSpec(), 
              new InterceptorRegistry(),
              beanMapper,
-             new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper));
+             new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper),
+             CacheBuilder.newBuilder().maximumSize(150).build(new PreparedStatementLoader(session)),
+             CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader(session, table)),
+             CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader(session)));
     }
     
     private Context(Session session, 
@@ -97,13 +82,19 @@ class Context {
                     ExecutionSpec executionSpec,
                     InterceptorRegistry interceptorRegistry,
                     BeanMapper beanMapper,
-                    UDTValueMapper udtValueMapper) {
+                    UDTValueMapper udtValueMapper,
+                    LoadingCache<String, PreparedStatement> preparedStatementsCache,
+                    LoadingCache<String, ColumnMetadata> columnMetadataCache,
+                    LoadingCache<String, UserType> userTypeCache) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
         this.interceptorRegistry = interceptorRegistry;
         this.beanMapper = beanMapper;
         this.udtValueMapper = udtValueMapper;
+        this.preparedStatementsCache = preparedStatementsCache;
+        this.columnMetadataCache = columnMetadataCache;
+        this.userTypeCache = userTypeCache;
     }
  
     
@@ -113,7 +104,10 @@ class Context {
                            executionSpec,  
                            interceptorRegistry.withInterceptor(interceptor),
                            beanMapper,
-                           udtValueMapper);
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);
 
     }
     
@@ -123,7 +117,10 @@ class Context {
                            executionSpec.withSerialConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);
     }
 
     Context withTtl(int ttlSec) {
@@ -132,7 +129,10 @@ class Context {
                            executionSpec.withTtl(ttlSec),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);        
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);        
     }
 
     Context withWritetime(long microsSinceEpoch) {
@@ -141,7 +141,10 @@ class Context {
                            executionSpec.withWritetime(microsSinceEpoch),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);        
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);        
     }
     
     Context withEnableTracking() {
@@ -150,7 +153,10 @@ class Context {
                            executionSpec.withEnableTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);        
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);        
     }
     
     Context withDisableTracking() {
@@ -159,7 +165,10 @@ class Context {
                            executionSpec.withDisableTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);        
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);        
     }
     
     Context withRetryPolicy(RetryPolicy policy) {
@@ -168,7 +177,10 @@ class Context {
                            executionSpec.withRetryPolicy(policy),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);        
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);        
     }
     
     Context withConsistency(ConsistencyLevel consistencyLevel) {
@@ -177,7 +189,10 @@ class Context {
                            executionSpec.withConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper);
+                           udtValueMapper,
+                           preparedStatementsCache,
+                           columnMetadataCache,
+                           userTypeCache);
     }
     
     
@@ -295,25 +310,29 @@ class Context {
 
     PreparedStatement prepare(BuiltStatement statement) {
         try {
-            return preparedStatementsCache.get(statement.getQueryString(), new PreparedStatementLoader(statement));
+            return preparedStatementsCache.get(statement.getQueryString());
         } catch (ExecutionException e) {
             throw Exceptions.unwrapIfNecessary(e);
         }
     }
     
+ 
     
-    private class PreparedStatementLoader implements Callable<PreparedStatement> { 
-        private final BuiltStatement statement;
     
-        public PreparedStatementLoader(BuiltStatement statement) {
-            this.statement = statement;
-        }
-
-        @Override
-        public PreparedStatement call() throws Exception {
-            return getSession().prepare(statement);
-        } 
-     }
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                          .add("table", table)
+                          .add("execution-spec", executionSpec)
+                          .add("interceptorRegistry", interceptorRegistry)
+                          .add("preparedStatementsCache", printCache(preparedStatementsCache))
+                          .toString();
+    }
+    
+    
+    private String printCache(Cache<String, ?> cache) {
+        return Joiner.on(", ").withKeyValueSeparator("=").join(cache.asMap());
+    }
     
     
     protected static class ExecutionSpec {
@@ -447,7 +466,65 @@ class Context {
         public RetryPolicy getRetryPolicy() {
             return retryPolicy;
         }
+        
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper("spec")
+                              .add("consistencyLevel", consistencyLevel)
+                              .add("serialConsistencyLevel", serialConsistencyLevel)
+                              .add("ttlSec", ttlSec)
+                              .add("writetimeMicrosSinceEpoch", writetimeMicrosSinceEpoch)
+                              .add("enableTracing", enableTracing)
+                              .add("retryPolicy", retryPolicy)
+                              .toString();
+        }
     }
+
+    
+    
+     
+    private static final class PreparedStatementLoader extends CacheLoader<String, PreparedStatement> { 
+        private final Session session;
+        
+        public PreparedStatementLoader(Session session) {
+            this.session = session;
+        }
+        
+        @Override
+        public PreparedStatement load(String statement) throws Exception {
+            return session.prepare(statement);
+        }
+     }
+
+    
+    private static final class ColumnMetadataCacheLoader extends CacheLoader<String, ColumnMetadata> {
+        private final Session session;
+        private final String table; 
+        
+        public ColumnMetadataCacheLoader(Session session, String table) {
+            this.session = session;
+            this.table = table;
+        }
+        
+        @Override
+        public ColumnMetadata load(String columnName) throws Exception {
+            return  session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
+        }
+    }
+    
+    
+    private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
+        private final Session session;
+        
+        public UserTypeCacheLoader(Session session) {
+            this.session = session;
+        }
+
+        @Override
+        public UserType load(String usertypeName) throws Exception {
+            return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
+        }
+    }    
 }
 
 

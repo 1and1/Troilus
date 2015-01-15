@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -98,6 +99,8 @@ class InterceptorRegistry {
     
     @Override
     public String toString() {
-        return Joiner.on("\n").join(interceptors);
+        return MoreObjects.toStringHelper("interceptorregistry")
+                          .add("interceptors", Joiner.on(",").join(interceptors))
+                          .toString();
     }
 }

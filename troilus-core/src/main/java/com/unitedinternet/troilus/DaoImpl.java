@@ -36,6 +36,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -348,6 +349,14 @@ public class DaoImpl implements Dao {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
     }
 
+    
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                          .add("ctx", ctx)
+                          .toString();
+    }
+    
     
     
     static class ListReadQueryDataAdapter implements ListReadQueryData {
