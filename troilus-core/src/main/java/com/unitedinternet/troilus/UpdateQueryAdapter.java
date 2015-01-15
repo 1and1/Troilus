@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,19 @@ import com.unitedinternet.troilus.UpdateQuery.CounterMutationQuery;
 
 
  
+/**
+ * Java8 adapter of a UpdateQuery
+ */
 class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
     private final UpdateQuery query;
     
     
-    public UpdateQueryAdapter(Context ctx, UpdateQuery query) {
+    /**
+     * @param ctx     the context 
+     * @param query   the underyling query
+     */
+    UpdateQueryAdapter(Context ctx, UpdateQuery query) {
         super(ctx);
         this.query = query;
     }
@@ -137,7 +144,7 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
         return new CounterMutationQueryAdapter(getContext(), query.decr(name, value));
     }
     
-
+    @Override
     public BatchMutation combinedWith(Batchable other) {
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
     }
@@ -146,7 +153,6 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     public void addTo(BatchStatement batchStatement) {
         query.addTo(batchStatement);
     }
-    
     
     @Override
     public CompletableFuture<Result> executeAsync() {
@@ -160,11 +166,20 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
 
     
       
+
+    /**
+     * Java8 adapter of a CounterMutationQuery
+     */
     private static final class CounterMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
         
         private final CounterMutationQuery query;
 
-        public CounterMutationQueryAdapter(Context ctx, CounterMutationQuery query) {
+        
+        /**
+         * @param ctx     the context
+         * @param query   the undewrlying query
+         */
+        CounterMutationQueryAdapter(Context ctx, CounterMutationQuery query) {
             super(ctx);
             this.query = query;
         }

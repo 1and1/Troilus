@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,23 @@ import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.Deletion;
 
 
- 
+
+
+/**
+ * Java8 adapter of a DeleteQuery
+ */
 class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
 
     private final DeleteQuery query;
       
-    protected DeleteQueryAdapter(Context ctx, DeleteQuery query) {
+    /**
+     * @param ctx     the context
+     * @param query   the query
+     */
+    DeleteQueryAdapter(Context ctx, DeleteQuery query) {
         super(ctx);
         this.query = query;
     }
-    
     
     @Override
     protected Deletion newQuery(Context newContext) {
@@ -53,6 +60,12 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
         return new DeleteQueryAdapter(getContext(), query.onlyIf(onlyIfConditions));
     }
     
+    @Override
+    public Deletion ifExists() {
+        return new DeleteQueryAdapter(getContext(), query.ifExists());
+    }
+    
+    @Override
     public BatchMutation combinedWith(Batchable other) {
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
     }
@@ -62,6 +75,7 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
         query.addTo(batchStatement);
     }
     
+    @Override
     public CompletableFuture<Result> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
     }

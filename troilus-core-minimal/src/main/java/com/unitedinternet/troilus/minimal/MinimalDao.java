@@ -16,8 +16,6 @@
 package com.unitedinternet.troilus.minimal;
 
 
-import java.util.concurrent.CompletableFuture;
-
 import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.BatchStatement;
@@ -269,6 +267,8 @@ public interface MinimalDao {
     public static interface Deletion extends BatchableMutation<Deletion> {
 
         Mutation<?> onlyIf(Clause... conditions);
+        
+        Mutation<?> ifExists();
     }
 
 

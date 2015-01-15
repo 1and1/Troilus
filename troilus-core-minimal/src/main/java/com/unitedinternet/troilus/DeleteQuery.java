@@ -69,7 +69,11 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     public DeleteQuery onlyIf(Clause... onlyIfConditions) {
         return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
-    
+   
+    @Override
+    public DeleteQuery ifExists() {
+        return new DeleteQuery(getContext(), data.ifExists(true));
+    }
    
     private Statement getStatement() {
         DeleteQueryData queryData = data;

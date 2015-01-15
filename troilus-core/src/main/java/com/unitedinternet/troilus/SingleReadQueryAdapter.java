@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,23 @@ import java.util.concurrent.CompletableFuture;
 import com.unitedinternet.troilus.Dao.SingleRead;
 import com.unitedinternet.troilus.Dao.SingleReadWithColumns;
 import com.unitedinternet.troilus.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.SingleReadQuery.MinimalSingleEntityReadQuery;
+import com.unitedinternet.troilus.SingleReadQuery.SingleEntityReadQuery;
 
 
  
-
+/**
+ * Java8 adapter of a SingleReadQuery
+ */
 class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> implements SingleReadWithUnit<Optional<Record>> {
     
     private final SingleReadQuery query;
      
     
-    public SingleReadQueryAdapter(Context ctx, SingleReadQuery query) {
+    /**
+     * @param ctx     the context
+     * @param query   the underlying query
+     */
+     SingleReadQueryAdapter(Context ctx, SingleReadQuery query) {
         super(ctx);
         this.query = query;
     }
@@ -82,7 +88,6 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
         return new SingleReadQueryAdapter(getContext(), query.columns(names));
     }
     
-    
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
         return new ListenableToCompletableFutureAdapter<>(query.executeAsync())
@@ -93,23 +98,27 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     
     
     
-    
-    
+
+    /**
+     * Java8 adapter of a SingleEntityReadQuery
+     */
     private static class SingleEntityReadQueryAdapter<E> extends AbstractQuery<SingleEntityReadQueryAdapter<E>> implements SingleRead<Optional<E>> {
         
-        private final MinimalSingleEntityReadQuery<E> query;
+        private final SingleEntityReadQuery<E> query;
         
-        public SingleEntityReadQueryAdapter(Context ctx, MinimalSingleEntityReadQuery<E> query) {
+        /**
+         * @param ctx    the context 
+         * @param query  the underlying query
+         */
+        SingleEntityReadQueryAdapter(Context ctx, SingleEntityReadQuery<E> query) {
             super(ctx);
             this.query = query;
         }
         
-
         @Override
         protected SingleEntityReadQueryAdapter<E> newQuery(Context newContext) {
             return new SingleEntityReadQueryAdapter<>(newContext, query.newQuery(newContext)); 
         }
-        
         
         @Override
         public CompletableFuture<Optional<E>> executeAsync() {

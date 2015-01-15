@@ -26,15 +26,23 @@ import com.unitedinternet.troilus.Dao.CounterBatchable;
 
  
 
+/**
+ * Java8 adapter of a CounterBatchMutationQuery
+ */
 class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutation> implements CounterBatchMutation {
     
     private final CounterBatchMutationQuery query;
     
     
-    protected CounterBatchMutationQueryAdapter(Context ctx, CounterBatchMutationQuery query) {
+    /**
+     * @param ctx     the context 
+     * @param query   the underlying query
+     */
+    CounterBatchMutationQueryAdapter(Context ctx, CounterBatchMutationQuery query) {
         super(ctx);
         this.query = query;
     }
+    
     
     @Override
     protected CounterBatchMutation newQuery(Context newContext) {
@@ -51,14 +59,21 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     }
     
 
-    
+
+    /**
+     * Java8 adapter of a CounterBatchable
+     */
     static final class CounterBatchableAdapter implements com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchable {
         private final CounterBatchable batchable;
         
-        public CounterBatchableAdapter(CounterBatchable batchable) {
+        /**
+         * @param batchable the underlying batchable
+         */
+        CounterBatchableAdapter(CounterBatchable batchable) {
             this.batchable = batchable;
         }
         
+        @Override
         public void addTo(BatchStatement batchStatement) {
             batchable.addTo(batchStatement);
         }

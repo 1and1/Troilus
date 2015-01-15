@@ -28,7 +28,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
 import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.Query;
 
 
  

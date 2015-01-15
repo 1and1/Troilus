@@ -187,27 +187,39 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         ResultSetFuture future = performAsync(statement);
         
+        // map to record list
         Function<ResultSet, RecordList> mapEntity = new Function<ResultSet, RecordList>() {
             
             @Override
             public RecordList apply(ResultSet resultSet) {
-                RecordList recordList = new RecordListImpl(getContext(), resultSet);
-                return processPostInterceptor(preprocessedData, recordList);
+                return new RecordListImpl(getContext(), resultSet);
             }
         };
+        ListenableFuture<RecordList> result =  Futures.transform(future, mapEntity); 
         
-        return Futures.transform(future, mapEntity);
+        
+        
+        // perform interceptors if present
+        final ImmutableList<ListReadQueryPostInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class);
+        if (!interceptors.isEmpty()) {
+            
+            Function<RecordList, RecordList> processInterceptors = new Function<RecordList, RecordList>() {
+                @Override
+                public RecordList apply(RecordList recordList) {
+                    for (ListReadQueryPostInterceptor interceptor : interceptors) {
+                        recordList = interceptor.onPostListRead(preprocessedData, recordList);
+                    }
+                    return recordList;
+                }
+            };
+            
+            result = Futures.transform(result, processInterceptors, getContext().getTaskExecutor()); // do not perform post process interceptors within drive callback thread
+        }
+        
+        
+        return result;
     }
     
-
-    private RecordList processPostInterceptor(ListReadQueryData preprocessedData, RecordList recordList) {
-        for (ListReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class)) {
-            recordList = interceptor.onPostListRead(preprocessedData, recordList);
-        }
-        return recordList;
-    }
-        
- 
     
     
     
@@ -479,6 +491,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 subscriber.onSubscribe(subscription);
             }
             
+            @SuppressWarnings("unchecked")
             @Override
             public void onNext(Record record) {
                 subscriber.onNext((G) ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record)));

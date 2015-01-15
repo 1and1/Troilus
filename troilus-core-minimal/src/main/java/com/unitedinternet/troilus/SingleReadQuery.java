@@ -16,6 +16,7 @@
 package com.unitedinternet.troilus;
 
 import java.nio.ByteBuffer;
+
 import java.util.List;
 
 
@@ -51,9 +52,8 @@ import com.unitedinternet.troilus.minimal.SingleReadQueryPostInterceptor;
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record> {
     
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
-
+    private final SingleReadQueryData data;
     
-    final SingleReadQueryData data;
     
     public SingleReadQuery(Context ctx, SingleReadQueryData data) {
         super(ctx);
@@ -119,8 +119,8 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     
     @Override
-    public <E> MinimalSingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
-        return new MinimalSingleEntityReadQuery<E>(getContext(), this, objectClass);
+    public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
+        return new SingleEntityReadQuery<E>(getContext(), this, objectClass);
     }
     
 
@@ -151,6 +151,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         ResultSetFuture future = performAsync(statement);
         
         
+        // map to record
         Function<ResultSet, Record> mapEntity = new Function<ResultSet, Record>() {
             
             @Override
@@ -165,12 +166,35 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                     }
                     Record record = new RecordImpl(getContext(), newResult(resultSet), row);
                     paranoiaCheck(record);
-                    return processPostInterceptor(preprocessedData, record);
+                    return record;
                 }
             }
         };
         
-        return Futures.transform(future, mapEntity);
+        ListenableFuture<Record> result = Futures.transform(future, mapEntity);
+        
+        
+       
+        // perform interceptors if present
+        final ImmutableList<SingleReadQueryPostInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryPostInterceptor.class);
+        if (!interceptors.isEmpty()) {
+            
+            Function<Record, Record> processInterceptors = new Function<Record, Record>() {
+                @Override
+                public Record apply(Record record) {
+                    for (SingleReadQueryPostInterceptor interceptor : interceptors) {
+                        record = interceptor.onPostSingleRead(preprocessedData, record);
+                    }
+                    
+                    return record;
+                }
+            };
+            
+            result = Futures.transform(result, processInterceptors, getContext().getTaskExecutor()); // do not perform post process interceptors within drive callback thread
+        }
+                    
+        
+        return result;
     }
     
     
@@ -189,28 +213,20 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return record; 
     }
     
-    private Record processPostInterceptor(SingleReadQueryData preprocessedData, Record record) {
-        for (SingleReadQueryPostInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryPostInterceptor.class)) {
-            record = interceptor.onPostSingleRead(preprocessedData, record);
-        }
-        
-        return record;
-    }
     
     
-    
-    static class MinimalSingleEntityReadQuery<E> extends AbstractQuery<MinimalSingleEntityReadQuery<E>> implements SingleRead<E> {
+    static class SingleEntityReadQuery<E> extends AbstractQuery<SingleEntityReadQuery<E>> implements SingleRead<E> {
         private final Class<E> clazz;
         private final SingleReadQuery read;
         
-        public MinimalSingleEntityReadQuery(Context ctx, SingleReadQuery read, Class<E> clazz) {
+        public SingleEntityReadQuery(Context ctx, SingleReadQuery read, Class<E> clazz) {
             super(ctx);
             this.read = read;
             this.clazz = clazz;
         }
         
         @Override
-        protected MinimalSingleEntityReadQuery<E> newQuery(Context newContext) {
+        protected SingleEntityReadQuery<E> newQuery(Context newContext) {
             return new SingleReadQuery(newContext, read.data).<E>asEntity(clazz); 
         }
         

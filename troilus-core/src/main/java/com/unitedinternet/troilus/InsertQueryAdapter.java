@@ -25,11 +25,20 @@ import com.unitedinternet.troilus.Dao.Insertion;
 import com.unitedinternet.troilus.Dao.Mutation;
 
  
+
+
+/**
+ * Java8 adapter of a InsertQuery
+ */
 class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     
     private final InsertQuery query;
   
-    public InsertQueryAdapter(Context ctx, InsertQuery query) {
+    /**
+     * @param ctx    the context
+     * @param query  the query
+     */
+    InsertQueryAdapter(Context ctx, InsertQuery query) {
         super(ctx);
         this.query = query;
     }

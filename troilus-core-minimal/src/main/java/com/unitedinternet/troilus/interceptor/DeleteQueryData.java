@@ -24,25 +24,26 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 
-
+  
 
  
 public interface DeleteQueryData {
 
     DeleteQueryData keys(ImmutableMap<String, Object> keyNameValuePairs);
 
-    
+   
     DeleteQueryData whereConditions(ImmutableList<Clause> whereConditions);
 
-    
     DeleteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions);
 
+    DeleteQueryData ifExists(Boolean IfExists);
     
     ImmutableMap<String, Object> getKeyNameValuePairs();
-
 
     ImmutableList<Clause> getWhereConditions();
 
     ImmutableList<Clause> getOnlyIfConditions();
+    
+    Boolean getIfExists();
 
 }

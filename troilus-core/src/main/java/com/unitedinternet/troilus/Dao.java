@@ -275,6 +275,8 @@ public interface Dao {
     public static interface Deletion extends BatchableMutation<Deletion> {
 
         Mutation<?> onlyIf(Clause... conditions);
+        
+        Mutation<?> ifExists();
     }
 
 

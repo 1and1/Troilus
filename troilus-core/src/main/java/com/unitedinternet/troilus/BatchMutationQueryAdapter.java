@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,23 @@ import com.unitedinternet.troilus.Dao.Query;
 
 
  
-
+/**
+ * Java8 adapter of a BatchMutationQuery
+ */
 class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements BatchMutation {
     
     private final BatchMutationQuery query;  
     
     
+    /**
+     * @param ctx    the context 
+     * @param query  the underyling query
+     */
     BatchMutationQueryAdapter(Context ctx, BatchMutationQuery query) {
         super(ctx);
         this.query = query;
     }
+
     
     @Override
     protected BatchMutationQueryAdapter newQuery(Context newContext) {
@@ -64,13 +71,22 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     
     
     
+
+    /**
+     * Java8 adapter of a Batchable
+     */
     static final class BatchableAdapter implements com.unitedinternet.troilus.minimal.MinimalDao.Batchable {
         private final Batchable batchable;
         
+        
+        /**
+         * @param batchable the underyling batchable
+         */
         public BatchableAdapter(Batchable batchable) {
             this.batchable = batchable;
         }
         
+        @Override
         public void addTo(BatchStatement batchStatement) {
             batchable.addTo(batchStatement);
         }

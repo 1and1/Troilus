@@ -52,20 +52,26 @@ import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
 
  
 
+/**
+ * DaoImpl
+ */
 public class DaoImpl implements Dao {
     
     private final Context ctx;
     
+    /**
+     * @param session     the underyling session
+     * @param tablename   the tablename
+     */
     public DaoImpl(Session session, String tablename) {
         this(new Context(session, tablename));
     }
      
+    
     private DaoImpl(Context ctx) {
         this.ctx = ctx;
     }
     
-   
-   
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
@@ -128,12 +134,10 @@ public class DaoImpl implements Dao {
         return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses)))));
     }
     
-  
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
         return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts)));
     }
-    
     
     @Override
     public WriteWithCounter writeWithKey(String keyName, Object keyValue) {
@@ -155,9 +159,7 @@ public class DaoImpl implements Dao {
         return writeWithKey(ImmutableMap.of(keyName1, keyValue1, 
                                             keyName2, keyValue2, 
                                             keyName3, keyValue3));
-        
     }
-
     
     @Override
     public <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue) {
@@ -180,24 +182,22 @@ public class DaoImpl implements Dao {
                             keyName3.getName(), (Object) keyValue3); 
     }
     
+
+    
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
         return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions))));      
-//        return new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
     };
    
-    
     @Override
     public Deletion deleteWithKey(String keyName, Object keyValue) {
-        
         return deleteWithKey(ImmutableMap.of(keyName, keyValue));
     }
 
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2) {
-        
         return deleteWithKey(ImmutableMap.of(keyName1, keyValue1, 
                                              keyName2, keyValue2));
     }
@@ -206,13 +206,11 @@ public class DaoImpl implements Dao {
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2, 
                                   String keyName3, Object keyValue3) {
-        
         return deleteWithKey(ImmutableMap.of(keyName1, keyValue1,
                                              keyName2, keyValue2, 
                                              keyName3, keyValue3));
     }
     
-
     @Override
     public <T> Deletion deleteWithKey(Name<T> keyName, T keyValue) {
         return deleteWithKey(keyName.getName(), (Object) keyValue);
@@ -246,7 +244,6 @@ public class DaoImpl implements Dao {
         return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey)));
     }
     
-    
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue) {
         return readWithKey(ImmutableMap.of(keyName, keyValue));
@@ -267,7 +264,6 @@ public class DaoImpl implements Dao {
                                            keyName2, keyValue2, 
                                            keyName3, keyValue3));
     }
-    
     
     @Override
     public <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue) {
@@ -326,7 +322,6 @@ public class DaoImpl implements Dao {
                             composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
     }
     
-    
     @SuppressWarnings("unchecked")
     @Override
     public <T, E, F> ListReadWithUnit<RecordList> readWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
@@ -343,7 +338,6 @@ public class DaoImpl implements Dao {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
-    
     @Override
     public ListReadWithUnit<RecordList> readAll() {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
@@ -358,7 +352,11 @@ public class DaoImpl implements Dao {
     }
     
     
+
     
+    /**
+     * Java8 adapter of a ListReadQueryData
+     */
     static class ListReadQueryDataAdapter implements ListReadQueryData {
 
         private final com.unitedinternet.troilus.minimal.ListReadQueryData data;
@@ -454,7 +452,11 @@ public class DaoImpl implements Dao {
         }
     }
     
-    
+
+
+    /**
+     * Java8 adapter of a RecordList
+     */
     static class RecordListAdapter implements RecordList {
         private final com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList;
         
@@ -477,12 +479,10 @@ public class DaoImpl implements Dao {
             return recordList.wasApplied();
         }
         
-        
         @Override
         public Iterator<Record> iterator() {
             
             return new Iterator<Record>() {
-                
                 private final Iterator<com.unitedinternet.troilus.minimal.Record> iterator = recordList.iterator();
 
                 @Override
@@ -496,8 +496,6 @@ public class DaoImpl implements Dao {
                 }
             };
         }
-        
-        
         
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
@@ -525,6 +523,7 @@ public class DaoImpl implements Dao {
                     return recordList.getAllExecutionInfo();
                 }
                 
+                @SuppressWarnings({ "unchecked", "rawtypes" })
                 public void subscribe(Subscriber<? super com.unitedinternet.troilus.minimal.Record> subscriber) {
                     recordList.subscribe(new SubscriberAdapter(subscriber));
                 }
@@ -654,7 +653,7 @@ public class DaoImpl implements Dao {
 
         @Override
         public WriteQueryDataAdapter valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
-            return new WriteQueryDataAdapter(data.valuesToMutate(GuavaOptionals.toStringOptionalMap(valuesToMutate)));
+            return new WriteQueryDataAdapter(data.valuesToMutate(toGuavaOptional(valuesToMutate)));
         }
      
         @Override
@@ -720,7 +719,7 @@ public class DaoImpl implements Dao {
 
         @Override
         public ImmutableMap<String, Optional<Object>> getValuesToMutate() {
-            return GuavaOptionals.fromStringOptionalMap(data.getValuesToMutate());
+            return fromGuavaOptional(data.getValuesToMutate());
         }
 
         @Override
@@ -750,9 +749,18 @@ public class DaoImpl implements Dao {
 
         @Override
         public ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> getMapValuesToMutate() {
-            return GuavaOptionals.fromStringObjectOptionalMap(data.getMapValuesToMutate());
+            Map<String, ImmutableMap<Object, Optional<Object>>> result = Maps.newHashMap();
+            for (Entry<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
+                Map<Object, Optional<Object>> iresult = Maps.newHashMap();
+                for (Entry<Object, com.google.common.base.Optional<Object>> entry2 : entry.getValue().entrySet()) {
+                    iresult.put(entry2.getKey(), Optional.ofNullable(entry2.getValue().orNull()));
+                }
+                result.put(entry.getKey(), ImmutableMap.copyOf(iresult));
+            }
+            
+            return ImmutableMap.copyOf(result);
         }
-
+        
         @Override
         public ImmutableList<Clause> getOnlyIfConditions() {
             return data.getOnlyIfConditions();
@@ -763,16 +771,51 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getIfNotExits());
         }
         
+        
+        
+        private  static ImmutableMap<String, Optional<Object>> fromGuavaOptional(ImmutableMap<String, com.google.common.base.Optional<Object>> map) {
+            Map<String, Optional<Object>> result = Maps.newHashMap();
+            for (Entry<String, com.google.common.base.Optional<Object>> entry : map.entrySet()) {
+                result.put(entry.getKey(), Optional.ofNullable(entry.getValue().orNull()));
+            }
+            
+            return ImmutableMap.copyOf(result);        
+        }
+
+        
+        private static ImmutableMap<String, com.google.common.base.Optional<Object>> toGuavaOptional(ImmutableMap<String, Optional<Object>> map) {
+            Map<String, com.google.common.base.Optional<Object>> result = Maps.newHashMap();
+            for (Entry<String, Optional<Object>> entry : map.entrySet()) {
+                result.put(entry.getKey(), com.google.common.base.Optional.fromNullable(entry.getValue().orElse(null)));
+            }
+                
+            return ImmutableMap.copyOf(result);
+        }
+        
+
+        private static ImmutableMap<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> toGuavaOptional(Map<String, ImmutableMap<Object, Optional<Object>>> map) {
+            Map<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> result = Maps.newHashMap();
+            for (Entry<String, ImmutableMap<Object, Optional<Object>>> entry : map.entrySet()) {
+                Map<Object, com.google.common.base.Optional<Object>> iresult = Maps.newHashMap();
+                for (Entry<Object, Optional<Object>> entry2 : entry.getValue().entrySet()) {
+                    iresult.put(entry2.getKey(), com.google.common.base.Optional.fromNullable(entry2.getValue().orElse(null)));
+                }
+                result.put(entry.getKey(), ImmutableMap.copyOf(iresult));
+            }
+            
+            return ImmutableMap.copyOf(result);
+        }
+        
         static com.unitedinternet.troilus.minimal.WriteQueryData convert(WriteQueryData data) {
             return new WriteQueryDataImpl().keys(data.getKeys())
                                            .whereConditions(data.getWhereConditions())
-                                           .valuesToMutate(GuavaOptionals.toStringOptionalMap(data.getValuesToMutate()))
+                                           .valuesToMutate(toGuavaOptional(data.getValuesToMutate()))
                                            .setValuesToAdd(data.getSetValuesToAdd())
                                            .setValuesToRemove(data.getSetValuesToRemove())
                                            .listValuesToAppend(data.getListValuesToAppend())
                                            .listValuesToPrepend(data.getListValuesToPrepend())
                                            .listValuesToRemove(data.getListValuesToRemove())
-                                           .mapValuesToMutate(GuavaOptionals.toStringObjectOptionalMap(data.getMapValuesToMutate()))
+                                           .mapValuesToMutate(toGuavaOptional(data.getMapValuesToMutate()))
                                            .onlyIfConditions(data.getOnlyIfConditions())
                                            .ifNotExists(data.getIfNotExits().orElse(null));
         }

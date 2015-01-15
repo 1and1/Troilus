@@ -28,7 +28,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Adapter which maps a ListenableFuture into a CompletableFuture  
- *
  */
 class ListenableToCompletableFutureAdapter<T> extends CompletableFuture<T> {
     

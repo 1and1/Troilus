@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
@@ -123,9 +125,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             Assert.assertTrue(expected.getMessage().contains("device with id"));
         }
         
-        
-      
-        
+          
         
         // read 
         phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
@@ -133,6 +133,11 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                       .get();
         
 
+        phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
+                                      .execute()
+                                      .get();
+
+        
         phoneNumbersDaoWithConstraints.readWithKey(PhonenumbersTable.NUMBER, "0089645454455")
                                       .column("active")
                                       .execute()

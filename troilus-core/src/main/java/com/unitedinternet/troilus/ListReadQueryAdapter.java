@@ -29,12 +29,19 @@ import com.unitedinternet.troilus.ListReadQuery.ListEntityReadQuery;
 
  
 
+/**
+ * Java8 adapter of a ListReadQuery
+ */
 class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<RecordList> {
     
     private final ListReadQuery query;
 
     
-    public ListReadQueryAdapter(Context ctx, ListReadQuery query) {
+    /**
+     * @param ctx    the context
+     * @param query  the underyling query
+     */
+    ListReadQueryAdapter(Context ctx, ListReadQuery query) {
         super(ctx);
         this.query = query;
     }
@@ -63,7 +70,6 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     public ListReadWithUnit<RecordList> columns(String... names) {
         return new ListReadQueryAdapter(getContext(), query.columns(names));
     }
-    
     
     @Override
     public ListReadWithUnit<RecordList> column(Name<?> name) {
@@ -118,12 +124,21 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }        
     
     
-       
-     private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<EntityList<E>> {
+    
+
+    /**
+     * Java8 adapter of a ListEntityReadQuery
+     */
+    private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<EntityList<E>> {
          
         private final ListEntityReadQuery<E> query;
         
-        public ListEntityReadQueryAdapter(Context ctx, ListEntityReadQuery<E> query) {
+        
+        /**
+         * @param ctx    the context
+         * @param query  the underlying query
+         */
+        ListEntityReadQueryAdapter(Context ctx, ListEntityReadQuery<E> query) {
             super(ctx);
             this.query = query;
         }
@@ -162,18 +177,23 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     
     
      
-   
-    
+
+    /**
+     * Java8 adapter of a CountReadQuery
+     */
     private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count> {
         
         private final CountReadQuery query;
     
     
-        public CountReadQueryAdapter(Context ctx, CountReadQuery query) {
+        /**
+         * @param ctx     the context
+         * @param query   the query
+         */
+        CountReadQueryAdapter(Context ctx, CountReadQuery query) {
             super(ctx);
             this.query = query;
         }
-    
         
         @Override
         protected CountReadQueryAdapter newQuery(Context newContext) {
@@ -195,12 +215,13 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
             return new CountReadQueryAdapter(getContext(), query.withFetchSize(fetchSize));
 
         }
-        
+    
         @Override
         public ListRead<Count> withDistinct() {
             return new CountReadQueryAdapter(getContext(), query.withDistinct());
         }
     
+        @Override
         public CompletableFuture<Count> executeAsync() {
             return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
         }        

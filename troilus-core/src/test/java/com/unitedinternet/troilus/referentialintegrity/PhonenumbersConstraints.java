@@ -39,7 +39,8 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
-        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
+       // this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
+        this.deviceDao = deviceDao;
     }
         
 

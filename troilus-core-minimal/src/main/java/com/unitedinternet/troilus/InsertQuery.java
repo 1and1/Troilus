@@ -25,7 +25,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.minimal.MinimalDao.BatchMutation;
 import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
 import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
 import com.unitedinternet.troilus.minimal.WriteQueryData;

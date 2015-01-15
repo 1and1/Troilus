@@ -36,14 +36,21 @@ import com.google.common.collect.ImmutableSet;
 
 
  
+
+/**
+ * Java8 adapter of a Record
+ */
 class RecordAdapter implements Record {
     
     private final com.unitedinternet.troilus.minimal.Record record;
     
+
+    /**
+     * @param record the underylinhg record
+     */
     RecordAdapter(com.unitedinternet.troilus.minimal.Record record) {
         this.record = record;
     }
-
     
     @Override
     public ExecutionInfo getExecutionInfo() {
@@ -65,19 +72,16 @@ class RecordAdapter implements Record {
         return Optional.ofNullable(record.getWritetime(name));
     }
   
-    
     @Override       
     public Optional<Duration> getTtl(String name) {
         return Optional.ofNullable(record.getTtl(name)).map(ttlSec -> Duration.ofSeconds(ttlSec));
     }
     
-
     @Override
     public boolean isNull(String name) {
         return record.isNull(name);
     }
      
-
     @Override
     public Optional<Long> getLong(String name) {
         return Optional.ofNullable(record.getLong(name));
@@ -88,31 +92,26 @@ class RecordAdapter implements Record {
     public Optional<String> getString(String name) {
         return Optional.ofNullable(record.getString(name));
     }
-    
 
     @Override
     public Optional<Boolean> getBool(String name) {
         return Optional.ofNullable(record.getBool(name));
     }
-    
 
     @Override
     public Optional<ByteBuffer> getBytes(String name) {
         return Optional.ofNullable(record.getBytes(name));
     }
-     
 
     @Override
     public Optional<ByteBuffer> getBytesUnsafe(String name) {
         return Optional.ofNullable(record.getBytesUnsafe(name));
     }
-    
 
     @Override
     public Optional<Float> getFloat(String name) {
         return Optional.ofNullable(record.getFloat(name));
     }
-
 
     @Override
     public Optional<Date> getDate(String name) {
@@ -125,36 +124,30 @@ class RecordAdapter implements Record {
         return Optional.ofNullable(record.getDecimal(name));
     }
     
-
     @Override
     public Optional<Integer> getInt(String name) {
         return Optional.ofNullable(record.getInt(name));
     }
     
-
     @Override
     public Optional<InetAddress> getInet(String name) {
         return Optional.ofNullable(record.getInet(name));
     }
-     
-
+    
     @Override
     public Optional<BigInteger> getVarint(String name) {
         return Optional.ofNullable(record.getVarint(name));
     }
   
-
     @Override
     public Optional<UUID> getUUID(String name) {
         return Optional.ofNullable(record.getUUID(name));
     }
-   
 
     @Override
     public Optional<UDTValue> getUDTValue(String name) {
         return Optional.ofNullable(record.getUDTValue(name));
     }
-    
     
     @Override
     public Optional<Instant> getInstant(String name) {
@@ -175,23 +168,23 @@ class RecordAdapter implements Record {
     public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
         return Optional.ofNullable(record.getObject(name, elementsClass));
     }
-    
-    
+
+    @Override
     public <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass) {
         return Optional.ofNullable(record.getSet(name, elementsClass));
     }
-    
- 
+
+    @Override
     public <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass) {
         return Optional.ofNullable(record.getList(name, elementsClass));
     }
     
-    
+    @Override
     public <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
         return Optional.ofNullable(record.getMap(name, keysClass, valuesClass));
     }
     
-    
+    @Override
     public String toString() {
         return record.toString();
     }
@@ -218,9 +211,22 @@ class RecordAdapter implements Record {
         @SuppressWarnings("unchecked")
         @Override
         public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
-            return GuavaOptionals.toOptional((Optional<T>) record.getObject(name, clazz1));
+            return toGuavaOptional((Optional<T>) record.getObject(name, clazz1));
         }
     }
+    
+
+    private static <T> com.google.common.base.Optional<T> toGuavaOptional(Optional<T> optional) {
+        if (optional.isPresent()) {
+            return com.google.common.base.Optional.of((T) optional.get());
+        } else {
+            return com.google.common.base.Optional.absent();
+        }
+    }
+    
+
+    
+    
     
     static com.unitedinternet.troilus.minimal.Record convert(Record record) {
         

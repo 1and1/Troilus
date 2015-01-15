@@ -17,10 +17,14 @@ package com.unitedinternet.troilus;
 
 
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -52,10 +56,10 @@ class Context {
     private final InterceptorRegistry interceptorRegistry;
     private final BeanMapper beanMapper;
     private final UDTValueMapper udtValueMapper;
-    
-    private final LoadingCache<String, PreparedStatement> preparedStatementsCache;
-    private final LoadingCache<String, ColumnMetadata> columnMetadataCache;
-    
+
+    private final Executor executors;
+    private final Cache<String, PreparedStatement> preparedStatementsCache;
+    private final Cache<String, ColumnMetadata> columnMetadataCache;
     private final LoadingCache<String, UserType> userTypeCache;
 
     
@@ -72,9 +76,21 @@ class Context {
              new InterceptorRegistry(),
              beanMapper,
              new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper),
-             CacheBuilder.newBuilder().maximumSize(150).build(new PreparedStatementLoader(session)),
-             CacheBuilder.newBuilder().maximumSize(300).build(new ColumnMetadataCacheLoader(session, table)),
-             CacheBuilder.newBuilder().maximumSize(100).build(new UserTypeCacheLoader(session)));
+             CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build(),
+             CacheBuilder.newBuilder().maximumSize(300).<String, ColumnMetadata>build(),
+             CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session)),
+             newTaskExecutor());
+    }
+    
+    
+    private static Executor newTaskExecutor() {
+
+        try {
+            Method commonPoolMeth = ForkJoinPool.class.getMethod("commonPool");  // Java8 method
+            return (Executor) commonPoolMeth.invoke(ForkJoinPool.class);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            return Executors.newCachedThreadPool();
+        }
     }
     
     private Context(Session session, 
@@ -83,9 +99,10 @@ class Context {
                     InterceptorRegistry interceptorRegistry,
                     BeanMapper beanMapper,
                     UDTValueMapper udtValueMapper,
-                    LoadingCache<String, PreparedStatement> preparedStatementsCache,
-                    LoadingCache<String, ColumnMetadata> columnMetadataCache,
-                    LoadingCache<String, UserType> userTypeCache) {
+                    Cache<String, PreparedStatement> preparedStatementsCache, 
+                    Cache<String, ColumnMetadata> columnMetadataCache,
+                    LoadingCache<String, UserType> userTypeCache,
+                    Executor executors) {
         this.table = table;
         this.session = session;
         this.executionSpec = executionSpec;
@@ -95,6 +112,7 @@ class Context {
         this.preparedStatementsCache = preparedStatementsCache;
         this.columnMetadataCache = columnMetadataCache;
         this.userTypeCache = userTypeCache;
+        this.executors = executors;
     }
  
     
@@ -107,7 +125,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);
+                           userTypeCache,
+                           executors);
 
     }
     
@@ -120,7 +139,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);
+                           userTypeCache,
+                           executors);
     }
 
     Context withTtl(int ttlSec) {
@@ -132,7 +152,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);        
+                           userTypeCache,
+                           executors);        
     }
 
     Context withWritetime(long microsSinceEpoch) {
@@ -144,7 +165,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);        
+                           userTypeCache,
+                           executors);        
     }
     
     Context withEnableTracking() {
@@ -156,7 +178,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);        
+                           userTypeCache,
+                           executors);        
     }
     
     Context withDisableTracking() {
@@ -168,7 +191,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);        
+                           userTypeCache,
+                           executors);        
     }
     
     Context withRetryPolicy(RetryPolicy policy) {
@@ -180,7 +204,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);        
+                           userTypeCache,
+                           executors);        
     }
     
     Context withConsistency(ConsistencyLevel consistencyLevel) {
@@ -192,7 +217,8 @@ class Context {
                            udtValueMapper,
                            preparedStatementsCache,
                            columnMetadataCache,
-                           userTypeCache);
+                           userTypeCache,
+                           executors);
     }
     
     
@@ -233,6 +259,10 @@ class Context {
         return table;
     }
 
+    Executor getTaskExecutor() {
+        return executors;
+    }
+    
     BeanMapper getBeanMapper() {
         return beanMapper;
     }
@@ -251,11 +281,13 @@ class Context {
 
 
     ColumnMetadata getColumnMetadata(String columnName) {
-        try {
-            return columnMetadataCache.get(columnName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e.getCause());
+        ColumnMetadata metadata = columnMetadataCache.getIfPresent(columnName);
+        if (metadata == null) {
+            metadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
+            columnMetadataCache.put(columnName, metadata);
         }
+
+        return metadata;
     }
   
     
@@ -309,11 +341,13 @@ class Context {
     
 
     PreparedStatement prepare(BuiltStatement statement) {
-        try {
-            return preparedStatementsCache.get(statement.getQueryString());
-        } catch (ExecutionException e) {
-            throw Exceptions.unwrapIfNecessary(e);
+        PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
+        if (preparedStatment == null) {
+            preparedStatment = session.prepare(statement);
+            preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
         }
+
+        return preparedStatment;
     }
     
  
@@ -479,40 +513,9 @@ class Context {
                               .toString();
         }
     }
+    
+    
 
-    
-    
-     
-    private static final class PreparedStatementLoader extends CacheLoader<String, PreparedStatement> { 
-        private final Session session;
-        
-        public PreparedStatementLoader(Session session) {
-            this.session = session;
-        }
-        
-        @Override
-        public PreparedStatement load(String statement) throws Exception {
-            return session.prepare(statement);
-        }
-     }
-
-    
-    private static final class ColumnMetadataCacheLoader extends CacheLoader<String, ColumnMetadata> {
-        private final Session session;
-        private final String table; 
-        
-        public ColumnMetadataCacheLoader(Session session, String table) {
-            this.session = session;
-            this.table = table;
-        }
-        
-        @Override
-        public ColumnMetadata load(String columnName) throws Exception {
-            return  session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
-        }
-    }
-    
-    
     private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
         private final Session session;
         

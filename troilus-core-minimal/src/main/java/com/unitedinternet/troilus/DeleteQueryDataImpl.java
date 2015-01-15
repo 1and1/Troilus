@@ -24,6 +24,8 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 
 
+
+
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -46,57 +48,79 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
+    private final Boolean ifExists;
      
 
     DeleteQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
-             ImmutableList.<Clause>of());
+             ImmutableList.<Clause>of(),
+             null);
     }
     
     
     private DeleteQueryDataImpl(ImmutableMap<String, Object> keyNameValuePairs, 
                             ImmutableList<Clause> whereConditions, 
-                            ImmutableList<Clause> onlyIfConditions) {   
+                            ImmutableList<Clause> onlyIfConditions,
+                            Boolean ifExists) {   
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.onlyIfConditions = onlyIfConditions;
+        this.ifExists = ifExists;
     }
 
     
-
+    
+    @Override
     public DeleteQueryDataImpl keys(ImmutableMap<String, Object> keyNameValuePairs) {
         return new DeleteQueryDataImpl(keyNameValuePairs, 
-                                   this.whereConditions, 
-                                   this.onlyIfConditions);  
+                                       this.whereConditions, 
+                                       this.onlyIfConditions,
+                                       this.ifExists);  
     }
     
+    @Override
     public DeleteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
         return new DeleteQueryDataImpl(this.keyNameValuePairs, 
-                                   whereConditions, 
-                                   this.onlyIfConditions);  
+                                       whereConditions, 
+                                       this.onlyIfConditions,
+                                       this.ifExists);  
     }
     
-    
+    @Override
     public DeleteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
         return new DeleteQueryDataImpl(this.keyNameValuePairs, 
-                                   this.whereConditions, 
-                                   onlyIfConditions);  
+                                       this.whereConditions, 
+                                       onlyIfConditions,
+                                       this.ifExists);  
+    }
+    @Override
+    public DeleteQueryDataImpl ifExists(Boolean ifExists) {
+        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
+                                       this.whereConditions, 
+                                       this.onlyIfConditions,
+                                       ifExists);  
     }
     
-    
+    @Override
     public ImmutableMap<String, Object> getKeyNameValuePairs() {
         return keyNameValuePairs;
     }
 
+    @Override
     public ImmutableList<Clause> getWhereConditions() {
         return whereConditions;
     }
 
+    @Override
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
     }
     
+    @Override
+    public Boolean getIfExists() {
+        return ifExists;
+    }
     
     static Statement toStatement(DeleteQueryData data, Context ctx) {
         Delete delete = delete().from(ctx.getTable());
@@ -104,7 +128,10 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
         }
-
+        
+        if ((data.getIfExists() != null) && data.getIfExists()) {
+            delete.ifExists();
+        }
         
         // key-based delete    
         if (data.getWhereConditions().isEmpty()) {
