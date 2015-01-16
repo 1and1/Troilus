@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.unitedinternet.troilus.minimal.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
 
 
  

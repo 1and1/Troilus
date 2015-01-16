@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +27,7 @@ import java.util.UUID;
 
 import com.datastax.driver.core.TupleValue;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 
  
@@ -39,9 +39,11 @@ import com.google.common.base.Optional;
 public abstract class Name<T> {
  
     private final String name;
+    private final ImmutableList<ValueValidator> validators;
     
-    private Name(String name) { 
+    private Name(String name, ValueValidator... validators) { 
         this.name = name;
+        this.validators = ImmutableList.copyOf(validators);
     }
     
     
@@ -52,8 +54,30 @@ public abstract class Name<T> {
         return name;
     }
 
+
+    /**
+     * @param value the value to convert
+     * @return the converted value
+     */
+    Object convertWrite(T value) {
+        return value; 
+    }
+    
+    
+    /**
+     * @param value the value to validate
+     */
+    void vaildate(T value) {
+        for (ValueValidator validator : validators) {
+            if (!validator.isValid(value)) {
+                throw new ConstraintException(value + " violates " + validator);
+            }
+        }
+    }
+    
     
     abstract Optional<T> read(PropertiesSource propertiesSource);
+    
     
     
     
@@ -61,12 +85,13 @@ public abstract class Name<T> {
     /**
      * defines a new name 
      * 
-     * @param name   the name 
-     * @param type   the value type
+     * @param name        the name 
+     * @param type        the value type
+     * @param validators  the validators
      * @return a new instance
      */
-    public static <E> Name<E> define(String name, Class<E> type) {
-        return new SkalarName<>(name, type);
+    public static <E> Name<E> define(String name, Class<E> type, ValueValidator... validators) {
+        return new SkalarName<>(name, type, validators);
     }
 
     
@@ -75,9 +100,10 @@ public abstract class Name<T> {
      * 
      * @param name          the name 
      * @param elementType   the list member value type
+     * @param validators    the validators 
      * @return a new instance
      */
-    public static <E> Name<List<E>> defineList(String name, Class<E> elementType) {
+    public static <E> Name<List<E>> defineList(String name, Class<E> elementType, ValueValidator... validators) {
         return new ListName<>(name, elementType);
     }
 
@@ -88,9 +114,10 @@ public abstract class Name<T> {
      * 
      * @param name          the name 
      * @param elementType   the set member value type
+     * @param validators    the validators 
      * @return a new instance
      */
-    public static <E> Name<Set<E>> defineSet(String name, Class<E> elementType) {
+    public static <E> Name<Set<E>> defineSet(String name, Class<E> elementType, ValueValidator... validators) {
         return new SetName<>(name, elementType);
     }
         
@@ -111,156 +138,200 @@ public abstract class Name<T> {
     /**
      * defines a new name with Long-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<Long> defineLong(String name) {
-        return define(name, Long.class);
+    public static Name<Long> defineLong(String name, ValueValidator... validators) {
+        return define(name, Long.class, validators);
     }
 
     /**
      * defines a new name with String-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<String> defineString(String name) {
-        return define(name, String.class);
+    public static Name<String> defineString(String name, ValueValidator... validators) {
+        return define(name, String.class, validators);
     }
     
     /**
      * defines a new name with Boolean-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<Boolean> defineBool(String name) {
-        return define(name, Boolean.class);
+    public static Name<Boolean> defineBool(String name, ValueValidator... validators) {
+        return define(name, Boolean.class, validators);
     }
     
     /**
      * defines a new name with ByteBuffer-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<ByteBuffer> defineByte(String name) {
-        return define(name, ByteBuffer.class);
+    public static Name<ByteBuffer> defineByteBuffer(String name, ValueValidator... validators) {
+        return define(name, ByteBuffer.class, validators);
     }
-   
+    
     /**
      * defines a new name with Float-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<Float> defineFloat(String name) {
-        return define(name, Float.class);
+    public static Name<Float> defineFloat(String name, ValueValidator... validators) {
+        return define(name, Float.class, validators);
     }
    
     /**
      * defines a new name with Date-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<Date> defineDate(String name) {
-        return define(name, Date.class);
+    public static Name<Date> defineDate(String name, ValueValidator... validators) {
+        return define(name, Date.class, validators);
     }
     
     /**
      * defines a new name with Decimal-typed value
      * 
      * @param name   the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<BigDecimal> defineDecimal(String name) {
-        return define(name, BigDecimal.class);
+    public static Name<BigDecimal> defineDecimal(String name, ValueValidator... validators) {
+        return define(name, BigDecimal.class, validators);
     }
     
     /**
      * defines a new name with Integer-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<Integer> defineInt(String name) {
-        return define(name, Integer.class);
+    public static Name<Integer> defineInt(String name, ValueValidator... validators) {
+        return define(name, Integer.class, validators);
     }
     
     /**
      * defines a new name with InetAddress-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<InetAddress> defineInet(String name) {
-        return define(name, InetAddress.class);
+    public static Name<InetAddress> defineInet(String name, ValueValidator... validators) {
+        return define(name, InetAddress.class, validators);
     }
     
     /**
      * defines a new name with Varint-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<BigInteger> defineVarint(String name) {
-        return define(name, BigInteger.class);
+    public static Name<BigInteger> defineVarint(String name, ValueValidator... validators) {
+        return define(name, BigInteger.class, validators);
     }
     
     /**
      * defines a new name with TupleValue-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<TupleValue> defineTupleValue(String name) {
-        return define(name, TupleValue.class);
+    public static Name<TupleValue> defineTupleValue(String name, ValueValidator... validators) {
+        return define(name, TupleValue.class, validators);
     }
     
     /**
      * defines a new name with UUID-typed value
      * 
-     * @param name   the name 
+     * @param name        the name 
+     * @param validators  the validators 
      * @return a new instance
      */
-    public static Name<UUID> defineUUID(String name) {
-        return define(name, UUID.class);
+    public static Name<UUID> defineUUID(String name, ValueValidator... validators) {
+        return define(name, UUID.class, validators);
     }
-    
-    /**
-     * defines a new name with Instant-typed value
-     * 
-     * @param name   the name 
-     * @return a new instance
-     */
-    public static Name<Instant> defineInstant(String name) {
-        return define(name, Instant.class);
-    }
-    
     
     private static class SkalarName<T> extends Name<T> {
         private final Class<T> type;
         
         
         /**
-         * @param name   the name
-         * @param type   the value type
+         * @param name      the name
+         * @param converter the converter
+         * @param type      the value type
          */
-        SkalarName(String name, Class<T> type) {
-            super(name);
+        SkalarName(String name, Class<T> type, ValueValidator... validators) {
+            super(name, validators);
             this.type = type;
         }
         
+        @Override
         @SuppressWarnings("unchecked")         
         Optional<T> read(PropertiesSource propertiesSource) {
             return (Optional<T>) propertiesSource.read(getName(), (Class<Object>) type);
         }
     }
     
+
+    /**
+     * defines a new name with ByteBuffer-typed value
+     * 
+     * @param name        the name 
+     * @param validators  the validators 
+     * @return a new instance
+     */
+    public static Name<byte[]> defineBytes(String name, ValueValidator... validators) {
+        return new ByteSkalarName<>(name, validators);
+    }
     
-    
+  
+    private static class ByteSkalarName<T> extends SkalarName<byte[]> {
         
+        /**
+         * @param name      the name
+         * @param converter the converter
+         */
+        ByteSkalarName(String name, ValueValidator... validators) {
+            super(name, byte[].class, validators);
+        }
+     
+        @Override
+        Object convertWrite(byte[] value) {
+            return ByteBuffer.wrap(value);
+        } 
+       
+        @Override
+        Optional<byte[]> read(PropertiesSource propertiesSource) {
+            Optional<ByteBuffer> optionalByteBufffer = propertiesSource.read(getName(), ByteBuffer.class);
+            
+            if (optionalByteBufffer.isPresent()) {
+                ByteBuffer bb = optionalByteBufffer.get();
+                byte[] bytes = new byte[bb.remaining()];
+                bb.get(bytes, 0, bytes.length);
+                return Optional.of(bytes);
+                
+            } else  {
+                return Optional.absent();
+            }
+        }
+    }
+    
     
     /**
      * A list name which defines the class type of the associated list member value type 
@@ -272,10 +343,11 @@ public abstract class Name<T> {
         
         /**
          * @param name          the name
+         * @param validators    the validators  
          * @param elementType   the list member value type
          */
-        private ListName(String name, Class<T> elementType) {
-            super(name);
+        private ListName(String name, Class<T> elementType, ValueValidator... validators) {
+            super(name, validators);
             this.elementType = elementType;
         }
         
@@ -299,10 +371,11 @@ public abstract class Name<T> {
 
         /**
          * @param name          the name
+         * @param validators    the validators 
          * @param elementType   the set member value type
          */
-        private SetName(String name, Class<T> elementType) {
-            super(name);
+        private SetName(String name, Class<T> elementType, ValueValidator... validators) {
+            super(name, validators);
             this.elementType = elementType;
         }
         

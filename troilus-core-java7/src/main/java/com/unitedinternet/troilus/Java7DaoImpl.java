@@ -18,7 +18,6 @@ package com.unitedinternet.troilus;
 
 
 import com.datastax.driver.core.Session;
-
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -26,20 +25,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
-import com.unitedinternet.troilus.minimal.MinimalDao;
-import com.unitedinternet.troilus.minimal.Record;
+import com.unitedinternet.troilus.java7.Dao;
+import com.unitedinternet.troilus.java7.Record;
 
  
 
-public class MinimalDaoImpl implements MinimalDao {
+public class Java7DaoImpl implements Dao {
     
     private final Context ctx;
     
-    public MinimalDaoImpl(Session session, String tablename) {
+    public Java7DaoImpl(Session session, String tablename) {
         this(new Context(session, tablename));
     }
      
-    private MinimalDaoImpl(Context ctx) {
+    private Java7DaoImpl(Context ctx) {
         this.ctx = ctx;
     }
     
@@ -47,34 +46,34 @@ public class MinimalDaoImpl implements MinimalDao {
    
     
     @Override
-    public MinimalDao withConsistency(ConsistencyLevel consistencyLevel) {
-        return new MinimalDaoImpl(ctx.withConsistency(consistencyLevel));
+    public Dao withConsistency(ConsistencyLevel consistencyLevel) {
+        return new Java7DaoImpl(ctx.withConsistency(consistencyLevel));
     }
     
     @Override
-    public MinimalDao withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new MinimalDaoImpl(ctx.withSerialConsistency(consistencyLevel));
+    public Dao withSerialConsistency(ConsistencyLevel consistencyLevel) {
+        return new Java7DaoImpl(ctx.withSerialConsistency(consistencyLevel));
     }
  
     @Override
-    public MinimalDao withTracking() {
-        return new MinimalDaoImpl(ctx.withEnableTracking());
+    public Dao withTracking() {
+        return new Java7DaoImpl(ctx.withEnableTracking());
     }
     
     @Override
-    public MinimalDao withoutTracking() {
-        return new MinimalDaoImpl(ctx.withDisableTracking());
+    public Dao withoutTracking() {
+        return new Java7DaoImpl(ctx.withDisableTracking());
     }
 
     @Override
-    public MinimalDao withRetryPolicy(RetryPolicy policy) {
-        return new MinimalDaoImpl(ctx.withRetryPolicy(policy));
+    public Dao withRetryPolicy(RetryPolicy policy) {
+        return new Java7DaoImpl(ctx.withRetryPolicy(policy));
     }
 
     
     @Override
-    public MinimalDao withInterceptor(QueryInterceptor queryInterceptor) {
-        return new MinimalDaoImpl(ctx.withInterceptor(queryInterceptor));
+    public Dao withInterceptor(QueryInterceptor queryInterceptor) {
+        return new Java7DaoImpl(ctx.withInterceptor(queryInterceptor));
     }
     
     @Override
@@ -258,7 +257,7 @@ public class MinimalDaoImpl implements MinimalDao {
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
         return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                composedKeyNamePart2, composedKeyValuesPart2)));        
+                                                                                       composedKeyNamePart2, composedKeyValuesPart2)));        
     }
     
     @Override
@@ -268,6 +267,18 @@ public class MinimalDaoImpl implements MinimalDao {
         return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
                                                                                        composedKeyNamePart3, composedKeyValuesPart3)));        
+    }
+
+    @Override
+    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1))));
+    }
+    
+    @Override
+    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                        String composedKeyNamePart2, Object composedKeyValuePart2) {
+        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                       composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2))));        
     }
 
     @SuppressWarnings("unchecked")
@@ -284,17 +295,28 @@ public class MinimalDaoImpl implements MinimalDao {
                             composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
     }
     
-    
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<RecordList> readWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                                Name<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                                Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
+    public <T, E, F> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                               Name<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                               Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
         return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
                             composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
         
     }
+    
+    @Override
+    public <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value) {
+        return readListWithKey(name.getName(), ImmutableList.of((Object) value));
+    }
+
+    @Override
+    public <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                               Name<E> composedKeyNamePart2, E composedKeyValuePart2) {
+        return readListWithKey(composedKeyNamePart1.getName(), ImmutableList.of((Object) composedKeyValuePart1),
+                               composedKeyNamePart2.getName(), ImmutableList.of((Object) composedKeyValuePart2));
+    }    
     
     @Override
     public ListReadQuery readWhere(Clause... clauses) {

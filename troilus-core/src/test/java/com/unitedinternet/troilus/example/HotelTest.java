@@ -15,6 +15,7 @@ import org.junit.Test;
 
 
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
@@ -22,7 +23,7 @@ import com.unitedinternet.troilus.AbstractCassandraBasedTest;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.IfConditionException;
+import com.unitedinternet.troilus.ConstraintException;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
 import com.unitedinternet.troilus.reactive.MySubscriber;
@@ -70,6 +71,19 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(record.getTtl(HotelsTable.DESCRIPTION).isPresent());
         Assert.assertFalse(record.getTtl(HotelsTable.NAME).isPresent());
         
+        
+        
+        
+        try {
+            hotelsDao.writeWithKey("id", "BUP932432")
+                     .value(NAME, null)
+                     .value(ROOM_IDS, ImmutableSet.of("1", "2", "3", "4", "5"))
+                     .value(CLASSIFICATION, ClassifierEnum.FOUR)
+                     .value(ADDRESS, new Address("Andrássy út", "Budapest", "1061"))
+                     .ifNotExits()
+                     .execute();
+            Assert.fail("ConstraintException exprected");
+        } catch (ConstraintException exprected) { }
         
         
         
@@ -275,7 +289,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                      .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
                      .execute();
             Assert.fail("IfConditionException expected");
-        } catch (IfConditionException expected) { }
+        } catch (ConstraintException expected) { }
         
 
         hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")

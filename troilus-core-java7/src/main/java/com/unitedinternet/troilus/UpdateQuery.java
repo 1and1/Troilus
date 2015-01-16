@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,19 +31,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.CounterMutation;
-import com.unitedinternet.troilus.minimal.MinimalDao.UpdateWithValuesAndCounter;
-import com.unitedinternet.troilus.minimal.MinimalDao.WriteWithCounter;
-import com.unitedinternet.troilus.minimal.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.minimal.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.java7.Dao.Batchable;
+import com.unitedinternet.troilus.java7.Dao.CounterBatchable;
+import com.unitedinternet.troilus.java7.Dao.CounterMutation;
+import com.unitedinternet.troilus.java7.Dao.UpdateWithValuesAndCounter;
+import com.unitedinternet.troilus.java7.Dao.WriteWithCounter;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor;
 
 
  
 /**
  * update query implementation
- *
  */
 class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
@@ -96,7 +95,8 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public <T> UpdateQuery value(Name<T> name, T value) {
-        return value(name.getName(), value);
+        name.vaildate(value);
+        return value(name.getName(), name.convertWrite(value));
     }
     
     @Override

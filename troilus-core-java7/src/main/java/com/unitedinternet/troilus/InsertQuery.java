@@ -25,18 +25,24 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.Insertion;
-import com.unitedinternet.troilus.minimal.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.minimal.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.java7.Dao.Batchable;
+import com.unitedinternet.troilus.java7.Dao.Insertion;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor;
 
-
- 
+/**
+ * insert query implementation
+ */
 class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
     private final WriteQueryDataImpl data;
   
-    public InsertQuery(Context ctx, WriteQueryDataImpl data) {
+    
+    /**
+     * @param ctx   the context
+     * @param data  the data
+     */
+    InsertQuery(Context ctx, WriteQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
@@ -47,10 +53,12 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
         return new InsertQuery(newContext, data);
     }
     
+    @Override
     public InsertQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
-    
+
+    @Override
     public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
@@ -59,29 +67,16 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     public void addTo(BatchStatement batchStatement) {
         batchStatement.add(getStatement());
     }
-
     
     @Override
     public InsertQuery ifNotExits() {
         return new InsertQuery(getContext(), data.ifNotExists(true));
     }
-
   
-    private Statement getStatement() {
-        WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreWrite(queryData); 
-        }
-        
-        return WriteQueryDataImpl.toStatement(queryData, getContext());
-    }
-    
-    
     @Override
     public Result execute() {
         return getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<Result> executeAsync() {
@@ -98,5 +93,14 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
         };
         
         return Futures.transform(future, mapEntity);
+    }
+    
+    private Statement getStatement() {
+        WriteQueryData queryData = data;
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreWrite(queryData); 
+        }
+        
+        return WriteQueryDataImpl.toStatement(queryData, getContext());
     }
 }

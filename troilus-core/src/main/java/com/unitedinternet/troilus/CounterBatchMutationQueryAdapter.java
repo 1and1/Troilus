@@ -69,7 +69,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     /**
      * Java8 adapter of a CounterBatchable
      */
-    static final class CounterBatchableAdapter implements com.unitedinternet.troilus.minimal.MinimalDao.CounterBatchable {
+    static final class CounterBatchableAdapter implements com.unitedinternet.troilus.java7.Dao.CounterBatchable {
         private final CounterBatchable batchable;
         
         /**

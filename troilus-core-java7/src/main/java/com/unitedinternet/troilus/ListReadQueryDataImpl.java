@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryData;
 
 
  

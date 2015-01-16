@@ -41,14 +41,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.unitedinternet.troilus.minimal.MinimalDao.EntityList;
-import com.unitedinternet.troilus.minimal.MinimalDao.ListRead;
-import com.unitedinternet.troilus.minimal.MinimalDao.ListReadWithUnit;
-import com.unitedinternet.troilus.minimal.MinimalDao.RecordList;
-import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData;
-import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPostInterceptor;
-import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPreInterceptor;
-import com.unitedinternet.troilus.minimal.Record;
+import com.unitedinternet.troilus.java7.Record;
+import com.unitedinternet.troilus.java7.Dao.EntityList;
+import com.unitedinternet.troilus.java7.Dao.ListRead;
+import com.unitedinternet.troilus.java7.Dao.ListReadWithUnit;
+import com.unitedinternet.troilus.java7.Dao.RecordList;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryData;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryPostInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryPreInterceptor;
 
 
 

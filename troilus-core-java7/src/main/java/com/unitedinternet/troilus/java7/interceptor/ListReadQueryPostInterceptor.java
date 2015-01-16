@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.minimal.interceptor;
+package com.unitedinternet.troilus.java7.interceptor;
 
 
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
-
-import com.unitedinternet.troilus.minimal.MinimalDao.RecordList;
+import com.unitedinternet.troilus.java7.Dao.RecordList;
 
 
 

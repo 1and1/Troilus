@@ -37,7 +37,7 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.minimal.Record;
+import com.unitedinternet.troilus.java7.Record;
 
 
  

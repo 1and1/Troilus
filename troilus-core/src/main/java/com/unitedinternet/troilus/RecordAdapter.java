@@ -42,13 +42,13 @@ import com.google.common.collect.ImmutableSet;
  */
 class RecordAdapter implements Record {
     
-    private final com.unitedinternet.troilus.minimal.Record record;
+    private final com.unitedinternet.troilus.java7.Record record;
     
 
     /**
      * @param record the underylinhg record
      */
-    RecordAdapter(com.unitedinternet.troilus.minimal.Record record) {
+    RecordAdapter(com.unitedinternet.troilus.java7.Record record) {
         this.record = record;
     }
     
@@ -228,9 +228,9 @@ class RecordAdapter implements Record {
     
     
     
-    static com.unitedinternet.troilus.minimal.Record convert(Record record) {
+    static com.unitedinternet.troilus.java7.Record convert(Record record) {
         
-        return new com.unitedinternet.troilus.minimal.Record() {
+        return new com.unitedinternet.troilus.java7.Record() {
             
             @Override
             public boolean wasApplied() {

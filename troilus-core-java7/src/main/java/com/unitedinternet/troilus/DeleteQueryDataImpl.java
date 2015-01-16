@@ -42,7 +42,9 @@ import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 
 
 
- 
+/**
+ * Delete query data implementation
+ */
 class DeleteQueryDataImpl implements DeleteQueryData {
  
     private final ImmutableMap<String, Object> keyNameValuePairs;
@@ -51,13 +53,15 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     private final Boolean ifExists;
      
 
+    /**
+     * constructor 
+     */
     DeleteQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
              ImmutableList.<Clause>of(),
              null);
     }
-    
     
     private DeleteQueryDataImpl(ImmutableMap<String, Object> keyNameValuePairs, 
                             ImmutableList<Clause> whereConditions, 
@@ -68,8 +72,6 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         this.onlyIfConditions = onlyIfConditions;
         this.ifExists = ifExists;
     }
-
-    
     
     @Override
     public DeleteQueryDataImpl keys(ImmutableMap<String, Object> keyNameValuePairs) {
@@ -94,6 +96,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        onlyIfConditions,
                                        this.ifExists);  
     }
+    
     @Override
     public DeleteQueryDataImpl ifExists(Boolean ifExists) {
         return new DeleteQueryDataImpl(this.keyNameValuePairs, 
@@ -122,6 +125,11 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         return ifExists;
     }
     
+    /**
+     * @param data  the data 
+     * @param ctx   the context
+     * @return the query data statement
+     */
     static Statement toStatement(DeleteQueryData data, Context ctx) {
         Delete delete = delete().from(ctx.getTable());
 

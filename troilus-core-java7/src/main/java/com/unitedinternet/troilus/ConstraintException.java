@@ -20,16 +20,16 @@ package com.unitedinternet.troilus;
 
 
 /**
- * Exception thrown when the if-condition (ifNotExists or onlyIf) does not match
+ * Exception thrown when a constraint is violated
  */
-public class IfConditionException extends RuntimeException {
+public class ConstraintException extends RuntimeException {
 
     private static final long serialVersionUID = 4270476820995364200L;
 
     /**
      * @param message the message to report
      */
-    public IfConditionException(String message) {
+    public ConstraintException(String message) {
         super(message);
     }
 

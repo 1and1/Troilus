@@ -298,24 +298,35 @@ public interface Dao {
                                                                Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
                                                                Name<F> composedKeyNamePart3, F composedKeyValuePart3);
     
-    ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values);
+    ListReadWithUnit<RecordList> readListWithKeys(String name, ImmutableList<Object> values);
 
-    ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                              String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2);
+    ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                  String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2);
 
-    ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                              String composedKeyNamePart2, Object composedKeyValuePart2,
-                                              String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
+    ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                  String composedKeyNamePart2, Object composedKeyValuePart2,
+                                                  String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
 
     
-    <T> ListReadWithUnit<RecordList> readWithKeys(Name<T> name, ImmutableList<T> values);
+    <T> ListReadWithUnit<RecordList> readListWithKeys(Name<T> name, ImmutableList<T> values);
 
-    <T, E> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                     Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
+    <T, E> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                         Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
 
-    <T, E, F> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                        Name<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                        Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
+    <T, E, F> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                            Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
+    
+    ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
+
+    ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                 String composedKeyNamePart2, Object composedKeyValuePart2);
+
+    <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value);
+
+    <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                        Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+
     
     ListReadWithUnit<RecordList> readAll();
 

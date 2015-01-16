@@ -67,6 +67,7 @@ class InterceptorRegistry {
     
     /**
      * interceptor registry
+     * 
      * @param interceptors the interceptors to register
      */
     private InterceptorRegistry(ImmutableList<QueryInterceptor> interceptors) {

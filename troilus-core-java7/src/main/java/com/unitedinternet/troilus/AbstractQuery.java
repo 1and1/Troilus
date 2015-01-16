@@ -162,9 +162,9 @@ abstract class AbstractQuery<Q> {
 
     
 
-    protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws IfConditionException {
+    protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws ConstraintException {
         if (additionalCondition && !result.wasApplied()) {
-            throw new IfConditionException(message);  
+            throw new ConstraintException(message);  
         }
         
         return result;

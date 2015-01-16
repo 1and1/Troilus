@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.minimal;
+package com.unitedinternet.troilus.java7;
 
 
 import java.math.BigDecimal;

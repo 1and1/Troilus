@@ -288,49 +288,72 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
+    public ListReadWithUnit<RecordList> readListWithKeys(String name, ImmutableList<Object> values) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                composedKeyNamePart2, composedKeyValuesPart2))));
+                                                                                                                     composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                       composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
-                                                                                       composedKeyNamePart3, composedKeyValuesPart3))));        
+                                                                                                                     composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
+                                                                                                                     composedKeyNamePart3, composedKeyValuesPart3))));        
+    }
+
+    @Override
+    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
+    }
+
+    @Override
+    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                           String composedKeyNamePart2, Object composedKeyValuePart2) {
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                                                     composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> ListReadWithUnit<RecordList> readListWithKeys(Name<T> name, ImmutableList<T> values) {
+        return readListWithKeys(name.getName(), (ImmutableList<Object>) values);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ListReadWithUnit<RecordList> readWithKeys(Name<T> name, ImmutableList<T> values) {
-        return readWithKeys(name.getName(), (ImmutableList<Object>) values);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T, E> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                             Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
-        return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+        return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<RecordList> readWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E, F> ListReadWithUnit<RecordList> readListWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                 Name<E> composedKeyNamePart2, E composedKeyValuePart2,
                                                                 Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
-        return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+        return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
                             composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
-        
+    }
+
+    @Override
+    public <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value) {
+        return readListWithKeys(name.getName(), ImmutableList.of((Object) value));
+    }
+    
+    @Override
+    public <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                  Name<E> composedKeyNamePart2, E composedKeyValuePart2) {
+        return readListWithKeys(composedKeyNamePart1.getName(), ImmutableList.of((Object) composedKeyValuePart1),
+                            composedKeyNamePart2.getName(), ImmutableList.of((Object) composedKeyValuePart2));
     }
     
     @Override
@@ -359,14 +382,14 @@ public class DaoImpl implements Dao {
      */
     static class ListReadQueryDataAdapter implements ListReadQueryData {
 
-        private final com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data;
+        private final com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data;
 
         
         ListReadQueryDataAdapter() {
             this(new ListReadQueryDataImpl());
         }
 
-        private ListReadQueryDataAdapter(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data) {
+        private ListReadQueryDataAdapter(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data) {
             this.data = data;
         }
         
@@ -441,7 +464,7 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getDistinct());
         }
         
-        static com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData convert(ListReadQueryData data) {
+        static com.unitedinternet.troilus.java7.interceptor.ListReadQueryData convert(ListReadQueryData data) {
             return new ListReadQueryDataImpl().keys(data.getKeys())
                                               .whereConditions(data.getWhereConditions())
                                               .columnsToFetch(data.getColumnsToFetch())
@@ -458,9 +481,9 @@ public class DaoImpl implements Dao {
      * Java8 adapter of a RecordList
      */
     static class RecordListAdapter implements RecordList {
-        private final com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList;
+        private final com.unitedinternet.troilus.java7.Dao.RecordList recordList;
         
-        public RecordListAdapter(com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
+        public RecordListAdapter(com.unitedinternet.troilus.java7.Dao.RecordList recordList) {
             this.recordList = recordList;
         }
         
@@ -483,7 +506,7 @@ public class DaoImpl implements Dao {
         public Iterator<Record> iterator() {
             
             return new Iterator<Record>() {
-                private final Iterator<com.unitedinternet.troilus.minimal.Record> iterator = recordList.iterator();
+                private final Iterator<com.unitedinternet.troilus.java7.Record> iterator = recordList.iterator();
 
                 @Override
                 public boolean hasNext() {
@@ -504,9 +527,9 @@ public class DaoImpl implements Dao {
         }
         
         
-        static com.unitedinternet.troilus.minimal.MinimalDao.RecordList convert(RecordList recordList) {
+        static com.unitedinternet.troilus.java7.Dao.RecordList convert(RecordList recordList) {
             
-            return new com.unitedinternet.troilus.minimal.MinimalDao.RecordList() {
+            return new com.unitedinternet.troilus.java7.Dao.RecordList() {
                 
                 @Override
                 public boolean wasApplied() {
@@ -524,13 +547,13 @@ public class DaoImpl implements Dao {
                 }
                 
                 @SuppressWarnings({ "unchecked", "rawtypes" })
-                public void subscribe(Subscriber<? super com.unitedinternet.troilus.minimal.Record> subscriber) {
+                public void subscribe(Subscriber<? super com.unitedinternet.troilus.java7.Record> subscriber) {
                     recordList.subscribe(new SubscriberAdapter(subscriber));
                 }
                 
-                public Iterator<com.unitedinternet.troilus.minimal.Record> iterator() {
+                public Iterator<com.unitedinternet.troilus.java7.Record> iterator() {
                     
-                    return new Iterator<com.unitedinternet.troilus.minimal.Record>() {
+                    return new Iterator<com.unitedinternet.troilus.java7.Record>() {
                         
                         private final Iterator<Record> iterator = recordList.iterator();
 
@@ -540,7 +563,7 @@ public class DaoImpl implements Dao {
                         }
                         
                         @Override
-                        public com.unitedinternet.troilus.minimal.Record next() {
+                        public com.unitedinternet.troilus.java7.Record next() {
                             return RecordAdapter.convert(iterator.next());
                         }
                     };
@@ -582,10 +605,10 @@ public class DaoImpl implements Dao {
    
         
    static class EntityListAdapter<F> implements EntityList<F> {
-       private final com.unitedinternet.troilus.minimal.MinimalDao.EntityList<F> entityList;
+       private final com.unitedinternet.troilus.java7.Dao.EntityList<F> entityList;
    
        
-       public EntityListAdapter(com.unitedinternet.troilus.minimal.MinimalDao.EntityList<F> entityList) {
+       public EntityListAdapter(com.unitedinternet.troilus.java7.Dao.EntityList<F> entityList) {
            this.entityList = entityList;
        }
    
@@ -635,9 +658,9 @@ public class DaoImpl implements Dao {
     
     private static class WriteQueryDataAdapter implements WriteQueryData {
 
-        private final com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data;
+        private final com.unitedinternet.troilus.java7.interceptor.WriteQueryData data;
             
-        WriteQueryDataAdapter(com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data) {
+        WriteQueryDataAdapter(com.unitedinternet.troilus.java7.interceptor.WriteQueryData data) {
             this.data = data;
         }
         
@@ -806,7 +829,7 @@ public class DaoImpl implements Dao {
             return ImmutableMap.copyOf(result);
         }
         
-        static com.unitedinternet.troilus.minimal.interceptor.WriteQueryData convert(WriteQueryData data) {
+        static com.unitedinternet.troilus.java7.interceptor.WriteQueryData convert(WriteQueryData data) {
             return new WriteQueryDataImpl().keys(data.getKeys())
                                            .whereConditions(data.getWhereConditions())
                                            .valuesToMutate(toGuavaOptional(data.getValuesToMutate()))
@@ -824,7 +847,7 @@ public class DaoImpl implements Dao {
     
 
     
-    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPreInterceptor {
+    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryPreInterceptor {
         
         private ListReadQueryPreInterceptor interceptor;
         
@@ -833,7 +856,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData onPreListRead(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data) {
+        public com.unitedinternet.troilus.java7.interceptor.ListReadQueryData onPreListRead(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data) {
             return ListReadQueryDataAdapter.convert(interceptor.onPreListRead(new ListReadQueryDataAdapter(data)));
         }
         
@@ -844,7 +867,7 @@ public class DaoImpl implements Dao {
     }
    
     
-    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.ListReadQueryPostInterceptor {
+    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryPostInterceptor {
         
         private ListReadQueryPostInterceptor interceptor;
         
@@ -853,7 +876,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.MinimalDao.RecordList onPostListRead(com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData data, com.unitedinternet.troilus.minimal.MinimalDao.RecordList recordList) {
+        public com.unitedinternet.troilus.java7.Dao.RecordList onPostListRead(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data, com.unitedinternet.troilus.java7.Dao.RecordList recordList) {
             return RecordListAdapter.convert(interceptor.onPostListRead(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
         }
         
@@ -864,7 +887,7 @@ public class DaoImpl implements Dao {
     }
     
 
-    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.SingleReadQueryPostInterceptor {
+    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.SingleReadQueryPostInterceptor {
         
         private SingleReadQueryPostInterceptor interceptor;
         
@@ -873,7 +896,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.Record onPostSingleRead(SingleReadQueryData data, com.unitedinternet.troilus.minimal.Record record) {
+        public com.unitedinternet.troilus.java7.Record onPostSingleRead(SingleReadQueryData data, com.unitedinternet.troilus.java7.Record record) {
             return RecordAdapter.convert(interceptor.onPostSingleRead(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))).orElse(null));
         }
         
@@ -885,7 +908,7 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.minimal.interceptor.WriteQueryPreInterceptor {
+    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor {
          
         private WriteQueryPreInterceptor interceptor;
         
@@ -894,7 +917,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public com.unitedinternet.troilus.minimal.interceptor.WriteQueryData onPreWrite(com.unitedinternet.troilus.minimal.interceptor.WriteQueryData data) {
+        public com.unitedinternet.troilus.java7.interceptor.WriteQueryData onPreWrite(com.unitedinternet.troilus.java7.interceptor.WriteQueryData data) {
             return WriteQueryDataAdapter.convert(interceptor.onPreWrite(new WriteQueryDataAdapter(data)));
         }
         

@@ -39,15 +39,14 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
-import com.unitedinternet.troilus.minimal.MinimalDao.SingleRead;
-import com.unitedinternet.troilus.minimal.MinimalDao.SingleReadWithUnit;
-import com.unitedinternet.troilus.minimal.Record;
-import com.unitedinternet.troilus.minimal.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.java7.Record;
+import com.unitedinternet.troilus.java7.Dao.SingleRead;
+import com.unitedinternet.troilus.java7.Dao.SingleReadWithUnit;
+import com.unitedinternet.troilus.java7.interceptor.SingleReadQueryPostInterceptor;
 
 
 /**
  * Read query implementation
- *
  */
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record> {
     

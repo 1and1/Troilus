@@ -81,7 +81,7 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     /**
      * Java8 adapter of a Batchable
      */
-    static final class BatchableAdapter implements com.unitedinternet.troilus.minimal.MinimalDao.Batchable {
+    static final class BatchableAdapter implements com.unitedinternet.troilus.java7.Dao.Batchable {
         private final Batchable batchable;
         
         

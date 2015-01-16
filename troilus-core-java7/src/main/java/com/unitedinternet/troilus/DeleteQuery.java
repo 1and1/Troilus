@@ -29,26 +29,33 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
 import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
-import com.unitedinternet.troilus.minimal.MinimalDao.Batchable;
-import com.unitedinternet.troilus.minimal.MinimalDao.Deletion;
+import com.unitedinternet.troilus.java7.Dao.Batchable;
+import com.unitedinternet.troilus.java7.Dao.Deletion;
 
 
 
- 
+/**
+ * delete query implementation
+ */
 class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
     private final DeleteQueryData data;
-      
-    protected DeleteQuery(Context ctx, DeleteQueryData data) {
+    
+    /**
+     * @param ctx    the context
+     * @param data   the data
+     */
+    DeleteQuery(Context ctx, DeleteQueryData data) {
         super(ctx);
         this.data = data;
     }
 
-
+    @Override
     public Deletion withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
+    @Override
     public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
@@ -58,12 +65,10 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         batchStatement.add(getStatement());
     }
 
-
     @Override
     protected DeleteQuery newQuery(Context newContext) {
         return new DeleteQuery(newContext, data);
     }
-    
     
     @Override
     public DeleteQuery onlyIf(Clause... onlyIfConditions) {
@@ -74,22 +79,11 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     public DeleteQuery ifExists() {
         return new DeleteQuery(getContext(), data.ifExists(true));
     }
-   
-    private Statement getStatement() {
-        DeleteQueryData queryData = data;
-        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreDelete(queryData); 
-        }
 
-        return DeleteQueryDataImpl.toStatement(queryData, getContext());
-    }
-
-    
     @Override
     public Result execute() {
         return getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<Result> executeAsync() {
@@ -105,5 +99,14 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         };
         
         return Futures.transform(future, mapEntity);
+    }
+    
+    private Statement getStatement() {
+        DeleteQueryData queryData = data;
+        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreDelete(queryData); 
+        }
+
+        return DeleteQueryDataImpl.toStatement(queryData, getContext());
     }
 }

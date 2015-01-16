@@ -23,7 +23,7 @@ import com.unitedinternet.troilus.Count;
 import com.unitedinternet.troilus.Dao.Batchable;
 import com.unitedinternet.troilus.Dao.CounterMutation;
 import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.IfConditionException;
+import com.unitedinternet.troilus.ConstraintException;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.Result;
@@ -99,7 +99,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
-        } catch (IfConditionException expected) { }  
+        } catch (ConstraintException expected) { }  
 
         
         
@@ -345,7 +345,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .withSerialConsistency(ConsistencyLevel.SERIAL)
                     .execute();
             Assert.fail("IfConditionException expected");
-        } catch (IfConditionException expected) {  }
+        } catch (ConstraintException expected) {  }
 
         record = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                 .execute()
@@ -397,7 +397,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
                     .execute();
             Assert.fail("IfConditionException expected");
-        } catch (IfConditionException expected) { }
+        } catch (ConstraintException expected) { }
 
         Optional<Record> rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                                        .execute();
@@ -596,7 +596,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         usersDao.writeWithKey(UsersTableFields.USER_ID, "343434")
                 .value(UsersTableFields.IS_CUSTOMER, true)
                 .value(UsersTable.ROLES, ImmutableMap.of("customer", "xe333"))
-                .value(UsersTableFields.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                .value(UsersTableFields.PICTURE, new byte[] { 4, 5, 5})
                 .value(UsersTableFields.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                 .value(UsersTableFields.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
                 .ifNotExits()
@@ -613,8 +613,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("34324543"));
         Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().contains("karlsruhe"));
         Assert.assertEquals("xe333", record.getValue(UsersTableFields.ROLES).get().get("customer"));
-        
-        
+        Assert.assertArrayEquals(new byte[] { 4, 5, 5}, record.getValue(UsersTableFields.PICTURE).get());
         
         
         

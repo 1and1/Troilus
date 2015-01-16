@@ -65,8 +65,26 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         Assert.assertNotNull(list.next());
         Assert.assertFalse(list.hasNext());
 
+
+
+        list = feeDao.readListWithKey(FeesTable.CUSTOMER_ID, "132")
+                     .column(FeesTable.CUSTOMER_ID)
+                     .execute()
+                     .iterator();
+        Assert.assertNotNull(list.next());
+        Assert.assertNotNull(list.next());
+        Assert.assertNotNull(list.next());
+        Assert.assertFalse(list.hasNext());
+
+
+
+
+
         
-        ImmutableList.of(list).forEach(record -> System.out.println(record));
+        
+        
+        
+        
         
 
         Optional<Record> feeRecord = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
@@ -99,7 +117,7 @@ public class PartialReadTest extends AbstractCassandraBasedTest {
         
         
 
-        list = feeDao.readWithKeys(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, ImmutableList.of(3, 4, 6876767))
+        list = feeDao.readListWithKeys(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, ImmutableList.of(3, 4, 6876767))
                      .column(FeesTable.CUSTOMER_ID)
                      .execute()
                      .iterator();

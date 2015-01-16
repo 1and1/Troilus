@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.minimal;
+package com.unitedinternet.troilus.java7;
 
 
 import org.reactivestreams.Publisher;
+
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -35,19 +36,19 @@ import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
 
 
-public interface MinimalDao {
+public interface Dao {
     
-    MinimalDao withConsistency(ConsistencyLevel consistencyLevel);
+    Dao withConsistency(ConsistencyLevel consistencyLevel);
 
-    MinimalDao withSerialConsistency(ConsistencyLevel consistencyLevel);
+    Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-    MinimalDao withTracking();
+    Dao withTracking();
 
-    MinimalDao withoutTracking();
+    Dao withoutTracking();
 
-    MinimalDao withRetryPolicy(RetryPolicy policy);
+    Dao withRetryPolicy(RetryPolicy policy);
         
-    MinimalDao withInterceptor(QueryInterceptor queryInterceptor);
+    Dao withInterceptor(QueryInterceptor queryInterceptor);
     
     
     public interface Query<T> {
@@ -316,6 +317,16 @@ public interface MinimalDao {
     <T, E, F> ListReadWithUnit<RecordList> readWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                         Name<E> composedKeyNamePart2, E composedKeyValuePart2,
                                                         Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
+    
+    ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
+
+    ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                 String composedKeyNamePart2, Object composedKeyValuePart2);
+
+    <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value);
+
+    <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                        Name<E> composedKeyNamePart2, E composedKeyValuePart2);
     
     ListReadWithUnit<RecordList> readAll();
 
