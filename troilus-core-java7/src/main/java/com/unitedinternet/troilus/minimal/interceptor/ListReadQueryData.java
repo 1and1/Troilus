@@ -24,33 +24,85 @@ import com.google.common.collect.ImmutableSet;
 
 
  
+/**
+ * list read query data 
+ */
 public interface ListReadQueryData {
 
+    /**
+     * @param keys  the keys
+     * @return the new read query data
+     */
     ListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys);
-    
-    ListReadQueryData whereConditions(ImmutableSet<Clause> whereClauses);
 
+    /**
+     * @param whereConditions the where conditions
+     * @return the new read query data
+     */
+    ListReadQueryData whereConditions(ImmutableSet<Clause> whereConditions);
+
+    /**
+     * @param columnsToFetch  the columns to fetch 
+     * @return the new read query data
+     */
     ListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch);
 
+    /**
+     * @param limit   the lmit
+     * @return the new read query data
+     */
     ListReadQueryData limit(Integer limit);
-    
+
+    /**
+     * @param allowFiltering  the allow filtering flag
+     * @return the new read query data
+     */
     ListReadQueryData allowFiltering(Boolean allowFiltering);
 
+    /**
+     * @param fetchSize
+     * @return the new read query data
+     */
     ListReadQueryData fetchSize(Integer fetchSize);
-    
-    ListReadQueryData distinct(Boolean distinct);
-    
-    ImmutableMap<String, ImmutableList<Object>> getKeys();
-    
-    ImmutableSet<Clause> getWhereClauses();
 
+    /**
+     * @param distinct    the distinct flag
+     * @return the new read query data
+     */
+    ListReadQueryData distinct(Boolean distinct);
+
+    /**
+     * @return  the keys
+     */
+    ImmutableMap<String, ImmutableList<Object>> getKeys();
+
+    /**
+     * @return the where conditions
+     */
+    ImmutableSet<Clause> getWhereConditions();
+
+    /**
+     * @return  the columns to fetch
+     */
     ImmutableMap<String, Boolean> getColumnsToFetch();
 
+    /**
+     * @return the limit
+     */
     Integer getLimit();
 
+    /**
+     * @return the allow filtering flag
+     */
     Boolean getAllowFiltering();
 
+    /**
+     * @return  the fetch size
+     */
     Integer getFetchSize();
-    
+
+    /**
+     * @return the distinct flag
+     */
     Boolean getDistinct();
 }

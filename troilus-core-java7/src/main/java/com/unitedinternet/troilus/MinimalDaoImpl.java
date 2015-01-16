@@ -200,7 +200,7 @@ public class MinimalDaoImpl implements MinimalDao {
     
     @Override
     public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey));
+        return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().key(composedkey));
     }
     
     

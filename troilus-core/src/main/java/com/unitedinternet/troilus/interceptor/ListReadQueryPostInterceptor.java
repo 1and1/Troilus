@@ -22,9 +22,17 @@ import com.unitedinternet.troilus.Dao.RecordList;
 
 
 
- 
+
+/**
+ * Interceptor which will be executed after performing a list read query   
+ */ 
 public interface ListReadQueryPostInterceptor extends QueryInterceptor {
     
+    /**
+     * @param data         the request data
+     * @param recordList   the response
+     * @return the (modified) response
+     */
     RecordList onPostListRead(ListReadQueryData data, RecordList recordList);
 }
  

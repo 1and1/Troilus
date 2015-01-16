@@ -20,13 +20,31 @@ import com.google.common.collect.ImmutableMap;
 
 
  
+/**
+ * The reqd query data
+ *
+ */
 public interface SingleReadQueryData {
 
-    SingleReadQueryData keyParts(ImmutableMap<String, Object> keyNameValuePartPairs);
+    /**
+     * @param key  the key 
+     * @return the new read query data
+     */
+    SingleReadQueryData key(ImmutableMap<String, Object> key);
     
+    /**
+     * @param columnsToFetchs  the columns to fetch
+     * @return the new read query data
+     */
     SingleReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs);
-    
-    ImmutableMap<String, Object> getKeyParts();
-    
+
+    /**
+     * @return the key
+     */
+    ImmutableMap<String, Object> getKey();
+
+    /**
+     * @return the columns to fetch
+     */
     ImmutableMap<String, Boolean> getColumnsToFetch();
 }

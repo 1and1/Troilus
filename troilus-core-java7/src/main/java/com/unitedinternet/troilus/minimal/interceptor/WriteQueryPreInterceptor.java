@@ -22,8 +22,17 @@ import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
 
 
- 
+
+
+
+/**
+ * Interceptor which will be executed before performing a write (update, insert) query  
+ */   
 public interface WriteQueryPreInterceptor extends QueryInterceptor {
     
+    /**
+     * @param data the request data
+     * @return the (modified) request data
+     */
     WriteQueryData onPreWrite(WriteQueryData data); 
 }

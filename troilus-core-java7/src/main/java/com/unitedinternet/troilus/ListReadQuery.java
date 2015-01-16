@@ -149,7 +149,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     @Override
     public CountReadQuery count() {
-        return new CountReadQuery(getContext(), new CountReadQueryData().whereConditions(data.getWhereClauses())
+        return new CountReadQuery(getContext(), new CountReadQueryData().whereConditions(data.getWhereConditions())
                                                                         .limit(data.getLimit())
                                                                         .fetchSize(data.getFetchSize())
                                                                         .allowFiltering(data.getAllowFiltering())

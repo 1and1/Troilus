@@ -79,7 +79,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     
     @Override
     public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
-        String number = (String) data.getKeyParts().get("number");
+        String number = (String) data.getKey().get("number");
         
         if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
             

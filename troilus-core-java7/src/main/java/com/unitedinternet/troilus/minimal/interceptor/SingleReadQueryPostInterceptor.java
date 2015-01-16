@@ -20,9 +20,18 @@ import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 import com.unitedinternet.troilus.minimal.Record;
 
 
- 
+
+
+/**
+ * Interceptor which will be executed after performing a read query  
+ */  
 public interface SingleReadQueryPostInterceptor extends QueryInterceptor {
     
+    /**
+     * @param data     the request data
+     * @param record   the requested record 
+     * @return the (modified) requested record
+     */
     Record onPostSingleRead(SingleReadQueryData data, Record record);
 }
  

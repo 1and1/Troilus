@@ -17,15 +17,23 @@ package com.unitedinternet.troilus.minimal.interceptor;
 
 
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
-import com.unitedinternet.troilus.minimal.MinimalDao;
+
 import com.unitedinternet.troilus.minimal.MinimalDao.RecordList;
 
 
 
 
- 
+
+/**
+ * Interceptor which will be executed after performing a list read query  
+ */  
 public interface ListReadQueryPostInterceptor extends QueryInterceptor {
     
+    /**
+     * @param data        the request data
+     * @param recordList  the requested record list
+     * @return the (modified) requested record list
+     */
     RecordList onPostListRead(ListReadQueryData data, RecordList recordList);
 }
  

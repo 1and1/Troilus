@@ -82,16 +82,16 @@ class WriteQueryDataImpl implements WriteQueryData {
 
     
     private WriteQueryDataImpl(ImmutableMap<String, Object> keys, 
-                            ImmutableList<Clause> whereConditions, 
-                            ImmutableMap<String, Optional<Object>> valuesToMutate, 
-                            ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
-                            ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
-                            ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
-                            ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
-                            ImmutableList<Clause> onlyIfConditions,
-                            Boolean ifNotExists) {
+                               ImmutableList<Clause> whereConditions, 
+                               ImmutableMap<String, Optional<Object>> valuesToMutate, 
+                               ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
+                               ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove,
+                               ImmutableMap<String, ImmutableList<Object>> listValuesToAppend, 
+                               ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend,
+                               ImmutableMap<String, ImmutableList<Object>> listValuesToRemove,
+                               ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
+                               ImmutableList<Clause> onlyIfConditions,
+                               Boolean ifNotExists) {
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
@@ -106,218 +106,234 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     
-
+    @Override
     public WriteQueryDataImpl keys(ImmutableMap<String, Object> keys) {
         return new WriteQueryDataImpl(keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
     
-  
+    @Override
     public WriteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
         return new WriteQueryDataImpl(this.keys, 
-                                   whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
     
+    @Override
     public WriteQueryDataImpl valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
  
-    
+    @Override
     public WriteQueryDataImpl setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
     
-    
+    @Override
     public WriteQueryDataImpl setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
  
-    
+    @Override
     public WriteQueryDataImpl listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
    
-    
+    @Override
     public WriteQueryDataImpl listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
  
-    
+    @Override
     public WriteQueryDataImpl listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
          return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                       this.whereConditions,
+                                       this.valuesToMutate, 
+                                       this.setValuesToAdd,
+                                       this.setValuesToRemove,
+                                       this.listValuesToAppend,
+                                       this.listValuesToPrepend,
+                                       listValuesToRemove,
+                                       this.mapValuesToMutate,
+                                       this.onlyIfConditions,
+                                       this.ifNotExists);
     }
  
-
+    @Override
     public WriteQueryDataImpl mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      this.ifNotExists);
     }
 
-    
+    @Override
     public WriteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   onlyIfConditions,
-                                   this.ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      onlyIfConditions,
+                                      this.ifNotExists);
     }
 
+    @Override
     public WriteQueryDataImpl ifNotExists(Boolean ifNotExists) {
         return new WriteQueryDataImpl(this.keys, 
-                                   this.whereConditions,
-                                   this.valuesToMutate, 
-                                   this.setValuesToAdd,
-                                   this.setValuesToRemove,
-                                   this.listValuesToAppend,
-                                   this.listValuesToPrepend,
-                                   this.listValuesToRemove,
-                                   this.mapValuesToMutate,
-                                   this.onlyIfConditions,
-                                   ifNotExists);
+                                      this.whereConditions,
+                                      this.valuesToMutate, 
+                                      this.setValuesToAdd,
+                                      this.setValuesToRemove,
+                                      this.listValuesToAppend,
+                                      this.listValuesToPrepend,
+                                      this.listValuesToRemove,
+                                      this.mapValuesToMutate,
+                                      this.onlyIfConditions,
+                                      ifNotExists);
     }
     
     
-    public ImmutableMap<String, Object> getKeyNameValuePairs() {
+    @Override
+    public ImmutableMap<String, Object> getKeys() {
         return keys;
     }
 
+    @Override
     public ImmutableList<Clause> getWhereConditions() {
         return whereConditions;
     }
 
+    @Override
     public ImmutableMap<String, Optional<Object>> getValuesToMutate() {
         return valuesToMutate;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToAdd() {
         return setValuesToAdd;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToRemove() {
         return setValuesToRemove;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToAppend() {
         return listValuesToAppend;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToPrepend() {
         return listValuesToPrepend;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToRemove() {
         return listValuesToRemove;
     }
 
+    @Override
     public ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> getMapValuesToMutate() {
         return mapValuesToMutate;
     }
 
+    @Override
     public ImmutableList<Clause> getOnlyIfConditions() {
         return onlyIfConditions;
     }
     
+    @Override
     public Boolean getIfNotExits() {
         return ifNotExists;
     }
     
-    
-    
+    /**
+     * @param data   the query data
+     * @param ctx    the context
+     * @return the query data as statement
+     */
     static Statement toStatement(WriteQueryData data, Context ctx) {
-        if ((data.getIfNotExits() != null) || (data.getKeyNameValuePairs().isEmpty() && data.getWhereConditions().isEmpty())) {
+        if ((data.getIfNotExits() != null) || (data.getKeys().isEmpty() && data.getWhereConditions().isEmpty())) {
             return toInsertStatement(data, ctx);
         } else {
             return toUpdateStatement(data, ctx);
@@ -350,7 +366,6 @@ class WriteQueryDataImpl implements WriteQueryData {
         PreparedStatement stmt = ctx.prepare(insert);
         return stmt.bind(values.toArray());
     }
-    
     
     
     
@@ -401,7 +416,7 @@ class WriteQueryDataImpl implements WriteQueryData {
             }
             
             
-            for(Entry<String, Object> entry : data.getKeyNameValuePairs().entrySet()) {
+            for(Entry<String, Object> entry : data.getKeys().entrySet()) {
                 update.where(eq(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue())); 
             }

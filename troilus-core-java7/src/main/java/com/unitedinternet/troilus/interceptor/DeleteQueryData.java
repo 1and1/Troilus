@@ -27,23 +27,52 @@ import com.google.common.collect.ImmutableMap;
   
 
  
+/**
+ * Delete query data
+ */
 public interface DeleteQueryData {
 
-    DeleteQueryData keys(ImmutableMap<String, Object> keyNameValuePairs);
+    /**
+     * @param keys  the keys
+     * @return the new delete query data
+     */
+    DeleteQueryData keys(ImmutableMap<String, Object> keys);
 
-   
+    /**
+     * @param whereConditions the where conditions
+     * @return the new delete query data
+     */
     DeleteQueryData whereConditions(ImmutableList<Clause> whereConditions);
 
+    /**
+     * @param onlyIfConditions  the onlyIf conditions
+     * @return the new delete query data
+     */
     DeleteQueryData onlyIfConditions(ImmutableList<Clause> onlyIfConditions);
 
+    /**
+     * @param IfExists  the ifNotExits conditions
+     * @return the new delete query data
+     */
     DeleteQueryData ifExists(Boolean IfExists);
     
-    ImmutableMap<String, Object> getKeyNameValuePairs();
+    /**
+     * @return the keys
+     */
+    ImmutableMap<String, Object> getKeys();
 
+    /**
+     * @return the where conditions
+     */
     ImmutableList<Clause> getWhereConditions();
 
+    /**
+     * @return the onlyIf conditions
+     */
     ImmutableList<Clause> getOnlyIfConditions();
-    
-    Boolean getIfExists();
 
+    /**
+     * @return the ifExists flag
+     */
+    Boolean getIfExists();
 }

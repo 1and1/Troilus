@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,12 @@ import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData;
 
 
  
+/**
+ * List query data implementation
+ *
+ */
 class ListReadQueryDataImpl implements ListReadQueryData {
 
-    /*
-     * THIS WILL BE REMOVED BY GIVING UP JAVA 7 SUPPORT
-     */
     
     private final ImmutableMap<String, ImmutableList<Object>> keys;
     private final ImmutableSet<Clause> whereClauses;
@@ -49,6 +50,9 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     private final Boolean distinct;
 
     
+    /**
+     * Constructor
+     */
     ListReadQueryDataImpl() {
         this(ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
@@ -61,12 +65,12 @@ class ListReadQueryDataImpl implements ListReadQueryData {
 
     
     private ListReadQueryDataImpl(ImmutableMap<String, ImmutableList<Object>> keys,
-                                     ImmutableSet<Clause> whereClauses, 
-                                     ImmutableMap<String, Boolean> columnsToFetch, 
-                                     Integer limit, 
-                                     Boolean allowFiltering,
-                                     Integer fetchSize,
-                                     Boolean distinct) {
+                                  ImmutableSet<Clause> whereClauses, 
+                                  ImmutableMap<String, Boolean> columnsToFetch, 
+                                  Integer limit, 
+                                  Boolean allowFiltering,
+                                  Integer fetchSize,
+                                  Boolean distinct) {
         this.keys = keys;
         this.whereClauses = whereClauses;
         this.columnsToFetch = columnsToFetch;
@@ -77,113 +81,124 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
     
 
-    
-
+    @Override
     public ListReadQueryDataImpl keys(ImmutableMap<String, ImmutableList<Object>> keys) {
         return new ListReadQueryDataImpl(keys,
-                                            this.whereClauses,
-                                            this.columnsToFetch,
-                                            this.limit,
-                                            this.allowFiltering,
-                                            this.fetchSize,
-                                            this.distinct);  
+                                         this.whereClauses,
+                                         this.columnsToFetch,
+                                         this.limit,
+                                         this.allowFiltering,
+                                         this.fetchSize,
+                                         this.distinct);  
     }
-    
+
+    @Override
     public ListReadQueryDataImpl whereConditions(ImmutableSet<Clause> whereClauses) {
         return new ListReadQueryDataImpl(this.keys,
-                                            whereClauses,
-                                            this.columnsToFetch,
-                                            this.limit,
-                                            this.allowFiltering,
-                                            this.fetchSize,
-                                            this.distinct);  
+                                         whereClauses,
+                                         this.columnsToFetch,
+                                         this.limit,
+                                         this.allowFiltering,
+                                         this.fetchSize,
+                                         this.distinct);  
     }
 
-    
+    @Override
     public ListReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
         return new ListReadQueryDataImpl(this.keys,
-                                            this.whereClauses,
-                                            columnsToFetch,
-                                            this.limit,
-                                            this.allowFiltering,
-                                            this.fetchSize,
-                                            this.distinct);  
+                                         this.whereClauses,
+                                         columnsToFetch,
+                                         this.limit,
+                                         this.allowFiltering,
+                                         this.fetchSize,
+                                         this.distinct);  
     }
 
-    
+    @Override
     public ListReadQueryDataImpl limit(Integer limit) {
         return new ListReadQueryDataImpl(this.keys,
-                                            this.whereClauses,
-                                            this.columnsToFetch,
-                                            limit,
-                                            this.allowFiltering,
-                                            this.fetchSize,
-                                            this.distinct);  
+                                         this.whereClauses,
+                                         this.columnsToFetch,
+                                         limit,
+                                         this.allowFiltering,
+                                         this.fetchSize,
+                                         this.distinct);  
     }
 
-    
+    @Override
     public ListReadQueryDataImpl allowFiltering(Boolean allowFiltering) {
         return new ListReadQueryDataImpl(this.keys,
-                                            this.whereClauses,
-                                            this.columnsToFetch,
-                                            this.limit,
-                                            allowFiltering,
-                                            this.fetchSize,
-                                            this.distinct);  
+                                         this.whereClauses,
+                                         this.columnsToFetch,
+                                         this.limit,
+                                         allowFiltering,
+                                         this.fetchSize,
+                                         this.distinct);  
     }
 
-    
+    @Override
     public ListReadQueryDataImpl fetchSize(Integer fetchSize) {
         return new ListReadQueryDataImpl(this.keys,
-                                            this.whereClauses,
-                                            this.columnsToFetch,
-                                            this.limit,
-                                            this.allowFiltering,
-                                            fetchSize,
-                                            this.distinct);  
+                                         this.whereClauses,
+                                         this.columnsToFetch,
+                                         this.limit,
+                                         this.allowFiltering,
+                                         fetchSize,
+                                         this.distinct);  
     }
 
-    
+    @Override
     public ListReadQueryDataImpl distinct(Boolean distinct) {
         return new ListReadQueryDataImpl(this.keys,
-                                            this.whereClauses,
-                                            this.columnsToFetch,
-                                            this.limit,
-                                            this.allowFiltering,
-                                            this.fetchSize,
-                                            distinct);  
+                                         this.whereClauses,
+                                         this.columnsToFetch,
+                                         this.limit,
+                                         this.allowFiltering,
+                                         this.fetchSize,
+                                         distinct);  
     }
     
-    
+    @Override
     public ImmutableMap<String, ImmutableList<Object>> getKeys() {
         return keys;
     }
     
-    public ImmutableSet<Clause> getWhereClauses() {
+    @Override
+    public ImmutableSet<Clause> getWhereConditions() {
         return whereClauses;
     }
 
+    @Override
     public ImmutableMap<String, Boolean> getColumnsToFetch() {
         return columnsToFetch;
     }
 
+    @Override
     public Integer getLimit() {
         return limit;
     }
 
+    @Override
     public Boolean getAllowFiltering() {
         return allowFiltering;
     }
 
+    @Override
     public Integer getFetchSize() {
         return fetchSize;
     }
 
+    @Override
     public Boolean getDistinct() {
         return distinct;
     }
     
      
+    /**
+     * @param data   the query data
+     * @param ctx    the context
+     * @return  the query as statement
+     */
     static Statement toStatement(ListReadQueryData data, Context ctx) {
         Select.Selection selection = select();
 
@@ -224,7 +239,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
         
         // where-based selection
         if (data.getKeys().isEmpty()) {
-            for (Clause whereClause : data.getWhereClauses()) {
+            for (Clause whereClause : data.getWhereConditions()) {
                 select.where(whereClause);
             }
             

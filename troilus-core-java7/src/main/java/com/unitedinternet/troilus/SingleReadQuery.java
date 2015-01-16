@@ -197,7 +197,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     private Record paranoiaCheck(Record record) {
         
-        for (Entry<String, Object> entry : data.getKeyParts().entrySet()) {
+        for (Entry<String, Object> entry : data.getKey().entrySet()) {
             ByteBuffer in = DataType.serializeValue(entry.getValue(), getContext().getProtocolVersion());
             ByteBuffer out = record.getBytesUnsafe(entry.getKey());
 

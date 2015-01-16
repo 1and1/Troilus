@@ -55,7 +55,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
     
     
 
-    public SingleReadQueryDataImpl keyParts(ImmutableMap<String, Object> keyNameValuePartPairs) {
+    public SingleReadQueryDataImpl key(ImmutableMap<String, Object> keyNameValuePartPairs) {
         return new SingleReadQueryDataImpl(keyNameValuePartPairs, 
                                        this.columnsToFetch);  
     }
@@ -68,7 +68,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
     
     
     
-    public ImmutableMap<String, Object> getKeyParts() {
+    public ImmutableMap<String, Object> getKey() {
         return keyNameValuePartPairs;
     }
 
@@ -96,7 +96,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
             }
 
             // add key columns to requested columns (for paranoia checks)
-            for (String keyname : data.getKeyParts().keySet()) {
+            for (String keyname : data.getKey().keySet()) {
                 if (data.getColumnsToFetch().get(keyname) == null) {
                     selection.column(keyname);
                 }
@@ -109,7 +109,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
         
         // set the query conditions 
         List<Object> values = Lists.newArrayList();
-        for (Entry<String, Object> entry : data.getKeyParts().entrySet()) {
+        for (Entry<String, Object> entry : data.getKey().entrySet()) {
             select.where(eq(entry.getKey(), bindMarker()));
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
         }

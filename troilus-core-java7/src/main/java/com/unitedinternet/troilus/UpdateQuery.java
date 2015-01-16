@@ -169,7 +169,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
 
     @Override
     public InsertQuery ifNotExits() {
-        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(data.getKeyNameValuePairs())))
+        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(data.getKeys())))
                                                                                .ifNotExists(true));
     }
 
@@ -182,7 +182,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery incr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(data.getKeyNameValuePairs())
+                                        new CounterMutationQueryData().keys(data.getKeys())
                                                                       .whereConditions(data.getWhereConditions())
                                                                       .name(name)
                                                                       .diff(value));  
@@ -197,7 +197,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public CounterMutationQuery decr(String name, long value) {
         return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(data.getKeyNameValuePairs())
+                                        new CounterMutationQueryData().keys(data.getKeys())
                                                                       .whereConditions(data.getWhereConditions())
                                                                       .name(name)
                                                                       .diff(0 - value));  

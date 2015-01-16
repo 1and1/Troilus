@@ -103,7 +103,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     }
     
     @Override
-    public ImmutableMap<String, Object> getKeyNameValuePairs() {
+    public ImmutableMap<String, Object> getKeys() {
         return keyNameValuePairs;
     }
 
@@ -137,7 +137,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         if (data.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
-            for (Entry<String, Object> entry : data.getKeyNameValuePairs().entrySet()) {
+            for (Entry<String, Object> entry : data.getKeys().entrySet()) {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 

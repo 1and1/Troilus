@@ -26,34 +26,86 @@ import com.google.common.collect.ImmutableSet;
 
 
 
- 
+/**
+ * List query data
+ *
+ */
 public interface ListReadQueryData {
 
+    /**
+     * @param keys  the keys 
+     * @return the new query data
+     */
     ListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys);
     
-    ListReadQueryData whereClauses(ImmutableSet<Clause> whereClauses);
+    /**
+     * @param whereConditions the where conditions
+     * @return the new query data
+     */
+    ListReadQueryData whereConditions(ImmutableSet<Clause> whereConditions);
 
+    /**
+     * @param columnsToFetch  the columns to fetch
+     * @return the new query data
+     */
     ListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch);
 
-    ListReadQueryData limit(Optional<Integer> optionalLimit);
+    /**
+     * @param limit the limit
+     * @return the new query data
+     */
+    ListReadQueryData limit(Optional<Integer> limit);
 
-    ListReadQueryData allowFiltering(Optional<Boolean> optionalAllowFiltering);
+    /**
+     * @param oallowFiltering  the allow filtering flag
+     * @return the new query data
+     */
+    ListReadQueryData allowFiltering(Optional<Boolean> allowFiltering);
 
-    ListReadQueryData fetchSize(Optional<Integer> optionalFetchSize);
+    /**
+     * @param fetchSize  the fetch size
+     * @return the new query data
+     */
+    ListReadQueryData fetchSize(Optional<Integer> fetchSize);
 
-    ListReadQueryData distinct(Optional<Boolean> optionalDistinct);
+    /**
+     * @param distinct  the distinct flag
+     * @return the new query data
+     */
+    ListReadQueryData distinct(Optional<Boolean> distinct);
     
+    /**
+     * @return  the keys
+     */
     ImmutableMap<String, ImmutableList<Object>> getKeys();
     
-    ImmutableSet<Clause> getWhereClauses();
+    /**
+     * @return the where conditions
+     */
+    ImmutableSet<Clause> getWhereConditions();
 
+    /**
+     * @return the columns to fetch
+     */
     ImmutableMap<String, Boolean> getColumnsToFetch();
 
+    /**
+     * @return  the limit
+     */
     Optional<Integer> getLimit();
 
+    /**
+     * @return the allow filtering flag
+     */
     Optional<Boolean> getAllowFiltering();
 
+    /**
+     * @return  the fetch size
+     */
     Optional<Integer> getFetchSize();
 
+    /**
+     * @return the distinct flag
+     */
     Optional<Boolean> getDistinct();
 }

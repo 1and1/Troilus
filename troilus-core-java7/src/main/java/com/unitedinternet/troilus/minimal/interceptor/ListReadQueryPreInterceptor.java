@@ -20,8 +20,18 @@ package com.unitedinternet.troilus.minimal.interceptor;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
  
+
+
+
+/**
+ * Interceptor which will be executed before performing a list read query  
+ */  
 public interface ListReadQueryPreInterceptor extends QueryInterceptor {
     
+    /**
+     * @param data  the request data
+     * @return the (modified) request data
+     */
     ListReadQueryData onPreListRead(ListReadQueryData data);
 }
  

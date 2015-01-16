@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,15 @@ package com.unitedinternet.troilus.interceptor;
 
 
 
- 
+/**
+ * Interceptor which will be executed before performing a write (update, or insert) query 
+ */ 
 public interface WriteQueryPreInterceptor extends QueryInterceptor {
     
+    
+    /**
+     * @param data the data to write 
+     * @return the (modified) data to write
+     */
     WriteQueryData onPreWrite(WriteQueryData data);
 }

@@ -241,7 +241,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new SingleReadQueryDataImpl().keyParts(composedkey)));
+        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new SingleReadQueryDataImpl().key(composedkey)));
     }
     
     @Override
@@ -377,8 +377,8 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListReadQueryDataAdapter whereClauses(ImmutableSet<Clause> whereClauses) {
-            return new ListReadQueryDataAdapter(data.whereConditions(whereClauses));  
+        public ListReadQueryDataAdapter whereConditions(ImmutableSet<Clause> whereConditions) {
+            return new ListReadQueryDataAdapter(data.whereConditions(whereConditions));  
         }
 
         @Override
@@ -412,8 +412,8 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ImmutableSet<Clause> getWhereClauses() {
-            return data.getWhereClauses();
+        public ImmutableSet<Clause> getWhereConditions() {
+            return data.getWhereConditions();
         }
 
         @Override
@@ -443,7 +443,7 @@ public class DaoImpl implements Dao {
         
         static com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData convert(ListReadQueryData data) {
             return new ListReadQueryDataImpl().keys(data.getKeys())
-                                              .whereConditions(data.getWhereClauses())
+                                              .whereConditions(data.getWhereConditions())
                                               .columnsToFetch(data.getColumnsToFetch())
                                               .limit(data.getLimit().orElse(null))
                                               .allowFiltering(data.getAllowFiltering().orElse(null))
@@ -709,7 +709,7 @@ public class DaoImpl implements Dao {
         
         @Override        
         public ImmutableMap<String, Object> getKeys() {
-            return data.getKeyNameValuePairs();
+            return data.getKeys();
         }
 
         @Override
