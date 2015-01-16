@@ -41,12 +41,20 @@ import com.unitedinternet.troilus.minimal.interceptor.WriteQueryPreInterceptor;
 
 
  
+/**
+ * update query implementation
+ *
+ */
 class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
     private final WriteQueryDataImpl data;
     
     
-    public UpdateQuery(Context ctx, WriteQueryDataImpl data) {
+    /**
+     * @param ctx   the context 
+     * @param data  the query data
+     */
+    UpdateQuery(Context ctx, WriteQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
@@ -56,16 +64,21 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return new UpdateQuery(newContext, data);
     }
     
-    
+    /**
+     * @param entity   the entity to insert
+     * @return the new insert query
+     */
     InsertQuery entity(Object entity) {
         return new InsertQuery(getContext(), 
                                new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity)));
     }
     
+    @Override
     public UpdateQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
+    @Override
     public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
@@ -75,14 +88,12 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         batchStatement.add(getStatement());
     }
     
-    
     @Override
     public UpdateQuery value(String name, Object value) {
         return new UpdateQuery(getContext(), 
-                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
+                               data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
     }
     
-
     @Override
     public <T> UpdateQuery value(Name<T> name, T value) {
         return value(name.getName(), value);
@@ -91,9 +102,8 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return new UpdateQuery(getContext(), 
-                                      data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
+                               data.valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
     }
-
 
     @Override
     public UpdateQuery removeSetValue(String name, Object value) {
@@ -101,41 +111,35 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                                      data.setValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
+                               data.setValuesToRemove(Immutables.merge(data.getSetValuesToRemove(), name, values)));
     }
 
-    
     @Override
     public UpdateQuery addSetValue(String name, Object value) {
         ImmutableSet<Object> values = data.getSetValuesToAdd().get(name);
         values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                                      data.setValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
+                               data.setValuesToAdd(Immutables.merge(data.getSetValuesToAdd(), name, values)));
     }
    
-    
     @Override
     public UpdateQuery prependListValue(String name, Object value) {
         ImmutableList<Object> values = data.getListValuesToPrepend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                                      data.listValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
+                               data.listValuesToPrepend(Immutables.merge(data.getListValuesToPrepend(), name, values)));
     } 
     
-    
-
     @Override
     public UpdateQuery appendListValue(String name, Object value) {
         ImmutableList<Object> values = data.getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                                      data.listValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
+                               data.listValuesToAppend(Immutables.merge(data.getListValuesToAppend(), name, values)));
     }
-    
-    
     
     @Override
     public UpdateQuery removeListValue(String name, Object value) {
@@ -143,36 +147,31 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
 
         return new UpdateQuery(getContext(), 
-                                      data.listValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
+                               data.listValuesToRemove(Immutables.merge(data.getListValuesToRemove(), name, values)));
     }
    
-    
     @Override
     public UpdateQuery putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = data.getMapValuesToMutate().get(name);
         values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.merge(values, key, Optionals.toGuavaOptional(value));
 
         return new UpdateQuery(getContext(), 
-                                      data.mapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
+                               data.mapValuesToMutate(Immutables.merge(data.getMapValuesToMutate(), name, values)));
     }
     
-    
-
     @Override
     public UpdateQuery onlyIf(Clause... conditions) {
         return new UpdateQuery(getContext(), 
-                                      data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions())
-                                                                                           .addAll(ImmutableList.copyOf(conditions))
-                                                                                           .build()));
+                               data.onlyIfConditions(ImmutableList.<Clause>builder().addAll(data.getOnlyIfConditions())
+                                                                                    .addAll(ImmutableList.copyOf(conditions))
+                                                                                    .build()));
     }
-
 
     @Override
     public InsertQuery ifNotExits() {
         return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(data.getKeys())))
-                                                                               .ifNotExists(true));
+                                                                     .ifNotExists(true));
     }
-
         
     @Override
     public CounterMutationQuery incr(String name) {
@@ -187,7 +186,6 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
                                                                       .name(name)
                                                                       .diff(value));  
     }
-    
     
     @Override
     public CounterMutationQuery decr(String name) {
@@ -204,22 +202,10 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     }
     
     
-        
-    private Statement getStatement() {
-        WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreWrite(queryData);
-        }
-        
-        return WriteQueryDataImpl.toStatement(queryData, getContext());
-    }
-    
-    
     @Override
     public Result execute() {
         return getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<Result> executeAsync() {
@@ -238,14 +224,30 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return Futures.transform(future, mapEntity);
     }
 
-  
+    private Statement getStatement() {
+        WriteQueryData queryData = data;
+        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreWrite(queryData);
+        }
+        
+        return WriteQueryDataImpl.toStatement(queryData, getContext());
+    }
     
     
+    
+    /**
+     * Counter mutation query implementation 
+     *
+     */
     static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
         
         private final CounterMutationQueryData data;
 
-        public CounterMutationQuery(Context ctx, CounterMutationQueryData data) {
+        /**
+         * @param ctx    the context
+         * @param data   the query data
+         */
+        CounterMutationQuery(Context ctx, CounterMutationQueryData data) {
             super(ctx);
             this.data = data;
         }
@@ -270,16 +272,10 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
             batchStatement.add(getStatement());
         }
         
-        
-        private Statement getStatement() {
-            return data.toStatement(getContext());
-        }
-
         @Override
         public Result execute() {
             return getUninterruptibly(executeAsync());
         }
-        
         
         @Override
         public ListenableFuture<Result> executeAsync() {
@@ -293,6 +289,10 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
             };
             
             return Futures.transform(future, mapEntity);
+        }
+        
+        private Statement getStatement() {
+            return data.toStatement(getContext());
         }
     }
 }

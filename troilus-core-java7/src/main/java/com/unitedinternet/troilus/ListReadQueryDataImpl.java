@@ -36,10 +36,8 @@ import com.unitedinternet.troilus.minimal.interceptor.ListReadQueryData;
  
 /**
  * List query data implementation
- *
  */
 class ListReadQueryDataImpl implements ListReadQueryData {
-
     
     private final ImmutableMap<String, ImmutableList<Object>> keys;
     private final ImmutableSet<Clause> whereClauses;

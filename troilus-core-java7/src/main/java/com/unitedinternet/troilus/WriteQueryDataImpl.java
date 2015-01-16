@@ -48,6 +48,10 @@ import com.unitedinternet.troilus.minimal.interceptor.WriteQueryData;
 
 
  
+/**
+ * write query data implementation
+ *
+ */
 class WriteQueryDataImpl implements WriteQueryData {
 
     private final ImmutableMap<String, Object> keys;
@@ -66,6 +70,9 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
 
+    /**
+     * constructor
+     */
     WriteQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),

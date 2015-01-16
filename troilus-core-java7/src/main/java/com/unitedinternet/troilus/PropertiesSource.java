@@ -19,12 +19,23 @@ import com.google.common.base.Optional;
 
 
 
+/**
+ * Properties source
+ */
 interface PropertiesSource {
     
-    <T> Optional<T> read(String name, Class<?> clazz1);
+    /**
+     * @param name   the property name
+     * @param clazz  the property type
+     * @return the property value
+     */
+    <T> Optional<T> read(String name, Class<?> clazz);
     
+    /**
+     * @param name    the property source 
+     * @param clazz1  the property type of element 1 (e.g. key type of map)  
+     * @param clazz2  the property type of element 2 (e.g. value type of map) 
+     * @return the property value
+     */
     <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2);
 }
-
-
-

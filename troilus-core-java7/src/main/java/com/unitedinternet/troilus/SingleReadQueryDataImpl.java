@@ -33,14 +33,18 @@ import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
 
 
 
- 
+/**
+ * Read data query implementation
+ */
 class SingleReadQueryDataImpl implements SingleReadQueryData {
 
     final ImmutableMap<String, Object> keyNameValuePartPairs;
     final ImmutableMap<String, Boolean> columnsToFetch;
 
 
-    
+    /**
+     * constructor 
+     */
     SingleReadQueryDataImpl() {
         this(ImmutableMap.<String, Object>of(), 
              ImmutableMap.<String, Boolean>of());
@@ -53,34 +57,35 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
         this.columnsToFetch = columnsToFetchs;
     }
     
-    
-
+    @Override
     public SingleReadQueryDataImpl key(ImmutableMap<String, Object> keyNameValuePartPairs) {
         return new SingleReadQueryDataImpl(keyNameValuePartPairs, 
-                                       this.columnsToFetch);  
+                                           this.columnsToFetch);  
     }
     
-
+    @Override
     public SingleReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetchs) {
         return new SingleReadQueryDataImpl(this.keyNameValuePartPairs, 
-                                       columnsToFetchs);  
+                                           columnsToFetchs);  
     }
     
-    
-    
+    @Override
     public ImmutableMap<String, Object> getKey() {
         return keyNameValuePartPairs;
     }
 
+    @Override
     public ImmutableMap<String, Boolean> getColumnsToFetch() {
         return columnsToFetch;
     }
 
-
-    
+    /**
+     * @param data   the query data
+     * @param ctx    the context 
+     * @return the query as statement 
+     */
     static Statement toStatement(SingleReadQueryData data, Context ctx) {
         Selection selection = select();
-        
         
         // set the columns to fetch 
         if (data.getColumnsToFetch().isEmpty()) {

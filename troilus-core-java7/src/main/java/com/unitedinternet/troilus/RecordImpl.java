@@ -41,12 +41,20 @@ import com.unitedinternet.troilus.minimal.Record;
 
 
  
+/**
+ * The record implementation
+ */
 class RecordImpl implements Record {
     private final Context ctx;
     private final Result result;
     private final Row row;
     private final PropertiesSourceAdapter propertiesSourceAdapter;
     
+    /**
+     * @param ctx     the context
+     * @param result  the result
+     * @param row     the underlying row
+     */
     RecordImpl(Context ctx, Result result, Row row) {
         this.ctx = ctx;
         this.result = result;
@@ -68,7 +76,6 @@ class RecordImpl implements Record {
         return row.getColumnDefinitions();
     }
     
-
     @Override
     public ExecutionInfo getExecutionInfo() {
         return result.getExecutionInfo();
@@ -79,13 +86,11 @@ class RecordImpl implements Record {
         return result.getAllExecutionInfo();
     }
     
-
     @Override
     public boolean wasApplied() {
         return result.wasApplied();
     }
 
-  
     @Override
     public Long getWritetime(String name) {
         try {
@@ -94,7 +99,6 @@ class RecordImpl implements Record {
             return null;
         }
     }
-  
     
     @Override       
     public Integer getTtl(String name) {
@@ -105,91 +109,76 @@ class RecordImpl implements Record {
         }
     }
     
-
     @Override
     public boolean isNull(String name) {
         return row.isNull(name);
     }
-     
 
     @Override
     public Long getLong(String name) {
         return row.getLong(name);
     }
     
-
     @Override
     public String getString(String name) {
         return row.getString(name);
     }
-    
 
     @Override
     public Boolean getBool(String name) {
         return row.getBool(name);
     }
     
-
     @Override
     public ByteBuffer getBytes(String name) {
         return row.getBytes(name);
     }
-     
 
     @Override
     public ByteBuffer getBytesUnsafe(String name) {
         return row.getBytesUnsafe(name);
     }
-    
 
     @Override
     public Float getFloat(String name) {
         return row.getFloat(name);
     }
 
-
     @Override
     public Date getDate(String name) {
         return row.getDate(name);
     }
-     
 
     @Override
     public BigDecimal getDecimal(String name) {
         return row.getDecimal(name);
     }
-    
 
     @Override
     public Integer getInt(String name) {
         return row.getInt(name);
     }
-    
 
     @Override
     public InetAddress getInet(String name) {
         return row.getInet(name);
     }
-     
 
     @Override
     public BigInteger getVarint(String name) {
         return row.getVarint(name);
     }
   
-
     @Override
     public UUID getUUID(String name) {
         return row.getUUID(name);
     }
-   
 
     @Override
     public UDTValue getUDTValue(String name) {
         return row.getUDTValue(name);
     }
-    
-    
+        
     @Override
     public <T extends Enum<T>> T getEnum(String name, Class<T> enumType) {
         return getObject(name, enumType);
@@ -201,6 +190,7 @@ class RecordImpl implements Record {
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
     public <T> T getObject(String name, Class<T> elementsClass) {
         if (isNull(name)) {
             return null;
@@ -231,7 +221,7 @@ class RecordImpl implements Record {
         return null;
     }
     
-    
+    @Override
     public <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass) {
         if (isNull(name)) {
             return null;
@@ -245,7 +235,7 @@ class RecordImpl implements Record {
         }
     }
     
- 
+    @Override
     public <T> ImmutableList<T> getList(String name, Class<T> elementsClass) {
         if (isNull(name)) {
             return null;
@@ -259,7 +249,7 @@ class RecordImpl implements Record {
         }
     }
     
-    
+    @Override
     public <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
         if (isNull(name)) {
             return null;
@@ -282,7 +272,7 @@ class RecordImpl implements Record {
         }
     }
     
-    
+    @Override
     public String toString() {
         ToStringHelper toStringHelper = MoreObjects.toStringHelper(this);
         
@@ -292,7 +282,6 @@ class RecordImpl implements Record {
         
         return toStringHelper.toString();
     }
-    
     
     private String toString(String name, DataType dataType) {
         if (isNull(name)) {
@@ -306,6 +295,10 @@ class RecordImpl implements Record {
     }
     
  
+    /**
+     * @param record   the record
+     * @return the record as properties source
+     */
     static PropertiesSource toPropertiesSource(Record record) {
         return new PropertiesSourceAdapter(record);
     }

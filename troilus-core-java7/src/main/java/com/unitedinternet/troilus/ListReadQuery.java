@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,31 +54,35 @@ import com.unitedinternet.troilus.minimal.Record;
 
 
  
-
+/**
+ * The list read query implementation
+ *
+ */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     
     final ListReadQueryDataImpl data;
 
     
-    public ListReadQuery(Context ctx, ListReadQueryDataImpl data) {
+    /**
+     * @param ctx   the context 
+     * @param data  the data
+     */
+    ListReadQuery(Context ctx, ListReadQueryDataImpl data) {
         super(ctx);
         this.data = data;
     }
-
-    
     
     @Override
     protected ListReadQuery newQuery(Context newContext) {
         return new ListReadQuery(newContext, data);
     }
     
-    
     @Override
     public ListReadQuery all() {
-        return new ListReadQuery(getContext(), data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
+        return new ListReadQuery(getContext(), 
+                                 data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
     
- 
     private ListReadQuery columns(ImmutableCollection<String> namesToRead) {
         ListReadQuery read = this;
         for (String columnName : namesToRead) {
@@ -87,24 +91,22 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return read;
     }
     
-    
     @Override
     public ListReadQuery column(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new ListReadQuery(getContext(), 
+                                 data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
-
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
-        return new ListReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new ListReadQuery(getContext(), 
+                                 data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
-    
     
     @Override
     public ListReadQuery columns(String... names) {
         return columns(ImmutableSet.copyOf(names));
     }
-    
     
     @Override
     public ListReadQuery column(Name<?> name) {
@@ -145,8 +147,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new ListReadQuery(getContext(), data.distinct(true));
     }
     
-   
-
     @Override
     public CountReadQuery count() {
         return new CountReadQuery(getContext(), new CountReadQueryData().whereConditions(data.getWhereConditions())
@@ -161,24 +161,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new ListEntityReadQuery<>(getContext(), this, objectClass) ;
     }
 
-    
-
-    private ListReadQueryData getPreprocessedData() {
-        ListReadQueryData queryData = data;
-        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreListRead(queryData);
-        }
-        
-        return queryData;
-    }
-    
-    
- 
     @Override
     public RecordList execute() {
         return getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<RecordList> executeAsync() {
@@ -220,54 +206,70 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return result;
     }
     
+    private ListReadQueryData getPreprocessedData() {
+        ListReadQueryData queryData = data;
+        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreListRead(queryData);
+        }
+        
+        return queryData;
+    }
     
     
     
-     static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
-        private final ListReadQuery read;
+    
+    /**
+     * The entity list read implementation
+     * @param <E> the entity type
+     */
+    static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<EntityList<E>> {
+        private final ListReadQuery query;
         private final Class<E> clazz;
         
-        public ListEntityReadQuery(Context ctx, ListReadQuery read, Class<E> clazz) {
+        /**
+         * @param ctx   the context
+         * @param query the query 
+         * @param clazz the entity type
+         */
+        ListEntityReadQuery(Context ctx, ListReadQuery query, Class<E> clazz) {
             super(ctx);
-            this.read = read;
+            this.query = query;
             this.clazz = clazz;
         }
 
         @Override
         protected ListEntityReadQuery<E> newQuery(Context newContext) {
-            return new ListReadQuery(newContext, read.data).asEntity(clazz);
+            return new ListReadQuery(newContext, query.data).asEntity(clazz);
         }
 
         @Override
         public ListEntityReadQuery<E> withDistinct() {
-            return read.withDistinct().asEntity(clazz);
+            return query.withDistinct().asEntity(clazz);
         }
         
         @Override
         public ListEntityReadQuery<E> withFetchSize(int fetchSize) {
-            return read.withFetchSize(fetchSize).asEntity(clazz);
+            return query.withFetchSize(fetchSize).asEntity(clazz);
         }
         
         @Override
         public ListEntityReadQuery<E> withAllowFiltering() {
-            return read.withAllowFiltering().asEntity(clazz);
+            return query.withAllowFiltering().asEntity(clazz);
         }
         
         @Override
         public ListEntityReadQuery<E> withLimit(int limit) {
-            return read.withLimit(limit).asEntity(clazz);
+            return query.withLimit(limit).asEntity(clazz);
         }
-
         
         @Override
         public EntityList<E> execute() {
             return getUninterruptibly(executeAsync());
         }
 
-        
         @Override
         public ListenableFuture<EntityList<E>> executeAsync() {
-            ListenableFuture<RecordList> future = read.executeAsync();
+            ListenableFuture<RecordList> future = query.executeAsync();
             
             Function<RecordList, EntityList<E>> mapEntity = new Function<RecordList, EntityList<E>>() {
                 @Override
@@ -289,7 +291,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          private final Iterator<Row> iterator;
          private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
          
-         public RecordListImpl(Context ctx, ResultSet rs) {
+         RecordListImpl(Context ctx, ResultSet rs) {
              this.ctx = ctx;
              this.rs = rs;
              this.iterator = rs.iterator();
@@ -310,7 +312,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              return rs.wasApplied();
          }
          
-         
          @Override
          public Iterator<Record> iterator() {
              
@@ -328,7 +329,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              };
          }
          
-         
          @Override
          public void subscribe(Subscriber<? super Record> subscriber) {
              synchronized (subscriptionRef) {
@@ -341,7 +341,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  }
              }
          }
-         
          
          private final class DatabaseSubscription implements Subscription {
              private final Subscriber<? super Record> subscriber;
@@ -427,8 +426,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         private final RecordList recordList;
         private final Class<F> clazz;
     
-        
-        public EntityListImpl(Context ctx, RecordList recordList, Class<F> clazz) {
+        EntityListImpl(Context ctx, RecordList recordList, Class<F> clazz) {
             this.ctx = ctx;
             this.recordList = recordList;
             this.clazz = clazz;
@@ -509,7 +507,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
     }
     
-
     
     private static final class CountReadQueryData {
         final ImmutableSet<Clause> whereClauses;

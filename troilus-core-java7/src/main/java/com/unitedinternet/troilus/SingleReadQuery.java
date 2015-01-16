@@ -45,14 +45,20 @@ import com.unitedinternet.troilus.minimal.Record;
 import com.unitedinternet.troilus.minimal.interceptor.SingleReadQueryPostInterceptor;
 
 
-
+/**
+ * Read query implementation
+ *
+ */
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record> {
     
     private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
     private final SingleReadQueryData data;
     
-    
-    public SingleReadQuery(Context ctx, SingleReadQueryData data) {
+    /**
+     * @param ctx   the context 
+     * @param data  the data
+     */
+    SingleReadQuery(Context ctx, SingleReadQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -65,18 +71,21 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleReadQuery all() {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
+        return new SingleReadQuery(getContext(), 
+                                   data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
     
    
     @Override
     public SingleReadQuery column(String name) {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+        return new SingleReadQuery(getContext(), 
+                                   data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return new SingleReadQuery(getContext(), data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+        return new SingleReadQuery(getContext(), 
+                                   data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
@@ -93,7 +102,6 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return read;
     }
 
-    
     @Override
     public SingleReadQuery column(Name<?> name) {
         return column(name.getName());
@@ -104,7 +112,6 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return column(name.getName());
     }
     
-    
     @Override
     public SingleReadQuery columns(Name<?>... names) {
         List<String> ns = Lists.newArrayList();
@@ -114,31 +121,15 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return columns(ImmutableList.copyOf(ns));
     }
     
-    
     @Override
     public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
         return new SingleEntityReadQuery<E>(getContext(), this, objectClass);
     }
     
-
-    
-    
-    private SingleReadQueryData getPreprocessedData(Context ctx) {
-        SingleReadQueryData queryData = data;
-        for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreSingleRead(queryData);
-        }
-        
-        return queryData;
-    }
-    
-    
-    
     @Override
     public Record execute() {
         return getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<Record> executeAsync() {
@@ -193,7 +184,18 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         return result;
     }
+
     
+    
+    private SingleReadQueryData getPreprocessedData(Context ctx) {
+        SingleReadQueryData queryData = data;
+        for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryPreInterceptor.class)) {
+            queryData = interceptor.onPreSingleRead(queryData);
+        }
+        
+        return queryData;
+    }
+
     
     private Record paranoiaCheck(Record record) {
         
@@ -212,19 +214,29 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     
     
+    /**
+     * Entity read query 
+     * @param <E> the entity type
+     */
     static class SingleEntityReadQuery<E> extends AbstractQuery<SingleEntityReadQuery<E>> implements SingleRead<E> {
         private final Class<E> clazz;
-        private final SingleReadQuery read;
+        private final SingleReadQuery query;
         
-        public SingleEntityReadQuery(Context ctx, SingleReadQuery read, Class<E> clazz) {
+        
+        /**
+         * @param ctx    the context
+         * @param query  the underlying query  
+         * @param clazz  the entity type
+         */
+        SingleEntityReadQuery(Context ctx, SingleReadQuery query, Class<E> clazz) {
             super(ctx);
-            this.read = read;
+            this.query = query;
             this.clazz = clazz;
         }
         
         @Override
         protected SingleEntityReadQuery<E> newQuery(Context newContext) {
-            return new SingleReadQuery(newContext, read.data).<E>asEntity(clazz); 
+            return new SingleReadQuery(newContext, query.data).<E>asEntity(clazz); 
         }
         
         @Override
@@ -234,7 +246,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         @Override
         public ListenableFuture<E> executeAsync() {
-            ListenableFuture<Record> future = read.executeAsync();
+            ListenableFuture<Record> future = query.executeAsync();
             
             Function<Record, E> mapEntity = new Function<Record, E>() {
                 @Override

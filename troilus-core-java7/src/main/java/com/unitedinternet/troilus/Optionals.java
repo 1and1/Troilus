@@ -27,6 +27,10 @@ import com.google.common.collect.Maps;
 
 
 
+/**
+ * Optional utility class
+ *
+ */
 class Optionals {
 
     private static final Class<?> JAVA_OPTIONAL_CLASS;
@@ -72,6 +76,10 @@ class Optionals {
         return (obj == null) ? false  : (Optional.class.isAssignableFrom(obj.getClass()));
     }
 
+    /**
+     * @param obj  the object (could also be an optional)
+     * @return the object wrapped by guava optional
+     */
     @SuppressWarnings("unchecked")
     public static <T> Optional<T> toGuavaOptional(T obj) {
         if (obj == null) {
@@ -90,6 +98,10 @@ class Optionals {
     }
  
 
+    /**
+     * @param map   the map (could include optional values)
+     * @return the map which optional wrapped values
+     */
     public static ImmutableMap<String, Optional<Object>> toGuavaOptional(ImmutableMap<String, Object> map) {
         Map<String, Optional<Object>> result = Maps.newHashMap();
         
