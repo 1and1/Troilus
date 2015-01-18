@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,14 +308,14 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value) {
-        return readListWithKey(name.getName(), ImmutableList.of((Object) value));
+        return readListWithKey(name.getName(), (Object) value);
     }
 
     @Override
     public <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                Name<E> composedKeyNamePart2, E composedKeyValuePart2) {
-        return readListWithKey(composedKeyNamePart1.getName(), ImmutableList.of((Object) composedKeyValuePart1),
-                               composedKeyNamePart2.getName(), ImmutableList.of((Object) composedKeyValuePart2));
+        return readListWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                               composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
     }    
     
     @Override

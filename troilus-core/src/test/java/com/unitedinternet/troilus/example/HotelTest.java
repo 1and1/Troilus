@@ -73,21 +73,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        
-        try {
-            hotelsDao.writeWithKey("id", "BUP932432")
-                     .value(NAME, null)
-                     .value(ROOM_IDS, ImmutableSet.of("1", "2", "3", "4", "5"))
-                     .value(CLASSIFICATION, ClassifierEnum.FOUR)
-                     .value(ADDRESS, new Address("Andrássy út", "Budapest", "1061"))
-                     .ifNotExits()
-                     .execute();
-            Assert.fail("ConstraintException exprected");
-        } catch (ConstraintException exprected) { }
-        
-        
-        
-        
+      
         
         hotelsDao.writeWithKey("id", "BUP932432")
                  .value("name", "City Budapest")

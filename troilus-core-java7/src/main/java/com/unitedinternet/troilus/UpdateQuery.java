@@ -95,7 +95,6 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public <T> UpdateQuery value(Name<T> name, T value) {
-        name.vaildate(value);
         return value(name.getName(), name.convertWrite(value));
     }
     

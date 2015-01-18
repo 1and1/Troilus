@@ -86,7 +86,6 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     
     @Override
     public <T> Write value(Name<T> name, T value) {
-        name.vaildate(value);
         return new UpdateQueryAdapter(getContext(), query.value(name.getName(), name.convertWrite(value)));
     }
     
