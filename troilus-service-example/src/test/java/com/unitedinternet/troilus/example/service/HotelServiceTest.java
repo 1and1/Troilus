@@ -1,7 +1,6 @@
 package com.unitedinternet.troilus.example.service;
 
 import java.io.File;
-
 import java.util.Optional;
 
 import javax.ws.rs.client.Client;
@@ -16,6 +15,13 @@ import javax.ws.rs.client.Client;
 
 
 
+
+
+import net.oneandone.troilus.Dao;
+import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.example.service.Hotel;
+import net.oneandone.troilus.example.service.HotelRepresentation;
+
 import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.Assert;
@@ -23,10 +29,6 @@ import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.Dao;
-import com.unitedinternet.troilus.DaoImpl;
-import com.unitedinternet.troilus.example.service.Hotel;
-import com.unitedinternet.troilus.example.service.HotelRepresentation;
 
 public class HotelServiceTest extends AbstractCassandraBasedTest {
     
