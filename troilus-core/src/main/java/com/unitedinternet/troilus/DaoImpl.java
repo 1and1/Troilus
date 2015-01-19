@@ -125,6 +125,11 @@ public class DaoImpl implements Dao {
     
     
     @Override
+    public Dao withConstraints(Constraints constraints) {
+        return withInterceptor(constraints);
+    }
+    
+    @Override
     public Insertion writeEntity(Object entity) {
         return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl())).entity(entity);
     }

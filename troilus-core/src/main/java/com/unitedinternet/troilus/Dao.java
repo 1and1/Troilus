@@ -46,6 +46,9 @@ public interface Dao {
         
     Dao withInterceptor(QueryInterceptor queryInterceptor);
     
+    Dao withConstraints(Constraints constraints);
+    
+    
     
     public interface Query<T> {
 
