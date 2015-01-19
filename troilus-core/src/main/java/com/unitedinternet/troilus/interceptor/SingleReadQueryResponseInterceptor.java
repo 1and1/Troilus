@@ -30,10 +30,10 @@ import com.unitedinternet.troilus.Record;
 public interface SingleReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
-     * @param data      the request data
+     * @param queryData the request data
      * @param record    the requested record
      * @return the (modified) request record
      */
-    Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> record);
+    Optional<Record> onSingleReadResponse(SingleReadQueryData queryData, Optional<Record> record);
 }
  

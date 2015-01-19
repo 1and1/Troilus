@@ -1,6 +1,7 @@
 package com.unitedinternet.troilus.example;
 
 import com.unitedinternet.troilus.Schema;
+import com.unitedinternet.troilus.referentialintegrity.Constraints;
 
 
 
@@ -16,4 +17,7 @@ public interface HotelsTable  {
     
     
     public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/hotels.ddl");
+    
+    public static Constraints CONSTRAINTS = Constraints.newConstraints()
+                                                       .withNotNullColumn(NAME);
 }

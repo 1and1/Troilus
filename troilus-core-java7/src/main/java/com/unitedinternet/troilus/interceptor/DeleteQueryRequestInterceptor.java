@@ -31,9 +31,9 @@ package com.unitedinternet.troilus.interceptor;
 public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param data   the request data
+     * @param queryData   the request data
      * @return the (modified) request data
      */
-    DeleteQueryData onDeleteRequest(DeleteQueryData data);
+    DeleteQueryData onDeleteRequest(DeleteQueryData queryData);
 }
  

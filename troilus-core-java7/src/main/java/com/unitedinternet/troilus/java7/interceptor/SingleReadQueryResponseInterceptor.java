@@ -28,10 +28,10 @@ import com.unitedinternet.troilus.java7.Record;
 public interface SingleReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
-     * @param data     the request data
-     * @param record   the requested record 
+     * @param queryData     the request data
+     * @param record        the requested record 
      * @return the (modified) requested record
      */
-    Record onSingleReadResponse(SingleReadQueryData data, Record record);
+    Record onSingleReadResponse(SingleReadQueryData queryData, Record record);
 }
  

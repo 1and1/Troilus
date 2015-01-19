@@ -28,8 +28,8 @@ public interface WriteQueryRequestInterceptor extends QueryInterceptor {
     
     
     /**
-     * @param data the data to write 
+     * @param queryData the data to write 
      * @return the (modified) data to write
      */
-    WriteQueryData onWriteRequest(WriteQueryData data);
+    WriteQueryData onWriteRequest(WriteQueryData queryData);
 }

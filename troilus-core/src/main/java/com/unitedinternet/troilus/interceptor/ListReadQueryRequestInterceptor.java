@@ -28,9 +28,9 @@ public interface ListReadQueryRequestInterceptor extends QueryInterceptor {
     
     
     /**
-     * @param data   the request data
+     * @param queryData   the request data
      * @return  the (modified) request data
      */
-    ListReadQueryData onListReadRequest(ListReadQueryData data);
+    ListReadQueryData onListReadRequest(ListReadQueryData queryData);
 }
  

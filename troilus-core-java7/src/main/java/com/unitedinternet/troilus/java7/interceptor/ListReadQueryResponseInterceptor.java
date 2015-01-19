@@ -29,10 +29,10 @@ import com.unitedinternet.troilus.java7.Dao.RecordList;
 public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
-     * @param data        the request data
+     * @param queryData   the request data
      * @param recordList  the requested record list
      * @return the (modified) requested record list
      */
-    RecordList onListReadResponse(ListReadQueryData data, RecordList recordList);
+    RecordList onListReadResponse(ListReadQueryData queryData, RecordList recordList);
 }
  

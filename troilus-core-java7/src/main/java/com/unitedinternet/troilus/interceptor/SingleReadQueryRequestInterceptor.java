@@ -29,9 +29,9 @@ package com.unitedinternet.troilus.interceptor;
 public interface SingleReadQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param data the request data
+     * @param queryData the request data
      * @return the (modified) request data
      */
-    SingleReadQueryData onSingleReadRequest(SingleReadQueryData data);
+    SingleReadQueryData onSingleReadRequest(SingleReadQueryData queryData);
 }
  
