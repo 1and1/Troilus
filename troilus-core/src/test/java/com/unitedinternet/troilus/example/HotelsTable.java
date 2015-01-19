@@ -1,7 +1,7 @@
 package com.unitedinternet.troilus.example;
 
+import com.unitedinternet.troilus.Constraints;
 import com.unitedinternet.troilus.Schema;
-import com.unitedinternet.troilus.referentialintegrity.Constraints;
 
 
 

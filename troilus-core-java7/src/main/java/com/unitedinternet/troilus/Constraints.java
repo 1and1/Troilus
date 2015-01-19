@@ -1,11 +1,10 @@
-package com.unitedinternet.troilus.referentialintegrity;
+package com.unitedinternet.troilus;
 
 
 
 
 import java.util.Set;
 
-import com.unitedinternet.troilus.Name;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 import com.google.common.base.Joiner;
