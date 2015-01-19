@@ -33,7 +33,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         ////////////////
         // inserts
         userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
-               .ifNotExits()
+               .ifNotExists()
                .execute();
 
         

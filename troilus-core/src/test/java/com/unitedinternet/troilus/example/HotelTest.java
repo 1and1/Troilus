@@ -53,7 +53,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
                                         new Address("Erzsébet körút 43", "Budapest", "1073"))
                                        )
-                 .ifNotExits()
+                 .ifNotExists()
                  .withConsistency(ConsistencyLevel.QUORUM)      
                  .withSerialConsistency(ConsistencyLevel.SERIAL)
                  .withWritetime(System.currentTimeMillis() * 10000)
@@ -81,7 +81,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .value("room_ids", ImmutableSet.of("1", "2", "3", "4", "5"))
                  .value("classification", ClassifierEnum.FOUR)
                  .value("address", new Address("Andrássy út", "Budapest", "1061"))
-                 .ifNotExits()
+                 .ifNotExists()
                  .execute();
 
        
@@ -314,7 +314,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .value(ROOM_IDS, ImmutableSet.of("7", "8", "9"))
                  .value(CLASSIFICATION, ClassifierEnum.FOUR)
                  .value(ADDRESS, new Address("Sasadi út 123", "Budapest", "1112"))
-                 .ifNotExits()
+                 .ifNotExists()
                  .execute();
      
         

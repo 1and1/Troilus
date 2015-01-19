@@ -71,8 +71,8 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     }
 
     @Override
-    public Insertion ifNotExits() {
-        return new InsertQueryAdapter(getContext(), query.ifNotExits());
+    public Insertion ifNotExists() {
+        return new InsertQueryAdapter(getContext(), query.ifNotExists());
     }
 
     public Insertion entity(Object entity) {

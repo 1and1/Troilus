@@ -44,7 +44,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
         userDao.writeWithKey(UsersTable.USER_ID, "2334233")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
-               .ifNotExits()
+               .ifNotExists()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
                .execute();
@@ -53,7 +53,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
         userDao.writeWithKey(UsersTable.USER_ID, "935434")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
-               .ifNotExits()
+               .ifNotExists()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
                .execute();
@@ -63,7 +63,7 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
         userDao.writeWithKey(UsersTable.USER_ID, "2323")
                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                .value(UsersTable.IS_CUSTOMER, true)
-               .ifNotExits()
+               .ifNotExists()
                .withTtl(Duration.ofMinutes(2))
                .withWritetime(Instant.now().toEpochMilli() * 1000)
                .execute();

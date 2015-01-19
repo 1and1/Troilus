@@ -68,7 +68,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         ExecutionInfo info =  usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
                                       .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("24234244"))
                                       .value(UsersTable.IS_CUSTOMER, true)
-                                      .ifNotExits()
+                                      .ifNotExists()
                                       .withTtl(Duration.ofMinutes(2))
                                       .withWritetime(Instant.now().toEpochMilli() * 1000)
                                       .withEnableTracking()
@@ -84,7 +84,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                 .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                                 .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                                .ifNotExits()
+                                .ifNotExists()
                                 .withEnableTracking()
                                 .execute();
 
@@ -95,7 +95,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                     .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                     .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                    .ifNotExits()       
+                    .ifNotExists()       
                     .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
@@ -599,7 +599,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTableFields.PICTURE, new byte[] { 4, 5, 5})
                 .value(UsersTableFields.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                 .value(UsersTableFields.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                .ifNotExits()
+                .ifNotExists()
                 .withEnableTracking()
                 .execute();
 

@@ -69,7 +69,7 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     }
     
     @Override
-    public InsertQuery ifNotExits() {
+    public InsertQuery ifNotExists() {
         return new InsertQuery(getContext(), data.ifNotExists(true));
     }
   

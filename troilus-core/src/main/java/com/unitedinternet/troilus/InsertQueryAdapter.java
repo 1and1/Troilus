@@ -55,8 +55,8 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     }
   
     @Override
-    public Mutation<?> ifNotExits() {
-        return new InsertQueryAdapter(getContext(), query.ifNotExits());
+    public Mutation<?> ifNotExists() {
+        return new InsertQueryAdapter(getContext(), query.ifNotExists());
     }
     
     @Override

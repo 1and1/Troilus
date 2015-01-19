@@ -44,19 +44,19 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         
         deviceDaoWithConstraints.writeWithKey("device_id", "834343")
                                 .value(DeviceTable.TYPE, 3)
-                                .ifNotExits()
+                                .ifNotExists()
                                 .execute();
         
         
         deviceDaoWithConstraints.writeWithKey("device_id", "2333243")
                                 .value(DeviceTable.TYPE, 1)
-                                .ifNotExits()
+                                .ifNotExists()
                                 .execute();
 
         
         deviceDaoWithConstraints.writeWithKey("device_id", "934453434")
                                 .value(DeviceTable.TYPE, 3)
-                                .ifNotExits()
+                                .ifNotExists()
                                 .execute();
         
         
@@ -65,7 +65,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089645454455")
                        .value(PhonenumbersTable.DEVICE_ID, "834343")
                        .value(PhonenumbersTable.ACTIVE, true)
-                       .ifNotExits()
+                       .ifNotExists()
                        .execute();
 
         deviceDaoWithConstraints.writeWithKey("device_id", "834343")
@@ -79,7 +79,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         phoneNumbersDao.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
                        .value(PhonenumbersTable.DEVICE_ID, "2333243")
                        .value(PhonenumbersTable.ACTIVE, true)
-                       .ifNotExits()
+                       .ifNotExists()
                        .execute();
         
         
@@ -105,7 +105,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         try {
             phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "08834334")
                                           .value(PhonenumbersTable.ACTIVE, true)
-                                          .ifNotExits()
+                                          .ifNotExists()
                                           .execute();
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) {
@@ -118,7 +118,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "08834334")
                                           .value(PhonenumbersTable.DEVICE_ID, "doesNotExits")
                                           .value(PhonenumbersTable.ACTIVE, true)
-                                          .ifNotExits()
+                                          .ifNotExists()
                                           .execute();
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) {

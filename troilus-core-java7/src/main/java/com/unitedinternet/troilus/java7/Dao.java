@@ -176,7 +176,7 @@ public interface Dao {
     
     public static interface Insertion extends BatchableMutation<Insertion> {
 
-        Mutation<?> ifNotExits();
+        Mutation<?> ifNotExists();
     }
   
     public static interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
@@ -188,7 +188,7 @@ public interface Dao {
     
     public static interface Write extends UpdateWithValues<Write> {
         
-        Mutation<?> ifNotExits();
+        Mutation<?> ifNotExists();
     }
 
     

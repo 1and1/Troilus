@@ -151,14 +151,14 @@ hotelsDao.deleteWithKey("id", "BUP932432")
         
 
 ### lightweight transactions 
-transaction-safe, ***unique insert*** with `ifNotExits()`(performs the insertion only if the row does not already exist)        
+transaction-safe, ***unique insert*** with `ifNotExists()`(performs the insertion only if the row does not already exist)        
 ``` java
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
          .value("classification", ClassifierEnum.FOUR)
          .withWritetime(microsSinceEpoch)
-         .ifNotExits()
+         .ifNotExists()
          .execute();
   ```  
         
@@ -569,7 +569,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     public WriteQueryData onPreWrite(WriteQueryData data) {
         
         // unique insert?
-        if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
+        if (data.getIfNotExists().isPresent() && data.getIfNotExists().get()) {
             ConstraintException.throwIf(!data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
             
             String deviceId = (String) data.getValuesToMutate().get("device_id").get();
@@ -627,7 +627,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
 phoneNumbersDao.writeWithKey("number", "0089123234234")
                .value("device_id", "2333243")
                .value("active", true)
-               .ifNotExits()
+               .ifNotExists()
                .execute();
         
 
@@ -635,7 +635,7 @@ phoneNumbersDao.writeWithKey("number", "0089123234234")
 try {
    phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
 				           		 .value("active", true)
-								 .ifNotExits()
+								 .ifNotExists()
 						         .execute();
     Assert.fail("ConstraintException expected");
 } catch (ConstraintException expected) { }

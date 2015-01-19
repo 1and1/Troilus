@@ -167,7 +167,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     }
 
     @Override
-    public InsertQuery ifNotExits() {
+    public InsertQuery ifNotExists() {
         return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(data.getValuesToMutate(), Optionals.toGuavaOptional(data.getKeys())))
                                                                      .ifNotExists(true));
     }
