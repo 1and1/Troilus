@@ -38,11 +38,11 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import com.unitedinternet.troilus.java7.Record;
 import com.unitedinternet.troilus.java7.Dao.SingleRead;
 import com.unitedinternet.troilus.java7.Dao.SingleReadWithUnit;
-import com.unitedinternet.troilus.java7.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.SingleReadQueryResponseInterceptor;
 
 
 /**
@@ -163,14 +163,14 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
        
         // perform interceptors if present
-        final ImmutableList<SingleReadQueryPostInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryPostInterceptor.class);
+        final ImmutableList<SingleReadQueryResponseInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryResponseInterceptor.class);
         if (!interceptors.isEmpty()) {
             
             Function<Record, Record> processInterceptors = new Function<Record, Record>() {
                 @Override
                 public Record apply(Record record) {
-                    for (SingleReadQueryPostInterceptor interceptor : interceptors) {
-                        record = interceptor.onPostSingleRead(preprocessedData, record);
+                    for (SingleReadQueryResponseInterceptor interceptor : interceptors) {
+                        record = interceptor.onSingleReadResponse(preprocessedData, record);
                     }
                     
                     return record;
@@ -188,8 +188,8 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     private SingleReadQueryData getPreprocessedData(Context ctx) {
         SingleReadQueryData queryData = data;
-        for (SingleReadQueryPreInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreSingleRead(queryData);
+        for (SingleReadQueryRequestInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class)) {
+            queryData = interceptor.onSingleReadRequest(queryData);
         }
         
         return queryData;

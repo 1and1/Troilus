@@ -18,6 +18,7 @@ package com.unitedinternet.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
@@ -249,8 +250,13 @@ class ListReadQueryDataImpl implements ListReadQueryData {
             List<Object> values = Lists.newArrayList();
 
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
-                select.where(in(entry.getKey(), bindMarker()));
-                values.add(ctx.toStatementValues(entry.getKey(), entry.getValue()));
+                if (entry.getValue().size() == 1) {
+                    select.where(eq(entry.getKey(), bindMarker()));
+                    values.add(ctx.toStatementValue(entry.getKey(), entry.getValue().get(0)));
+                } else {
+                    select.where(in(entry.getKey(), bindMarker()));
+                    values.add(ctx.toStatementValues(entry.getKey(), entry.getValue()));
+                }
                 
             }
 

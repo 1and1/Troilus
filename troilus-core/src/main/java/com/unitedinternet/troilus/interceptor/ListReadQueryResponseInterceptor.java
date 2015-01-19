@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.unitedinternet.troilus.interceptor;
 
+import com.unitedinternet.troilus.Dao.RecordList;
+
 
 
 
@@ -22,14 +24,15 @@ package com.unitedinternet.troilus.interceptor;
 
 
 /**
- * Interceptor which will be executed before performing a write (update, or insert) query 
+ * Interceptor which will be executed after performing a list read query   
  */ 
-public interface WriteQueryPreInterceptor extends QueryInterceptor {
-    
+public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
-     * @param data the data to write 
-     * @return the (modified) data to write
+     * @param data         the request data
+     * @param recordList   the response
+     * @return the (modified) response
      */
-    WriteQueryData onPreWrite(WriteQueryData data);
+    RecordList onListReadResponse(ListReadQueryData data, RecordList recordList);
 }
+ 

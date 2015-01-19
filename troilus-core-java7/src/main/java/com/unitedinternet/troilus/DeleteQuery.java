@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.interceptor.DeleteQueryData;
-import com.unitedinternet.troilus.interceptor.DeleteQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.DeleteQueryRequestInterceptor;
 import com.unitedinternet.troilus.java7.Dao.Batchable;
 import com.unitedinternet.troilus.java7.Dao.Deletion;
 
@@ -103,8 +103,8 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     
     private Statement getStatement() {
         DeleteQueryData queryData = data;
-        for (DeleteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreDelete(queryData); 
+        for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class)) {
+            queryData = interceptor.onDeleteRequest(queryData); 
         }
 
         return DeleteQueryDataImpl.toStatement(queryData, getContext());

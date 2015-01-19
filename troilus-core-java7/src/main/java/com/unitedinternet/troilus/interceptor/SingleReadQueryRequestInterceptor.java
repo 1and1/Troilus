@@ -21,16 +21,17 @@ package com.unitedinternet.troilus.interceptor;
 
 
 
+
+
 /**
- * Interceptor which will be executed before performing a list read query   
- */ 
-public interface ListReadQueryPreInterceptor extends QueryInterceptor {
-    
+ * Interceptor which will be executed before performing a read query  
+ */  
+public interface SingleReadQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param data   the request data
-     * @return  the (modified) request data
+     * @param data the request data
+     * @return the (modified) request data
      */
-    ListReadQueryData onPreListRead(ListReadQueryData data);
+    SingleReadQueryData onSingleReadRequest(SingleReadQueryData data);
 }
  

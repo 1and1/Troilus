@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
-
-import com.unitedinternet.troilus.Dao.RecordList;
+package com.unitedinternet.troilus.java7.interceptor;
 
 
 
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
+ 
 
 
 
 /**
- * Interceptor which will be executed after performing a list read query   
- */ 
-public interface ListReadQueryPostInterceptor extends QueryInterceptor {
+ * Interceptor which will be executed before performing a list read query  
+ */  
+public interface ListReadQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param data         the request data
-     * @param recordList   the response
-     * @return the (modified) response
+     * @param data  the request data
+     * @return the (modified) request data
      */
-    RecordList onPostListRead(ListReadQueryData data, RecordList recordList);
+    ListReadQueryData onListReadRequest(ListReadQueryData data);
 }
  

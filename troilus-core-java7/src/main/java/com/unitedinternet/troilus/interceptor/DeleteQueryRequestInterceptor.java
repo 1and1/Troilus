@@ -28,12 +28,12 @@ package com.unitedinternet.troilus.interceptor;
 /**
  * Interceptor which will be executed before performing a delete query  
  */   
-public interface DeleteQueryPreInterceptor extends QueryInterceptor {
+public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
     
     /**
      * @param data   the request data
      * @return the (modified) request data
      */
-    DeleteQueryData onPreDelete(DeleteQueryData data);
+    DeleteQueryData onDeleteRequest(DeleteQueryData data);
 }
  

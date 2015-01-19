@@ -37,7 +37,7 @@ import com.unitedinternet.troilus.java7.Dao.CounterMutation;
 import com.unitedinternet.troilus.java7.Dao.UpdateWithValuesAndCounter;
 import com.unitedinternet.troilus.java7.Dao.WriteWithCounter;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
 
  
@@ -225,8 +225,8 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
 
     private Statement getStatement() {
         WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreWrite(queryData);
+        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class)) {
+            queryData = interceptor.onWriteRequest(queryData);
         }
         
         return WriteQueryDataImpl.toStatement(queryData, getContext());

@@ -47,8 +47,8 @@ import com.unitedinternet.troilus.java7.Dao.ListRead;
 import com.unitedinternet.troilus.java7.Dao.ListReadWithUnit;
 import com.unitedinternet.troilus.java7.Dao.RecordList;
 import com.unitedinternet.troilus.java7.interceptor.ListReadQueryData;
-import com.unitedinternet.troilus.java7.interceptor.ListReadQueryPostInterceptor;
-import com.unitedinternet.troilus.java7.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryResponseInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.ListReadQueryRequestInterceptor;
 
 
 
@@ -186,14 +186,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         
         // perform interceptors if present
-        final ImmutableList<ListReadQueryPostInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPostInterceptor.class);
+        final ImmutableList<ListReadQueryResponseInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(ListReadQueryResponseInterceptor.class);
         if (!interceptors.isEmpty()) {
             
             Function<RecordList, RecordList> processInterceptors = new Function<RecordList, RecordList>() {
                 @Override
                 public RecordList apply(RecordList recordList) {
-                    for (ListReadQueryPostInterceptor interceptor : interceptors) {
-                        recordList = interceptor.onPostListRead(preprocessedData, recordList);
+                    for (ListReadQueryResponseInterceptor interceptor : interceptors) {
+                        recordList = interceptor.onListReadResponse(preprocessedData, recordList);
                     }
                     return recordList;
                 }
@@ -208,8 +208,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private ListReadQueryData getPreprocessedData() {
         ListReadQueryData queryData = data;
-        for (ListReadQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreListRead(queryData);
+        for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class)) {
+            queryData = interceptor.onListReadRequest(queryData);
         }
         
         return queryData;

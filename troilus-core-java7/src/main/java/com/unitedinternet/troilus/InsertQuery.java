@@ -28,7 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.unitedinternet.troilus.java7.Dao.Batchable;
 import com.unitedinternet.troilus.java7.Dao.Insertion;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor;
+import com.unitedinternet.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
 /**
  * insert query implementation
@@ -97,8 +97,8 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     
     private Statement getStatement() {
         WriteQueryData queryData = data;
-        for (WriteQueryPreInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryPreInterceptor.class)) {
-            queryData = interceptor.onPreWrite(queryData); 
+        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class)) {
+            queryData = interceptor.onWriteRequest(queryData); 
         }
         
         return WriteQueryDataImpl.toStatement(queryData, getContext());

@@ -22,18 +22,18 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import com.unitedinternet.troilus.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryRequestInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import com.google.common.collect.ImmutableSet;
 
 
 
 
-class PhonenumbersConstraints implements WriteQueryPreInterceptor, 
-                                         SingleReadQueryPreInterceptor,
-                                         SingleReadQueryPostInterceptor {
+class PhonenumbersConstraints implements WriteQueryRequestInterceptor, 
+                                         SingleReadQueryRequestInterceptor,
+                                         SingleReadQueryResponseInterceptor {
     
 
     private final Dao deviceDao;
@@ -47,7 +47,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     
     
     @Override
-    public WriteQueryData onPreWrite(WriteQueryData data) {
+    public WriteQueryData onWriteRequest(WriteQueryData data) {
         
         // unique insert?
         if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
@@ -67,7 +67,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
 
     
     @Override
-    public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
+    public SingleReadQueryData onSingleReadRequest(SingleReadQueryData data) {
         // force that device_id will be fetched 
         if (!data.getColumnsToFetch().isEmpty() && !data.getColumnsToFetch().containsKey("device_id")) {
             data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
@@ -78,7 +78,7 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     
     
     @Override
-    public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
+    public Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> optionalRecord) {
         String number = (String) data.getKey().get("number");
         
         if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {

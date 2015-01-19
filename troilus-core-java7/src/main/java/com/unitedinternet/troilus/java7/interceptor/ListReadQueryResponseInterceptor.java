@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.interceptor;
+package com.unitedinternet.troilus.java7.interceptor;
 
-import java.util.Optional;
 
-import com.unitedinternet.troilus.Record;
-
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
+import com.unitedinternet.troilus.java7.Dao.RecordList;
 
 
 
 
 
 /**
- * Interceptor which will be executed after performing a read query   
+ * Interceptor which will be executed after performing a list read query  
  */  
-public interface SingleReadQueryPostInterceptor extends QueryInterceptor {
+public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
-     * @param data      the request data
-     * @param record    the requested record
-     * @return the (modified) request record
+     * @param data        the request data
+     * @param recordList  the requested record list
+     * @return the (modified) requested record list
      */
-    Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> record);
+    RecordList onListReadResponse(ListReadQueryData data, RecordList recordList);
 }
  

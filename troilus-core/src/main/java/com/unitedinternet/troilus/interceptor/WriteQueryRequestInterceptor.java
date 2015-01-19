@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.unitedinternet.troilus.java7.interceptor;
+package com.unitedinternet.troilus.interceptor;
 
 
 
-import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 
- 
 
 
 
 /**
- * Interceptor which will be executed before performing a list read query  
- */  
-public interface ListReadQueryPreInterceptor extends QueryInterceptor {
+ * Interceptor which will be executed before performing a write (update, or insert) query 
+ */ 
+public interface WriteQueryRequestInterceptor extends QueryInterceptor {
+    
     
     /**
-     * @param data  the request data
-     * @return the (modified) request data
+     * @param data the data to write 
+     * @return the (modified) data to write
      */
-    ListReadQueryData onPreListRead(ListReadQueryData data);
+    WriteQueryData onWriteRequest(WriteQueryData data);
 }
- 

@@ -42,13 +42,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.unitedinternet.troilus.interceptor.ListReadQueryData;
-import com.unitedinternet.troilus.interceptor.ListReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryResponseInterceptor;
 import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import com.unitedinternet.troilus.interceptor.WriteQueryData;
-import com.unitedinternet.troilus.interceptor.WriteQueryPreInterceptor;
-import com.unitedinternet.troilus.interceptor.ListReadQueryPreInterceptor;
+import com.unitedinternet.troilus.interceptor.WriteQueryRequestInterceptor;
+import com.unitedinternet.troilus.interceptor.ListReadQueryRequestInterceptor;
 
  
 
@@ -104,20 +104,20 @@ public class DaoImpl implements Dao {
          
         Context context = ctx.withInterceptor(queryInterceptor);
         
-        if (ListReadQueryPreInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryPreInterceptorAdapter((ListReadQueryPreInterceptor) queryInterceptor));
+        if (ListReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryPreInterceptorAdapter((ListReadQueryRequestInterceptor) queryInterceptor));
         }
 
-        if (ListReadQueryPostInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryPostInterceptorAdapter((ListReadQueryPostInterceptor) queryInterceptor));
+        if (ListReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryPostInterceptorAdapter((ListReadQueryResponseInterceptor) queryInterceptor));
         } 
                 
-        if (SingleReadQueryPostInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new SingleReadQueryPostInterceptorAdapter((SingleReadQueryPostInterceptor) queryInterceptor));
+        if (SingleReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new SingleReadQueryPostInterceptorAdapter((SingleReadQueryResponseInterceptor) queryInterceptor));
         } 
         
-        if (WriteQueryPreInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new WriteQueryPreInterceptorAdapter((WriteQueryPreInterceptor) queryInterceptor));
+        if (WriteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new WriteQueryPreInterceptorAdapter((WriteQueryRequestInterceptor) queryInterceptor));
         } 
         
         return new DaoImpl(context);
@@ -847,17 +847,17 @@ public class DaoImpl implements Dao {
     
 
     
-    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryPreInterceptor {
+    private static final class ListReadQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryRequestInterceptor {
         
-        private ListReadQueryPreInterceptor interceptor;
+        private ListReadQueryRequestInterceptor interceptor;
         
-        public ListReadQueryPreInterceptorAdapter(ListReadQueryPreInterceptor interceptor) {
+        public ListReadQueryPreInterceptorAdapter(ListReadQueryRequestInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public com.unitedinternet.troilus.java7.interceptor.ListReadQueryData onPreListRead(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data) {
-            return ListReadQueryDataAdapter.convert(interceptor.onPreListRead(new ListReadQueryDataAdapter(data)));
+        public com.unitedinternet.troilus.java7.interceptor.ListReadQueryData onListReadRequest(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data) {
+            return ListReadQueryDataAdapter.convert(interceptor.onListReadRequest(new ListReadQueryDataAdapter(data)));
         }
         
         @Override
@@ -867,17 +867,17 @@ public class DaoImpl implements Dao {
     }
    
     
-    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryPostInterceptor {
+    private static final class ListReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.ListReadQueryResponseInterceptor {
         
-        private ListReadQueryPostInterceptor interceptor;
+        private ListReadQueryResponseInterceptor interceptor;
         
-        public ListReadQueryPostInterceptorAdapter(ListReadQueryPostInterceptor interceptor) {
+        public ListReadQueryPostInterceptorAdapter(ListReadQueryResponseInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public com.unitedinternet.troilus.java7.Dao.RecordList onPostListRead(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data, com.unitedinternet.troilus.java7.Dao.RecordList recordList) {
-            return RecordListAdapter.convert(interceptor.onPostListRead(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
+        public com.unitedinternet.troilus.java7.Dao.RecordList onListReadResponse(com.unitedinternet.troilus.java7.interceptor.ListReadQueryData data, com.unitedinternet.troilus.java7.Dao.RecordList recordList) {
+            return RecordListAdapter.convert(interceptor.onListReadResponse(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
         }
         
         @Override
@@ -887,17 +887,17 @@ public class DaoImpl implements Dao {
     }
     
 
-    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.SingleReadQueryPostInterceptor {
+    private static final class SingleReadQueryPostInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.SingleReadQueryResponseInterceptor {
         
-        private SingleReadQueryPostInterceptor interceptor;
+        private SingleReadQueryResponseInterceptor interceptor;
         
-        public SingleReadQueryPostInterceptorAdapter(SingleReadQueryPostInterceptor interceptor) {
+        public SingleReadQueryPostInterceptorAdapter(SingleReadQueryResponseInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public com.unitedinternet.troilus.java7.Record onPostSingleRead(SingleReadQueryData data, com.unitedinternet.troilus.java7.Record record) {
-            return RecordAdapter.convert(interceptor.onPostSingleRead(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))).orElse(null));
+        public com.unitedinternet.troilus.java7.Record onSingleReadResponse(SingleReadQueryData data, com.unitedinternet.troilus.java7.Record record) {
+            return RecordAdapter.convert(interceptor.onSingleReadResponse(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))).orElse(null));
         }
         
         @Override
@@ -908,17 +908,17 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.WriteQueryPreInterceptor {
+    private static final class WriteQueryPreInterceptorAdapter implements com.unitedinternet.troilus.java7.interceptor.WriteQueryRequestInterceptor {
          
-        private WriteQueryPreInterceptor interceptor;
+        private WriteQueryRequestInterceptor interceptor;
         
-        public WriteQueryPreInterceptorAdapter(WriteQueryPreInterceptor interceptor) {
+        public WriteQueryPreInterceptorAdapter(WriteQueryRequestInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public com.unitedinternet.troilus.java7.interceptor.WriteQueryData onPreWrite(com.unitedinternet.troilus.java7.interceptor.WriteQueryData data) {
-            return WriteQueryDataAdapter.convert(interceptor.onPreWrite(new WriteQueryDataAdapter(data)));
+        public com.unitedinternet.troilus.java7.interceptor.WriteQueryData onWriteRequest(com.unitedinternet.troilus.java7.interceptor.WriteQueryData data) {
+            return WriteQueryDataAdapter.convert(interceptor.onWriteRequest(new WriteQueryDataAdapter(data)));
         }
         
         @Override

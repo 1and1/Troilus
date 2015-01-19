@@ -14,7 +14,7 @@ import com.unitedinternet.troilus.Dao;
 import com.unitedinternet.troilus.DaoImpl;
 import com.unitedinternet.troilus.Record;
 import com.unitedinternet.troilus.interceptor.SingleReadQueryData;
-import com.unitedinternet.troilus.interceptor.SingleReadQueryPostInterceptor;
+import com.unitedinternet.troilus.interceptor.SingleReadQueryResponseInterceptor;
 
 
 
@@ -181,7 +181,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
 
     
 
-    private static final class DeviceConstraints implements SingleReadQueryPostInterceptor {
+    private static final class DeviceConstraints implements SingleReadQueryResponseInterceptor {
         private final Dao phoneNumbersDao;
                     
         public DeviceConstraints(Dao phoneNumbersDao) {
@@ -189,7 +189,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         }
         
         @Override
-        public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> record) {
+        public Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> record) {
             // check is related phone numbers points to this device
             return record;
         }
