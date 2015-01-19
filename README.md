@@ -121,22 +121,22 @@ hotelsDao.writeWithKey("id","BUP932432")
 ### removing values
 ``` java
 hotelsDao.writeWithKey("id","BUP932432")
-         .value(HotelsTable.DESCRIPTION, Optional.empty())  
+         .value("description", Optional.empty())  
          .execute();
 ```             
 
 or
 ``` java
 hotelsDao.writeWithKey("id","BUP932432")
-         .value(HotelsTable.DESCRIPTION, null)  
+         .value("description", null)  
          .execute();
 ```  
 
 
 ### value update based on where conditions
 ``` java
-hotelsDao.writeWhere(QueryBuilder.in(HotelsTable.ID, "BUP932432", "BUP233544", "BUP2433"))
-         .value(HotelsTable.CLASSIFICATION, ClassifierEnum.FOUR)
+hotelsDao.writeWhere(QueryBuilder.in("id", "BUP932432", "BUP233544", "BUP2433"))
+         .value("classification", ClassifierEnum.FOUR)
          .execute();
 ```               
                 
@@ -164,7 +164,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
         
 transaction-safe, ***conditional update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
-hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
+hotelsDao.writeWithKey("id", "BUP932432")
          .value("name" "Budapest City")
          .onlyIf(QueryBuilder.eq("name", "City Budapest"))
          .execute();
