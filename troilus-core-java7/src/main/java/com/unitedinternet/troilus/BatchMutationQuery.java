@@ -22,6 +22,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -49,12 +50,12 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
     }
     
     @Override
-    public BatchMutationQuery withLockedBatchType() {
+    public BatchMutationQuery withWriteAheadLog() {
         return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
     }
     
     @Override
-    public BatchMutationQuery withUnlockedBatchType() {
+    public BatchMutationQuery withoutWriteAheadLog() {
         return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
     }
 
@@ -68,6 +69,7 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         for (Batchable batchable : batchables) {
             batchable.addTo(batchStmt);
         }
+        
         return batchStmt;
     }
     

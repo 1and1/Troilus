@@ -295,7 +295,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         Batchable deletion = hotelsDao.deleteWithKey("id", "BUP45544");
         hotelsDao.deleteWithKey("id", "BUP14334")
                  .combinedWith(deletion)
-                 .withLockedBatchType()
+                 .withWriteAheadLog()
                  .execute();
         
 

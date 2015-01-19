@@ -161,9 +161,9 @@ public interface Dao {
 
         BatchMutation combinedWith(Batchable other);
 
-        Query<Result> withLockedBatchType();
+        Query<Result> withWriteAheadLog();
 
-        Query<Result> withUnlockedBatchType();
+        Query<Result> withoutWriteAheadLog();
     }
 
     

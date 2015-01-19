@@ -195,7 +195,7 @@ Batchable deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
 hotelsDao.deleteWithKey("id", "BUP14334")
          .combinedWith(deletion)
-         .withLockedBatchType()
+         .withWriteAheadLog()
          .execute();
 ```
 

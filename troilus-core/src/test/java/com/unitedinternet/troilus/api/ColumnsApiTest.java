@@ -185,7 +185,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("945453", "23432234"))
                 .combinedWith(insert1)
                 .combinedWith(insert2)
-                .withLockedBatchType()
+                .withWriteAheadLog()
                 .execute();
         
         
