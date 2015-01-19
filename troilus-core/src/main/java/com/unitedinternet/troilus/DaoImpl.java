@@ -220,7 +220,7 @@ public class DaoImpl implements Dao {
     public <T, E> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
                                          Name<E> keyName2, E keyValue2) {
         return deleteWithKey(keyName1.getName(), (Object) keyValue1,
-                             keyName2.getName(), (Object) keyName2);
+                             keyName2.getName(), (Object) keyValue2);
 
     }
     
@@ -229,8 +229,8 @@ public class DaoImpl implements Dao {
                                             Name<E> keyName2, E keyValue2, 
                                             Name<F> keyName3, F keyValue3) {
         return deleteWithKey(keyName1.getName(), (Object) keyValue1,
-                             keyName2.getName(), (Object) keyName2,
-                             keyName3.getName(), (Object) keyName3);
+                             keyName2.getName(), (Object) keyValue2,
+                             keyName3.getName(), (Object) keyValue3);
     }
     
     public Deletion deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
