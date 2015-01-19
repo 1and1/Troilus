@@ -2,6 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+
+	<parent>
+		<groupId>net.oneandone.maven.poms</groupId>
+		<artifactId>foss-parent</artifactId>
+		<version>1.5.1</version>
+	</parent>
+
 	<groupId>net.oneandone</groupId>
 	<artifactId>troilus-parent</artifactId>
 	<version>0-SNAPSHOT</version>
@@ -28,12 +36,12 @@
 			<artifactId>cassandra-driver-core</artifactId>
 			<version>2.1.4</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.reactivestreams</groupId>
 			<artifactId>reactive-streams</artifactId>
 			<version>1.0.0.M2</version>
-		</dependency> 
+		</dependency>
 
 		<!-- use the same log framework the underlying cassandra driver is using -->
 		<dependency>
