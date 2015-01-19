@@ -5,6 +5,7 @@ package com.unitedinternet.troilus;
 
 import java.util.Set;
 
+import com.unitedinternet.troilus.interceptor.QueryInterceptor;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryData;
 import com.unitedinternet.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 import com.google.common.base.Joiner;
@@ -14,7 +15,7 @@ import com.google.common.collect.Sets;
 
 
 
-public class Constraints implements WriteQueryRequestInterceptor {
+public class Constraints  {
     
     private final ImmutableSet<String> notNullColumns;
     
@@ -35,40 +36,51 @@ public class Constraints implements WriteQueryRequestInterceptor {
         return new Constraints(Immutables.merge(notNullColumns, columnName.getName()));
     }
 
-
     
-    @Override
-    public WriteQueryData onWriteRequest(WriteQueryData queryData) throws ConstraintException {
+    
+    
+    QueryInterceptor getInterceptor() {
+        return new ConstraintsInterceptor();
+    }
+    
+    private final class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
         
-        // NOT NULL column check for INSERT
-        if ((queryData.getIfNotExits() != null) && !queryData.getIfNotExits()) {
-            Set<String> missingColumns = Sets.newHashSet(notNullColumns);
+        @Override
+        public WriteQueryData onWriteRequest(WriteQueryData queryData) throws ConstraintException {
             
-            // notNull is key column
-            missingColumns.removeAll(queryData.getKeys().keySet()); 
-
-            // notNull is non-key column
-            for (String column : Sets.newHashSet(missingColumns)) {
+            // NOT NULL column check for INSERT
+            if ((queryData.getIfNotExits() != null) && !queryData.getIfNotExits()) {
+                Set<String> missingColumns = Sets.newHashSet(notNullColumns);
                 
-                if (queryData.getValuesToMutate().get(column).isPresent()) {
-                    missingColumns.remove(column);
+                // notNull is key column
+                missingColumns.removeAll(queryData.getKeys().keySet()); 
+    
+                // notNull is non-key column
+                for (String column : Sets.newHashSet(missingColumns)) {
+                    
+                    if (queryData.getValuesToMutate().get(column).isPresent()) {
+                        missingColumns.remove(column);
+                    }
+                }
+                
+                if (!missingColumns.isEmpty()) {
+                    throw new ConstraintException("NOT NULL column(s) " + Joiner.on(", ").join(missingColumns) + " has to be not set");
+                }
+                
+                
+            // NOT NULL column check for UPDATE
+            } else {
+                for (String notNullColumn : notNullColumns) {
+                    if (queryData.getValuesToMutate().containsKey(notNullColumn) && !queryData.getValuesToMutate().get(notNullColumn).isPresent()) {
+                        throw new ConstraintException("NOT NULL column " + notNullColumn + " can not be set with NULL");
+                    }
                 }
             }
             
-            if (!missingColumns.isEmpty()) {
-                throw new ConstraintException("NOT NULL column(s) " + Joiner.on(", ").join(missingColumns) + " has to be not set");
-            }
             
-        // NOT NULL column check for UPATE
-        } else {
-            for (String notNullColumn : notNullColumns) {
-                if (queryData.getValuesToMutate().containsKey(notNullColumn) && !queryData.getValuesToMutate().get(notNullColumn).isPresent()) {
-                    throw new ConstraintException("NOT NULL column " + notNullColumn + " can not be set with NULL");
-                }
-            }
+            
+            return queryData;
         }
-        
-        return queryData;
     }
 }
 

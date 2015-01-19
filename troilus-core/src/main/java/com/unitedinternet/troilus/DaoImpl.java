@@ -126,7 +126,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withConstraints(Constraints constraints) {
-        return withInterceptor(constraints);
+        return withInterceptor(constraints.getInterceptor());
     }
     
     @Override
