@@ -551,25 +551,26 @@ The interceptor below implements some constraints regarding the [phone_numbers](
 * A phone number will not be deleted, if the assigned device still exits
 * By accessing the table entries the back relation should be check with cl one 
 ``` java
-class PhonenumbersConstraints implements WriteQueryPreInterceptor, 
-                                         SingleReadQueryPreInterceptor,
-                                         SingleReadQueryPostInterceptor {
+class PhonenumbersConstraints implements WriteQueryRequestInterceptor, 
+                                         SingleReadQueryRequestInterceptor,
+                                         SingleReadQueryResponseInterceptor {
     
 
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
-        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
+       // this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
+        this.deviceDao = deviceDao;
     }
         
 
     
     
     @Override
-    public WriteQueryData onPreWrite(WriteQueryData data) {
+    public WriteQueryData onWriteRequest(WriteQueryData data) {
         
         // unique insert?
-        if (data.getIfNotExists().isPresent() && data.getIfNotExists().get()) {
+        if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
             ConstraintException.throwIf(!data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
             
             String deviceId = (String) data.getValuesToMutate().get("device_id").get();
@@ -586,9 +587,9 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
 
     
     @Override
-    public SingleReadQueryData onPreSingleRead(SingleReadQueryData data) {
+    public SingleReadQueryData onSingleReadRequest(SingleReadQueryData data) {
         // force that device_id will be fetched 
-        if (data.getColumnsToFetch().isPresent() && !data.getColumnsToFetch().get().containsKey("device_id")) {
+        if (!data.getColumnsToFetch().isEmpty() && !data.getColumnsToFetch().containsKey("device_id")) {
             data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
         }
         return data;
@@ -597,26 +598,18 @@ class PhonenumbersConstraints implements WriteQueryPreInterceptor,
     
     
     @Override
-    public Optional<Record> onPostSingleRead(SingleReadQueryData data, Optional<Record> optionalRecord) {
-        String number = (String) data.getKeyParts().get("number");
-        
-        if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
-            
-            String deviceId = optionalRecord.get().getString("device_id").get();
-            if (deviceId != null) {
-                deviceDao.readWithKey("device_id", deviceId)
-                         .column("phone_numbers")
-                         .withConsistency(ConsistencyLevel.ONE)
-                         .execute()
-                         .ifPresent(rec -> {
-                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                             ConstraintException.throwIf(!set.isPresent() || !set.get().contains(number), "reverse reference devices table -> phone_numbers table does not exit");
-                                          });
-            }
-            
-        }
-        
-        return optionalRecord;
+    public Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> optionalRecord) {
+        optionalRecord.ifPresent(record -> record.getString("device_id")
+                                                 .ifPresent(deviceId -> deviceDao.readWithKey("device_id", deviceId)
+                                                                                 .column("phone_numbers")
+                                                                                 .withConsistency(ConsistencyLevel.ONE)
+                                                                                 .execute()
+                                                                                 .ifPresent(rec -> {
+                                                                                     Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                                                                     ConstraintException.throwIf(!set.isPresent() || !set.get().contains(data.getKey().get("number")), "reverse reference devices table -> phone_numbers table does not exit");
+                                                                                  }))); 
+                
+        return optionalRecord;        
     }
 }
 ```
