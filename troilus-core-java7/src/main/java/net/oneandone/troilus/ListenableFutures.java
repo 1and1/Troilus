@@ -17,11 +17,16 @@ package net.oneandone.troilus;
 
 
 
-
-
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.Executor;
+
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 
  
@@ -68,5 +73,49 @@ class ListenableFutures {
             throw new RuntimeException(throwable);
         }
     }   
+    
+    
+    
+    public static <T, E> ListenableFuture<E> transform(ListenableFuture<T> future, Function<T, ListenableFuture<E>> mapperFunction, Executor executor) {
+        return new QueryFuture<>(future, mapperFunction, executor);
+    }
+    
+        
+    private static final class QueryFuture<T, E> extends AbstractFuture<E> implements Runnable {
+        private final ListenableFuture<T> future;
+        private final Function<T, ListenableFuture<E>> func;
+        
+        public QueryFuture(ListenableFuture<T> future, Function<T, ListenableFuture<E>> func, Executor executor) {
+            this.future = future;
+            this.func = func;
+            future.addListener(this, executor);
+        }
+        
+        public void run() {
+            
+            try {
+                final ListenableFuture<E> iFuture = func.apply(future.get());
+                
+                Runnable resultForwarder = new Runnable() {
+                    
+                    @Override
+                    public void run() {
+                        try {
+                            set(iFuture.get());
+                        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                            setException(ListenableFutures.unwrapIfNecessary(e));
+                        }
+                    }
+                };
+                iFuture.addListener(resultForwarder, MoreExecutors.directExecutor());
+                
+            } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                setException(ListenableFutures.unwrapIfNecessary(e));
+            }
+        };
+    }
+    
+ 
+    
 }
 

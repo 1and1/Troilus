@@ -170,7 +170,7 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+        return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
   
     @Override
@@ -225,7 +225,7 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
         
         @Override
         public CompletableFuture<Result> executeAsync() {
-            return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+            return CompletableFutures.toCompletableFuture(query.executeAsync());
         }
         
         @Override

@@ -20,6 +20,10 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+
+import com.google.common.util.concurrent.AbstractFuture;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -34,4 +38,64 @@ class CompletableFutures {
             throw ListenableFutures.unwrapIfNecessary(e);
         }
     }
+    
+    
+    public static <T> CompletableFuture<T> toCompletableFuture(ListenableFuture<T> future) {
+        return new ListenableToCompletableFutureAdapter<>(future);
+    }
+    
+    
+    /**
+     * Adapter which maps a ListenableFuture into a CompletableFuture  
+     */
+    private static class ListenableToCompletableFutureAdapter<T> extends CompletableFuture<T> {
+        
+        /**
+         * @param rsFuture the underlying ResultSetFuture
+         */
+        public ListenableToCompletableFutureAdapter(ListenableFuture<T> future) {
+            
+            Runnable resultHandler = () -> { 
+                try {
+                    complete(future.get());
+                    
+                } catch (ExecutionException ee) {
+                    completeExceptionally(ee.getCause());
+                    
+                } catch (InterruptedException | RuntimeException e) {
+                    completeExceptionally(e);
+                }
+            };
+            
+            future.addListener(resultHandler, ForkJoinPool.commonPool());
+        }
+    }   
+    
+    
+    
+    public static <T> ListenableFuture<T> toListenableFuture(CompletableFuture<T> future) {
+        return new CompletableToListenableFutureAdapter<>(future);
+    }
+    
+   
+    
+    /**
+     * Adapter which maps a CompletableFuture into a ListenableFuture  
+     */
+    private static class CompletableToListenableFutureAdapter<T> extends AbstractFuture<T> {
+        
+        /**
+         * @param rsFuture the underlying ResultSetFuture
+         */
+        public CompletableToListenableFutureAdapter(CompletableFuture<T> future) {
+            future.whenComplete((result, throwable) -> {
+                                                          if (throwable == null) {
+                                                              set(result);
+                                                          } else {
+                                                              setException(throwable);
+                                                          }
+                
+                                                       });
+        }
+    }   
 }

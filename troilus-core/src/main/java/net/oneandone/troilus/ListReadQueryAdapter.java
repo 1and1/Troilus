@@ -25,6 +25,9 @@ import java.util.concurrent.CompletableFuture;
 
 
 
+
+
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Count;
@@ -134,7 +137,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     
     @Override
     public CompletableFuture<RecordList> executeAsync() {
-        return new ListenableToCompletableFutureAdapter<>(query.executeAsync())
+        return CompletableFutures.toCompletableFuture(query.executeAsync())
                             .thenApply(recordList -> new DaoImpl.RecordListAdapter(recordList));
     }        
     
@@ -190,7 +193,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
 
         @Override
         public CompletableFuture<EntityList<E>> executeAsync() {
-            return new ListenableToCompletableFutureAdapter<>(query.executeAsync())
+            return CompletableFutures.toCompletableFuture(query.executeAsync())
                             .thenApply(entityList -> new DaoImpl.EntityListAdapter<>(entityList));
         }
     }
@@ -248,7 +251,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
 
         @Override
         public CompletableFuture<Count> executeAsync() {
-            return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+            return CompletableFutures.toCompletableFuture(query.executeAsync());
         }        
     }  
 }

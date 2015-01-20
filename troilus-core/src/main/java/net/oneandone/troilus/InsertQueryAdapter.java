@@ -82,7 +82,7 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+        return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
     
     @Override

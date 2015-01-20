@@ -18,7 +18,6 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
-
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -89,7 +88,7 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+        return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
     
     @Override

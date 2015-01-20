@@ -67,7 +67,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     
     @Override
     public CompletableFuture<Result> executeAsync() {
-        return new ListenableToCompletableFutureAdapter<>(query.executeAsync());
+        return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
     
 

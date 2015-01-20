@@ -19,17 +19,14 @@ package net.oneandone.troilus;
 
 
 
-import java.util.concurrent.ExecutionException;
-
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
-
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -89,43 +86,17 @@ abstract class AbstractQuery<Q> {
     
     
     protected ListenableFuture<ResultSet> performAsync(ListenableFuture<Statement> statementFuture) {
-        return new QueryFuture(statementFuture);
-    }
-    
         
-    private final class QueryFuture extends AbstractFuture<ResultSet> implements Runnable {
-        private final ListenableFuture<Statement> statementFuture;
-        
-        public QueryFuture(ListenableFuture<Statement> statementFuture) {
-            this.statementFuture = statementFuture;
-            statementFuture.addListener(this, MoreExecutors.directExecutor());
-        }
-        
-        public void run() {
-            
-            try {
-                final ListenableFuture<ResultSet> resultSetFuture = performAsync(statementFuture.get());
-                
-                Runnable reesultForwarder = new Runnable() {
-                    
-                    @Override
-                    public void run() {
-                        try {
-                            set(resultSetFuture.get());
-                        } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            setException(ListenableFutures.unwrapIfNecessary(e));
-                        }
-                    }
-                };
-                resultSetFuture.addListener(reesultForwarder, MoreExecutors.directExecutor());
-                
-            } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                setException(ListenableFutures.unwrapIfNecessary(e));
+        Function<Statement, ListenableFuture<ResultSet>> statementToResultSetFuture = new Function<Statement, ListenableFuture<ResultSet>>() {
+            @Override
+            public ListenableFuture<ResultSet> apply(Statement statement) {
+                return performAsync(statement);
             }
         };
+        
+        return ListenableFutures.transform(statementFuture, statementToResultSetFuture, MoreExecutors.directExecutor());
     }
-    
-    
+        
     
     protected ListenableFuture<ResultSet> performAsync(Statement statement) {
         if (getContext().getConsistencyLevel() != null) {
