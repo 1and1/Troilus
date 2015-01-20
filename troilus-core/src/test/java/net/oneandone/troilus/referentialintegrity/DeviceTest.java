@@ -3,6 +3,7 @@ package net.oneandone.troilus.referentialintegrity;
 
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.Dao;
@@ -189,10 +190,12 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             this.phoneNumbersDao = phoneNumbersDao;
         }
         
+
         @Override
-        public Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> record) {
+        public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> record) {
+
             // check is related phone numbers points to this device
-            return record;
+            return CompletableFuture.completedFuture(record);
         }
     }
 

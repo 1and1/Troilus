@@ -18,9 +18,9 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
-import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
 import net.oneandone.troilus.java7.Dao.Batchable;
 import net.oneandone.troilus.java7.Dao.Deletion;
+import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.BatchStatement.Type;

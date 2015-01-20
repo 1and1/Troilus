@@ -15,6 +15,13 @@
  */
 package net.oneandone.troilus.interceptor;
 
+import java.util.concurrent.CompletableFuture;
+
+import net.oneandone.troilus.interceptor.DeleteQueryData;
+import net.oneandone.troilus.interceptor.QueryInterceptor;
+
+
+
 
 
 
@@ -24,14 +31,14 @@ package net.oneandone.troilus.interceptor;
 
 
 /**
- * Interceptor which will be executed before performing a read query  
- */  
-public interface SingleReadQueryRequestInterceptor extends QueryInterceptor {
+ * Interceptor which will be executed before performing a delete query  
+ */   
+public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param queryData the request data
+     * @param queryData   the request data
      * @return the (modified) request data
      */
-    SingleReadQueryData onSingleReadRequest(SingleReadQueryData queryData);
+    CompletableFuture<DeleteQueryData> onDeleteRequestAsync(DeleteQueryData queryData);
 }
  

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 1&1 Internet AG, Germany, http://www.1und1.de
+ * Copyright (c) 2014 1&1 Internet AG, Germany, http://www.1und1.de
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus.java7.interceptor;
 
-import java.util.concurrent.CompletableFuture;
-
+import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 
@@ -25,14 +24,19 @@ import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 
 
+
+
+
+
 /**
- * Interceptor which will be executed before performing a write (update, or insert) query 
- */ 
-public interface WriteQueryRequestInterceptor extends QueryInterceptor {
+ * Interceptor which will be executed before performing a delete query  
+ */   
+public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param queryData the data to write 
-     * @return the (modified) data to write
+     * @param queryData   the request data
+     * @return the (modified) request data
      */
-    CompletableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData);
+    DeleteQueryData onDeleteRequest(DeleteQueryData queryData);
 }
+ 

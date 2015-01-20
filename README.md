@@ -565,52 +565,57 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
         
 
     
-    
     @Override
-    public WriteQueryData onWriteRequest(WriteQueryData data) {
+    public CompletableFuture<WriteQueryData> onWriteRequestAsync( WriteQueryData queryData) {
         
         // unique insert?
-        if (data.getIfNotExits().isPresent() && data.getIfNotExits().get()) {
-            ConstraintException.throwIf(!data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
+        if (queryData.getIfNotExits().isPresent() && queryData.getIfNotExits().get()) {
+            ConstraintException.throwIf(!queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
             
-            String deviceId = (String) data.getValuesToMutate().get("device_id").get();
+            String deviceId = (String) queryData.getValuesToMutate().get("device_id").get();
             ConstraintException.throwIf(!deviceDao.readWithKey("device_id", deviceId).execute().isPresent(), "device with id " + deviceId + " does not exits");                                                                                    
             
         // no, update
         } else {
-            ConstraintException.throwIf(data.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is unmodifiable");
+            ConstraintException.throwIf(queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is unmodifiable");
         }
            
-        return data; 
+        return CompletableFuture.completedFuture(queryData); 
     }
 
-
     
+
     @Override
-    public SingleReadQueryData onSingleReadRequest(SingleReadQueryData data) {
+    public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync( SingleReadQueryData queryData) {
         // force that device_id will be fetched 
-        if (!data.getColumnsToFetch().isEmpty() && !data.getColumnsToFetch().containsKey("device_id")) {
-            data = data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), "device_id", false));
+        if (!queryData.getColumnsToFetch().isEmpty() && !queryData.getColumnsToFetch().containsKey("device_id")) {
+            queryData = queryData.columnsToFetch(Immutables.merge(queryData.getColumnsToFetch(), "device_id", false));
         }
-        return data;
+        return CompletableFuture.completedFuture(queryData);
     }
-    
     
     
     @Override
-    public Optional<Record> onSingleReadResponse(SingleReadQueryData data, Optional<Record> optionalRecord) {
-        optionalRecord.ifPresent(record -> record.getString("device_id")
-                                                 .ifPresent(deviceId -> deviceDao.readWithKey("device_id", deviceId)
-                                                                                 .column("phone_numbers")
-                                                                                 .withConsistency(ConsistencyLevel.ONE)
-                                                                                 .execute()
-                                                                                 .ifPresent(rec -> {
-                                                                                     Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                                                     ConstraintException.throwIf(!set.isPresent() || !set.get().contains(data.getKey().get("number")), "reverse reference devices table -> phone_numbers table does not exit");
-                                                                                  }))); 
-                
-        return optionalRecord;        
-    }
+    public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> optionalRecord) {
+
+        if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
+            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id").get())
+                            .column("phone_numbers")
+                            .withConsistency(ConsistencyLevel.ONE)
+                            .executeAsync()
+                            .thenApply(optionalRec -> {
+                                                        optionalRec.ifPresent(rec -> {
+                                                            Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
+                                                            ConstraintException.throwIf(!set.isPresent() || !set.get().contains(queryData.getKey().get("number")), "reverse reference devices table -> phone_numbers table does not exit");
+                                                        });
+                                                        
+                                                        return optionalRecord;
+                                                      });
+            
+        } else {
+            return CompletableFuture.completedFuture(optionalRecord);
+        }
+    }    
 }
 ```
 

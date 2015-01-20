@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
-import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.Dao.SingleRead;
 import net.oneandone.troilus.java7.Dao.SingleReadWithUnit;
+import net.oneandone.troilus.java7.interceptor.SingleReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.interceptor.SingleReadQueryResponseInterceptor;
 
 import org.slf4j.Logger;

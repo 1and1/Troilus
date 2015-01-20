@@ -39,11 +39,14 @@ import net.oneandone.troilus.SingleReadQuery;
 import net.oneandone.troilus.SingleReadQueryDataImpl;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
+import net.oneandone.troilus.interceptor.DeleteQueryData;
+import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ListReadQueryData;
 import net.oneandone.troilus.interceptor.ListReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ListReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
+import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
@@ -117,21 +120,29 @@ public class DaoImpl implements Dao {
         Context context = ctx.withInterceptor(queryInterceptor);
         
         if (ListReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryPreInterceptorAdapter((ListReadQueryRequestInterceptor) queryInterceptor));
+            context = context.withInterceptor(new ListReadQueryRequestInterceptorAdapter((ListReadQueryRequestInterceptor) queryInterceptor));
         }
 
         if (ListReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryPostInterceptorAdapter((ListReadQueryResponseInterceptor) queryInterceptor));
+            context = context.withInterceptor(new ListReadQueryResponseInterceptorAdapter((ListReadQueryResponseInterceptor) queryInterceptor));
         } 
-                
+
+        if (SingleReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new SingleReadQueryRequestInterceptorAdapter((SingleReadQueryRequestInterceptor) queryInterceptor));
+        } 
+        
         if (SingleReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new SingleReadQueryPostInterceptorAdapter((SingleReadQueryResponseInterceptor) queryInterceptor));
+            context = context.withInterceptor(new SingleReadQueryResponseInterceptorAdapter((SingleReadQueryResponseInterceptor) queryInterceptor));
         } 
         
         if (WriteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new WriteQueryPreInterceptorAdapter((WriteQueryRequestInterceptor) queryInterceptor));
+            context = context.withInterceptor(new WriteQueryRequestInterceptorAdapter((WriteQueryRequestInterceptor) queryInterceptor));
         } 
-        
+
+        if (DeleteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new DeleteQueryRequestInterceptorAdapter((DeleteQueryRequestInterceptor) queryInterceptor));
+        } 
+
         return new DaoImpl(context);
     }
     
@@ -864,17 +875,18 @@ public class DaoImpl implements Dao {
     
 
     
-    private static final class ListReadQueryPreInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor {
+    private static final class ListReadQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor {
         
         private ListReadQueryRequestInterceptor interceptor;
         
-        public ListReadQueryPreInterceptorAdapter(ListReadQueryRequestInterceptor interceptor) {
+        public ListReadQueryRequestInterceptorAdapter(ListReadQueryRequestInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
         public net.oneandone.troilus.java7.interceptor.ListReadQueryData onListReadRequest(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
-            return ListReadQueryDataAdapter.convert(interceptor.onListReadRequest(new ListReadQueryDataAdapter(data)));
+            // TODO real async impl
+            return ListReadQueryDataAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onListReadRequestAsync(new ListReadQueryDataAdapter(data))));
         }
         
         @Override
@@ -884,17 +896,18 @@ public class DaoImpl implements Dao {
     }
    
     
-    private static final class ListReadQueryPostInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor {
+    private static final class ListReadQueryResponseInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor {
         
         private ListReadQueryResponseInterceptor interceptor;
         
-        public ListReadQueryPostInterceptorAdapter(ListReadQueryResponseInterceptor interceptor) {
+        public ListReadQueryResponseInterceptorAdapter(ListReadQueryResponseInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
         public net.oneandone.troilus.java7.Dao.RecordList onListReadResponse(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
-            return RecordListAdapter.convert(interceptor.onListReadResponse(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList)));
+            // TODO real async impl
+            return RecordListAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList))));
         }
         
         @Override
@@ -903,18 +916,40 @@ public class DaoImpl implements Dao {
         }
     }
     
+    
+    private static final class SingleReadQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.SingleReadQueryRequestInterceptor {
+        
+        private SingleReadQueryRequestInterceptor interceptor;
+        
+        public SingleReadQueryRequestInterceptorAdapter(SingleReadQueryRequestInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        @Override
+        public SingleReadQueryData onSingleReadRequest(SingleReadQueryData data) {
+            // TODO real async impl
+            return CompletableFutures.getUninterruptibly(interceptor.onSingleReadRequestAsync(data));
+        }
+        
+        @Override
+        public String toString() {
+            return "ListReadQueryPreInterceptor (with " + interceptor + ")";
+        }
+    }
+   
 
-    private static final class SingleReadQueryPostInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.SingleReadQueryResponseInterceptor {
+    private static final class SingleReadQueryResponseInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.SingleReadQueryResponseInterceptor {
         
         private SingleReadQueryResponseInterceptor interceptor;
         
-        public SingleReadQueryPostInterceptorAdapter(SingleReadQueryResponseInterceptor interceptor) {
+        public SingleReadQueryResponseInterceptorAdapter(SingleReadQueryResponseInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
         public net.oneandone.troilus.java7.Record onSingleReadResponse(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
-            return RecordAdapter.convert(interceptor.onSingleReadResponse(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))).orElse(null));
+            // TODO real async impl
+            return RecordAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record)))).orElse(null));
         }
         
         @Override
@@ -925,17 +960,41 @@ public class DaoImpl implements Dao {
     
     
     
-    private static final class WriteQueryPreInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor {
+    private static final class WriteQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor {
          
         private WriteQueryRequestInterceptor interceptor;
         
-        public WriteQueryPreInterceptorAdapter(WriteQueryRequestInterceptor interceptor) {
+        public WriteQueryRequestInterceptorAdapter(WriteQueryRequestInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
         public net.oneandone.troilus.java7.interceptor.WriteQueryData onWriteRequest(net.oneandone.troilus.java7.interceptor.WriteQueryData data) {
-            return WriteQueryDataAdapter.convert(interceptor.onWriteRequest(new WriteQueryDataAdapter(data)));
+            // TODO real async impl
+            return WriteQueryDataAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onWriteRequestAsync(new WriteQueryDataAdapter(data))));
+        }
+        
+        @Override
+        public String toString() {
+            return "WriteQueryPreInterceptorAdapter (with " + interceptor + ")";
+        }
+    }
+    
+    
+    
+    private static final class DeleteQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor {
+         
+        private DeleteQueryRequestInterceptor interceptor;
+        
+        public DeleteQueryRequestInterceptorAdapter(DeleteQueryRequestInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        
+        @Override
+        public DeleteQueryData onDeleteRequest(DeleteQueryData queryData) {
+            // TODO real async impl
+            return CompletableFutures.getUninterruptibly(interceptor.onDeleteRequestAsync(queryData));
         }
         
         @Override

@@ -16,10 +16,10 @@
 package net.oneandone.troilus.interceptor;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryData;
 
 
 
@@ -36,6 +36,6 @@ public interface SingleReadQueryResponseInterceptor extends QueryInterceptor {
      * @param record    the requested record
      * @return the (modified) request record
      */
-    Optional<Record> onSingleReadResponse(SingleReadQueryData queryData, Optional<Record> record);
+    CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> record);
 }
  

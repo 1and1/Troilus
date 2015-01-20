@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.interceptor;
 
+import java.util.concurrent.CompletableFuture;
+
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 
@@ -33,6 +35,6 @@ public interface ListReadQueryRequestInterceptor extends QueryInterceptor {
      * @param queryData   the request data
      * @return  the (modified) request data
      */
-    ListReadQueryData onListReadRequest(ListReadQueryData queryData);
+    CompletableFuture<ListReadQueryData> onListReadRequestAsync(ListReadQueryData queryData);
 }
  
