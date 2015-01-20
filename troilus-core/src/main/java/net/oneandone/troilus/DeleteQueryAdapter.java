@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -29,7 +30,8 @@ import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.Deletion;
 
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -76,8 +78,8 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
     }
        
     @Override
-    public void addTo(BatchStatement batchStatement) {
-        query.addTo(batchStatement);
+    public ListenableFuture<Statement> getStatementAsync() {
+        return query.getStatementAsync();
     }
    
     @Override

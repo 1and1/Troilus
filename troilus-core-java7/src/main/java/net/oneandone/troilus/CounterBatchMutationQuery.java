@@ -51,14 +51,16 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
         return new CounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
     }
 
-    private Statement getStatement() {
-        BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
         
+    private ListenableFuture<Statement> getStatementAsync() {
+        // TODO real async impl
+
+        BatchStatement batchStmt = new BatchStatement(Type.COUNTER);
         for (CounterBatchable batchable : batchables) {
-            batchable.addTo(batchStmt);
+            batchStmt.add(ListenableFutures.getUninterruptibly(batchable.getStatementAsync()));
         }
         
-        return batchStmt;
+        return Futures.<Statement>immediateFuture(batchStmt);
     }
     
     @Override
@@ -68,7 +70,7 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatement());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override

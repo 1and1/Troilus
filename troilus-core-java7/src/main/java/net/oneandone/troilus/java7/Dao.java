@@ -26,10 +26,8 @@ import org.reactivestreams.Publisher;
 
 
 
-
-
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
@@ -152,7 +150,7 @@ public interface Dao {
     
     public static interface Batchable {
 
-        void addTo(BatchStatement batchStatement);
+        ListenableFuture<Statement> getStatementAsync();
     }
 
 
@@ -245,7 +243,7 @@ public interface Dao {
     
     public static interface CounterBatchable {
 
-        void addTo(BatchStatement batchStatement);
+        ListenableFuture<Statement> getStatementAsync();
     }
 
     

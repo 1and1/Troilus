@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.java7.Dao.Batchable;
+
 import net.oneandone.troilus.java7.Dao.CounterBatchable;
 import net.oneandone.troilus.java7.Dao.CounterMutation;
 import net.oneandone.troilus.java7.Dao.UpdateWithValuesAndCounter;
@@ -26,7 +27,6 @@ import net.oneandone.troilus.java7.Dao.WriteWithCounter;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
@@ -82,12 +82,6 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
        
-    @Override
-    public void addTo(BatchStatement batchStatement) {
-        // TODO real async impl
-        batchStatement.add(ListenableFutures.getUninterruptibly(getStatementAsync()));
-    }
-    
     @Override
     public UpdateQuery value(String name, Object value) {
         return new UpdateQuery(getContext(), 
@@ -224,7 +218,9 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return Futures.transform(future, mapEntity);
     }
 
-    private ListenableFuture<Statement> getStatementAsync() {
+    
+    @Override
+    public ListenableFuture<Statement> getStatementAsync() {
         // TODO real async impl
         
         WriteQueryData queryData = data;
@@ -270,18 +266,13 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         }
    
         @Override
-        public void addTo(BatchStatement batchStatement) {
-            batchStatement.add(getStatement());
-        }
-        
-        @Override
         public Result execute() {
             return ListenableFutures.getUninterruptibly(executeAsync());
         }
         
         @Override
         public ListenableFuture<Result> executeAsync() {
-            ListenableFuture<ResultSet> future = performAsync(getStatement());
+            ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
             
             Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
                 @Override
@@ -293,8 +284,10 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
             return Futures.transform(future, mapEntity);
         }
         
-        private Statement getStatement() {
-            return data.toStatement(getContext());
+        @Override
+        public ListenableFuture<Statement> getStatementAsync() {
+            // TODO real async impl
+            return Futures.immediateFuture(data.toStatement(getContext()));
         }
     }
 }

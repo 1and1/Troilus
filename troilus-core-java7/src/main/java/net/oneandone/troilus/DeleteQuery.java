@@ -23,7 +23,6 @@ import net.oneandone.troilus.java7.Dao.Batchable;
 import net.oneandone.troilus.java7.Dao.Deletion;
 
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
@@ -61,13 +60,6 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     }
        
     @Override
-    public void addTo(BatchStatement batchStatement) {
-        // TODO real async impl
-
-        batchStatement.add(ListenableFutures.getUninterruptibly(getStatementAsync()));
-    }
-
-    @Override
     protected DeleteQuery newQuery(Context newContext) {
         return new DeleteQuery(newContext, data);
     }
@@ -103,7 +95,8 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         return Futures.transform(future, mapEntity);
     }
     
-    private ListenableFuture<Statement> getStatementAsync() {
+    @Override
+    public ListenableFuture<Statement> getStatementAsync() {
         // TODO real async impl
 
         DeleteQueryData queryData = data;

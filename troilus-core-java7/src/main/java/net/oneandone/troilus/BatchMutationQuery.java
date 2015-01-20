@@ -64,9 +64,11 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
     }
 
     private ListenableFuture<Statement> getStatementAsync() {
+        // TODO real async impl
+        
         BatchStatement batchStmt = new BatchStatement(type);
         for (Batchable batchable : batchables) {
-            batchable.addTo(batchStmt);
+            batchStmt.add(ListenableFutures.getUninterruptibly(batchable.getStatementAsync()));
         }
         
         return Futures.<Statement>immediateFuture(batchStmt);

@@ -28,7 +28,8 @@ import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.Insertion;
 import net.oneandone.troilus.Dao.Mutation;
 
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
 
  
 
@@ -70,10 +71,10 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     }
        
     @Override
-    public void addTo(BatchStatement batchStatement) {
-        query.addTo(batchStatement);
+    public ListenableFuture<Statement> getStatementAsync() {
+        return query.getStatementAsync();
     }
-    
+
     @Override
     public Result execute() {
         return CompletableFutures.getUninterruptibly(executeAsync());

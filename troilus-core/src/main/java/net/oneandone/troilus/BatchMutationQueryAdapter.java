@@ -28,7 +28,8 @@ import net.oneandone.troilus.Dao.BatchMutation;
 import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.Query;
 
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -98,8 +99,8 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
         }
         
         @Override
-        public void addTo(BatchStatement batchStatement) {
-            batchable.addTo(batchStatement);
+        public ListenableFuture<Statement> getStatementAsync() {
+            return batchable.getStatementAsync();
         }
     }
 }

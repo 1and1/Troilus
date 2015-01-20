@@ -40,9 +40,10 @@ import net.oneandone.troilus.Dao.Write;
 import net.oneandone.troilus.Dao.WriteWithCounter;
 import net.oneandone.troilus.UpdateQuery.CounterMutationQuery;
 
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -158,8 +159,8 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     }
        
     @Override
-    public void addTo(BatchStatement batchStatement) {
-        query.addTo(batchStatement);
+    public ListenableFuture<Statement> getStatementAsync() {
+        return query.getStatementAsync();
     }
     
     @Override
@@ -213,8 +214,8 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
         }
    
         @Override
-        public void addTo(BatchStatement batchStatement) {
-            query.addTo(batchStatement);
+        public ListenableFuture<Statement> getStatementAsync() {
+            return query.getStatementAsync();
         }
 
         @Override

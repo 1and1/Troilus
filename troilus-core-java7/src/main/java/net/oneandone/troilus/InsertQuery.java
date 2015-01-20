@@ -21,7 +21,6 @@ import net.oneandone.troilus.java7.Dao.Insertion;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
@@ -62,13 +61,6 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
     public BatchMutationQuery combinedWith(Batchable other) {
         return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
     }
-       
-    @Override
-    public void addTo(BatchStatement batchStatement) {
-        // TODO real async impl
-
-        batchStatement.add(ListenableFutures.getUninterruptibly(getStatementAsync()));
-    }
     
     @Override
     public InsertQuery ifNotExists() {
@@ -97,7 +89,8 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
         return Futures.transform(future, mapEntity);
     }
     
-    private ListenableFuture<Statement> getStatementAsync() {
+    @Override
+    public ListenableFuture<Statement> getStatementAsync() {
         // TODO real async impl
 
         WriteQueryData queryData = data;

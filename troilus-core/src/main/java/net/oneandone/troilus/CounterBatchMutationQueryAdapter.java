@@ -26,7 +26,8 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.CounterBatchMutation;
 import net.oneandone.troilus.Dao.CounterBatchable;
 
-import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -85,8 +86,8 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
         }
         
         @Override
-        public void addTo(BatchStatement batchStatement) {
-            batchable.addTo(batchStatement);
+        public ListenableFuture<Statement> getStatementAsync() {
+            return batchable.getStatementAsync();
         }
     }
 }
