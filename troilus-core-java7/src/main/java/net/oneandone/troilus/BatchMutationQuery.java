@@ -22,7 +22,6 @@ import net.oneandone.troilus.java7.Dao.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
@@ -64,25 +63,25 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
-    private Statement getStatement() {
+    private ListenableFuture<Statement> getStatementAsync() {
         BatchStatement batchStmt = new BatchStatement(type);
         for (Batchable batchable : batchables) {
             batchable.addTo(batchStmt);
         }
         
-        return batchStmt;
+        return Futures.<Statement>immediateFuture(batchStmt);
     }
     
     
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ResultSetFuture future = performAsync(getStatement());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override

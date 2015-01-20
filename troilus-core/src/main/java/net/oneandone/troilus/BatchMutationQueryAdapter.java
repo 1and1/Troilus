@@ -72,7 +72,7 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return CompletableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override

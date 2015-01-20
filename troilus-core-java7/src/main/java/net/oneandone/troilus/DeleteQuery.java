@@ -26,7 +26,6 @@ import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -63,7 +62,9 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
        
     @Override
     public void addTo(BatchStatement batchStatement) {
-        batchStatement.add(getStatement());
+        // TODO real async impl
+
+        batchStatement.add(ListenableFutures.getUninterruptibly(getStatementAsync()));
     }
 
     @Override
@@ -83,12 +84,12 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
 
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ResultSetFuture future = performAsync(getStatement());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -102,12 +103,14 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         return Futures.transform(future, mapEntity);
     }
     
-    private Statement getStatement() {
+    private ListenableFuture<Statement> getStatementAsync() {
+        // TODO real async impl
+
         DeleteQueryData queryData = data;
         for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class)) {
             queryData = interceptor.onDeleteRequest(queryData); 
         }
 
-        return DeleteQueryDataImpl.toStatement(queryData, getContext());
+        return Futures.immediateFuture(DeleteQueryDataImpl.toStatement(queryData, getContext()));
     }
 }

@@ -28,7 +28,6 @@ import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -85,7 +84,8 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
        
     @Override
     public void addTo(BatchStatement batchStatement) {
-        batchStatement.add(getStatement());
+        // TODO real async impl
+        batchStatement.add(ListenableFutures.getUninterruptibly(getStatementAsync()));
     }
     
     @Override
@@ -204,12 +204,12 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ResultSetFuture future = performAsync(getStatement());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -224,13 +224,15 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return Futures.transform(future, mapEntity);
     }
 
-    private Statement getStatement() {
+    private ListenableFuture<Statement> getStatementAsync() {
+        // TODO real async impl
+        
         WriteQueryData queryData = data;
         for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class)) {
             queryData = interceptor.onWriteRequest(queryData);
         }
         
-        return WriteQueryDataImpl.toStatement(queryData, getContext());
+        return Futures.immediateFuture(WriteQueryDataImpl.toStatement(queryData, getContext()));  
     }
     
     
@@ -274,12 +276,12 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         
         @Override
         public Result execute() {
-            return getUninterruptibly(executeAsync());
+            return ListenableFutures.getUninterruptibly(executeAsync());
         }
         
         @Override
         public ListenableFuture<Result> executeAsync() {
-            ResultSetFuture future = performAsync(getStatement());
+            ListenableFuture<ResultSet> future = performAsync(getStatement());
             
             Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
                 @Override

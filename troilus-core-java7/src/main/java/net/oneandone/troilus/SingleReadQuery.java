@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
@@ -128,7 +127,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public Record execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
@@ -136,7 +135,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         final SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
         Statement statement = SingleReadQueryDataImpl.toStatement(preprocessedData, getContext());
         
-        ResultSetFuture future = performAsync(statement);
+        ListenableFuture<ResultSet> future = performAsync(statement);
         
         
         // map to record
@@ -241,7 +240,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         @Override
         public E execute() {
-            return getUninterruptibly(executeAsync());
+            return ListenableFutures.getUninterruptibly(executeAsync());
         }
         
         @Override

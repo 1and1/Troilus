@@ -19,18 +19,19 @@ package net.oneandone.troilus;
 
 
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 
  
@@ -87,7 +88,46 @@ abstract class AbstractQuery<Q> {
     }
     
     
-    protected ResultSetFuture performAsync(Statement statement) {
+    protected ListenableFuture<ResultSet> performAsync(ListenableFuture<Statement> statementFuture) {
+        return new QueryFuture(statementFuture);
+    }
+    
+        
+    private final class QueryFuture extends AbstractFuture<ResultSet> implements Runnable {
+        private final ListenableFuture<Statement> statementFuture;
+        
+        public QueryFuture(ListenableFuture<Statement> statementFuture) {
+            this.statementFuture = statementFuture;
+            statementFuture.addListener(this, MoreExecutors.directExecutor());
+        }
+        
+        public void run() {
+            
+            try {
+                final ListenableFuture<ResultSet> resultSetFuture = performAsync(statementFuture.get());
+                
+                Runnable reesultForwarder = new Runnable() {
+                    
+                    @Override
+                    public void run() {
+                        try {
+                            set(resultSetFuture.get());
+                        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                            setException(ListenableFutures.unwrapIfNecessary(e));
+                        }
+                    }
+                };
+                resultSetFuture.addListener(reesultForwarder, MoreExecutors.directExecutor());
+                
+            } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                setException(ListenableFutures.unwrapIfNecessary(e));
+            }
+        };
+    }
+    
+    
+    
+    protected ListenableFuture<ResultSet> performAsync(Statement statement) {
         if (getContext().getConsistencyLevel() != null) {
             statement.setConsistencyLevel(getContext().getConsistencyLevel());
         }
@@ -111,57 +151,7 @@ abstract class AbstractQuery<Q> {
         return ctx.getSession().executeAsync(statement);
     }
     
-    
-    protected <T> T getUninterruptibly(ListenableFuture<T> future) {
-        try {
-            return future.get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw unwrapIfNecessary(e);
-        }
-    }
-    
-    
-    protected <T> T getUninterruptibly(CompletableFuture<T> future) {
-        try {
-            return future.get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw unwrapIfNecessary(e);
-        }
-    }
-    
-    
-    /**
-     * @param throwable the Throwable to unwrap
-     * @return the unwrapped throwable
-     */
-    protected static RuntimeException unwrapIfNecessary(Throwable throwable )  {
-        return unwrapIfNecessary(throwable, 5);
-    }
-    
-    /**
-     * @param throwable the Throwable to unwrap
-     * @param maxDepth  the max depth
-     * @return the unwrapped throwable
-     */
-    private static RuntimeException unwrapIfNecessary(Throwable throwable , int maxDepth)  {
-        
-        if (ExecutionException.class.isAssignableFrom(throwable.getClass())) {
-            Throwable e = ((ExecutionException) throwable).getCause();
-
-            if (maxDepth > 1) {
-                throwable = unwrapIfNecessary(e, maxDepth - 1);
-            }
-        }
-        
-        if (throwable instanceof RuntimeException) {
-            throw (RuntimeException) throwable;
-        } else {
-            throw new RuntimeException(throwable);
-        }
-    }   
-
-    
-
+ 
     protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws ConstraintException {
         if (additionalCondition && !result.wasApplied()) {
             throw new ConstraintException(message);  

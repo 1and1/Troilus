@@ -37,7 +37,6 @@ import org.reactivestreams.Subscription;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -164,7 +163,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     @Override
     public RecordList execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
@@ -172,7 +171,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         final ListReadQueryData preprocessedData = getPreprocessedData(); 
         Statement statement = ListReadQueryDataImpl.toStatement(preprocessedData, getContext());
         
-        ResultSetFuture future = performAsync(statement);
+        ListenableFuture<ResultSet> future = performAsync(statement);
         
         // map to record list
         Function<ResultSet, RecordList> mapEntity = new Function<ResultSet, RecordList>() {
@@ -265,7 +264,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public EntityList<E> execute() {
-            return getUninterruptibly(executeAsync());
+            return ListenableFutures.getUninterruptibly(executeAsync());
         }
 
         @Override
@@ -690,13 +689,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         @Override
         public Count execute() {
-            return getUninterruptibly(executeAsync());
+            return ListenableFutures.getUninterruptibly(executeAsync());
         }      
         
         
         @Override
         public ListenableFuture<Count> executeAsync() {
-            ResultSetFuture future = performAsync(toStatement(data));
+            ListenableFuture<ResultSet> future = performAsync(toStatement(data));
             
             Function<ResultSet, Count> mapEntity = new Function<ResultSet, Count>() {
                 @Override

@@ -76,7 +76,7 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return CompletableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override

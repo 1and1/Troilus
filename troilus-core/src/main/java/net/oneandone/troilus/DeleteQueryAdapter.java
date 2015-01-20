@@ -82,7 +82,7 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
    
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return CompletableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override

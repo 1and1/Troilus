@@ -23,7 +23,6 @@ import net.oneandone.troilus.java7.Dao.CounterBatchable;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
@@ -64,12 +63,12 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
     
     @Override
     public Result execute() {
-        return getUninterruptibly(executeAsync());
+        return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ResultSetFuture future = performAsync(getStatement());
+        ListenableFuture<ResultSet> future = performAsync(getStatement());
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
