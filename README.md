@@ -27,8 +27,7 @@ Dao hotelsDao = new DaoImpl(session, "hotels");
 Pre-configured dao
 ``` java
 Dao hotelsDao = new DaoImpl(session, "hotels")
-                          .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                          .withSerialConsistency(ConsistencyLevel.SERIAL);
+                          .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 ```
 
 ##Write
@@ -159,6 +158,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .value("classification", ClassifierEnum.FOUR)
          .withWritetime(microsSinceEpoch)
          .ifNotExists()
+         .withSerialConsistency(ConsistencyLevel.SERIAL)
          .execute();
   ```  
         
@@ -167,6 +167,7 @@ transaction-safe, ***conditional update*** with `onlyIf(..conditions..)` (uses I
 hotelsDao.writeWithKey("id", "BUP932432")
          .value("name" "Budapest City")
          .onlyIf(QueryBuilder.eq("name", "City Budapest"))
+         .withSerialConsistency(ConsistencyLevel.SERIAL)
          .execute();
   ```  
        
@@ -175,6 +176,7 @@ transaction-safe, ***conditional delete*** with `onlyIf(..conditions..)` (uses I
 ``` java
 hotelsDao.deleteWithKey("id","BUP932432")
          .onlyIf(QueryBuilder.eq("name", "Budapest City"))
+         .withSerialConsistency(ConsistencyLevel.SERIAL)
          .execute();
   ```  
   
@@ -183,6 +185,7 @@ transaction-safe ***delete*** with `ifExists`
 ``` java
 hotelsDao.deleteWithKey("id","BUP932432")
          .ifExists()
+         .withSerialConsistency(ConsistencyLevel.SERIAL)
          .execute();
   ```  
 
@@ -626,6 +629,7 @@ phoneNumbersDao.writeWithKey("number", "0089123234234")
                .value("device_id", "2333243")
                .value("active", true)
                .ifNotExists()
+               .withSerialConsistency(ConsistencyLevel.SERIAL)
                .execute();
         
 
@@ -634,6 +638,7 @@ try {
    phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
 				           		 .value("active", true)
 								 .ifNotExists()
+								 .withSerialConsistency(ConsistencyLevel.SERIAL)
 						         .execute();
     Assert.fail("ConstraintException expected");
 } catch (ConstraintException expected) { }
