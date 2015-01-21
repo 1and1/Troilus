@@ -285,6 +285,9 @@ class Context {
         ColumnMetadata metadata = columnMetadataCache.getIfPresent(columnName);
         if (metadata == null) {
             metadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
+            if (metadata == null) {
+                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + table + " does not support column '" + columnName + "'");
+            }
             columnMetadataCache.put(columnName, metadata);
         }
 
