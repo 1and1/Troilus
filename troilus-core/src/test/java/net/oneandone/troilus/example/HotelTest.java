@@ -9,6 +9,7 @@ import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.Batchable;
@@ -16,6 +17,7 @@ import net.oneandone.troilus.reactive.MySubscriber;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 
 
 
@@ -282,7 +284,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                      .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
                      .execute();
             Assert.fail("IfConditionException expected");
-        } catch (ConstraintException expected) { }
+        } catch (IfConditionException expected) { }
         
 
         hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")

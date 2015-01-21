@@ -87,7 +87,9 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             @Override
             public Result apply(ResultSet resultSet) {
                 Result result = newResult(resultSet);
-                assertResultIsAppliedWhen(!data.getOnlyIfConditions().isEmpty(), result, "if condition does not match");
+                if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
+                    throw new IfConditionException(result, "if condition does not match");
+                }
                 return result;
             }
         };

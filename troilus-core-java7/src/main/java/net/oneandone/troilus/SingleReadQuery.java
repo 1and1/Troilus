@@ -160,7 +160,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                     return null; 
                 } else {
                     if (!resultSet.isExhausted()) {
-                        throw new TooManyResultsException("more than one record exists");
+                        throw new TooManyResultsException(newResult(resultSet), "more than one record exists");
                     }
                     Record record = new RecordImpl(getContext(), newResult(resultSet), row);
                     paranoiaCheck(record);

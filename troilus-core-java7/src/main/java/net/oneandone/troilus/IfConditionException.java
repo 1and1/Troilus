@@ -18,12 +18,13 @@ package net.oneandone.troilus;
 
 
 
-/**
- * Exception thrown when a more results (rows) are returned than expected
- */
-public class TooManyResultsException extends RuntimeException {
 
-    private static final long serialVersionUID = 4270476820995364200L;
+/**
+ * Exception thrown when a if condition is violated
+ */
+public class IfConditionException extends RuntimeException {
+
+    private static final long serialVersionUID = -4815247201091574807L;
 
     private final Result result;
     
@@ -31,11 +32,11 @@ public class TooManyResultsException extends RuntimeException {
      * @param message the message to report
      * @param result  the result
      */
-    public TooManyResultsException(Result result, String message) {
+    public IfConditionException(Result result, String message) {
         super(message);
         this.result = result;
     }
-    
+
     public Result getResult() {
         return result;
     }

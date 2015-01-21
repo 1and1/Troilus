@@ -122,16 +122,6 @@ abstract class AbstractQuery<Q> {
         return ctx.getSession().executeAsync(statement);
     }
     
- 
-    protected <R extends Result> R assertResultIsAppliedWhen(boolean additionalCondition, R result, String message) throws ConstraintException {
-        if (additionalCondition && !result.wasApplied()) {
-            throw new ConstraintException(message);  
-        }
-        
-        return result;
-    }
-    
-
     
     /**
      * @param rs  the underlying result set

@@ -82,8 +82,9 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
             @Override
             public Result apply(ResultSet resultSet) {
                 Result result = newResult(resultSet);
-                assertResultIsAppliedWhen((data.getIfNotExits() != null) && (data.getIfNotExits()), result, "duplicated entry");
-
+                if ((data.getIfNotExits() != null) && (data.getIfNotExits()) && !result.wasApplied()) {
+                    throw new IfConditionException(result, "duplicated entry");
+                }
                 return result;
             }
         };

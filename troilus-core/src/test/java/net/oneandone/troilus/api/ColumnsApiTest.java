@@ -14,6 +14,7 @@ import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.Batchable;
@@ -100,7 +101,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
-        } catch (ConstraintException expected) { }  
+        } catch (IfConditionException expected) { }  
 
         
         
@@ -346,7 +347,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .withSerialConsistency(ConsistencyLevel.SERIAL)
                     .execute();
             Assert.fail("IfConditionException expected");
-        } catch (ConstraintException expected) {  }
+        } catch (IfConditionException expected) {  }
 
         record = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                 .execute()
@@ -398,7 +399,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .onlyIf(QueryBuilder.eq(UsersTable.IS_CUSTOMER, false))
                     .execute();
             Assert.fail("IfConditionException expected");
-        } catch (ConstraintException expected) { }
+        } catch (IfConditionException expected) { }
 
         Optional<Record> rec = usersDao.readWithKey(UsersTable.USER_ID, "2222")
                                        .execute();
