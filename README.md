@@ -5,6 +5,29 @@ Troilus
 It supports synchronous programming and asynchronous programming including [reactive streams](http://www.reactive-streams.org). Troilus supports a Java8 interface as well as a Java7 interface (module troilus-core-java7)
 
 
+#Maven
+-------
+
+Java8-based
+``` java
+<dependency>
+	<groupId>net.oneandone</groupId>
+	<artifactId>troilus-core</artifactId>
+	<version>0.2</version>
+</dependency>
+``` java
+
+
+Java7-based
+``` java
+<dependency>
+	<groupId>net.oneandone</groupId>
+	<artifactId>troilus-core-java7</artifactId>
+	<version>0.2</version>
+</dependency>
+``` java
+
+
 #Examples
 -------
 
