@@ -132,24 +132,25 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public ListenableFuture<Record> executeAsync() {
-        ListenableFuture<SingleReadQueryData> preprocessedDataFuture = getPreprocessedDataAsync(getContext()); 
+        // perform request executors
+        ListenableFuture<SingleReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<SingleReadQueryData>immediateFuture(data)); 
         
+        // execute query asnyc
         Function<SingleReadQueryData, ListenableFuture<Record>> queryExecutor = new Function<SingleReadQueryData, ListenableFuture<Record>>() {
             @Override
             public ListenableFuture<Record> apply(SingleReadQueryData querData) {
                 return executeAsync(querData);
             }
         };
-        
-        return ListenableFutures.transform(preprocessedDataFuture, queryExecutor, MoreExecutors.directExecutor());
+        return ListenableFutures.transform(queryDataFuture, queryExecutor, MoreExecutors.directExecutor());
     }
     
-    private ListenableFuture<Record> executeAsync(final SingleReadQueryData preprocessedData) {
+    private ListenableFuture<Record> executeAsync(SingleReadQueryData queryData) {
+        // perform query
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(SingleReadQueryDataImpl.toStatement(queryData, getContext()));        
         
-        ListenableFuture<ResultSet> future = performAsync(SingleReadQueryDataImpl.toStatement(preprocessedData, getContext()));        
-        
-        // map to record
-        Function<ResultSet, Record> mapEntity = new Function<ResultSet, Record>() {
+        // result set to record mapper
+        Function<ResultSet, Record> resultSetToRecord = new Function<ResultSet, Record>() {
             
             @Override
             public Record apply(ResultSet resultSet) {
@@ -167,40 +168,14 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                 }
             }
         };
+        ListenableFuture<Record> recordFuture = Futures.transform(resultSetFuture, resultSetToRecord);
         
-        ListenableFuture<Record> result = Futures.transform(future, mapEntity);
-        
-       
-        // perform interceptors if present
-        final ImmutableList<SingleReadQueryResponseInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryResponseInterceptor.class);
-        if (!interceptors.isEmpty()) {
-            
-            Function<Record, Record> processInterceptors = new Function<Record, Record>() {
-                @Override
-                public Record apply(Record record) {
-                    for (SingleReadQueryResponseInterceptor interceptor : interceptors) {
-                        record = interceptor.onSingleReadResponse(preprocessedData, record);
-                    }
-                    
-                    return record;
-                }
-            };
-            
-            result = Futures.transform(result, processInterceptors, getContext().getTaskExecutor()); // do not perform post process interceptors within drive callback thread
-        }
-                    
-        
-        return result;
+        // perform response interceptor
+        return executeResponseInterceptorsAsync(queryData, recordFuture);
     }
 
     
-    
-    
-    private ListenableFuture<SingleReadQueryData> getPreprocessedDataAsync(Context ctx) {
-        
-        ListenableFuture<SingleReadQueryData> queryDataFuture = Futures.<SingleReadQueryData>immediateFuture(data);
-        
-        // perform interceptors
+    private ListenableFuture<SingleReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<SingleReadQueryData> queryDataFuture) {
         for (SingleReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class).reverse()) {
             final SingleReadQueryRequestInterceptor icptor = interceptor;
             
@@ -215,6 +190,25 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         }
 
         return queryDataFuture;
+    }
+
+    
+    private ListenableFuture<Record> executeResponseInterceptorsAsync(final SingleReadQueryData queryData, ListenableFuture<Record> recordFuture) {
+        
+        for (SingleReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryResponseInterceptor.class).reverse()) {
+            final SingleReadQueryResponseInterceptor icptor = interceptor;
+            
+            Function<Record, ListenableFuture<Record>> mapperFunction = new Function<Record, ListenableFuture<Record>>() {
+                @Override
+                public ListenableFuture<Record> apply(Record record) {
+                    return icptor.onSingleReadResponse(queryData, record);
+                }
+            };
+            
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return recordFuture;
     }
 
     

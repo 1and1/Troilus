@@ -97,9 +97,21 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
-        ListenableFuture<DeleteQueryData> queryDataFuture = Futures.immediateFuture(data);
+        // perform request executors
+        ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data));
+
+        // query data to statement
+        Function<DeleteQueryData, Statement> queryDataToStatement = new Function<DeleteQueryData, Statement>() {
+            @Override
+            public Statement apply(DeleteQueryData queryData) {
+                return DeleteQueryDataImpl.toStatement(queryData, getContext());
+            }
+        };
+        return Futures.transform(queryDataFuture, queryDataToStatement);
+    }
+    
+    private ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
         
-        // perform interceptors
         for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class).reverse()) {
             final DeleteQueryRequestInterceptor icptor = interceptor;
             
@@ -113,7 +125,6 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
         
-        // query data to statement
-        return Futures.transform(queryDataFuture, DeleteQueryDataImpl.newQueryDataToStatementFunction(getContext()));
-    }
+        return queryDataFuture; 
+     }
 }

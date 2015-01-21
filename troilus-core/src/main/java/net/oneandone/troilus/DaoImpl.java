@@ -908,9 +908,9 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public net.oneandone.troilus.java7.Dao.RecordList onListReadResponse(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
-            // TODO real async impl
-            return RecordListAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList))));
+        public ListenableFuture<net.oneandone.troilus.java7.Dao.RecordList> onListReadResponse(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
+            return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList))
+                                                                    .thenApply(list -> RecordListAdapter.convert(list)));
         }
         
         @Override
@@ -949,9 +949,9 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public net.oneandone.troilus.java7.Record onSingleReadResponse(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
-            // TODO real async impl
-            return RecordAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record)))).orElse(null));
+        public ListenableFuture<net.oneandone.troilus.java7.Record> onSingleReadResponse(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
+            return CompletableFutures.toListenableFuture(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record)))
+                                                                    .thenApply(optionalRecord -> RecordAdapter.convert(optionalRecord.orElse((null)))));
         }
         
         @Override

@@ -169,62 +169,40 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListenableFuture<RecordList> executeAsync() {
-        ListenableFuture<ListReadQueryData> preprocessedDataFuture = getPreprocessedDataAsync(); 
+        // perform request executors
+        ListenableFuture<ListReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ListReadQueryData>immediateFuture(data)); 
         
+        // execute query asnyc
         Function<ListReadQueryData, ListenableFuture<RecordList>> queryExecutor = new Function<ListReadQueryData, ListenableFuture<RecordList>>() {
             @Override
             public ListenableFuture<RecordList> apply(ListReadQueryData querData) {
                 return executeAsync(querData);
             }
         };
-        
-        return ListenableFutures.transform(preprocessedDataFuture, queryExecutor, MoreExecutors.directExecutor());
+        return ListenableFutures.transform(queryDataFuture, queryExecutor, MoreExecutors.directExecutor());
     }
 
     
-    private ListenableFuture<RecordList> executeAsync(final ListReadQueryData preprocessedData) {
-        Statement statement = ListReadQueryDataImpl.toStatement(preprocessedData, getContext());
+    private ListenableFuture<RecordList> executeAsync(ListReadQueryData queryData) {
+        // perform query
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(ListReadQueryDataImpl.toStatement(queryData, getContext()));        
         
-        ListenableFuture<ResultSet> future = performAsync(statement);
-        
-        // map to record list
-        Function<ResultSet, RecordList> mapEntity = new Function<ResultSet, RecordList>() {
+        // result set to record list mapper
+        Function<ResultSet, RecordList> resultSetToRecordList = new Function<ResultSet, RecordList>() {
             
             @Override
             public RecordList apply(ResultSet resultSet) {
                 return new RecordListImpl(getContext(), resultSet);
             }
         };
-        ListenableFuture<RecordList> result =  Futures.transform(future, mapEntity); 
+        ListenableFuture<RecordList> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
         
-        
-        
-        // perform interceptors if present
-        final ImmutableList<ListReadQueryResponseInterceptor> interceptors = getContext().getInterceptorRegistry().getInterceptors(ListReadQueryResponseInterceptor.class);
-        if (!interceptors.isEmpty()) {
-            
-            Function<RecordList, RecordList> processInterceptors = new Function<RecordList, RecordList>() {
-                @Override
-                public RecordList apply(RecordList recordList) {
-                    for (ListReadQueryResponseInterceptor interceptor : interceptors) {
-                        recordList = interceptor.onListReadResponse(preprocessedData, recordList);
-                    }
-                    return recordList;
-                }
-            };
-            
-            result = Futures.transform(result, processInterceptors, getContext().getTaskExecutor()); // do not perform post process interceptors within drive callback thread
-        }
-        
-        
-        return result;
+        // perform response interceptor
+        return executeResponseInterceptorsAsync(queryData, recordListFuture);
     }
 
     
-    private ListenableFuture<ListReadQueryData> getPreprocessedDataAsync() {
-        ListenableFuture<ListReadQueryData> queryDataFuture = Futures.<ListReadQueryData>immediateFuture(data);
-        
-        // perform interceptors
+    private ListenableFuture<ListReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ListReadQueryData> queryDataFuture) {
         for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class).reverse()) {
             final ListReadQueryRequestInterceptor icptor = interceptor;
             
@@ -240,8 +218,25 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         return queryDataFuture;
     }
+
     
+    private ListenableFuture<RecordList> executeResponseInterceptorsAsync(final ListReadQueryData queryData, ListenableFuture<RecordList> recordFuture) {
     
+        for (ListReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryResponseInterceptor.class).reverse()) {
+            final ListReadQueryResponseInterceptor icptor = interceptor;
+            
+            Function<RecordList, ListenableFuture<RecordList>> mapperFunction = new Function<RecordList, ListenableFuture<RecordList>>() {
+                @Override
+                public ListenableFuture<RecordList> apply(RecordList recordList) {
+                    return icptor.onListReadResponse(queryData, recordList);
+                }
+            };
+            
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return recordFuture;
+    }
     
     
     /**

@@ -220,26 +220,36 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
-        ListenableFuture<WriteQueryData> queryDataFuture = Futures.<WriteQueryData>immediateFuture(data);
-        
-        // perform interceptors
-        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
-            final WriteQueryRequestInterceptor icptor = interceptor;
-            
-            Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
-                @Override
-                public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
-                    return icptor.onWriteRequest(queryData);
-                }
-            };
-            
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-        }
-        
+        // perform request executors
+        ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));
+
         // query data to statement
-        return Futures.transform(queryDataFuture, WriteQueryDataImpl.newQueryDataToStatementFunction(getContext()));
+        Function<WriteQueryData, Statement> queryDataToStatement = new Function<WriteQueryData, Statement>() {
+            @Override
+            public Statement apply(WriteQueryData queryData) {
+                return WriteQueryDataImpl.toStatement(queryData, getContext());
+            }
+        };
+        return Futures.transform(queryDataFuture, queryDataToStatement);
     }
     
+    private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
+       
+       for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
+           final WriteQueryRequestInterceptor icptor = interceptor;
+           
+           Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
+               @Override
+               public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
+                   return icptor.onWriteRequest(queryData);
+               }
+           };
+           
+           queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+       }
+       
+       return queryDataFuture; 
+    }
     
     
     /**
