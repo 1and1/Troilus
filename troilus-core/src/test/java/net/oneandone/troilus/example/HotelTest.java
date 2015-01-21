@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
-import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;

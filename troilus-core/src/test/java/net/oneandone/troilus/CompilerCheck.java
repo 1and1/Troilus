@@ -1,13 +1,17 @@
 package net.oneandone.troilus;
 
+import com.datastax.driver.core.querybuilder.Clause;
+
 import net.oneandone.troilus.Dao;
+import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.DaoImpl;
 
 
 
 
 
-public class ComplierCheck {
+@SuppressWarnings("unused")
+public class CompilerCheck {
     
     private final Dao dao = new DaoImpl(null, null);
     
@@ -15,8 +19,8 @@ public class ComplierCheck {
     // by uncommenting a method a compile error (per method) occurs
 
     
-    
-     /*
+    /*
+     
     private void checkDeleteWithOnlyIfIsNotBatchable() {
         Batchable batchable = dao.deleteWhere((Clause) null)
                                  .onlyIf(null);

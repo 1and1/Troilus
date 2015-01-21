@@ -10,13 +10,11 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
-import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.CounterMutation;
 
@@ -81,14 +79,14 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        Result result = usersDao.writeWithKey(UsersTable.USER_ID, "4545")
-                                .value(UsersTable.IS_CUSTOMER, true)
-                                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
-                                .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
-                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                                .ifNotExists()
-                                .withEnableTracking()
-                                .execute();
+        usersDao.writeWithKey(UsersTable.USER_ID, "4545")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
+                .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
+                .ifNotExists()
+                .withEnableTracking()
+                .execute();
 
 
         try {   // insert twice!

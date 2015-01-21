@@ -194,7 +194,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         @Override
         public CompletableFuture<EntityList<E>> executeAsync() {
             return CompletableFutures.toCompletableFuture(query.executeAsync())
-                            .thenApply(entityList -> new DaoImpl.EntityListAdapter<>(entityList));
+                                     .thenApply(entityList -> new DaoImpl.EntityListAdapter<>(entityList));
         }
     }
     
