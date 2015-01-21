@@ -12,17 +12,21 @@ import javax.ws.rs.client.Client;
 
 
 
+
+
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.example.AbstractCassandraBasedTest;
 import net.oneandone.troilus.example.HotelsTable;
 import net.oneandone.troilus.example.service.Hotel;
 import net.oneandone.troilus.example.service.HotelRepresentation;
 
 
+
+
 import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -31,7 +35,7 @@ import com.google.common.collect.ImmutableSet;
 public class HotelServiceTest extends AbstractCassandraBasedTest {
     
     
-        
+    @Ignore    
     @Test
     public void testExample() throws Exception {
         filldb();

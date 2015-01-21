@@ -1,8 +1,11 @@
-package net.oneandone.troilus.example;
+package net.oneandone.troilus.example.service;
 
 
 
 import java.io.IOException;
+
+import net.oneandone.troilus.example.EmbeddedCassandra;
+import net.oneandone.troilus.example.HotelsTable;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

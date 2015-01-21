@@ -1,7 +1,5 @@
 package net.oneandone.troilus.example;
 
-import net.oneandone.troilus.Schema;
-
 
 
 public interface HotelsTable  {
