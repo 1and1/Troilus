@@ -21,8 +21,6 @@ import java.util.concurrent.ExecutionException;
 
 import java.util.concurrent.Executor;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,37 +40,6 @@ class ListenableFutures {
         }
     }
     
-    
-    
-    /**
-     * @param throwable the Throwable to unwrap
-     * @return the unwrapped throwable
-     */
-    public static RuntimeException unwrapIfNecessary(Throwable throwable )  {
-        return unwrapIfNecessary(throwable, 5);
-    }
-    
-    /**
-     * @param throwable the Throwable to unwrap
-     * @param maxDepth  the max depth
-     * @return the unwrapped throwable
-     */
-    private static RuntimeException unwrapIfNecessary(Throwable throwable , int maxDepth)  {
-        
-        if (ExecutionException.class.isAssignableFrom(throwable.getClass())) {
-            Throwable e = ((ExecutionException) throwable).getCause();
-
-            if (maxDepth > 1) {
-                throwable = unwrapIfNecessary(e, maxDepth - 1);
-            }
-        }
-        
-        if (throwable instanceof RuntimeException) {
-            throw (RuntimeException) throwable;
-        } else {
-            throw new RuntimeException(throwable);
-        }
-    }   
     
     
     
@@ -103,7 +70,8 @@ class ListenableFutures {
                         try {
                             set(iFuture.get());
                         } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            setException(ListenableFutures.unwrapIfNecessary(e));
+                            RuntimeException rt = ListenableFutures.unwrapIfNecessary(e);
+                            setException(rt);
                         }
                     }
                 };
@@ -115,7 +83,35 @@ class ListenableFutures {
         };
     }
     
- 
     
+    /**
+     * @param throwable the Throwable to unwrap
+     * @return the unwrapped throwable
+     */
+    public static RuntimeException unwrapIfNecessary(Throwable throwable)  {
+        return unwrapIfNecessary(throwable, 5);
+    }
+    
+    /**
+     * @param throwable the Throwable to unwrap
+     * @param maxDepth  the max depth
+     * @return the unwrapped throwable
+     */
+    private static RuntimeException unwrapIfNecessary(Throwable throwable , int maxDepth)  {
+        
+        if (ExecutionException.class.isAssignableFrom(throwable.getClass())) {
+            Throwable e = ((ExecutionException) throwable).getCause();
+
+            if (maxDepth > 1) {
+                throwable = unwrapIfNecessary(e, maxDepth - 1);
+            }
+        }
+        
+        if (throwable instanceof RuntimeException) {
+            return (RuntimeException) throwable;
+        } else {
+            return new RuntimeException(throwable);
+        }
+    }   
 }
 

@@ -15,17 +15,13 @@ import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datastax.driver.core.ConsistencyLevel;
-import com.google.common.collect.ImmutableSet;
-
 
 
 public class DeviceTest extends AbstractCassandraBasedTest {
     
-    
 
     
-       @Test
+    @Test
     public void testRI() throws Exception {           
            
         /*

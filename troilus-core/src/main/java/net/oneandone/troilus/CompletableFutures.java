@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
@@ -92,9 +93,11 @@ class CompletableFutures {
                                                           if (throwable == null) {
                                                               set(result);
                                                           } else {
+                                                              if (CompletionException.class.isAssignableFrom(throwable.getClass())) {
+                                                                  throwable = throwable.getCause();
+                                                              }
                                                               setException(throwable);
                                                           }
-                
                                                        });
         }
     }   

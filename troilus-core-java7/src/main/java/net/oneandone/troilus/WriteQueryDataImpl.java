@@ -40,6 +40,7 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -335,12 +336,23 @@ class WriteQueryDataImpl implements WriteQueryData {
         return ifNotExists;
     }
     
+    
+    static Function<WriteQueryData, Statement> newQueryDataToStatementFunction(final Context ctx) {
+        return new Function<WriteQueryData, Statement>() {
+            @Override
+            public Statement apply(WriteQueryData queryData) {
+                return toStatement(queryData, ctx);
+            }
+        };
+    }
+    
+    
     /**
      * @param data   the query data
      * @param ctx    the context
      * @return the query data as statement
      */
-    static Statement toStatement(WriteQueryData data, Context ctx) {
+    private static Statement toStatement(WriteQueryData data, Context ctx) {
         if ((data.getIfNotExits() != null) || (data.getKeys().isEmpty() && data.getWhereConditions().isEmpty())) {
             return toInsertStatement(data, ctx);
         } else {
@@ -505,5 +517,5 @@ class WriteQueryDataImpl implements WriteQueryData {
             m.put(toStatementValue(ctx, name, toStatementValue(ctx, name, entry.getKey())), toStatementValue(ctx, name, entry.getValue().orNull()));
         }
         return m;
-    }
+    } 
 }

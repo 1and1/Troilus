@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.java7.interceptor;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
@@ -37,6 +39,6 @@ public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
      * @param queryData   the request data
      * @return the (modified) request data
      */
-    DeleteQueryData onDeleteRequest(DeleteQueryData queryData);
+    ListenableFuture<DeleteQueryData> onDeleteRequest(DeleteQueryData queryData);
 }
  

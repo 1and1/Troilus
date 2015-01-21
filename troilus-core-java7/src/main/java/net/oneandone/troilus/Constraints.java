@@ -12,6 +12,8 @@ import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -47,7 +49,7 @@ public class Constraints  {
     private final class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
         
         @Override
-        public WriteQueryData onWriteRequest(WriteQueryData queryData) throws ConstraintException {
+        public ListenableFuture<WriteQueryData> onWriteRequest(WriteQueryData queryData) throws ConstraintException {
             
             // NOT NULL column check for INSERT
             if ((queryData.getIfNotExits() != null) && !queryData.getIfNotExits()) {
@@ -79,8 +81,7 @@ public class Constraints  {
             }
             
             
-            
-            return queryData;
+            return Futures.immediateFuture(queryData);
         }
     }
 }

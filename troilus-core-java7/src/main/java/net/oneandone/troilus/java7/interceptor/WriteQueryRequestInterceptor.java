@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.java7.interceptor;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 
@@ -34,5 +36,5 @@ public interface WriteQueryRequestInterceptor extends QueryInterceptor {
      * @param data the request data
      * @return the (modified) request data
      */
-    WriteQueryData onWriteRequest(WriteQueryData data); 
+    ListenableFuture<WriteQueryData> onWriteRequest(WriteQueryData data); 
 }

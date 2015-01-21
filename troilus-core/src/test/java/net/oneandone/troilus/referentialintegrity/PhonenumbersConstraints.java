@@ -6,22 +6,6 @@ import java.util.Optional;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Dao;
@@ -34,7 +18,6 @@ import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
-
     
 
 
@@ -53,21 +36,37 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
 
     
     @Override
-    public CompletableFuture<WriteQueryData> onWriteRequestAsync( WriteQueryData queryData) {
+    public CompletableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) {
         
         // unique insert?
         if (queryData.getIfNotExits().isPresent() && queryData.getIfNotExits().get()) {
-            ConstraintException.throwIf(!queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
+            if (!queryData.getValuesToMutate().containsKey("device_id")) {
+                return failedFuture(new ConstraintException("columnn 'device_id' is mandatory"));
+            }
             
             String deviceId = (String) queryData.getValuesToMutate().get("device_id").get();
-            ConstraintException.throwIf(!deviceDao.readWithKey("device_id", deviceId).execute().isPresent(), "device with id " + deviceId + " does not exits");                                                                                    
+            if (!deviceDao.readWithKey("device_id", deviceId)
+                          .execute()
+                          .isPresent()) {
+                return failedFuture(new ConstraintException("device with id " + deviceId + " does not exits"));
+            }
+                                                                                                
             
         // no, update
         } else {
-            ConstraintException.throwIf(queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is unmodifiable");
+            if (queryData.getValuesToMutate().containsKey("device_id")) {
+                return failedFuture(new ConstraintException("columnn 'device_id' is unmodifiable"));
+            }
         }
            
         return CompletableFuture.completedFuture(queryData); 
+    }
+    
+    
+    private static <T> CompletableFuture<T> failedFuture(Throwable t) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        future.completeExceptionally(t);
+        return future;
     }
 
     
@@ -102,8 +101,7 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
         } else {
             return CompletableFuture.completedFuture(optionalRecord);
         }
-    }
-    
+    }    
 }
 
 

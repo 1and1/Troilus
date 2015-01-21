@@ -19,7 +19,6 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.java7.Dao.Batchable;
-
 import net.oneandone.troilus.java7.Dao.CounterBatchable;
 import net.oneandone.troilus.java7.Dao.CounterMutation;
 import net.oneandone.troilus.java7.Dao.UpdateWithValuesAndCounter;
@@ -38,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 
  
@@ -221,14 +221,25 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
-        // TODO real async impl
+        ListenableFuture<WriteQueryData> queryDataFuture = Futures.<WriteQueryData>immediateFuture(data);
         
-        WriteQueryData queryData = data;
-        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class)) {
-            queryData = interceptor.onWriteRequest(queryData);
+        // perform interceptors
+        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
+            final WriteQueryRequestInterceptor icptor = interceptor;
+            
+            Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
+                @Override
+                public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
+                    return icptor.onWriteRequest(queryData);
+                }
+            };
+            
+           // queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, MoreExecutors.directExecutor());
         }
         
-        return Futures.immediateFuture(WriteQueryDataImpl.toStatement(queryData, getContext()));  
+        // query data to statement
+        return Futures.transform(queryDataFuture, WriteQueryDataImpl.newQueryDataToStatementFunction(getContext()));
     }
     
     

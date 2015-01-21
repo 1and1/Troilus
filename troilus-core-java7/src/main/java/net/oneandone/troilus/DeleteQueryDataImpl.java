@@ -29,16 +29,16 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 
 
+
 import java.util.List;
 import java.util.Map.Entry;
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 import com.datastax.driver.core.querybuilder.Clause;
-
-
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -129,12 +129,22 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         return ifExists;
     }
     
+    static Function<DeleteQueryData, Statement> newQueryDataToStatementFunction(final Context ctx) {
+        return new Function<DeleteQueryData, Statement>() {
+            @Override
+            public Statement apply(DeleteQueryData queryData) {
+                return toStatement(queryData, ctx);
+            }
+        };
+    }
+    
+    
     /**
      * @param data  the data 
      * @param ctx   the context
      * @return the query data statement
      */
-    static Statement toStatement(DeleteQueryData data, Context ctx) {
+    private static Statement toStatement(DeleteQueryData data, Context ctx) {
         Delete delete = delete().from(ctx.getTable());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {

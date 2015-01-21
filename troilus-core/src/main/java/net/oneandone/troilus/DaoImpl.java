@@ -17,6 +17,8 @@ package net.oneandone.troilus;
 
 
 import java.util.Iterator;
+
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,6 +66,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ListenableFuture;
 
  
 
@@ -969,9 +972,9 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public net.oneandone.troilus.java7.interceptor.WriteQueryData onWriteRequest(net.oneandone.troilus.java7.interceptor.WriteQueryData data) {
-            // TODO real async impl
-            return WriteQueryDataAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onWriteRequestAsync(new WriteQueryDataAdapter(data))));
+        public ListenableFuture<net.oneandone.troilus.java7.interceptor.WriteQueryData> onWriteRequest(net.oneandone.troilus.java7.interceptor.WriteQueryData data) {
+            return CompletableFutures.toListenableFuture(interceptor.onWriteRequestAsync(new WriteQueryDataAdapter(data))
+                                                                    .thenApply(queryData -> WriteQueryDataAdapter.convert(queryData)));
         }
         
         @Override
@@ -992,9 +995,8 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public DeleteQueryData onDeleteRequest(DeleteQueryData queryData) {
-            // TODO real async impl
-            return CompletableFutures.getUninterruptibly(interceptor.onDeleteRequestAsync(queryData));
+        public ListenableFuture<DeleteQueryData> onDeleteRequest(DeleteQueryData queryData) {
+            return CompletableFutures.toListenableFuture(interceptor.onDeleteRequestAsync(queryData));
         }
         
         @Override

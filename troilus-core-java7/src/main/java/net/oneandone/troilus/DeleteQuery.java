@@ -83,7 +83,7 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     public ListenableFuture<Result> executeAsync() {
         ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
         
-        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+        Function<ResultSet, Result> mapResult = new Function<ResultSet, Result>() {
             @Override
             public Result apply(ResultSet resultSet) {
                 Result result = newResult(resultSet);
@@ -92,18 +92,28 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             }
         };
         
-        return Futures.transform(future, mapEntity);
+        return Futures.transform(future, mapResult);
     }
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
-        // TODO real async impl
-
-        DeleteQueryData queryData = data;
-        for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class)) {
-            queryData = interceptor.onDeleteRequest(queryData); 
+        ListenableFuture<DeleteQueryData> queryDataFuture = Futures.immediateFuture(data);
+        
+        // perform interceptors
+        for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class).reverse()) {
+            final DeleteQueryRequestInterceptor icptor = interceptor;
+            
+            Function<DeleteQueryData, ListenableFuture<DeleteQueryData>> mapperFunction = new Function<DeleteQueryData, ListenableFuture<DeleteQueryData>>() {
+                @Override
+                public ListenableFuture<DeleteQueryData> apply(DeleteQueryData queryData) {
+                    return icptor.onDeleteRequest(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
-
-        return Futures.immediateFuture(DeleteQueryDataImpl.toStatement(queryData, getContext()));
+        
+        // query data to statement
+        return Futures.transform(queryDataFuture, DeleteQueryDataImpl.newQueryDataToStatementFunction(getContext()));
     }
 }
