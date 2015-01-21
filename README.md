@@ -15,7 +15,7 @@ Java8-based
 	<artifactId>troilus-core</artifactId>
 	<version>0.2</version>
 </dependency>
-``` java
+```
 
 
 Java7-based
@@ -25,7 +25,7 @@ Java7-based
 	<artifactId>troilus-core-java7</artifactId>
 	<version>0.2</version>
 </dependency>
-``` java
+```
 
 
 #Examples
