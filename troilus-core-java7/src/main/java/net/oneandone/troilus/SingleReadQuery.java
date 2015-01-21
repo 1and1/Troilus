@@ -182,7 +182,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>> mapperFunction = new Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>>() {
                 @Override
                 public ListenableFuture<SingleReadQueryData> apply(SingleReadQueryData queryData) {
-                    return icptor.onSingleReadRequest(queryData);
+                    return icptor.onSingleReadRequestAsync(queryData);
                 }
             };
             
@@ -201,7 +201,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             Function<Record, ListenableFuture<Record>> mapperFunction = new Function<Record, ListenableFuture<Record>>() {
                 @Override
                 public ListenableFuture<Record> apply(Record record) {
-                    return icptor.onSingleReadResponse(queryData, record);
+                    return icptor.onSingleReadResponseAsync(queryData, record);
                 }
             };
             

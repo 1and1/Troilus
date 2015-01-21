@@ -35,6 +35,6 @@ public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
      * @param recordList  the requested record list
      * @return the (modified) requested record list
      */
-    ListenableFuture<RecordList> onListReadResponse(ListReadQueryData queryData, RecordList recordList);
+    ListenableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
 }
  

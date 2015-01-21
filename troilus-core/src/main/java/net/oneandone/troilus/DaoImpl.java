@@ -887,7 +887,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.interceptor.ListReadQueryData> onListReadRequest(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
+        public ListenableFuture<net.oneandone.troilus.java7.interceptor.ListReadQueryData> onListReadRequestAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
             return CompletableFutures.toListenableFuture(interceptor.onListReadRequestAsync(new ListReadQueryDataAdapter(data))
                                                                     .thenApply((queryData -> ListReadQueryDataAdapter.convert(queryData))));
         }
@@ -908,7 +908,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.Dao.RecordList> onListReadResponse(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
+        public ListenableFuture<net.oneandone.troilus.java7.Dao.RecordList> onListReadResponseAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
             return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList))
                                                                     .thenApply(list -> RecordListAdapter.convert(list)));
         }
@@ -929,7 +929,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<SingleReadQueryData> onSingleReadRequest(SingleReadQueryData data) {
+        public ListenableFuture<SingleReadQueryData> onSingleReadRequestAsync(SingleReadQueryData data) {
             return CompletableFutures.toListenableFuture(interceptor.onSingleReadRequestAsync(data));
         }
         
@@ -949,7 +949,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.Record> onSingleReadResponse(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
+        public ListenableFuture<net.oneandone.troilus.java7.Record> onSingleReadResponseAsync(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
             return CompletableFutures.toListenableFuture(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record)))
                                                                     .thenApply(optionalRecord -> RecordAdapter.convert(optionalRecord.orElse((null)))));
         }
@@ -971,7 +971,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.interceptor.WriteQueryData> onWriteRequest(net.oneandone.troilus.java7.interceptor.WriteQueryData data) {
+        public ListenableFuture<net.oneandone.troilus.java7.interceptor.WriteQueryData> onWriteRequestAsync(net.oneandone.troilus.java7.interceptor.WriteQueryData data) {
             return CompletableFutures.toListenableFuture(interceptor.onWriteRequestAsync(new WriteQueryDataAdapter(data))
                                                                     .thenApply(queryData -> WriteQueryDataAdapter.convert(queryData)));
         }
@@ -994,7 +994,7 @@ public class DaoImpl implements Dao {
         
         
         @Override
-        public ListenableFuture<DeleteQueryData> onDeleteRequest(DeleteQueryData queryData) {
+        public ListenableFuture<DeleteQueryData> onDeleteRequestAsync(DeleteQueryData queryData) {
             return CompletableFutures.toListenableFuture(interceptor.onDeleteRequestAsync(queryData));
         }
         

@@ -120,7 +120,7 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
             Function<DeleteQueryData, ListenableFuture<DeleteQueryData>> mapperFunction = new Function<DeleteQueryData, ListenableFuture<DeleteQueryData>>() {
                 @Override
                 public ListenableFuture<DeleteQueryData> apply(DeleteQueryData queryData) {
-                    return icptor.onDeleteRequest(queryData);
+                    return icptor.onDeleteRequestAsync(queryData);
                 }
             };
             

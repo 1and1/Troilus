@@ -39,6 +39,6 @@ public interface DeleteQueryRequestInterceptor extends QueryInterceptor {
      * @param queryData   the request data
      * @return the (modified) request data
      */
-    ListenableFuture<DeleteQueryData> onDeleteRequest(DeleteQueryData queryData);
+    ListenableFuture<DeleteQueryData> onDeleteRequestAsync(DeleteQueryData queryData);
 }
  

@@ -242,7 +242,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
            Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
                @Override
                public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
-                   return icptor.onWriteRequest(queryData);
+                   return icptor.onWriteRequestAsync(queryData);
                }
            };
            

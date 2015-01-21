@@ -36,5 +36,5 @@ public interface WriteQueryRequestInterceptor extends QueryInterceptor {
      * @param data the request data
      * @return the (modified) request data
      */
-    ListenableFuture<WriteQueryData> onWriteRequest(WriteQueryData data); 
+    ListenableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData data); 
 }

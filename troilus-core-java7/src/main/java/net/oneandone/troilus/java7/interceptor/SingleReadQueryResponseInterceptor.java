@@ -34,6 +34,6 @@ public interface SingleReadQueryResponseInterceptor extends QueryInterceptor {
      * @param record        the requested record 
      * @return the (modified) requested record
      */
-    ListenableFuture<Record> onSingleReadResponse(SingleReadQueryData queryData, Record record);
+    ListenableFuture<Record> onSingleReadResponseAsync(SingleReadQueryData queryData, Record record);
 }
  

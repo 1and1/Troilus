@@ -49,7 +49,7 @@ public class Constraints  {
     private final class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
         
         @Override
-        public ListenableFuture<WriteQueryData> onWriteRequest(WriteQueryData queryData) throws ConstraintException {
+        public ListenableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) throws ConstraintException {
             
             // NOT NULL column check for INSERT
             if ((queryData.getIfNotExits() != null) && !queryData.getIfNotExits()) {

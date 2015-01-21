@@ -209,7 +209,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             Function<ListReadQueryData, ListenableFuture<ListReadQueryData>> mapperFunction = new Function<ListReadQueryData, ListenableFuture<ListReadQueryData>>() {
                 @Override
                 public ListenableFuture<ListReadQueryData> apply(ListReadQueryData queryData) {
-                    return icptor.onListReadRequest(queryData);
+                    return icptor.onListReadRequestAsync(queryData);
                 }
             };
             
@@ -228,7 +228,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             Function<RecordList, ListenableFuture<RecordList>> mapperFunction = new Function<RecordList, ListenableFuture<RecordList>>() {
                 @Override
                 public ListenableFuture<RecordList> apply(RecordList recordList) {
-                    return icptor.onListReadResponse(queryData, recordList);
+                    return icptor.onListReadResponseAsync(queryData, recordList);
                 }
             };
             
