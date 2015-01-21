@@ -29,6 +29,8 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -106,7 +108,7 @@ class CounterMutationQueryData {
         return diff;
     }
     
-    Statement toStatement(Context ctx) {
+    ListenableFuture<Statement> toStatementAsync(Context ctx) {
         com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
         
         // key-based update
@@ -132,7 +134,7 @@ class CounterMutationQueryData {
                 values.add(ctx.getTtlSec().intValue());
             }
             
-            return ctx.prepare(update).bind(values.toArray());
+            return Futures.<Statement>immediateFuture(ctx.prepare(update).bind(values.toArray()));
 
             
         // where condition-based update
@@ -153,7 +155,7 @@ class CounterMutationQueryData {
                 update.where(whereCondition);
             }
             
-            return update;
+            return Futures.<Statement>immediateFuture(update);
         }
     }
 }

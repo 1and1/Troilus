@@ -28,7 +28,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+
+
 
 /**
  * insert query implementation
@@ -105,8 +106,7 @@ class InsertQuery extends AbstractQuery<Insertion> implements Insertion {
                 }
             };
             
-            //queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, MoreExecutors.directExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
         
         // query data to statement

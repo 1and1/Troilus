@@ -37,7 +37,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 
  
@@ -234,8 +233,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
                 }
             };
             
-           // queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, MoreExecutors.directExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
         
         // query data to statement
@@ -297,8 +295,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         
         @Override
         public ListenableFuture<Statement> getStatementAsync() {
-            // TODO real async impl
-            return Futures.immediateFuture(data.toStatement(getContext()));
+            return data.toStatementAsync(getContext());
         }
     }
 }
