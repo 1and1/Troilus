@@ -75,7 +75,7 @@ hotelsDao.writeEntity(new Hotel("BUP14334",
          .execute();
 ```
 
-The columns will be mapped by using `@Field` annotated fields. The JEE [`@Column`](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotation is also supported for compatibility reasons. However, the name field is supported only  
+The columns will be mapped by using `@Field` annotated fields. The JEE [`@Column`](http://docs.oracle.com/javaee/7/api/javax/persistence/Column.html) annotation is also be supported for compatibility reasons. However, the name field is supported only  
 ``` java
 public class Hotel  {
    
