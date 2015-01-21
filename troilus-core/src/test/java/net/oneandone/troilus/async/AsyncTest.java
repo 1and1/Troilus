@@ -39,15 +39,15 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 3)
+        CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 3)
                                                   .value(FeesTable.AMOUNT, 23433)
                                                  .executeAsync();
         
-        CompletableFuture<Result> insert2 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+        CompletableFuture<Result> insert2 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 4)
                                                   .value(FeesTable.AMOUNT, 1223)
                                                   .executeAsync();
 
-        CompletableFuture<Result> insert3 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 8)
+        CompletableFuture<Result> insert3 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 8)
                                                   .value(FeesTable.AMOUNT, 23233)
                                                   .executeAsync();
         
@@ -57,7 +57,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
         try {
-            feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132")
+            feeDao.readWithKey(FeesTable.CUSTOMER_ID, "233132")
                   .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                   .executeAsync()
                   .get();   // waits for completion
@@ -71,7 +71,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // reads
-        ImmutableList<Record> recs = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+        ImmutableList<Record> recs = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "233132"))
                                            .column(FeesTable.CUSTOMER_ID)
                                            .executeAsync()
                                            .thenApply(iterable -> iterable.iterator())
@@ -82,12 +82,12 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         
         
 
-        Record record = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+        Record record = feeDao.readWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 4)
                               .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
                               .executeAsync()
                               .thenApply(optionalRecord -> optionalRecord.<RuntimeException>orElseThrow(RuntimeException::new))
                               .get();   // waits for completion;
-        Assert.assertEquals((Integer) 4, record.getInt(FeesTable.YEAR).get());
+        Assert.assertEquals((Integer) 1223, record.getInt(FeesTable.AMOUNT).get());
     }        
 }
 

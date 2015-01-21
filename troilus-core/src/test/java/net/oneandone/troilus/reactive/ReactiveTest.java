@@ -14,6 +14,7 @@ import net.oneandone.troilus.api.FeesTable;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 
 
@@ -27,15 +28,15 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 3)
+        CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "9565464", FeesTable.YEAR, 3)
                                                   .value(FeesTable.AMOUNT, 23433)
                                                   .executeAsync();
         
-        CompletableFuture<Result> insert2 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 4)
+        CompletableFuture<Result> insert2 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "9565464", FeesTable.YEAR, 4)
                                                   .value(FeesTable.AMOUNT, 1223)
                                                   .executeAsync();
 
-        CompletableFuture<Result> insert3 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, 8)
+        CompletableFuture<Result> insert3 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "9565464", FeesTable.YEAR, 8)
                                                   .value(FeesTable.AMOUNT, 23233)
                                                   .executeAsync();
         
@@ -48,7 +49,7 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         // reads
         MySubscriber<Record> testSubscriber = new MySubscriber<>();
         
-        feeDao.readWhere()
+        feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
               .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
               .executeAsync()
               .thenAccept(result -> result.subscribe(testSubscriber));
