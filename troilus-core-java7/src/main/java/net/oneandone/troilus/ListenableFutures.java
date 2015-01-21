@@ -70,8 +70,7 @@ class ListenableFutures {
                         try {
                             set(iFuture.get());
                         } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            RuntimeException rt = ListenableFutures.unwrapIfNecessary(e);
-                            setException(rt);
+                            setException(ListenableFutures.unwrapIfNecessary(e));
                         }
                     }
                 };

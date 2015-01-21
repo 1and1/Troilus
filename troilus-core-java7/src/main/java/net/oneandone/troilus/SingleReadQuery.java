@@ -36,13 +36,13 @@ import org.slf4j.LoggerFactory;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 
 /**
@@ -132,11 +132,21 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public ListenableFuture<Record> executeAsync() {
-        final SingleReadQueryData preprocessedData = getPreprocessedData(getContext()); 
-        Statement statement = SingleReadQueryDataImpl.toStatement(preprocessedData, getContext());
+        ListenableFuture<SingleReadQueryData> preprocessedDataFuture = getPreprocessedDataAsync(getContext()); 
         
-        ListenableFuture<ResultSet> future = performAsync(statement);
+        Function<SingleReadQueryData, ListenableFuture<Record>> queryExecutor = new Function<SingleReadQueryData, ListenableFuture<Record>>() {
+            @Override
+            public ListenableFuture<Record> apply(SingleReadQueryData querData) {
+                return executeAsync(querData);
+            }
+        };
         
+        return ListenableFutures.transform(preprocessedDataFuture, queryExecutor, MoreExecutors.directExecutor());
+    }
+    
+    private ListenableFuture<Record> executeAsync(final SingleReadQueryData preprocessedData) {
+        
+        ListenableFuture<ResultSet> future = performAsync(SingleReadQueryDataImpl.toStatement(preprocessedData, getContext()));        
         
         // map to record
         Function<ResultSet, Record> mapEntity = new Function<ResultSet, Record>() {
@@ -159,7 +169,6 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         };
         
         ListenableFuture<Record> result = Futures.transform(future, mapEntity);
-        
         
        
         // perform interceptors if present
@@ -186,15 +195,29 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
 
     
     
-    private SingleReadQueryData getPreprocessedData(Context ctx) {
-        SingleReadQueryData queryData = data;
-        for (SingleReadQueryRequestInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class)) {
-            queryData = interceptor.onSingleReadRequest(queryData);
-        }
+    
+    private ListenableFuture<SingleReadQueryData> getPreprocessedDataAsync(Context ctx) {
         
-        return queryData;
+        ListenableFuture<SingleReadQueryData> queryDataFuture = Futures.<SingleReadQueryData>immediateFuture(data);
+        
+        // perform interceptors
+        for (SingleReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class).reverse()) {
+            final SingleReadQueryRequestInterceptor icptor = interceptor;
+            
+            Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>> mapperFunction = new Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>>() {
+                @Override
+                public ListenableFuture<SingleReadQueryData> apply(SingleReadQueryData queryData) {
+                    return icptor.onSingleReadRequest(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return queryDataFuture;
     }
 
+    
     
     private Record paranoiaCheck(Record record) {
         

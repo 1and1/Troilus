@@ -887,9 +887,9 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public net.oneandone.troilus.java7.interceptor.ListReadQueryData onListReadRequest(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
-            // TODO real async impl
-            return ListReadQueryDataAdapter.convert(CompletableFutures.getUninterruptibly(interceptor.onListReadRequestAsync(new ListReadQueryDataAdapter(data))));
+        public ListenableFuture<net.oneandone.troilus.java7.interceptor.ListReadQueryData> onListReadRequest(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
+            return CompletableFutures.toListenableFuture(interceptor.onListReadRequestAsync(new ListReadQueryDataAdapter(data))
+                                                                    .thenApply((queryData -> ListReadQueryDataAdapter.convert(queryData))));
         }
         
         @Override
@@ -929,9 +929,8 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public SingleReadQueryData onSingleReadRequest(SingleReadQueryData data) {
-            // TODO real async impl
-            return CompletableFutures.getUninterruptibly(interceptor.onSingleReadRequestAsync(data));
+        public ListenableFuture<SingleReadQueryData> onSingleReadRequest(SingleReadQueryData data) {
+            return CompletableFutures.toListenableFuture(interceptor.onSingleReadRequestAsync(data));
         }
         
         @Override

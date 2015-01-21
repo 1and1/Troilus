@@ -49,6 +49,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 
 
@@ -168,7 +169,20 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListenableFuture<RecordList> executeAsync() {
-        final ListReadQueryData preprocessedData = getPreprocessedData(); 
+        ListenableFuture<ListReadQueryData> preprocessedDataFuture = getPreprocessedDataAsync(); 
+        
+        Function<ListReadQueryData, ListenableFuture<RecordList>> queryExecutor = new Function<ListReadQueryData, ListenableFuture<RecordList>>() {
+            @Override
+            public ListenableFuture<RecordList> apply(ListReadQueryData querData) {
+                return executeAsync(querData);
+            }
+        };
+        
+        return ListenableFutures.transform(preprocessedDataFuture, queryExecutor, MoreExecutors.directExecutor());
+    }
+
+    
+    private ListenableFuture<RecordList> executeAsync(final ListReadQueryData preprocessedData) {
         Statement statement = ListReadQueryDataImpl.toStatement(preprocessedData, getContext());
         
         ListenableFuture<ResultSet> future = performAsync(statement);
@@ -205,14 +219,26 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         return result;
     }
+
     
-    private ListReadQueryData getPreprocessedData() {
-        ListReadQueryData queryData = data;
-        for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class)) {
-            queryData = interceptor.onListReadRequest(queryData);
-        }
+    private ListenableFuture<ListReadQueryData> getPreprocessedDataAsync() {
+        ListenableFuture<ListReadQueryData> queryDataFuture = Futures.<ListReadQueryData>immediateFuture(data);
         
-        return queryData;
+        // perform interceptors
+        for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class).reverse()) {
+            final ListReadQueryRequestInterceptor icptor = interceptor;
+            
+            Function<ListReadQueryData, ListenableFuture<ListReadQueryData>> mapperFunction = new Function<ListReadQueryData, ListenableFuture<ListReadQueryData>>() {
+                @Override
+                public ListenableFuture<ListReadQueryData> apply(ListReadQueryData queryData) {
+                    return icptor.onListReadRequest(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return queryDataFuture;
     }
     
     

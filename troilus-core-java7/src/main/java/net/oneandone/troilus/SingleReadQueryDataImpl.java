@@ -79,7 +79,8 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
     public ImmutableMap<String, Boolean> getColumnsToFetch() {
         return columnsToFetch;
     }
-
+    
+  
     /**
      * @param data   the query data
      * @param ctx    the context 
