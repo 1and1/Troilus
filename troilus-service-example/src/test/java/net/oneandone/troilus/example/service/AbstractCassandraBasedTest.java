@@ -1,4 +1,4 @@
-package com.unitedinternet.troilus.example.service;
+package net.oneandone.troilus.example.service;
 
 
 

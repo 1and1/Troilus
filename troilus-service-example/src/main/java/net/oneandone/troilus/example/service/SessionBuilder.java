@@ -1,9 +1,10 @@
 package net.oneandone.troilus.example.service;
 
+import net.oneandone.troilus.example.service.EmbeddedCassandra;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
-import com.unitedinternet.troilus.example.service.EmbeddedCassandra;
 
 
 

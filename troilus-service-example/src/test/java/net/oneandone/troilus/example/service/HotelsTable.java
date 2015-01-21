@@ -1,4 +1,4 @@
-package com.unitedinternet.troilus.example.service;
+package net.oneandone.troilus.example.service;
 
 import net.oneandone.troilus.Schema;
 
@@ -15,5 +15,5 @@ public interface HotelsTable  {
     public static final String CLASSIFICATION = "classification";
     
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/service/hotels.ddl");
+    public static final String CREATE_STMT = Schema.load("net/oneandone/troilus/example/service/hotels.ddl");
 }

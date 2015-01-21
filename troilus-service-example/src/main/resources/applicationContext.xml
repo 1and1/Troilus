@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="cassandraSessionFactoryBean" class="com.unitedinternet.troilus.example.service.SessionBuilder"></bean>
+	<bean id="cassandraSessionFactoryBean" class="net.oneandone.troilus.example.service.SessionBuilder"></bean>
 
     <bean id="cassandraSession" class="com.datastax.driver.core.Session"
 						        factory-bean="cassandraSessionFactoryBean"
@@ -11,14 +11,14 @@
 								destroy-method="close">
 	</bean>
 
-	<bean id="hotelsDao" class="com.unitedinternet.troilus.DaoImpl">
+	<bean id="hotelsDao" class="net.oneandone.troilus.DaoImpl">
 		<constructor-arg index="0" ref="cassandraSession" />
 		<constructor-arg index="1" value="hotels" />
 	</bean>
 
 
 
-	<bean id="hotelService" class="com.unitedinternet.troilus.example.service.HotelService">
+	<bean id="hotelService" class="net.oneandone.troilus.example.service.HotelService">
 		<constructor-arg ref="hotelsDao" />
 	</bean>
 
