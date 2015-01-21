@@ -1,4 +1,4 @@
-package net.oneandone.troilus.example.service;
+package net.oneandone.troilus.example;
 
 
 

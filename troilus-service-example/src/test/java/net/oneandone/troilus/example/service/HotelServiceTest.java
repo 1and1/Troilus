@@ -12,15 +12,13 @@ import javax.ws.rs.client.Client;
 
 
 
-
-
-
-
-
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.example.AbstractCassandraBasedTest;
+import net.oneandone.troilus.example.HotelsTable;
 import net.oneandone.troilus.example.service.Hotel;
 import net.oneandone.troilus.example.service.HotelRepresentation;
+
 
 import org.apache.catalina.startup.Tomcat;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
