@@ -74,10 +74,10 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         ImmutableList<Record> records = testSubscriber.getAll();
         if (records.size() != 3) {
             for (Record record : records) {
-                System.out.println(record);
+                System.out.println("" + record);
             }
             
-            Assert.fail("expect 3 reocrds. got " + records.size());
+            Assert.fail("expect 3 records. got " + records.size());
         }
     }        
 }

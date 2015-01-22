@@ -368,14 +368,15 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              }
          }
          
+         
          private final class DatabaseSubscription implements Subscription {
-             
              private final AtomicBoolean isOpen = new AtomicBoolean(true); 
              private final Subscriber<? super Record> subscriber;
              private final Iterator<? extends Record> it;
              
              private final AtomicLong numPendingReads = new AtomicLong();
              private final AtomicReference<Runnable> runningDatabaseQuery = new AtomicReference<>();
+
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
                  this.subscriber = subscriber;
@@ -397,31 +398,18 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private void processReadRequests() {
                  
                  if (isOpen.get()) {
+                     
                      synchronized (this) {
-                         
                          try {
-                             long available = rs.getAvailableWithoutFetching();
-                             long numToRead = numPendingReads.get();
-        
-                             // no records available?
-                             if (available == 0) {
-                                 requestDatabaseForMoreRecords();
-                               
-                             // all requested available 
-                             } else if (available >= numToRead) {
-                                 numPendingReads.addAndGet(-numToRead);
-                                 for (int i = 0; i < numToRead; i++) {
-                                     subscriber.onNext(it.next());
-                                 }                    
-                                 
-                             // requested partly available                        
-                             } else {
-                                 requestDatabaseForMoreRecords();
-                                 numPendingReads.addAndGet(-available);
-                                 for (int i = 0; i < available; i++) {
-                                     subscriber.onNext(it.next());
-                                 }
+                             while (it.hasNext() && numPendingReads.get() > 0) {
+                                 numPendingReads.addAndGet(-1);
+                                 subscriber.onNext(it.next());
                              }
+
+                             if (numPendingReads.get() > 0) {
+                                 requestDatabaseForMoreRecords();
+                             }
+
                          } catch (RuntimeException rt) {
                              LOG.warn("processing error occured", rt);
                              subscriber.onError(rt);
