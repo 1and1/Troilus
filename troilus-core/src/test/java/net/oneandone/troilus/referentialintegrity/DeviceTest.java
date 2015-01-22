@@ -108,7 +108,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .execute();
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) { 
-            Assert.assertTrue(expected.getMessage().contains("NOT UPDATEABLE column device_id can not be updated"));
+            Assert.assertTrue(expected.getMessage().contains("immutable column device_id can not be updated"));
         }
     
   
