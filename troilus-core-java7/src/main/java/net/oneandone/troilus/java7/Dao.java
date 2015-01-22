@@ -23,8 +23,6 @@ import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 import org.reactivestreams.Publisher;
 
-
-
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -39,24 +37,57 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 public interface Dao {
-    
+    /**
+     * @param consistencyLevel  the consistency level to use
+     * @return a new Dao instance with the modified property
+     */
     Dao withConsistency(ConsistencyLevel consistencyLevel);
 
-    Dao withSerialConsistency(ConsistencyLevel consistencyLevel);
+    /**
+     * @param serialConsistencyLevel   the serial consistency level to use
+     * @return a new Dao instance with the modified property
+     */
+    Dao withSerialConsistency(ConsistencyLevel serialConsistencyLevel);
 
+    /**
+     * @return a new Dao instance with activated tracking
+     */
     Dao withTracking();
 
+    /**
+     * @return a new Dao instance with deactivated tracking 
+     */
     Dao withoutTracking();
 
+    /**
+     * @param policy  the retry policy
+     * @return a new Dao instance with the modified property
+     */
     Dao withRetryPolicy(RetryPolicy policy);
-        
+
+    /**
+     * @param queryInterceptor   the interceptor
+     * @return a new Dao instance with the modified property
+     */
     Dao withInterceptor(QueryInterceptor queryInterceptor);
     
-    
+
+    /**
+     * The Query 
+     * @param <T>  the result type
+     */
     public interface Query<T> {
 
+        /**
+         * performs the query in an async way 
+         * @return the result future 
+         */
         ListenableFuture<T> executeAsync();
         
+        /**
+         * performs the query in a sync way 
+         * @return the result
+         */
         T execute();
     } 
 

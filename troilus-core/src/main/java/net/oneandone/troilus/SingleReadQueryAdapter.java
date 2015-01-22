@@ -100,7 +100,7 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     @Override
     public CompletableFuture<Optional<Record>> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync())
-                            .thenApply(record -> (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record))); 
+                            .thenApply(record -> (record == null) ? Optional.empty() : Optional.of(RecordAdapter.convertFromJava7(record))); 
     }
     
     

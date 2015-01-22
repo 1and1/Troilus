@@ -508,8 +508,12 @@ public class DaoImpl implements Dao {
     static class RecordListAdapter implements RecordList {
         private final net.oneandone.troilus.java7.Dao.RecordList recordList;
         
-        public RecordListAdapter(net.oneandone.troilus.java7.Dao.RecordList recordList) {
+        private RecordListAdapter(net.oneandone.troilus.java7.Dao.RecordList recordList) {
             this.recordList = recordList;
+        }
+        
+        static RecordList convertFromJava7(net.oneandone.troilus.java7.Dao.RecordList recordList) {
+            return new RecordListAdapter(recordList);
         }
         
         @Override
@@ -540,7 +544,7 @@ public class DaoImpl implements Dao {
                 
                 @Override
                 public Record next() {
-                    return new RecordAdapter(iterator.next());
+                    return RecordAdapter.convertFromJava7(iterator.next());
                 }
             };
         }
@@ -565,7 +569,7 @@ public class DaoImpl implements Dao {
 
            @Override
            public void onNext(net.oneandone.troilus.java7.Record record) {
-               subscriber.onNext(new RecordAdapter(record));
+               subscriber.onNext(RecordAdapter.convertFromJava7(record));
            }
 
            @Override
@@ -583,7 +587,7 @@ public class DaoImpl implements Dao {
         
         
         
-        static net.oneandone.troilus.java7.Dao.RecordList convert(RecordList recordList) {
+        static net.oneandone.troilus.java7.Dao.RecordList convertToJava7(RecordList recordList) {
             
             return new net.oneandone.troilus.java7.Dao.RecordList() {
                 
@@ -619,7 +623,7 @@ public class DaoImpl implements Dao {
                         
                         @Override
                         public net.oneandone.troilus.java7.Record next() {
-                            return RecordAdapter.convert(iterator.next());
+                            return RecordAdapter.convertToJava7(iterator.next());
                         }
                     };
                 }
@@ -644,7 +648,7 @@ public class DaoImpl implements Dao {
 
       @Override
       public void onNext(Record record) {
-          subscriber.onNext(RecordAdapter.convert(record));
+          subscriber.onNext(RecordAdapter.convertToJava7(record));
       }
 
       @Override
@@ -962,8 +966,8 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListenableFuture<net.oneandone.troilus.java7.Dao.RecordList> onListReadResponseAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
-            return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), new RecordListAdapter(recordList))
-                                                                    .thenApply(list -> RecordListAdapter.convert(list)));
+            return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
+                                                                    .thenApply(list -> RecordListAdapter.convertToJava7(list)));
         }
         
         @Override
@@ -1003,8 +1007,8 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListenableFuture<net.oneandone.troilus.java7.Record> onSingleReadResponseAsync(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
-            return CompletableFutures.toListenableFuture(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(new RecordAdapter(record)))
-                                                                    .thenApply(optionalRecord -> RecordAdapter.convert(optionalRecord.orElse((null)))));
+            return CompletableFutures.toListenableFuture(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(RecordAdapter.convertFromJava7(record)))
+                                                                    .thenApply(optionalRecord -> RecordAdapter.convertToJava7(optionalRecord.orElse((null)))));
         }
         
         @Override

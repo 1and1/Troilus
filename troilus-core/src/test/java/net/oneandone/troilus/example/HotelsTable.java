@@ -15,8 +15,8 @@
  */
 package net.oneandone.troilus.example;
 
-import net.oneandone.troilus.ConstraintsInterceptor;
 import net.oneandone.troilus.Schema;
+import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
 
 
 

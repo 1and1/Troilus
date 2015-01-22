@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.interceptor;
 
 
 
 
 import java.util.Set;
 
+import net.oneandone.troilus.ConstraintException;
+import net.oneandone.troilus.Name;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
@@ -31,42 +33,76 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-
-public class ConstraintsInterceptor implements WriteQueryRequestInterceptor  {
+/**
+ * ConstraintsInterceptor
+ */
+public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
     
     private final ImmutableSet<String> notNullColumns;
     private final ImmutableSet<String> immutableColumns;
     
-    
+   /**
+    * constructor 
+    *   
+    * @param notNullColumns     the not null columns
+    * @param immutableColumns   the immutable columns
+    */
     private ConstraintsInterceptor(ImmutableSet<String> notNullColumns, ImmutableSet<String> immutableColumns) {
         this.notNullColumns = notNullColumns;
         this.immutableColumns = immutableColumns;
     }
 
+    /**
+     * @return a new instance
+     */
     public static ConstraintsInterceptor newConstraints() {
         return new ConstraintsInterceptor(ImmutableSet.<String>of(), ImmutableSet.<String>of());
     }
-    
-    public ConstraintsInterceptor withNotNullColumn(String columnName) {
-        return new ConstraintsInterceptor(Immutables.merge(notNullColumns, columnName), immutableColumns);
-    }
-    
+
+    /**
+     * @param columnName the column name of the not null column
+     * @return a new instance updated with this constraint
+     */
     public ConstraintsInterceptor withNotNullColumn(Name<?> columnName) {
-        return new ConstraintsInterceptor(Immutables.merge(notNullColumns, columnName.getName()), immutableColumns);
+        return withNotNullColumn(columnName.getName());
     }
 
-    public ConstraintsInterceptor withImmutableColumn(String columnName) {
-        return new ConstraintsInterceptor(notNullColumns, Immutables.merge(immutableColumns, columnName));
+    /**
+     * @param columnName the column name of the not null column
+     * @return a new instance updated with this constraint
+     */
+    public ConstraintsInterceptor withNotNullColumn(String columnName) {
+        return new ConstraintsInterceptor(ImmutableSet.<String>builder().addAll(notNullColumns).add(columnName).build(), immutableColumns);
     }
-    
+
+    /**
+     * @param columnName the column name of the immutable column. Please consider, that every write operation without ifNotExists() will count as an update
+     * @return a new instance updated with this constraint
+     */
     public ConstraintsInterceptor withImmutableColumn(Name<?> columnName) {
-        return new ConstraintsInterceptor(notNullColumns, Immutables.merge(immutableColumns, columnName.getName()));
+        return withImmutableColumn(columnName.getName());
+    }
+
+    /**
+     * @param columnName the column name of the immutable column. Please consider, that every write operation without ifNotExists() will count as an update
+     * @return a new instance updated with this constraint
+     */
+    public ConstraintsInterceptor withImmutableColumn(String columnName) {
+        return new ConstraintsInterceptor(notNullColumns, ImmutableSet.<String>builder().addAll(immutableColumns).add(columnName).build());
     }
 
     
     @Override
     public ListenableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) throws ConstraintException {
+        checkNotNull(queryData);
+        checkImmutable(queryData);
         
+        return Futures.immediateFuture(queryData);
+    }
+ 
+    
+    private void checkNotNull(WriteQueryData queryData) {
+
         // NOT NULL column check for INSERT
         if (isInsert(queryData)) {
             Set<String> missingColumns = Sets.newHashSet(notNullColumns);
@@ -95,9 +131,13 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor  {
                 }
             }
         }
-        
-        
-        // NOT UPDATEABLE check
+    }
+    
+    
+
+    
+    private void checkImmutable(WriteQueryData queryData) {
+
         if (!isInsert(queryData)) {
             for (String immutableColumn : immutableColumns) {
                 if ((queryData.getValuesToMutate().containsKey(immutableColumn) && ((queryData.getValuesToMutate().get(immutableColumn) != null) && queryData.getValuesToMutate().get(immutableColumn).isPresent()))) {
@@ -105,9 +145,10 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor  {
                 }
             }
         }
-        
-        return Futures.immediateFuture(queryData);
     }
+
+
+    
     
     private boolean isInsert(WriteQueryData queryData) {
         return (queryData.getIfNotExits() != null) && queryData.getIfNotExits();

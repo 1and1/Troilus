@@ -51,9 +51,14 @@ class RecordAdapter implements Record {
     /**
      * @param record the underylinhg record
      */
-    RecordAdapter(net.oneandone.troilus.java7.Record record) {
+    private RecordAdapter(net.oneandone.troilus.java7.Record record) {
         this.record = record;
     }
+    
+    public static Record convertFromJava7(net.oneandone.troilus.java7.Record record) {
+        return new RecordAdapter(record);
+    }
+    
     
     @Override
     public ExecutionInfo getExecutionInfo() {
@@ -231,7 +236,7 @@ class RecordAdapter implements Record {
     
     
     
-    static net.oneandone.troilus.java7.Record convert(Record record) {
+    static net.oneandone.troilus.java7.Record convertToJava7(Record record) {
         
         return new net.oneandone.troilus.java7.Record() {
             
