@@ -564,7 +564,7 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 
 
 #Constraint Examples
-The constraint support helps to define simple constraints on the client-side such as mandatory fields (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
+The constraint support helps to define simple constraints on the client-side such as not null fields (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
 ``` java
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withConstraints(Constraints.newConstraints()
                                                                                 .withNotNullColumn("device_id"));
