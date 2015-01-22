@@ -47,7 +47,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         // create dao
         Dao hotelsDao = new DaoImpl(getSession(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                                  .withConstraints(HotelsTable.CONSTRAINTS);
+                                  .withInterceptor(HotelsTable.CONSTRAINTS);
         
         
         ////////////////

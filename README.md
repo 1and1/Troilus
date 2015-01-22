@@ -563,17 +563,10 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 ```
 
 
-#Constraint Examples
-The constraint support helps to define simple constraints on the client-side such as not null fields (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
-``` java
-Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withConstraints(Constraints.newConstraints()
-                                                                                .withNotNullColumn("device_id")
-                                                                                .withImmutableColumn("device_id"));
-```
 
 
 #Interceptor Examples
-The interceptor support can be used to implement (more complex) constraint checks on the client-side. To register interceptors the `Dao` supports the `withInterceptor(...)` method.
+The interceptor support can be used to implement (more complex) constraint checks on the client-side  (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). To register interceptors the `Dao` supports the `withInterceptor(...)` method.
 
 ``` java
 Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
@@ -581,6 +574,15 @@ Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
 ```
 
+##ConstraintsInterceptor Examples
+To implement simple constraints the  `ConstraintsInterceptor` can be used 
+``` java
+Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(ConstraintsInterceptor.newConstraints()
+                                                                                           .withNotNullColumn("device_id")
+                                                                                           .withImmutableColumn("device_id"));
+```
+
+##More Complexe Interceptor Examples
 The interceptor below implements a back relation check regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. 
 ``` java
 class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,

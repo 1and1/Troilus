@@ -30,7 +30,6 @@ import java.util.Optional;
 
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.Constraints;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
 import net.oneandone.troilus.DeleteQueryDataImpl;
@@ -149,11 +148,6 @@ public class DaoImpl implements Dao {
         return new DaoImpl(context);
     }
     
-    
-    @Override
-    public Dao withConstraints(Constraints constraints) {
-        return withInterceptor(constraints.getInterceptor());
-    }
     
     @Override
     public Insertion writeEntity(Object entity) {

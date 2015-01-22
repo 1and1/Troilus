@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.Constraints;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Name;
 import net.oneandone.troilus.Result;
@@ -52,8 +51,6 @@ public interface Dao {
     Dao withRetryPolicy(RetryPolicy policy);
         
     Dao withInterceptor(QueryInterceptor queryInterceptor);
-    
-    Dao withConstraints(Constraints constraints);
     
     
     

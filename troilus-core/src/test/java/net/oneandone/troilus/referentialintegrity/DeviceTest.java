@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.ConstraintException;
-import net.oneandone.troilus.Constraints;
+import net.oneandone.troilus.ConstraintsInterceptor;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -41,9 +41,9 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         
         
         Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao))
-                                                            .withConstraints(Constraints.newConstraints()
-                                                                                        .withNotNullColumn("device_id")
-                                                                                        .withImmutableColumn("device_id"));
+                                                            .withInterceptor(ConstraintsInterceptor.newConstraints()
+                                                                                                   .withNotNullColumn("device_id")
+                                                                                                   .withImmutableColumn("device_id"));
         Dao deviceDaoWithConstraints = deviceDao.withInterceptor(new DeviceConstraints(phoneNumbersDao));
 
 

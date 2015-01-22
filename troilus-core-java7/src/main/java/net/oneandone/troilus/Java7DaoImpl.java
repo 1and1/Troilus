@@ -78,11 +78,6 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public Dao withConstraints(Constraints constraints) {
-        return withInterceptor(constraints.getInterceptor());
-    }
-    
-    @Override
     public Insertion writeEntity(Object entity) {
         return new UpdateQuery(ctx, new WriteQueryDataImpl()).entity(entity);
     }
