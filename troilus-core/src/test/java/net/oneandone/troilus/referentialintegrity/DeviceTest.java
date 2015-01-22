@@ -42,7 +42,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         
         Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao))
                                                             .withConstraints(Constraints.newConstraints()
-                                                                                        .withNotNullColumn("device_id"));
+                                                                                        .withNotNullColumn("device_id")
+                                                                                        .withNotUpdatableColumn("device_id"));
         Dao deviceDaoWithConstraints = deviceDao.withInterceptor(new DeviceConstraints(phoneNumbersDao));
 
 
@@ -99,7 +100,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                       .value(PhonenumbersTable.ACTIVE, false)
                                       .execute();
         
-/*    
+    
         // update non-modifiable column
         try {
             phoneNumbersDaoWithConstraints.writeWithKey(PhonenumbersTable.NUMBER, "0089123234234")
@@ -107,9 +108,9 @@ public class DeviceTest extends AbstractCassandraBasedTest {
                                           .execute();
             Assert.fail("ConstraintException expected");
         } catch (ConstraintException expected) { 
-            Assert.assertTrue(expected.getMessage().contains("columnn 'device_id' is unmodifiable"));
+            Assert.assertTrue(expected.getMessage().contains("NOT UPDATEABLE column device_id can not be updated"));
         }
-  */    
+    
   
         // insert without device id 
         try {

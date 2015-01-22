@@ -21,12 +21,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 public class Constraints  {
     
     private final ImmutableSet<String> notNullColumns;
-    private final ImmutableSet<String> frozenColumns;
+    private final ImmutableSet<String> notUpdatableColumns;
     
     
-    private Constraints(ImmutableSet<String> notNullColumns, ImmutableSet<String> frozenColumns) {
+    private Constraints(ImmutableSet<String> notNullColumns, ImmutableSet<String> notUpdatableColumns) {
         this.notNullColumns = notNullColumns;
-        this.frozenColumns = frozenColumns;
+        this.notUpdatableColumns = notUpdatableColumns;
     }
 
     public static Constraints newConstraints() {
@@ -34,14 +34,21 @@ public class Constraints  {
     }
     
     public Constraints withNotNullColumn(String columnName) {
-        return new Constraints(Immutables.merge(notNullColumns, columnName), frozenColumns);
+        return new Constraints(Immutables.merge(notNullColumns, columnName), notUpdatableColumns);
     }
     
     public Constraints withNotNullColumn(Name<?> columnName) {
-        return new Constraints(Immutables.merge(notNullColumns, columnName.getName()), frozenColumns);
+        return new Constraints(Immutables.merge(notNullColumns, columnName.getName()), notUpdatableColumns);
     }
 
+    public Constraints withNotUpdatableColumn(String columnName) {
+        return new Constraints(notNullColumns, Immutables.merge(notUpdatableColumns, columnName));
+    }
     
+    public Constraints withNotUpdatableColumn(Name<?> columnName) {
+        return new Constraints(notNullColumns, Immutables.merge(notUpdatableColumns, columnName.getName()));
+    }
+
     
     
     QueryInterceptor getInterceptor() {
@@ -78,12 +85,21 @@ public class Constraints  {
             // NOT NULL column check for UPDATE
             } else {
                 for (String notNullColumn : notNullColumns) {
-                    if (queryData.getValuesToMutate().containsKey(notNullColumn) && ((queryData.getValuesToMutate().get(notNullColumn) != null) && !queryData.getValuesToMutate().get(notNullColumn).isPresent())) {
+                    if ((queryData.getValuesToMutate().containsKey(notNullColumn) && ((queryData.getValuesToMutate().get(notNullColumn) != null) && !queryData.getValuesToMutate().get(notNullColumn).isPresent()))) {
                         throw new ConstraintException("NOT NULL column " + notNullColumn + " can not be set with NULL");
                     }
                 }
             }
             
+            
+            // NOT UPDATEABLE check
+            if (!isInsert(queryData)) {
+                for (String notUpdatableColumn : notUpdatableColumns) {
+                    if ((queryData.getValuesToMutate().containsKey(notUpdatableColumn) && ((queryData.getValuesToMutate().get(notUpdatableColumn) != null) && queryData.getValuesToMutate().get(notUpdatableColumn).isPresent()))) {
+                        throw new ConstraintException("NOT UPDATEABLE column " + notUpdatableColumn + " can not be updated (column can be set within ifNotExists() write query only)");
+                    }
+                }
+            }
             
             return Futures.immediateFuture(queryData);
         }
