@@ -571,7 +571,10 @@ The interceptor support can be used to implement (more complex) constraint check
 ``` java
 Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
        
-Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
+Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao))
+												    .withInterceptor(ConstraintsInterceptor.newConstraints()
+                                                                                           .withNotNullColumn("device_id")
+                                                                                           .withImmutableColumn("device_id"));
 ```
 
 ##ConstraintsInterceptor Examples
