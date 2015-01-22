@@ -43,7 +43,7 @@ public class DeviceTest extends AbstractCassandraBasedTest {
         Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao))
                                                             .withConstraints(Constraints.newConstraints()
                                                                                         .withNotNullColumn("device_id")
-                                                                                        .withNotUpdatableColumn("device_id"));
+                                                                                        .withImmutableColumn("device_id"));
         Dao deviceDaoWithConstraints = deviceDao.withInterceptor(new DeviceConstraints(phoneNumbersDao));
 
 

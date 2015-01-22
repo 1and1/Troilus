@@ -568,7 +568,7 @@ The constraint support helps to define simple constraints on the client-side suc
 ``` java
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withConstraints(Constraints.newConstraints()
                                                                                 .withNotNullColumn("device_id")
-                                                                                .withNotUpdatableColumn("device_id"));
+                                                                                .withImmutableColumn("device_id"));
 ```
 
 
