@@ -1,4 +1,4 @@
-package net.oneandone.troilus.reactive;
+package net.oneandone.troilus.example;
 
 
 
@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import net.oneandone.troilus.Record;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -15,8 +14,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 
-public class MySubscriber implements Subscriber<Record> {
-    private final List<Record> elements = Lists.newArrayList();
+public class HotelSubscriber implements Subscriber<Hotel> {
+    private final List<Hotel> elements = Lists.newArrayList();
     private final AtomicBoolean isCompleted = new AtomicBoolean();
     private final AtomicReference<Throwable> errorRef = new AtomicReference<>();
     
@@ -46,7 +45,7 @@ public class MySubscriber implements Subscriber<Record> {
     }
     
     @Override
-    public void onNext(Record element) {
+    public void onNext(Hotel element) {
         synchronized (this) {
             elements.add(element);
         }
@@ -55,7 +54,7 @@ public class MySubscriber implements Subscriber<Record> {
     }
     
     
-    public ImmutableList<Record> getAll() {
+    public ImmutableList<Hotel> getAll() {
 
         synchronized (this) {
             if (!isCompleted.get()) {

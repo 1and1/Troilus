@@ -545,11 +545,42 @@ public class DaoImpl implements Dao {
             };
         }
         
-        @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public void subscribe(Subscriber<? super Record> subscriber) {
-            recordList.subscribe(new SubscriberAdapter(subscriber));
+            recordList.subscribe(new RecordSubscriberAdapter(subscriber));
         }
+        
+        
+        private static final class RecordSubscriberAdapter implements Subscriber<net.oneandone.troilus.java7.Record> {
+            private final Subscriber<? super Record> subscriber;
+            
+            public RecordSubscriberAdapter(Subscriber<? super Record> subscriber) {
+                this.subscriber = subscriber;
+           }
+
+           @Override
+           public void onSubscribe(Subscription s) {
+               subscriber.onSubscribe(s);
+           }
+
+           @Override
+           public void onNext(net.oneandone.troilus.java7.Record record) {
+               subscriber.onNext(new RecordAdapter(record));
+           }
+
+           @Override
+           public void onError(Throwable t) {
+               subscriber.onError(t);
+           }
+        
+           @Override
+           public void onComplete() {
+               subscriber.onComplete();
+           }
+        }
+
+        
+        
         
         
         static net.oneandone.troilus.java7.Dao.RecordList convert(RecordList recordList) {
@@ -571,9 +602,8 @@ public class DaoImpl implements Dao {
                     return recordList.getAllExecutionInfo();
                 }
                 
-                @SuppressWarnings({ "unchecked", "rawtypes" })
                 public void subscribe(Subscriber<? super net.oneandone.troilus.java7.Record> subscriber) {
-                    recordList.subscribe(new SubscriberAdapter(subscriber));
+                    recordList.subscribe(new Java7RecordSubscriberAdapter(subscriber));
                 }
                 
                 public Iterator<net.oneandone.troilus.java7.Record> iterator() {
@@ -599,10 +629,11 @@ public class DaoImpl implements Dao {
 
    
    
-   static final class SubscriberAdapter<T> implements Subscriber<T> {
-       private final Subscriber<T> subscriber;
+
+   static final class Java7RecordSubscriberAdapter implements Subscriber<Record> {
+       private final Subscriber<? super net.oneandone.troilus.java7.Record> subscriber;
        
-       public SubscriberAdapter(Subscriber<T> subscriber) {
+       public Java7RecordSubscriberAdapter(Subscriber<? super net.oneandone.troilus.java7.Record> subscriber) {
            this.subscriber = subscriber;
       }
 
@@ -612,8 +643,8 @@ public class DaoImpl implements Dao {
       }
 
       @Override
-      public void onNext(T t) {
-          subscriber.onNext(t);
+      public void onNext(Record record) {
+          subscriber.onNext(RecordAdapter.convert(record));
       }
 
       @Override
@@ -679,6 +710,34 @@ public class DaoImpl implements Dao {
    }
    
 
+   
+   static final class SubscriberAdapter<F> implements Subscriber<F> {
+       private final Subscriber<? super F> subscriber;
+       
+       public SubscriberAdapter(Subscriber<? super F> subscriber) {
+           this.subscriber = subscriber;
+      }
+
+      @Override
+      public void onSubscribe(Subscription s) {
+          subscriber.onSubscribe(s);
+      }
+
+      @Override
+      public void onNext(F t) {
+          subscriber.onNext(t);
+      }
+
+      @Override
+      public void onError(Throwable t) {
+          subscriber.onError(t);
+      }
+   
+      @Override
+      public void onComplete() {
+          subscriber.onComplete();
+      }
+   }
    
     
     private static class WriteQueryDataAdapter implements WriteQueryData {

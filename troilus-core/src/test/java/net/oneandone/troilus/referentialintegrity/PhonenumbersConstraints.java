@@ -34,7 +34,7 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
     @Override
     public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync( SingleReadQueryData queryData) {
         // force that device_id will be fetched 
-        if (!queryData.getColumnsToFetch().isEmpty() && !queryData.getColumnsToFetch().containsKey("device_id")) {
+        if (!queryData.getColumnsToFetch().containsKey("device_id")) {
             queryData = queryData.columnsToFetch(Immutables.merge(queryData.getColumnsToFetch(), "device_id", false));
         }
         return CompletableFuture.completedFuture(queryData);
@@ -63,7 +63,7 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
         } else {
             return CompletableFuture.completedFuture(optionalRecord);
         }
-    }    
+    }
 }
 
 

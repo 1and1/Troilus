@@ -20,6 +20,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,6 +35,8 @@ import net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
@@ -306,6 +309,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
      
     private static class RecordListImpl implements RecordList {
+         private static final Logger LOG = LoggerFactory.getLogger(RecordListImpl.class);
+        
          private final Context ctx;
          private final ResultSet rs;
 
@@ -364,8 +369,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          }
          
          private final class DatabaseSubscription implements Subscription {
-             private final Subscriber<? super Record> subscriber;
              
+             private final AtomicBoolean isOpen = new AtomicBoolean(true); 
+             private final Subscriber<? super Record> subscriber;
              private final Iterator<? extends Record> it;
              
              private final AtomicLong numPendingReads = new AtomicLong();
@@ -377,35 +383,49 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              }
              
              public void request(long n) {
-                 if (n > 0) {
-                     numPendingReads.addAndGet(n);
-                     processReadRequests();
+                 if (isOpen.get()) {
+                     if (n > 0) {
+                         numPendingReads.addAndGet(n);
+                         processReadRequests();
+                     }
+                 } else {
+                     subscriber.onError(new IllegalStateException("already closed"));
                  }
              }
              
              
              private void processReadRequests() {
-                 synchronized (this) {
-                     long available = rs.getAvailableWithoutFetching();
-                     long numToRead = numPendingReads.get();
-
-                     // no records available?
-                     if (available == 0) {
-                         requestDatabaseForMoreRecords();
-                       
-                     // all requested available 
-                     } else if (available >= numToRead) {
-                         numPendingReads.addAndGet(-numToRead);
-                         for (int i = 0; i < numToRead; i++) {
-                             subscriber.onNext(it.next());
-                         }                    
+                 
+                 if (isOpen.get()) {
+                     synchronized (this) {
                          
-                     // requested partly available                        
-                     } else {
-                         requestDatabaseForMoreRecords();
-                         numPendingReads.addAndGet(-available);
-                         for (int i = 0; i < available; i++) {
-                             subscriber.onNext(it.next());
+                         try {
+                             long available = rs.getAvailableWithoutFetching();
+                             long numToRead = numPendingReads.get();
+        
+                             // no records available?
+                             if (available == 0) {
+                                 requestDatabaseForMoreRecords();
+                               
+                             // all requested available 
+                             } else if (available >= numToRead) {
+                                 numPendingReads.addAndGet(-numToRead);
+                                 for (int i = 0; i < numToRead; i++) {
+                                     subscriber.onNext(it.next());
+                                 }                    
+                                 
+                             // requested partly available                        
+                             } else {
+                                 requestDatabaseForMoreRecords();
+                                 numPendingReads.addAndGet(-available);
+                                 for (int i = 0; i < available; i++) {
+                                     subscriber.onNext(it.next());
+                                 }
+                             }
+                         } catch (RuntimeException rt) {
+                             LOG.warn("processing error occured", rt);
+                             subscriber.onError(rt);
+                             isOpen.set(false);
                          }
                      }
                  }
@@ -436,6 +456,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              @Override
              public void cancel() {
+                 isOpen.set(false);
                  subscriber.onComplete();
              }
          }

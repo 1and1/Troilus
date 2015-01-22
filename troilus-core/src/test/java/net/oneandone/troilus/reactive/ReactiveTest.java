@@ -12,14 +12,13 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.api.FeesTable;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 
 
-@Ignore
+
 public class ReactiveTest extends AbstractCassandraBasedTest {
     
     
@@ -49,7 +48,7 @@ public class ReactiveTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // reads
-        MySubscriber<Record> testSubscriber = new MySubscriber<>();
+        MySubscriber testSubscriber = new MySubscriber();
         
         feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
               .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)

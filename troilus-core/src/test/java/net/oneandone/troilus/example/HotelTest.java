@@ -12,7 +12,6 @@ import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.Batchable;
-import net.oneandone.troilus.reactive.MySubscriber;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -117,7 +116,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        MySubscriber<Hotel> mySubscriber = new MySubscriber<>();
+        HotelSubscriber mySubscriber = new HotelSubscriber();
         hotelsDao.readWhere()
                  .asEntity(Hotel.class)
                  .withLimit(100)
@@ -125,6 +124,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .thenAccept(hotels -> hotels.subscribe(mySubscriber));
         
         
+        for (Hotel hotel : mySubscriber.getAll()) {
+            System.out.println(hotel);
+        }
         
         
         Iterable<Hotel> hotelIterator = hotelsDao.readAll()
