@@ -563,8 +563,17 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
 ```
 
 
+#Constraint Examples
+The constraint support helps to define simple constraints on the client-side such as mandatory fields (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). 
+``` java
+Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withConstraints(Constraints.newConstraints()
+                                                                                .withNotNullColumn("device_id"));
+
+```
+
+
 #Interceptor Examples
-The interceptor support can be used to implement constraint checks on the client-side (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). To register interceptors the `Dao` supports the `withInterceptor(...)` method.
+The interceptor support can be used to implement (more complex) constraint checks on the client-side. To register interceptors the `Dao` supports the `withInterceptor(...)` method.
 
 ``` java
 Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
@@ -572,45 +581,19 @@ Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao));
 ```
 
-The interceptor below implements some constraints regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. The phone_numbers table is used to assign a phone number to a device. The key is the phone number. The phone number table contains a device id column referring to the assigned device. The  insert operations ensures that an existing phone row will not be overridden. Constraints:
-* It should not be allowed to update the device id column. This means assigning a phone number to new devices requires to remove the old entry first and to create a new phones row.
-* A phone number will not be deleted, if the assigned device still exits
-* By accessing the table entries the back relation should be check with cl one 
+The interceptor below implements a back relation check regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. 
 ``` java
-class PhonenumbersConstraints implements WriteQueryRequestInterceptor, 
-                                         SingleReadQueryRequestInterceptor,
+class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
                                          SingleReadQueryResponseInterceptor {
     
 
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
-       // this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
-        this.deviceDao = deviceDao;
+        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
     }
         
-
     
-    @Override
-    public CompletableFuture<WriteQueryData> onWriteRequestAsync( WriteQueryData queryData) {
-        
-        // unique insert?
-        if (queryData.getIfNotExits().isPresent() && queryData.getIfNotExits().get()) {
-            ConstraintException.throwIf(!queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is mandatory");
-            
-            String deviceId = (String) queryData.getValuesToMutate().get("device_id").get();
-            ConstraintException.throwIf(!deviceDao.readWithKey("device_id", deviceId).execute().isPresent(), "device with id " + deviceId + " does not exits");                                                                                    
-            
-        // no, update
-        } else {
-            ConstraintException.throwIf(queryData.getValuesToMutate().containsKey("device_id"), "columnn 'device_id' is unmodifiable");
-        }
-           
-        return CompletableFuture.completedFuture(queryData); 
-    }
-
-    
-
     @Override
     public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync( SingleReadQueryData queryData) {
         // force that device_id will be fetched 
@@ -632,7 +615,9 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
                             .thenApply(optionalRec -> {
                                                         optionalRec.ifPresent(rec -> {
                                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                            ConstraintException.throwIf(!set.isPresent() || !set.get().contains(queryData.getKey().get("number")), "reverse reference devices table -> phone_numbers table does not exit");
+                                                            if (set.isPresent() && !set.get().contains(queryData.getKey().get("number"))) {
+                                                                throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
+                                                            }
                                                         });
                                                         
                                                         return optionalRecord;
@@ -643,66 +628,4 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
         }
     }    
 }
-```
-
-
-``` java
-// insert new  entry
-phoneNumbersDao.writeWithKey("number", "0089123234234")
-               .value("device_id", "2333243")
-               .value("active", true)
-               .ifNotExists()
-               .withSerialConsistency(ConsistencyLevel.SERIAL)
-               .execute();
-        
-
-// insert new entry without device id 
-try {
-   phoneNumbersDaoWithConstraints.writeWithKey("number", "08834334")
-				           		 .value("active", true)
-								 .ifNotExists()
-								 .withSerialConsistency(ConsistencyLevel.SERIAL)
-						         .execute();
-    Assert.fail("ConstraintException expected");
-} catch (ConstraintException expected) { }
-
-
-
-// update modifyable column
-phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
-					          .value("active", false)
-					          .execute();
-        
-        
-// update non-modifyable column
-try {
-    phoneNumbersDaoWithConstraints.writeWithKey("number", "0089123234234")
-                                  .value("device_id", "dfacbsd")
-                                  .execute();
-    Assert.fail("ConstraintException expected");
-} catch (ConstraintException expected) {  }
-        
-        
-        
-        
-// read 
-phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
-                              .execute()
-                              .get();
-        
-
-// modify record to make it inconsistent 
-phoneNumbersDao.writeWithKey("number", "0089645454455")
-			   .value("device_id", "2333243")
-			   .execute();
-
-        
-// read inconsistent record
-try {
-   phoneNumbersDaoWithConstraints.readWithKey("number", "0089645454455")
-                                 .execute()
-                                 .get();
-   Assert.fail("ConstraintException expected");
-} catch (ConstraintException expected) { }
-
 ```

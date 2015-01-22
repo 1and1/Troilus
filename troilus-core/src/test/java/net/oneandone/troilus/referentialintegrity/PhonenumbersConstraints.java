@@ -8,69 +8,29 @@ import java.util.Optional;
 
 import java.util.concurrent.CompletableFuture;
 
+import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
 import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
-import net.oneandone.troilus.interceptor.WriteQueryData;
-import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
     
 
 
-class PhonenumbersConstraints implements WriteQueryRequestInterceptor, 
-                                         SingleReadQueryRequestInterceptor,
+class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
                                          SingleReadQueryResponseInterceptor {
     
 
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
-       // this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
-        this.deviceDao = deviceDao;
+        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
     }
         
-
     
-    @Override
-    public CompletableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) {
-        
-        // unique insert?
-        if (queryData.getIfNotExits().isPresent() && queryData.getIfNotExits().get()) {
-            if (!queryData.getValuesToMutate().containsKey("device_id")) {
-                return failedFuture(new ConstraintException("columnn 'device_id' is mandatory"));
-            }
-            
-            String deviceId = (String) queryData.getValuesToMutate().get("device_id").get();
-            if (!deviceDao.readWithKey("device_id", deviceId)
-                          .execute()
-                          .isPresent()) {
-                return failedFuture(new ConstraintException("device with id " + deviceId + " does not exits"));
-            }
-                                                                                                
-            
-        // no, update
-        } else {
-            if (queryData.getValuesToMutate().containsKey("device_id")) {
-                return failedFuture(new ConstraintException("columnn 'device_id' is unmodifiable"));
-            }
-        }
-           
-        return CompletableFuture.completedFuture(queryData); 
-    }
-    
-    
-    private static <T> CompletableFuture<T> failedFuture(Throwable t) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        future.completeExceptionally(t);
-        return future;
-    }
-
-    
-
     @Override
     public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync( SingleReadQueryData queryData) {
         // force that device_id will be fetched 
@@ -92,7 +52,9 @@ class PhonenumbersConstraints implements WriteQueryRequestInterceptor,
                             .thenApply(optionalRec -> {
                                                         optionalRec.ifPresent(rec -> {
                                                             Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                            ConstraintException.throwIf(!set.isPresent() || !set.get().contains(queryData.getKey().get("number")), "reverse reference devices table -> phone_numbers table does not exit");
+                                                            if (set.isPresent() && !set.get().contains(queryData.getKey().get("number"))) {
+                                                                throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
+                                                            }
                                                         });
                                                         
                                                         return optionalRecord;
