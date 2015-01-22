@@ -384,6 +384,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              }
              
              public void request(long n) {
+                 
                  if (isOpen.get()) {
                      if (n > 0) {
                          numPendingReads.addAndGet(n);
