@@ -34,6 +34,7 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
@@ -284,7 +285,12 @@ class Context {
     ColumnMetadata getColumnMetadata(String columnName) {
         ColumnMetadata metadata = columnMetadataCache.getIfPresent(columnName);
         if (metadata == null) {
-            metadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table).getColumn(columnName);
+            TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table);
+            if (tableMetadata == null) {
+                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + table + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
+            }
+            
+            metadata = tableMetadata.getColumn(columnName);
             if (metadata == null) {
                 throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + table + " does not support column '" + columnName + "'");
             }

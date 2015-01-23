@@ -73,6 +73,7 @@ public abstract class Name<T> {
      * 
      * @param name        the name 
      * @param type        the value type
+     * @param <E>         the name type
      * @return a new instance
      */
     public static <E> Name<E> define(String name, Class<E> type) {
@@ -85,6 +86,7 @@ public abstract class Name<T> {
      * 
      * @param name          the name 
      * @param elementType   the list member value type
+     * @param <E>           the name type
      * @return a new instance
      */
     public static <E> Name<List<E>> defineList(String name, Class<E> elementType) {
@@ -98,6 +100,7 @@ public abstract class Name<T> {
      * 
      * @param name          the name 
      * @param elementType   the set member value type
+     * @param <E>           the name type
      * @return a new instance
      */
     public static <E> Name<Set<E>> defineSet(String name, Class<E> elementType) {
@@ -111,6 +114,8 @@ public abstract class Name<T> {
      * @param name      the name 
      * @param keyType   the set member key type
      * @param valueType the set member value type
+     * @param <E>       the member key name type
+     * @param <F>       the member value type
      * @return a new instance
      */
     public static <E, F> Name<Map<E, F>> defineMap(String name, Class<E> keyType,  Class<F> valueType) {

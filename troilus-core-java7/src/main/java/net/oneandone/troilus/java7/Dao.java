@@ -388,6 +388,7 @@ public interface Dao {
     public static interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
 
         /**
+         * @param conditions the conditions 
          * @return a cloned query instance with lwt (only-if)
          */
         Mutation<?> onlyIf(Clause... conditions);
@@ -470,13 +471,14 @@ public interface Dao {
         /**
          * @param name  the column name
          * @param value the value to add
+         * @param <T> the name type
          * @return a cloned query instance with the modified behavior
          */
         <T> U value(Name<T> name, T value);
         
         /**
          * @param name   the set column name
-         * @param value  the set value to remove 
+         * @param value  the set value to remove
          * @return a cloned query instance with the modified behavior
          */
         U removeSetValue(String name, Object value);

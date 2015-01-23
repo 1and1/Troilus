@@ -143,19 +143,22 @@ public interface Record extends Result {
     /**
      * @param name      the column name 
      * @param enumType  the enum type
+     * @param <T>       the enum type class
      * @return the value for column name as an enum value
      */
     <T extends Enum<T>> T getEnum(String name, Class<T> enumType);
         
     /**
-     * @param name the column name 
+     * @param name the column name
+     * @param <T>  the name type 
      * @return the value for column name as an value type according the name definition
      */
     <T> T getValue(Name<T> name);
    
     /**
      * @param name   the column name 
-     * @param typ    the class for value to retrieve.
+     * @param type   the class for value to retrieve.
+     * @param <T>    the result type
      * @return  the value of column name 
      */
     <T> T getObject(String name, Class<T> type);    
@@ -163,13 +166,15 @@ public interface Record extends Result {
     /**
      * @param name           the column name 
      * @param elementsClass  the class for the elements of the set to retrieve
+     * @param <T>            the set member type
      * @return  the value of column name as a set
      */
     <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass);
          
     /**
      * @param name          the column name 
-     * @param elementsClass the class for the elements of the list to retriev
+     * @param elementsClass the class for the elements of the list to retrieve
+     * @param <T>           the list member type 
      * @return  the value of column name as a list
      */
     <T> ImmutableList<T> getList(String name, Class<T> elementsClass);
@@ -178,6 +183,8 @@ public interface Record extends Result {
      * @param name          the column name 
      * @param keysClass     the class for the key element
      * @param valuesClass   the class for the value element
+     * @param <K>  the member key type
+     * @param <V>  the member key value 
      * @return  the value of column name as a map
      */
     <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass);

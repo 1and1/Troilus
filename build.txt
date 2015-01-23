@@ -1,0 +1,15 @@
+
+VERIFY 
+mvn -P foss-parent-verification clean verify -Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true
+
+PREPARE
+mvn release:prepare -DpushChanges=false
+
+RELEASE
+mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.skip=true -Dadditionalparam=-Xdoclint:none -DskipTests=true -Dpmd.skip=true -Dfindbugs.skip=true -Dcpd.skip=true -Dcheckstyle.skip=true -Dlicense.skip=true"
+
+TAGGING
+...
+
+STAGING REPO
+https://oss.sonatype.org/#stagingRepositories

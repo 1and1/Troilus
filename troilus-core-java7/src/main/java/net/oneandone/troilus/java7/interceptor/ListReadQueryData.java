@@ -60,7 +60,7 @@ public interface ListReadQueryData {
     ListReadQueryData allowFiltering(Boolean allowFiltering);
 
     /**
-     * @param fetchSize
+     * @param fetchSize  the fetch size
      * @return the new read query data
      */
     ListReadQueryData fetchSize(Integer fetchSize);
