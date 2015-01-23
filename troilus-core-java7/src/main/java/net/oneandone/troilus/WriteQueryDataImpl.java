@@ -17,6 +17,7 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.addAll;
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.appendAll;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.discardAll;
@@ -32,24 +33,20 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
-import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -513,26 +510,4 @@ class WriteQueryDataImpl implements WriteQueryData {
         }
         return m;
     } 
-    
-    
-    
-    static ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture, 
-                                                                            ImmutableList<WriteQueryRequestInterceptor> interceptors,
-                                                                            Executor executor) {
-        
-        for (WriteQueryRequestInterceptor interceptor : interceptors.reverse()) {
-            final WriteQueryRequestInterceptor icptor = interceptor;
-            
-            Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
-                @Override
-                public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
-                    return icptor.onWriteRequestAsync(queryData);
-                }
-            };
-            
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, executor);
-        }
-        
-        return queryDataFuture; 
-    }
 }

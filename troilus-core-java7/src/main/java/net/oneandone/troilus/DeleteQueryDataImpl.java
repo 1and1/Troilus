@@ -19,26 +19,21 @@ package net.oneandone.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
 
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
-import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
-
-
 
 
 /**
@@ -163,26 +158,5 @@ class DeleteQueryDataImpl implements DeleteQueryData {
            
             return delete;
         }        
-    }
-    
-    
-    static ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture, 
-                                                                             ImmutableList<DeleteQueryRequestInterceptor> interceptors,
-                                                                             Executor executor) {
-
-        for (DeleteQueryRequestInterceptor interceptor : interceptors.reverse()) {
-            final DeleteQueryRequestInterceptor icptor = interceptor;
-            
-            Function<DeleteQueryData, ListenableFuture<DeleteQueryData>> mapperFunction = new Function<DeleteQueryData, ListenableFuture<DeleteQueryData>>() {
-                @Override
-                public ListenableFuture<DeleteQueryData> apply(DeleteQueryData queryData) {
-                    return icptor.onDeleteRequestAsync(queryData);
-                }
-            };
-            
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, executor);
-        }
-        
-        return queryDataFuture; 
     }
 }

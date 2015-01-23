@@ -18,7 +18,6 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
-
 import net.oneandone.troilus.java7.Dao.Batchable;
 import net.oneandone.troilus.java7.Dao.Deletion;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
@@ -101,9 +100,7 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
         // perform request executors
-        ListenableFuture<DeleteQueryData> queryDataFuture = DeleteQueryDataImpl.executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data),
-                                                                                                                getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class),
-                                                                                                                getContext().getTaskExecutor());
+        ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data));
         
         // query data to statement
         Function<DeleteQueryData, Statement> queryDataToStatement = new Function<DeleteQueryData, Statement>() {
@@ -115,4 +112,22 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         return Futures.transform(queryDataFuture, queryDataToStatement);
     }
    
+    
+    private ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
+
+        for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class).reverse()) {
+            final DeleteQueryRequestInterceptor icptor = interceptor;
+
+            Function<DeleteQueryData, ListenableFuture<DeleteQueryData>> mapperFunction = new Function<DeleteQueryData, ListenableFuture<DeleteQueryData>>() {
+                @Override
+                public ListenableFuture<DeleteQueryData> apply(DeleteQueryData queryData) {
+                    return icptor.onDeleteRequestAsync(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return queryDataFuture; 
+    }
 }

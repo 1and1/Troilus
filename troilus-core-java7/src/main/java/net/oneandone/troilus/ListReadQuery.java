@@ -18,6 +18,8 @@ package net.oneandone.troilus;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
+
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
@@ -174,9 +176,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public ListenableFuture<RecordList> executeAsync() {
         // perform request executors
-        ListenableFuture<ListReadQueryData> queryDataFuture = ListReadQueryDataImpl.executeRequestInterceptorsAsync(Futures.<ListReadQueryData>immediateFuture(data),
-                                                                                                                    getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class),
-                                                                                                                    getContext().getTaskExecutor());  
+        ListenableFuture<ListReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ListReadQueryData>immediateFuture(data));  
 
         // execute query asnyc
         Function<ListReadQueryData, ListenableFuture<RecordList>> queryExecutor = new Function<ListReadQueryData, ListenableFuture<RecordList>>() {
@@ -207,6 +207,25 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return executeResponseInterceptorsAsync(queryData, recordListFuture);
     }
 
+    
+    private ListenableFuture<ListReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ListReadQueryData> queryDataFuture) {
+
+        for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class).reverse()) {
+            final ListReadQueryRequestInterceptor icptor = interceptor;
+            
+            Function<ListReadQueryData, ListenableFuture<ListReadQueryData>> mapperFunction = new Function<ListReadQueryData, ListenableFuture<ListReadQueryData>>() {
+                @Override
+                public ListenableFuture<ListReadQueryData> apply(ListReadQueryData queryData) {
+                    return icptor.onListReadRequestAsync(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+        }
+
+        return queryDataFuture;
+    }
+    
     
     private ListenableFuture<RecordList> executeResponseInterceptorsAsync(final ListReadQueryData queryData, ListenableFuture<RecordList> recordFuture) {
     

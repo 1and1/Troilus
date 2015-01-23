@@ -18,25 +18,20 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
-import net.oneandone.troilus.java7.interceptor.SingleReadQueryRequestInterceptor;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
-
 
 
 /**
@@ -129,26 +124,5 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
 
         return ctx.prepare(select).bind(values.toArray());
     }
-    
-    
-    
-    static ListenableFuture<SingleReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<SingleReadQueryData> queryDataFuture, 
-                                                                                 ImmutableList<SingleReadQueryRequestInterceptor> interceptors,
-                                                                                 Executor executor) {
-        
-        for (SingleReadQueryRequestInterceptor interceptor : interceptors.reverse()) {
-            final SingleReadQueryRequestInterceptor icptor = interceptor;
-            
-            Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>> mapperFunction = new Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>>() {
-                @Override
-                public ListenableFuture<SingleReadQueryData> apply(SingleReadQueryData queryData) {
-                    return icptor.onSingleReadRequestAsync(queryData);
-                }
-            };
-            
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, executor);
-        }
 
-        return queryDataFuture;        
-    }
 }
