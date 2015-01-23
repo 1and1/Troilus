@@ -87,7 +87,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
         
         @Override
         public ListenableFuture<Statement> getStatementAsync() {
-            return batchable.getStatementAsync();
+            return CompletableFutures.toListenableFuture(batchable.getStatementAsync());
         }
     }
 }

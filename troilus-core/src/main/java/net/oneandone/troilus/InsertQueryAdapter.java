@@ -29,8 +29,6 @@ import net.oneandone.troilus.Dao.Insertion;
 import net.oneandone.troilus.Dao.Mutation;
 
 import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
-
  
 
 
@@ -59,7 +57,7 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     public InsertQueryAdapter withTtl(Duration ttl) {
         return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }
-  
+    
     @Override
     public Mutation<?> ifNotExists() {
         return new InsertQueryAdapter(getContext(), query.ifNotExists());
@@ -71,8 +69,8 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     }
        
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
+    public CompletableFuture<Statement> getStatementAsync() {
+        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
 
     @Override

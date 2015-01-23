@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -43,7 +44,6 @@ import net.oneandone.troilus.UpdateQuery.CounterMutationQuery;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -159,8 +159,8 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     }
        
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
+    public CompletableFuture<Statement> getStatementAsync() {
+        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
     
     @Override
@@ -214,8 +214,8 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
         }
    
         @Override
-        public ListenableFuture<Statement> getStatementAsync() {
-            return query.getStatementAsync();
+        public CompletableFuture<Statement> getStatementAsync() {
+            return CompletableFutures.toCompletableFuture(query.getStatementAsync());
         }
 
         @Override

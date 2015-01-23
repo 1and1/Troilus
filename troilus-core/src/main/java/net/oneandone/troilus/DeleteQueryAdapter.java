@@ -30,7 +30,6 @@ import net.oneandone.troilus.Dao.Deletion;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -77,8 +76,8 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
     }
        
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
+    public CompletableFuture<Statement> getStatementAsync() {
+        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
    
     @Override

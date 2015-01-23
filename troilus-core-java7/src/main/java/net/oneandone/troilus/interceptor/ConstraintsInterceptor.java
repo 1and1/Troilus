@@ -94,14 +94,14 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
     
     @Override
     public ListenableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) throws ConstraintException {
-        checkNotNull(queryData);
-        checkImmutable(queryData);
+        checkNotNullColumn(queryData);
+        checkImmutableColumn(queryData);
         
         return Futures.immediateFuture(queryData);
     }
  
     
-    private void checkNotNull(WriteQueryData queryData) {
+    private void checkNotNullColumn(WriteQueryData queryData) {
 
         // NOT NULL column check for INSERT
         if (isInsert(queryData)) {
@@ -136,7 +136,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
     
 
     
-    private void checkImmutable(WriteQueryData queryData) {
+    private void checkImmutableColumn(WriteQueryData queryData) {
 
         if (!isInsert(queryData)) {
             for (String immutableColumn : immutableColumns) {
