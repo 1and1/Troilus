@@ -17,22 +17,27 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.java7.interceptor.ListReadQueryData;
+import net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -264,4 +269,27 @@ class ListReadQueryDataImpl implements ListReadQueryData {
             return ctx.prepare(select).bind(values.toArray());
         }
     }
+    
+    
+    
+    static ListenableFuture<ListReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ListReadQueryData> queryDataFuture, 
+                                                                               ImmutableList<ListReadQueryRequestInterceptor> interceptors,
+                                                                               Executor executor) {
+
+        for (ListReadQueryRequestInterceptor interceptor : interceptors.reverse()) {
+            final ListReadQueryRequestInterceptor icptor = interceptor;
+            
+            Function<ListReadQueryData, ListenableFuture<ListReadQueryData>> mapperFunction = new Function<ListReadQueryData, ListenableFuture<ListReadQueryData>>() {
+                @Override
+                public ListenableFuture<ListReadQueryData> apply(ListReadQueryData queryData) {
+                    return icptor.onListReadRequestAsync(queryData);
+                }
+            };
+            
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, executor);
+        }
+
+        return queryDataFuture;
+    }
+    
 }

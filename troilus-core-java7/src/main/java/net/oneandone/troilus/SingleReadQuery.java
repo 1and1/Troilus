@@ -16,6 +16,7 @@
 package net.oneandone.troilus;
 
 import java.nio.ByteBuffer;
+
 import java.util.List;
 
 
@@ -133,8 +134,10 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     @Override
     public ListenableFuture<Record> executeAsync() {
         // perform request executors
-        ListenableFuture<SingleReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<SingleReadQueryData>immediateFuture(data)); 
-        
+        ListenableFuture<SingleReadQueryData> queryDataFuture =  SingleReadQueryDataImpl.executeRequestInterceptorsAsync(Futures.<SingleReadQueryData>immediateFuture(data),
+                                                                                                                         getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class),
+                                                                                                                         getContext().getTaskExecutor()); 
+
         // execute query asnyc
         Function<SingleReadQueryData, ListenableFuture<Record>> queryExecutor = new Function<SingleReadQueryData, ListenableFuture<Record>>() {
             @Override
@@ -172,24 +175,6 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         // perform response interceptor
         return executeResponseInterceptorsAsync(queryData, recordFuture);
-    }
-
-    
-    private ListenableFuture<SingleReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<SingleReadQueryData> queryDataFuture) {
-        for (SingleReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class).reverse()) {
-            final SingleReadQueryRequestInterceptor icptor = interceptor;
-            
-            Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>> mapperFunction = new Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>>() {
-                @Override
-                public ListenableFuture<SingleReadQueryData> apply(SingleReadQueryData queryData) {
-                    return icptor.onSingleReadRequestAsync(queryData);
-                }
-            };
-            
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-        }
-
-        return queryDataFuture;
     }
 
     

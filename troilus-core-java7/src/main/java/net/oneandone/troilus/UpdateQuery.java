@@ -222,8 +222,9 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
         // perform request executors
-        ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));
-
+        ListenableFuture<WriteQueryData> queryDataFuture = WriteQueryDataImpl.executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data),
+                                                                                                              getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class),
+                                                                                                              getContext().getTaskExecutor());
         // query data to statement
         Function<WriteQueryData, Statement> queryDataToStatement = new Function<WriteQueryData, Statement>() {
             @Override
@@ -234,25 +235,7 @@ class UpdateQuery extends AbstractQuery<WriteWithCounter> implements WriteWithCo
         return Futures.transform(queryDataFuture, queryDataToStatement);
     }
     
-    private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
-       
-       for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
-           final WriteQueryRequestInterceptor icptor = interceptor;
-           
-           Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
-               @Override
-               public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
-                   return icptor.onWriteRequestAsync(queryData);
-               }
-           };
-           
-           queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-       }
-       
-       return queryDataFuture; 
-    }
-    
-    
+ 
     /**
      * Counter mutation query implementation 
      *

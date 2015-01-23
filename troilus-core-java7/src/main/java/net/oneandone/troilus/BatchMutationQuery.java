@@ -17,8 +17,6 @@ package net.oneandone.troilus;
 
 
 
-import java.util.concurrent.ExecutionException;
-
 import net.oneandone.troilus.java7.Dao.BatchMutation;
 import net.oneandone.troilus.java7.Dao.Batchable;
 
@@ -28,11 +26,8 @@ import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.UnmodifiableIterator;
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 
  
@@ -69,41 +64,8 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
     }
 
     private ListenableFuture<Statement> getStatementAsync() {
-        return new QueryFuture(new BatchStatement(type), batchables.iterator());
+        return new BatchQueryFuture<Batchable>(new BatchStatement(type), batchables.iterator());
     }
-    
-    
-    private static final class QueryFuture extends AbstractFuture<Statement> {
-        
-        public QueryFuture(BatchStatement batchStmt, UnmodifiableIterator<Batchable> batchablesIt) {
-            handle(batchStmt, batchablesIt);
-        }
-        
-        private void handle(final BatchStatement batchStmt, final UnmodifiableIterator<Batchable> batchablesIt) {
-            
-            if (batchablesIt.hasNext()) {
-                final ListenableFuture<Statement> statementFuture = batchablesIt.next().getStatementAsync();
-                
-                Runnable resultHandler = new Runnable() {
-                    
-                    @Override
-                    public void run() {
-                        try {
-                            batchStmt.add(statementFuture.get());
-                            handle(batchStmt, batchablesIt);
-                        } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            setException(ListenableFutures.unwrapIfNecessary(e));
-                        }
-                    }
-                };
-                statementFuture.addListener(resultHandler, MoreExecutors.directExecutor());
-                
-            } else {
-                set(batchStmt);
-            }
-        }
-    }
-    
     
     @Override
     public Result execute() {

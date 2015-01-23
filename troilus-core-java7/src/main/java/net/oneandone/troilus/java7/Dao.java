@@ -318,16 +318,25 @@ public interface Dao {
         Mutation<Q> withWritetime(long microsSinceEpoch);
     }
     
-    
+
     /**
-     * Batchable mutation query
+     * Statement soure
      */
-    public static interface Batchable {
+    public static interface StatementSource {
 
         /**
          * @return the statement future
          */
         ListenableFuture<Statement> getStatementAsync();
+    }
+
+    
+    
+    /**
+     * Batchable mutation query
+     */
+    public static interface Batchable extends StatementSource {
+
     }
 
 
@@ -532,12 +541,7 @@ public interface Dao {
     /**
      * counter batchable query
      */
-    public static interface CounterBatchable {
-
-        /**
-         * @return a cloned query instance with the modified behavior
-         */
-        ListenableFuture<Statement> getStatementAsync();
+    public static interface CounterBatchable extends StatementSource {
     }
 
     
