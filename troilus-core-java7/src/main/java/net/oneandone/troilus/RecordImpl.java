@@ -186,7 +186,7 @@ class RecordImpl implements Record {
     }
     
     @Override
-    public <T> T getValue(Name<T> name) {
+    public <T> T getValue(ColumnName<T> name) {
         return name.read(propertiesSourceAdapter).orNull();
     }
     

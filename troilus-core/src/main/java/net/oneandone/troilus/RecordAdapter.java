@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.PropertiesSource;
 
 import com.datastax.driver.core.ExecutionInfo;
@@ -168,7 +168,7 @@ class RecordAdapter implements Record {
     }
     
     @Override
-    public <T> Optional<T> getValue(Name<T> name) {
+    public <T> Optional<T> getValue(ColumnName<T> name) {
         return Optional.ofNullable(record.getValue(name));
     }
 
@@ -271,7 +271,7 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public <T> T getValue(Name<T> name) {
+            public <T> T getValue(ColumnName<T> name) {
                 return record.getValue(name).orElse(null);
             }
             

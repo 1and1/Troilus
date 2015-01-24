@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.UUID;
 
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 
 import com.datastax.driver.core.UDTValue;
@@ -153,7 +153,7 @@ public interface Record extends Result {
      * @param <T>  the name type 
      * @return the value for column name as an value type according the name definition
      */
-    <T> T getValue(Name<T> name);
+    <T> T getValue(ColumnName<T> name);
    
     /**
      * @param name   the column name 

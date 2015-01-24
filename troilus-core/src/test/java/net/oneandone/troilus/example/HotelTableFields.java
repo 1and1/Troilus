@@ -18,15 +18,15 @@ package net.oneandone.troilus.example;
 
 import java.util.Set;
 
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 
 
 
 public final class HotelTableFields  {
-    public static final Name<String> ID = Name.defineString("id");
-    public static final Name<String> NAME = Name.defineString("name");
-    public static final Name<Set<String>> ROOM_IDS = Name.defineSet("room_ids", String.class);
-    public static final Name<Address> ADDRESS = Name.define("address", Address.class);
-    public static final Name<String> DESCRIPTION = Name.defineString("description");
-    public static final Name<ClassifierEnum> CLASSIFICATION = Name.define("classification", ClassifierEnum.class);
+    public static final ColumnName<String> ID = ColumnName.defineString("id");
+    public static final ColumnName<String> NAME = ColumnName.defineString("name");
+    public static final ColumnName<Set<String>> ROOM_IDS = ColumnName.defineSet("room_ids", String.class);
+    public static final ColumnName<Address> ADDRESS = ColumnName.define("address", Address.class);
+    public static final ColumnName<String> DESCRIPTION = ColumnName.defineString("description");
+    public static final ColumnName<ClassifierEnum> CLASSIFICATION = ColumnName.define("classification", ClassifierEnum.class);
 }

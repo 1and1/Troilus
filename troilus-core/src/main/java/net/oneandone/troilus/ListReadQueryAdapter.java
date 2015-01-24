@@ -32,7 +32,7 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.ListReadQuery;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao.EntityList;
 import net.oneandone.troilus.Dao.ListRead;
 import net.oneandone.troilus.Dao.ListReadWithUnit;
@@ -86,17 +86,17 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
     
     @Override
-    public ListReadWithUnit<RecordList> column(Name<?> name) {
+    public ListReadWithUnit<RecordList> column(ColumnName<?> name) {
         return new ListReadQueryAdapter(getContext(), query.column(name));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> columnWithMetadata(Name<?> name) {
+    public ListReadWithUnit<RecordList> columnWithMetadata(ColumnName<?> name) {
         return new ListReadQueryAdapter(getContext(), query.columnWithMetadata(name));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> columns(Name<?>... names) {
+    public ListReadWithUnit<RecordList> columns(ColumnName<?>... names) {
         return new ListReadQueryAdapter(getContext(), query.columns(names));
     }
 

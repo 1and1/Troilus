@@ -74,7 +74,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     }
     
     @Override
-    public <T> UpdateQuery value(Name<T> name, T value) {
+    public <T> UpdateQuery value(ColumnName<T> name, T value) {
         return value(name.getName(), name.convertWrite(value));
     }
     

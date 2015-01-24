@@ -21,7 +21,7 @@ package net.oneandone.troilus.interceptor;
 import java.util.Set;
 
 import net.oneandone.troilus.ConstraintException;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
@@ -63,7 +63,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
      * @param columnName the column name of the not null column
      * @return a new instance updated with this constraint
      */
-    public ConstraintsInterceptor withNotNullColumn(Name<?> columnName) {
+    public ConstraintsInterceptor withNotNullColumn(ColumnName<?> columnName) {
         return withNotNullColumn(columnName.getName());
     }
 
@@ -79,7 +79,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
      * @param columnName the column name of the immutable column. Please consider, that every write operation without ifNotExists() will count as an update
      * @return a new instance updated with this constraint
      */
-    public ConstraintsInterceptor withImmutableColumn(Name<?> columnName) {
+    public ConstraintsInterceptor withImmutableColumn(ColumnName<?> columnName) {
         return withImmutableColumn(columnName.getName());
     }
 

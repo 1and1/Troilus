@@ -103,19 +103,19 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     }
 
     @Override
-    public SingleReadQuery column(Name<?> name) {
+    public SingleReadQuery column(ColumnName<?> name) {
         return column(name.getName());
     }
 
     @Override
-    public SingleReadQuery columnWithMetadata(Name<?> name) {
+    public SingleReadQuery columnWithMetadata(ColumnName<?> name) {
         return column(name.getName());
     }
     
     @Override
-    public SingleReadQuery columns(Name<?>... names) {
+    public SingleReadQuery columns(ColumnName<?>... names) {
         List<String> ns = Lists.newArrayList();
-        for (Name<?> name : names) {
+        for (ColumnName<?> name : names) {
             ns.add(name.getName());
         }
         return columns(ImmutableList.copyOf(ns));

@@ -116,19 +116,19 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     @Override
-    public ListReadQuery column(Name<?> name) {
+    public ListReadQuery column(ColumnName<?> name) {
         return column(name.getName());
     }
     
     @Override
-    public ListReadQuery columnWithMetadata(Name<?> name) {
+    public ListReadQuery columnWithMetadata(ColumnName<?> name) {
         return columnWithMetadata(name.getName());
     }
     
     @Override
-    public ListReadQuery columns(Name<?>... names) {
+    public ListReadQuery columns(ColumnName<?>... names) {
         List<String> ns = Lists.newArrayList();
-        for (Name<?> name : names) {
+        for (ColumnName<?> name : names) {
             ns.add(name.getName());
         }
         return columns(ImmutableList.copyOf(ns));

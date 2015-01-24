@@ -35,7 +35,7 @@ import net.oneandone.troilus.DeleteQuery;
 import net.oneandone.troilus.DeleteQueryDataImpl;
 import net.oneandone.troilus.ListReadQuery;
 import net.oneandone.troilus.ListReadQueryDataImpl;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.SingleReadQuery;
 import net.oneandone.troilus.SingleReadQueryDataImpl;
 import net.oneandone.troilus.UpdateQuery;
@@ -187,21 +187,21 @@ public class DaoImpl implements Dao {
     }
     
     @Override
-    public <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue) {
+    public <T> WriteWithCounter writeWithKey(ColumnName<T> keyName, T keyValue) {
         return writeWithKey(keyName.getName(), (Object) keyValue); 
     }
     
     @Override
-    public <T, E> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1,
-                                                Name<E> keyName2, E keyValue2) {
+    public <T, E> WriteWithCounter writeWithKey(ColumnName<T> keyName1, T keyValue1,
+                                                ColumnName<E> keyName2, E keyValue2) {
         return writeWithKey(keyName1.getName(), (Object) keyValue1,
                             keyName2.getName(), (Object) keyValue2); 
     }
     
     @Override
-    public <T, E, F> WriteWithCounter writeWithKey(Name<T> keyName1, T keyValue1, 
-                                                   Name<E> keyName2, E keyValue2, 
-                                                   Name<F> keyName3, F keyValue3) {
+    public <T, E, F> WriteWithCounter writeWithKey(ColumnName<T> keyName1, T keyValue1, 
+                                                   ColumnName<E> keyName2, E keyValue2, 
+                                                   ColumnName<F> keyName3, F keyValue3) {
         return writeWithKey(keyName1.getName(), (Object) keyValue1,
                             keyName2.getName(), (Object) keyValue2,
                             keyName3.getName(), (Object) keyValue3); 
@@ -237,22 +237,22 @@ public class DaoImpl implements Dao {
     }
     
     @Override
-    public <T> Deletion deleteWithKey(Name<T> keyName, T keyValue) {
+    public <T> Deletion deleteWithKey(ColumnName<T> keyName, T keyValue) {
         return deleteWithKey(keyName.getName(), (Object) keyValue);
     }
     
     @Override
-    public <T, E> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
-                                         Name<E> keyName2, E keyValue2) {
+    public <T, E> Deletion deleteWithKey(ColumnName<T> keyName1, T keyValue1,
+                                         ColumnName<E> keyName2, E keyValue2) {
         return deleteWithKey(keyName1.getName(), (Object) keyValue1,
                              keyName2.getName(), (Object) keyValue2);
 
     }
     
     @Override
-    public <T, E, F> Deletion deleteWithKey(Name<T> keyName1, T keyValue1,
-                                            Name<E> keyName2, E keyValue2, 
-                                            Name<F> keyName3, F keyValue3) {
+    public <T, E, F> Deletion deleteWithKey(ColumnName<T> keyName1, T keyValue1,
+                                            ColumnName<E> keyName2, E keyValue2, 
+                                            ColumnName<F> keyName3, F keyValue3) {
         return deleteWithKey(keyName1.getName(), (Object) keyValue1,
                              keyName2.getName(), (Object) keyValue2,
                              keyName3.getName(), (Object) keyValue3);
@@ -291,21 +291,21 @@ public class DaoImpl implements Dao {
     }
     
     @Override
-    public <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue) {
+    public <T> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> keyName, T keyValue) {
         return readWithKey(keyName.getName(), (Object) keyValue);
     }
     
     @Override
-    public <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1,
-                                                                   Name<E> keyName2, E keyValue2) {
+    public <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> keyName1, T keyValue1,
+                                                                   ColumnName<E> keyName2, E keyValue2) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,
                            keyName2.getName(), (Object) keyValue2);
     }
     
     @Override
-    public <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName1, T keyValue1, 
-                                                                      Name<E> keyName2, E keyValue2,
-                                                                      Name<F> keyName3, F keyValue3) {
+    public <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> keyName1, T keyValue1, 
+                                                                      ColumnName<E> keyName2, E keyValue2,
+                                                                      ColumnName<F> keyName3, F keyValue3) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,
                            keyName2.getName(), (Object) keyValue2,                         
                            keyName3.getName(), (Object) keyValue3);
@@ -347,36 +347,36 @@ public class DaoImpl implements Dao {
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ListReadWithUnit<RecordList> readListWithKeys(Name<T> name, ImmutableList<T> values) {
+    public <T> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> name, ImmutableList<T> values) {
         return readListWithKeys(name.getName(), (ImmutableList<Object>) values);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                            Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
+    public <T, E> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                            ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
         return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<RecordList> readListWithKeys( Name<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                                Name<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                                Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
+    public <T, E, F> ListReadWithUnit<RecordList> readListWithKeys( ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                                ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
         return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
                             composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
     }
 
     @Override
-    public <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value) {
+    public <T> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> name, T value) {
         return readListWithKey(name.getName(), (Object) value);
     }
     
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                                  Name<E> composedKeyNamePart2, E composedKeyValuePart2) {
+    public <T, E> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                  ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2) {
         return readListWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                                composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
     }

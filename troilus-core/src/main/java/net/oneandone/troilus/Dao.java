@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Count;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
@@ -186,7 +186,7 @@ public interface Dao {
      * @param <T> the name type
      * @return the write query 
      */
-    <T> WriteWithCounter writeWithKey(Name<T> keyName, T keyValue);
+    <T> WriteWithCounter writeWithKey(ColumnName<T> keyName, T keyValue);
 
     /**
      * @param composedKeyNamePart1   the composed key name 1
@@ -197,8 +197,8 @@ public interface Dao {
      * @param <E> the name 2 type 
      * @return the write query
      */
-    <T, E> WriteWithCounter writeWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                         Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> WriteWithCounter writeWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                         ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
     /**
      * @param composedKeyNamePart1   the composed key name 1
@@ -212,9 +212,9 @@ public interface Dao {
      * @param <F> the name 3 type
      * @return the write query
      */
-    <T, E, F> WriteWithCounter writeWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                            Name<F> composedKeyNamePart3, F composedKeyValuePart3);
+    <T, E, F> WriteWithCounter writeWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                            ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                            ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
 
 
 
@@ -260,7 +260,7 @@ public interface Dao {
      * @param <T> the name type
      * @return the delete query
      */
-    <T> Deletion deleteWithKey(Name<T> keyName, T keyValue);
+    <T> Deletion deleteWithKey(ColumnName<T> keyName, T keyValue);
 
     /**
      * @param composedKeyNamePart1   the key name 1
@@ -271,8 +271,8 @@ public interface Dao {
      * @param <E> the name 2 type 
      * @return the delete query 
      */
-    <T, E> Deletion deleteWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                  Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> Deletion deleteWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                  ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
     /**
      * @param composedKeyNamePart1   the key name 1
@@ -286,9 +286,9 @@ public interface Dao {
      * @param <F> the name 3 type  
      * @return the delete query
      */
-    <T, E, F> Deletion deleteWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                     Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                     Name<F> composedKeyNamePart3, F composedKeyValuePart3);
+    <T, E, F> Deletion deleteWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                     ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                     ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
 
     /**
      * @param whereConditions  the where conditions
@@ -475,7 +475,7 @@ public interface Dao {
          * @param <T> the name type
          * @return a cloned query instance with the modified behavior
          */
-        <T> U value(Name<T> name, T value);
+        <T> U value(ColumnName<T> name, T value);
         
         /**
          * @param name   the set column name
@@ -621,14 +621,14 @@ public interface Dao {
                                                      String composedKeyNamePart3, Object composedKeyValuePart3);
 
 
-    <T> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> keyName, T keyValue);
+    <T> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> keyName, T keyValue);
 
-    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                            ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                               Name<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                                               Name<F> composedKeyNamePart3, F composedKeyValuePart3);
+    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                               ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                                               ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
     
     ListReadWithUnit<RecordList> readListWithKeys(String name, ImmutableList<Object> values);
 
@@ -640,24 +640,24 @@ public interface Dao {
                                                   String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
 
     
-    <T> ListReadWithUnit<RecordList> readListWithKeys(Name<T> name, ImmutableList<T> values);
+    <T> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> name, ImmutableList<T> values);
 
-    <T, E> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                         Name<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
+    <T, E> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                         ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
 
-    <T, E, F> ListReadWithUnit<RecordList> readListWithKeys(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                            Name<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                            Name<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
+    <T, E, F> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                            ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                            ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
     
     ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
 
     ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                                  String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    <T> ListReadWithUnit<RecordList> readListWithKey(Name<T> name, T value);
+    <T> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> name, T value);
 
-    <T, E> ListReadWithUnit<RecordList> readListWithKey(Name<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                        Name<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                        ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
     
     ListReadWithUnit<RecordList> readAll();
@@ -691,11 +691,11 @@ public interface Dao {
 
         SingleReadWithColumns<T> columns(String... names);
         
-        SingleReadWithColumns<T> column(Name<?> name);
+        SingleReadWithColumns<T> column(ColumnName<?> name);
 
-        SingleReadWithColumns<T> columnWithMetadata(Name<?> name);
+        SingleReadWithColumns<T> columnWithMetadata(ColumnName<?> name);
 
-        SingleReadWithColumns<T> columns(Name<?>... names);
+        SingleReadWithColumns<T> columns(ColumnName<?>... names);
 
     }
 
@@ -727,11 +727,11 @@ public interface Dao {
 
         ListReadWithColumns<T> columns(String... names);
 
-        ListReadWithColumns<T> column(Name<?> name);
+        ListReadWithColumns<T> column(ColumnName<?> name);
 
-        ListReadWithColumns<T> columnWithMetadata(Name<?> name);
+        ListReadWithColumns<T> columnWithMetadata(ColumnName<?> name);
 
-        ListReadWithColumns<T> columns(Name<?>... names);
+        ListReadWithColumns<T> columns(ColumnName<?>... names);
     }
     
     

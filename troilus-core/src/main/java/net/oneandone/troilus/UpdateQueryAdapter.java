@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.InsertQuery;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
@@ -88,7 +88,7 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
     }
     
     @Override
-    public <T> Write value(Name<T> name, T value) {
+    public <T> Write value(ColumnName<T> name, T value) {
         return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), name.convertWrite(value)));
     }
     

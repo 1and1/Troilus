@@ -35,11 +35,11 @@ import com.google.common.base.Optional;
  *
  * @param <T> the value type
  */
-public abstract class Name<T> {
+public abstract class ColumnName<T> {
  
     private final String name;
     
-    private Name(String name) { 
+    private ColumnName(String name) { 
         this.name = name;
     }
     
@@ -76,7 +76,7 @@ public abstract class Name<T> {
      * @param <E>         the name type
      * @return a new instance
      */
-    public static <E> Name<E> define(String name, Class<E> type) {
+    public static <E> ColumnName<E> define(String name, Class<E> type) {
         return new SkalarName<>(name, type);
     }
 
@@ -89,7 +89,7 @@ public abstract class Name<T> {
      * @param <E>           the name type
      * @return a new instance
      */
-    public static <E> Name<List<E>> defineList(String name, Class<E> elementType) {
+    public static <E> ColumnName<List<E>> defineList(String name, Class<E> elementType) {
         return new ListName<>(name, elementType);
     }
 
@@ -103,7 +103,7 @@ public abstract class Name<T> {
      * @param <E>           the name type
      * @return a new instance
      */
-    public static <E> Name<Set<E>> defineSet(String name, Class<E> elementType) {
+    public static <E> ColumnName<Set<E>> defineSet(String name, Class<E> elementType) {
         return new SetName<>(name, elementType);
     }
         
@@ -118,7 +118,7 @@ public abstract class Name<T> {
      * @param <F>       the member value type
      * @return a new instance
      */
-    public static <E, F> Name<Map<E, F>> defineMap(String name, Class<E> keyType,  Class<F> valueType) {
+    public static <E, F> ColumnName<Map<E, F>> defineMap(String name, Class<E> keyType,  Class<F> valueType) {
         return new MapName<>(name, keyType, valueType);
     }
 
@@ -129,7 +129,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<Long> defineLong(String name) {
+    public static ColumnName<Long> defineLong(String name) {
         return define(name, Long.class);
     }
 
@@ -139,7 +139,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<String> defineString(String name) {
+    public static ColumnName<String> defineString(String name) {
         return define(name, String.class);
     }
     
@@ -149,7 +149,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<Boolean> defineBool(String name) {
+    public static ColumnName<Boolean> defineBool(String name) {
         return define(name, Boolean.class);
     }
     
@@ -159,7 +159,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<ByteBuffer> defineByteBuffer(String name) {
+    public static ColumnName<ByteBuffer> defineByteBuffer(String name) {
         return define(name, ByteBuffer.class);
     }
     
@@ -169,7 +169,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<Float> defineFloat(String name) {
+    public static ColumnName<Float> defineFloat(String name) {
         return define(name, Float.class);
     }
    
@@ -179,7 +179,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<Date> defineDate(String name) {
+    public static ColumnName<Date> defineDate(String name) {
         return define(name, Date.class);
     }
     
@@ -189,7 +189,7 @@ public abstract class Name<T> {
      * @param name   the name 
      * @return a new instance
      */
-    public static Name<BigDecimal> defineDecimal(String name) {
+    public static ColumnName<BigDecimal> defineDecimal(String name) {
         return define(name, BigDecimal.class);
     }
     
@@ -199,7 +199,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<Integer> defineInt(String name) {
+    public static ColumnName<Integer> defineInt(String name) {
         return define(name, Integer.class);
     }
     
@@ -209,7 +209,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<InetAddress> defineInet(String name) {
+    public static ColumnName<InetAddress> defineInet(String name) {
         return define(name, InetAddress.class);
     }
     
@@ -219,7 +219,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<BigInteger> defineVarint(String name) {
+    public static ColumnName<BigInteger> defineVarint(String name) {
         return define(name, BigInteger.class);
     }
     
@@ -229,7 +229,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<TupleValue> defineTupleValue(String name) {
+    public static ColumnName<TupleValue> defineTupleValue(String name) {
         return define(name, TupleValue.class);
     }
     
@@ -239,11 +239,11 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<UUID> defineUUID(String name) {
+    public static ColumnName<UUID> defineUUID(String name) {
         return define(name, UUID.class);
     }
     
-    private static class SkalarName<T> extends Name<T> {
+    private static class SkalarName<T> extends ColumnName<T> {
         private final Class<T> type;
         
         
@@ -270,7 +270,7 @@ public abstract class Name<T> {
      * @param name        the name 
      * @return a new instance
      */
-    public static Name<byte[]> defineBytes(String name) {
+    public static ColumnName<byte[]> defineBytes(String name) {
         return new ByteSkalarName<>(name);
     }
     
@@ -311,7 +311,7 @@ public abstract class Name<T> {
      *
      * @param <T> the list member value type
      */
-    private static class ListName<T> extends Name<List<T>> {
+    private static class ListName<T> extends ColumnName<List<T>> {
         private final Class<T> elementType;
         
         /**
@@ -338,7 +338,7 @@ public abstract class Name<T> {
      *
      * @param <T> the set member value type
      */
-    private static class SetName<T> extends Name<Set<T>> {
+    private static class SetName<T> extends ColumnName<Set<T>> {
         private final Class<T> elementType;
 
         /**
@@ -364,7 +364,7 @@ public abstract class Name<T> {
      * @param <T> the set member key type
      * @param <V> the set member value type
      */
-    private static class MapName<T, V> extends Name<Map<T, V>> {
+    private static class MapName<T, V> extends ColumnName<Map<T, V>> {
         
         private final Class<T> keyType;
         private final Class<V> valueType;

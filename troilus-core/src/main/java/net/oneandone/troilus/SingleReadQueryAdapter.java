@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
-import net.oneandone.troilus.Name;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.SingleReadQuery;
 import net.oneandone.troilus.Dao.SingleRead;
 import net.oneandone.troilus.Dao.SingleReadWithColumns;
@@ -78,17 +78,17 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     }
 
     @Override
-    public SingleReadWithColumns<Optional<Record>> column(Name<?> name) {
+    public SingleReadWithColumns<Optional<Record>> column(ColumnName<?> name) {
         return new SingleReadQueryAdapter(getContext(), query.column(name));
     }
 
     @Override
-    public SingleReadWithColumns<Optional<Record>> columnWithMetadata(Name<?> name) {
+    public SingleReadWithColumns<Optional<Record>> columnWithMetadata(ColumnName<?> name) {
         return new SingleReadQueryAdapter(getContext(), query.columnWithMetadata(name));
     }
     
     @Override
-    public SingleReadWithColumns<Optional<Record>> columns(Name<?>... names) {
+    public SingleReadWithColumns<Optional<Record>> columns(ColumnName<?>... names) {
         return new SingleReadQueryAdapter(getContext(), query.columns(names));
     }
     
