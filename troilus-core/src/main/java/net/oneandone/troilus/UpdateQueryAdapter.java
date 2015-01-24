@@ -19,7 +19,6 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
-
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -29,8 +28,6 @@ import net.oneandone.troilus.Name;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
-import net.oneandone.troilus.Dao.BatchMutation;
-import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.CounterBatchMutation;
 import net.oneandone.troilus.Dao.CounterBatchable;
 import net.oneandone.troilus.Dao.CounterMutation;
@@ -50,38 +47,35 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter, UpdateQuery> implements WriteWithCounter, UpdateWithValuesAndCounter  {
 
-    private final UpdateQuery query;
-    
     
     /**
      * @param ctx     the context 
      * @param query   the underyling query
      */
     UpdateQueryAdapter(Context ctx, UpdateQuery query) {
-        super(ctx);
-        this.query = query;
+        super(ctx, query);
     }
     
     @Override
     protected UpdateQueryAdapter newQuery(Context newContext) {
-        return new UpdateQueryAdapter(newContext, query.newQuery(newContext));
+        return new UpdateQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
 
     @Override
     public UpdateQueryAdapter withTtl(Duration ttl) {
-        return new UpdateQueryAdapter(getContext(), query.withTtl((int) ttl.getSeconds()));
+        return new UpdateQueryAdapter(getContext(), getQuery().withTtl((int) ttl.getSeconds()));
     }
 
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
-        return new UpdateQueryAdapter(getContext(), query.onlyIf(conditions));
+        return new UpdateQueryAdapter(getContext(), getQuery().onlyIf(conditions));
     }
 
     @Override
     public Insertion ifNotExists() {
-        return new InsertQueryAdapter(getContext(), query.ifNotExists());
+        return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
     }
 
     public Insertion entity(Object entity) {
@@ -90,95 +84,69 @@ class UpdateQueryAdapter extends AbstractQuery<WriteWithCounter> implements Writ
     
     @Override
     public UpdateQueryAdapter value(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.value(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().value(name, value));
     }
     
     @Override
     public <T> Write value(Name<T> name, T value) {
-        return new UpdateQueryAdapter(getContext(), query.value(name.getName(), name.convertWrite(value)));
+        return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), name.convertWrite(value)));
     }
     
     @Override
     public UpdateQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new UpdateQueryAdapter(getContext(), query.values(nameValuePairsToAdd));
+        return new UpdateQueryAdapter(getContext(), getQuery().values(nameValuePairsToAdd));
     }
 
     @Override
     public UpdateQueryAdapter removeSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.removeSetValue(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().removeSetValue(name, value));
     }
 
     @Override
     public UpdateQueryAdapter addSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.addSetValue(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().addSetValue(name, value));
     }
    
     @Override
     public Write prependListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.prependListValue(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().prependListValue(name, value));
     } 
     
     @Override
     public Write appendListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.appendListValue(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().appendListValue(name, value));
     }
     
     @Override
     public Write removeListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.removeListValue(name, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().removeListValue(name, value));
     }
     
     @Override
     public Write putMapValue(String name, Object key, Object value) {
-        return new UpdateQueryAdapter(getContext(), query.putMapValue(name, key, value));
+        return new UpdateQueryAdapter(getContext(), getQuery().putMapValue(name, key, value));
     }
         
     @Override
     public CounterMutationQueryAdapter incr(String name) {
-        return new CounterMutationQueryAdapter(getContext(), query.incr(name));
+        return new CounterMutationQueryAdapter(getContext(), getQuery().incr(name));
     }
     
     @Override
     public CounterMutationQueryAdapter incr(String name, long value) {
-        return new CounterMutationQueryAdapter(getContext(), query.incr(name, value));
+        return new CounterMutationQueryAdapter(getContext(), getQuery().incr(name, value));
     }
     
     @Override
     public CounterMutationQueryAdapter decr(String name) {
-        return new CounterMutationQueryAdapter(getContext(), query.decr(name));
+        return new CounterMutationQueryAdapter(getContext(), getQuery().decr(name));
     }
     
     @Override
     public CounterMutationQueryAdapter decr(String name, long value) {
-        return new CounterMutationQueryAdapter(getContext(), query.decr(name, value));
+        return new CounterMutationQueryAdapter(getContext(), getQuery().decr(name, value));
     }
-    
-    @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
-    }
-       
-    @Override
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-    
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-  
-    @Override
-    public String toString() {
-        return query.toString();
-    }
-
-    
+        
       
 
     /**

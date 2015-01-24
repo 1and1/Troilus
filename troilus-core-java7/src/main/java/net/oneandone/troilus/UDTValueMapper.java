@@ -29,6 +29,7 @@ import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
 import com.google.common.base.Optional;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -165,38 +166,17 @@ class UDTValueMapper {
     }
 
     
-    <T> ImmutableSet<T> fromUdtValues(final DataType datatype, ImmutableSet<UDTValue> udtValues, Class<T> type) {
-        Set<T> elements = Sets.newHashSet();
-        
-        for (UDTValue elementUdtValue : udtValues) {
-
-            final UDTValue elementUdtVal = elementUdtValue;
-            
-            PropertiesSource propsSource = new PropertiesSource() {
-                
-                @Override
-                public <E> Optional<E> read(String name, Class<?> clazz1) {
-                    return read(name, clazz1, Object.class);
-                }
-                
-                @SuppressWarnings("unchecked")
-                @Override
-                public <E> Optional<E> read(String name, Class<?> clazz1, Class<?> clazz2) {
-                    return Optional.fromNullable((E) fromUdtValue(((UserType) datatype).getFieldType(name), elementUdtVal, clazz1, clazz2, name));
-                }
-            };
-
-            T element = beanMapper.fromValues(type, propsSource);
-            elements.add(element);
-        }
-        
-        return ImmutableSet.copyOf(elements);
+    public <T> ImmutableSet<T> fromUdtValues(final DataType datatype, ImmutableSet<UDTValue> udtValues, Class<T> type) {
+        return ImmutableSet.copyOf(fromUdtValues(datatype, (ImmutableCollection<UDTValue>) udtValues, type));
     }
 
-
-    
     
     public <T> ImmutableList<T> fromUdtValues(final DataType datatype, ImmutableList<UDTValue> udtValues, Class<T> type) {
+        return fromUdtValues(datatype, (ImmutableCollection<UDTValue>) udtValues, type);
+    }
+
+    
+    private <T> ImmutableList<T> fromUdtValues(final DataType datatype, ImmutableCollection<UDTValue> udtValues, Class<T> type) {
         List<T> elements = Lists.newArrayList();
         
         for (UDTValue elementUdtValue : udtValues) {
@@ -224,7 +204,7 @@ class UDTValueMapper {
         
         return ImmutableList.copyOf(elements);
     }
-
+    
     
     
     @SuppressWarnings("unchecked")

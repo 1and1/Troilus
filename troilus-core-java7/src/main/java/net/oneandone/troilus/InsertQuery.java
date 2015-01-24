@@ -25,7 +25,7 @@ import net.oneandone.troilus.java7.Dao.Insertion;
 /**
  * insert query implementation
  */
-class InsertQuery extends MutationQuery<Insertion> implements Insertion {
+class InsertQuery extends WriteQuery<Insertion> implements Insertion {
   
     
     /**

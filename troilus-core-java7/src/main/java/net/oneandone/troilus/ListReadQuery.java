@@ -361,13 +361,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          
          @Override
          public void subscribe(Subscriber<? super Record> subscriber) {
-             synchronized (subscriptionRef) {
+             synchronized (this) {
                  if (subscriptionRef.get() == null) {
                      DatabaseSubscription subscription = new DatabaseSubscription(subscriber);
                      subscriptionRef.set(subscription);
                      subscriber.onSubscribe(subscription);
                  } else {
-                     subscriber.onError(new IllegalStateException("subription alreday exists. Multi-subscribe is not supported")); 
+                     subscriber.onError(new IllegalStateException("subription already exists. Multi-subscribe is not supported")); 
                  }
              }
          }

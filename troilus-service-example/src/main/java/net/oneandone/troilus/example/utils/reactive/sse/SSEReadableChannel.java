@@ -38,6 +38,7 @@ import com.google.common.collect.Queues;
 
  
 public class SSEReadableChannel {
+    private final Object pendingReadLock = new Object();
     private final Queue<CompletableFuture<SSEEvent>> pendingReads = Queues.newLinkedBlockingQueue();
 
     private final SSEInputStream serverSentEventsStream;
@@ -82,7 +83,7 @@ public class SSEReadableChannel {
     public CompletableFuture<SSEEvent> readEventAsync() {
         CompletableFuture<SSEEvent> pendingRead = new CompletableFuture<SSEEvent>();
         
-        synchronized (pendingReads) {   
+        synchronized (pendingReadLock) {   
             
             try {
                 // reading has to be processed inside the sync block to avoid shuffling events 
@@ -110,7 +111,7 @@ public class SSEReadableChannel {
     
     private void proccessPendingReads() {
         
-        synchronized (pendingReads) {
+        synchronized (pendingReadLock) {
             try {
                 while(!pendingReads.isEmpty()) {
                     Optional<SSEEvent> optionalEvent = serverSentEventsStream.next();
@@ -137,7 +138,7 @@ public class SSEReadableChannel {
     public void close() {
         serverSentEventsStream.close();
         
-        synchronized (pendingReads) { 
+        synchronized (pendingReadLock) { 
             pendingReads.clear();
         }
     }

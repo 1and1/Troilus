@@ -18,18 +18,13 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
-import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Dao.BatchMutation;
-import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.Deletion;
 
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.Statement;
+
 
 
 
@@ -37,22 +32,19 @@ import com.datastax.driver.core.Statement;
 /**
  * Java8 adapter of a DeleteQuery
  */
-class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
+class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> implements Deletion {
 
-    private final DeleteQuery query;
-      
     /**
      * @param ctx     the context
      * @param query   the query
      */
     DeleteQueryAdapter(Context ctx, DeleteQuery query) {
-        super(ctx);
-        this.query = query;
+        super(ctx, query);
     }
     
     @Override
     protected Deletion newQuery(Context newContext) {
-        return new DeleteQueryAdapter(newContext, query.newQuery(newContext));
+        return new DeleteQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
     
     @Override
@@ -62,36 +54,11 @@ class DeleteQueryAdapter extends AbstractQuery<Deletion> implements Deletion {
 
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
-        return new DeleteQueryAdapter(getContext(), query.onlyIf(onlyIfConditions));
+        return new DeleteQueryAdapter(getContext(), getQuery().onlyIf(onlyIfConditions));
     }
     
     @Override
     public Deletion ifExists() {
-        return new DeleteQueryAdapter(getContext(), query.ifExists());
-    }
-    
-    @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
-    }
-       
-    @Override
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-   
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
-    @Override
-    public String toString() {
-        return query.toString();
+        return new DeleteQueryAdapter(getContext(), getQuery().ifExists());
     }
 }

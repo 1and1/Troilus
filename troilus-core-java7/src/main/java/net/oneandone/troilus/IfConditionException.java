@@ -26,7 +26,7 @@ public class IfConditionException extends RuntimeException {
 
     private static final long serialVersionUID = -4815247201091574807L;
 
-    private final Result result;
+    private transient final Result result;
     
     /**
      * @param message the message to report

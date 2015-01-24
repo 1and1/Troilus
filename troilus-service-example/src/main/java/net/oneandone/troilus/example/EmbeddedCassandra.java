@@ -94,7 +94,12 @@ public class EmbeddedCassandra {
         
         
         File cassandraDir = new File(cassandraDirName);
-        cassandraDir.mkdirs();
+        if (!cassandraDir.exists()) {
+            boolean isCreated = cassandraDir.mkdirs();
+            if (!isCreated) {
+                throw new RuntimeException("could not create cassandra dir " + cassandraDir.getAbsolutePath());
+            }
+        }
         
 
         InputStream cassandraConfigurationInput = null;

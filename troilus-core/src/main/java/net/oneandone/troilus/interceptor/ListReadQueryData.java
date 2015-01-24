@@ -57,7 +57,7 @@ public interface ListReadQueryData {
     ListReadQueryData limit(Optional<Integer> limit);
 
     /**
-     * @param oallowFiltering  the allow filtering flag
+     * @param allowFiltering  the allow filtering flag
      * @return the new query data
      */
     ListReadQueryData allowFiltering(Optional<Boolean> allowFiltering);

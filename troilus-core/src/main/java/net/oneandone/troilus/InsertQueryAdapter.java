@@ -17,40 +17,30 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.InsertQuery;
-import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Dao.BatchMutation;
-import net.oneandone.troilus.Dao.Batchable;
 import net.oneandone.troilus.Dao.Insertion;
 import net.oneandone.troilus.Dao.Mutation;
-
-import com.datastax.driver.core.Statement;
  
 
 
 /**
  * Java8 adapter of a InsertQuery
  */
-class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
-    
-    private final InsertQuery query;
+class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> implements Insertion {
   
     /**
      * @param ctx    the context
      * @param query  the query
      */
     InsertQueryAdapter(Context ctx, InsertQuery query) {
-        super(ctx);
-        this.query = query;
+        super(ctx, query);
     }
     
     @Override
     protected InsertQueryAdapter newQuery(Context newContext) {
-        return new InsertQueryAdapter(newContext, query.newQuery(newContext));
+        return new InsertQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
   
     @Override
@@ -60,31 +50,6 @@ class InsertQueryAdapter extends AbstractQuery<Insertion> implements Insertion {
     
     @Override
     public Mutation<?> ifNotExists() {
-        return new InsertQueryAdapter(getContext(), query.ifNotExists());
-    }
-    
-    @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
-    }
-       
-    @Override
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
-    @Override
-    public String toString() {
-        return query.toString();
+        return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
     }
 }

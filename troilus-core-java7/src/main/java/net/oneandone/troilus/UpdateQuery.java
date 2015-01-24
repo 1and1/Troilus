@@ -16,16 +16,12 @@
 package net.oneandone.troilus;
 
 
-
-
-import net.oneandone.troilus.java7.Dao.Batchable;
 import net.oneandone.troilus.java7.Dao.CounterBatchable;
 import net.oneandone.troilus.java7.Dao.CounterMutation;
 import net.oneandone.troilus.java7.Dao.UpdateWithValuesAndCounter;
 import net.oneandone.troilus.java7.Dao.WriteWithCounter;
 
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.base.Function;
@@ -41,7 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * update query implementation
  */
-class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
     
     
     /**
@@ -71,11 +67,6 @@ class UpdateQuery extends MutationQuery<WriteWithCounter> implements WriteWithCo
         return newQuery(getContext().withTtl(ttlSec));
     }
     
-    @Override
-    public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
-    }
-       
     @Override
     public UpdateQuery value(String name, Object value) {
         return new UpdateQuery(getContext(), 

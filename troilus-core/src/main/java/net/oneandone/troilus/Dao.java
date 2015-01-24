@@ -309,7 +309,7 @@ public interface Dao {
         Mutation<Q> withSerialConsistency(ConsistencyLevel consistencyLevel);
 
         /**
-         * @param ttlSec  the time-to-live in sec to set
+         * @param ttl  the time-to-live set
          * @return a cloned query instance with the modified behavior
          */
         Mutation<Q> withTtl(Duration ttl);
@@ -472,6 +472,7 @@ public interface Dao {
         /**
          * @param name  the column name
          * @param value the value to add
+         * @param <T> the name type
          * @return a cloned query instance with the modified behavior
          */
         <T> U value(Name<T> name, T value);

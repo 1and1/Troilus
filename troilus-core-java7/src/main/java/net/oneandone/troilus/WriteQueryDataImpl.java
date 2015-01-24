@@ -372,7 +372,7 @@ class WriteQueryDataImpl implements WriteQueryData {
 
         if (ctx.getTtlSec() != null) {
             insert.using(ttl(bindMarker()));  
-            values.add(ctx.getTtlSec().intValue());
+            values.add((Integer) ctx.getTtlSec());
         }
 
         PreparedStatement stmt = ctx.prepare(insert);
@@ -435,7 +435,7 @@ class WriteQueryDataImpl implements WriteQueryData {
             
             if (ctx.getTtlSec() != null) {
                 update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add(ctx.getTtlSec().intValue()); 
+                values.add((Integer) ctx.getTtlSec()); 
             }
             
             return ctx.prepare(update).bind(values.toArray());

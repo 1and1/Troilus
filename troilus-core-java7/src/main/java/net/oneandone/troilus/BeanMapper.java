@@ -24,6 +24,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -93,11 +95,12 @@ class BeanMapper {
         }
         
         
-        private <T> T newInstance(Constructor<T> constructor) {
+        private <T> T newInstance(final Constructor<T> constructor) {
             try {
                 return (T) constructor.newInstance();
             } catch (ReflectiveOperationException e) {
-                constructor.setAccessible(true);
+                AccessController.doPrivileged(new SetConstructorAccessible<>(constructor));
+
                 try {
                     return (T) constructor.newInstance();
                 } catch (ReflectiveOperationException e2) {
@@ -107,7 +110,34 @@ class BeanMapper {
         }
     }
     
-  
+    
+    private static final class SetConstructorAccessible<T> implements PrivilegedAction<Object> {
+        private final Constructor<T> constructor;
+        
+        public SetConstructorAccessible(Constructor<T> constructor) {
+            this.constructor = constructor;
+        }
+        
+        @Override
+        public Object run() {
+            constructor.setAccessible(true);
+            return null;
+        }
+    }
+    
+    private static final class SetFieldAccessible implements PrivilegedAction<Object> {
+        private final Field field;
+        
+        public SetFieldAccessible(Field field) {
+            this.field = field;
+        }
+        
+        @Override
+        public Object run() {
+            field.setAccessible(true);
+            return null;
+        }
+    }  
 
     
     public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
@@ -329,13 +359,15 @@ class BeanMapper {
             
             Object value = null;
             try {
-                field.setAccessible(true);
+                AccessController.doPrivileged(new SetFieldAccessible(field));
                 value = field.get(bean);
             } catch (IllegalArgumentException | IllegalAccessException e) { }
             
             return  Maps.immutableEntry(fieldName, optionalWrapper.wrap(value));
         }
 
+        
+    
         
         private static interface OptionalWrapper {
             
@@ -441,9 +473,8 @@ class BeanMapper {
                 return;
             }
             
-            
             try {
-                field.setAccessible(true);
+                AccessController.doPrivileged(new SetFieldAccessible(field));
                 field.set(bean, optionalWrapper.unwrap(optionalValue));
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();

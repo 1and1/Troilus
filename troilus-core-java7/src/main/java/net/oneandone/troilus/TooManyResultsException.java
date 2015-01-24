@@ -25,7 +25,7 @@ public class TooManyResultsException extends RuntimeException {
 
     private static final long serialVersionUID = 4270476820995364200L;
 
-    private final Result result;
+    private transient final Result result;
     
     /**
      * @param message the message to report

@@ -151,19 +151,22 @@ public interface Record extends Result {
     /**
      * @param name      the column name 
      * @param enumType  the enum type
+     * @param <T> the enum type class
      * @return the value for column name as an enum value
      */
     <T extends Enum<T>> Optional<T> getEnum(String name, Class<T> enumType);
         
     /**
      * @param name the column name 
+     * @param <T> the name type
      * @return the value for column name as an value type according the name definition
      */
     <T> Optional<T> getValue(Name<T> name);
    
     /**
      * @param name   the column name 
-     * @param typ    the class for value to retrieve.
+     * @param type   the class for value to retrieve.
+     * @param <T>  the object type
      * @return  the value of column name 
      */
     <T> Optional<T> getObject(String name, Class<T> type);    
@@ -171,6 +174,7 @@ public interface Record extends Result {
     /**
      * @param name           the column name 
      * @param elementsClass  the class for the elements of the set to retrieve
+     * @param <T>  the element type
      * @return  the value of column name as a set
      */
     <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass);
@@ -178,6 +182,7 @@ public interface Record extends Result {
     /**
      * @param name          the column name 
      * @param elementsClass the class for the elements of the list to retriev
+     * @param <T> the element type
      * @return  the value of column name as a list
      */
     <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass);
@@ -186,6 +191,8 @@ public interface Record extends Result {
      * @param name          the column name 
      * @param keysClass     the class for the key element
      * @param valuesClass   the class for the value element
+     * @param <K> the member key type
+     * @param <V> the member value type
      * @return  the value of column name as a map
      */
     <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass);

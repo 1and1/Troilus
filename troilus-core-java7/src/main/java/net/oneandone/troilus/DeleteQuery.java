@@ -18,12 +18,10 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
-import net.oneandone.troilus.java7.Dao.Batchable;
 import net.oneandone.troilus.java7.Dao.Deletion;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
@@ -36,7 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * delete query implementation
  */
-class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
+class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
     private final DeleteQueryData data;
     
@@ -55,11 +53,6 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     }
     
     @Override
-    public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
-    }
-       
-    @Override
     protected DeleteQuery newQuery(Context newContext) {
         return new DeleteQuery(newContext, data);
     }
@@ -73,11 +66,6 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
     public DeleteQuery ifExists() {
         return new DeleteQuery(getContext(), data.ifExists(true));
     }
-
-    @Override
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
     
     @Override
     public ListenableFuture<Result> executeAsync() {
@@ -86,6 +74,10 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         Function<ResultSet, Result> mapResult = new Function<ResultSet, Result>() {
             @Override
             public Result apply(ResultSet resultSet) {
+                if (resultSet == null) {
+                    throw new NullPointerException();
+                }
+
                 Result result = newResult(resultSet);
                 if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
                     throw new IfConditionException(result, "if condition does not match");
@@ -106,11 +98,16 @@ class DeleteQuery extends AbstractQuery<Deletion> implements Deletion {
         Function<DeleteQueryData, Statement> queryDataToStatement = new Function<DeleteQueryData, Statement>() {
             @Override
             public Statement apply(DeleteQueryData queryData) {
+                if (queryData == null) {
+                    throw new NullPointerException();
+                }
                 return DeleteQueryDataImpl.toStatement(queryData, getContext());
             }
         };
         return Futures.transform(queryDataFuture, queryDataToStatement);
     }
+    
+    
    
     
     private ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {

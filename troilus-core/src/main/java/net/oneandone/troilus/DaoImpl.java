@@ -794,20 +794,9 @@ public class DaoImpl implements Dao {
      
         @Override
         public WriteQueryDataAdapter mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
-            // convert java optional to guava optional
-           Map<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> result = Maps.newHashMap();
-            
-            for (Entry<String, ImmutableMap<Object, Optional<Object>>> entry : mapValuesToMutate.entrySet()) {
-                Map<Object, com.google.common.base.Optional<Object>> iresult = Maps.newHashMap();
-                for (Entry<Object, Optional<Object>> entry2 : entry.getValue().entrySet()) {
-                    iresult.put(entry2.getKey(), com.google.common.base.Optional.fromNullable(entry2.getValue().orElse(null)));
-                }
-                result.put(entry.getKey(), ImmutableMap.copyOf(iresult));
-            }
-            
-            return new WriteQueryDataAdapter(data.mapValuesToMutate(ImmutableMap.copyOf(result)));
+            return new WriteQueryDataAdapter(data.mapValuesToMutate(toGuavaOptional(mapValuesToMutate)));
         }
-       
+               
         @Override
         public WriteQueryDataAdapter onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
             return new WriteQueryDataAdapter(data.onlyIfConditions(onlyIfConditions));

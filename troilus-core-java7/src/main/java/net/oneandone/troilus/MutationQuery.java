@@ -19,38 +19,24 @@ package net.oneandone.troilus;
 
 import net.oneandone.troilus.java7.Dao.Batchable;
 
-import net.oneandone.troilus.java7.interceptor.WriteQueryData;
-import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.BatchStatement.Type;
-import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
 
 /**
- * mutation  query implementation
+ * abstract mutation query implementation
  */
 abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
-    private final WriteQueryDataImpl data;
-  
     
     /**
      * @param ctx   the context
-     * @param data  the data
      */
-    MutationQuery(Context ctx, WriteQueryDataImpl data) {
+    MutationQuery(Context ctx) {
         super(ctx);
-        this.data = data;
-    }
-    
-    protected WriteQueryDataImpl getData() {
-        return data;
     }
     
     public BatchMutationQuery combinedWith(Batchable other) {
@@ -62,57 +48,5 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
         return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
-    public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
-        
-        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
-            @Override
-            public Result apply(ResultSet resultSet) {
-                Result result = newResult(resultSet);
-                if (isLwt() && !result.wasApplied()) {
-                    throw new IfConditionException(result, "duplicated entry");
-                }
-                return result;
-            }
-        };
-        
-        return Futures.transform(future, mapEntity);
-    }
-    
-    private boolean isLwt() {
-        return ((data.getIfNotExits() != null) && (data.getIfNotExits()) || !data.getOnlyIfConditions().isEmpty());                
-    }
-    
-
-    public ListenableFuture<Statement> getStatementAsync() {
-        // perform request executors
-        ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));        
-        
-        // query data to statement
-        Function<WriteQueryData, Statement> queryDataToStatement = new Function<WriteQueryData, Statement>() {
-            @Override
-            public Statement apply(WriteQueryData queryData) {
-                return WriteQueryDataImpl.toStatement(queryData, getContext());
-            }
-        };
-        return Futures.transform(queryDataFuture, queryDataToStatement);
-    }
-    
-    private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
-
-        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
-            final WriteQueryRequestInterceptor icptor = interceptor;
-
-            Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
-                @Override
-                public ListenableFuture<WriteQueryData> apply(WriteQueryData queryData) {
-                    return icptor.onWriteRequestAsync(queryData);
-                }
-            };
-
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
-        }
-
-        return queryDataFuture; 
-    }
+    public abstract ListenableFuture<Result> executeAsync();
 }

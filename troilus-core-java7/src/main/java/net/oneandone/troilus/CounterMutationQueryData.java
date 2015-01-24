@@ -131,7 +131,7 @@ class CounterMutationQueryData {
             
             if (ctx.getTtlSec() != null) {
                 update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add(ctx.getTtlSec().intValue());
+                values.add((Integer) ctx.getTtlSec());
             }
             
             return Futures.<Statement>immediateFuture(ctx.prepare(update).bind(values.toArray()));

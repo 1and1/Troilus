@@ -44,7 +44,7 @@ class SEEEventPublisher implements Publisher<SSEEvent> {
     @Override
     public void subscribe(Subscriber<? super SSEEvent> subscriber) {
         
-        synchronized (subscriberRef) {     
+        synchronized (this) {     
             if (subscriberRef.get().isPresent()) {
                 throw new IllegalStateException("subscriber is already registered (publisher does not support multi-subscriptions)");
             } 
@@ -67,8 +67,8 @@ class SEEEventPublisher implements Publisher<SSEEvent> {
         public SEEEventReaderSubscription(ServletInputStream in, Subscriber<? super SSEEvent> subscriber) {
             this.subscriber = subscriber;
             this.channel = new SSEReadableChannel(in,                                   // servlet input stream
-                                                             error -> subscriber.onError(error),   // error consumer
-                                                             Void -> subscriber.onComplete());     // completion consumer         
+                                                  error -> subscriber.onError(error),   // error consumer
+                                                  Void -> subscriber.onComplete());     // completion consumer         
         }
         
         
