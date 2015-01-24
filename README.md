@@ -249,7 +249,7 @@ optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> Sy
 
 Read a row in a column-oriented way with `Name` definitions. 
 ``` java        
-import static ....HotelTableFields.*;
+import static ....HotelTableColumns.*;
 
 Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP3443")
                                            .column(NAME)
@@ -262,7 +262,7 @@ optionalRecord.ifPresent(record -> record.getValue(CLASSIFICATION).ifPresent(cla
 
 with definitions
 ``` java        
-public final class HotelTableFields  {
+public final class HotelTableColumns  {
     public static final ColumnName<String> ID = ColumnName.defineString("id");
     public static final ColumnName<String> NAME = ColumnName.defineString("name");
     public static final ColumnName<Set<String>> ROOM_IDS = ColumnName.defineSet("room_ids", String.class);
