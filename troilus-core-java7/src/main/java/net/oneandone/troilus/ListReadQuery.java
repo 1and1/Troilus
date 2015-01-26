@@ -20,14 +20,8 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
-
-
-
-
-
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -378,7 +372,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          
          
          private final class DatabaseSubscription implements Subscription {
-             private final AtomicBoolean isOpen = new AtomicBoolean(true); 
+             private final AtomicBoolean isOpen = new AtomicBoolean(true);
+             
+             private final Object subscriberCallLock = new Object();
+             private final Object dbQueryLock = new Object();
+             
              private final Subscriber<? super Record> subscriber;
              private final Iterator<? extends Record> it;
              
@@ -399,30 +397,34 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                          processReadRequests();
                      }
                  } else {
-                     subscriber.onError(new IllegalStateException("already closed"));
+                     synchronized (subscriberCallLock) {
+                         subscriber.onError(new IllegalStateException("already closed"));
+                     }
                  }
              }
              
              
              private void processReadRequests() {
-                 
+                 processAvailableRecords();
+
+                 // more db records required? 
+                 if (numPendingReads.get() > 0) {
+                     requestDatabaseForMoreRecords();
+                 }
+             }
+             
+             private void processAvailableRecords() {
                  if (isOpen.get()) {
-                     
-                     synchronized (this) {
-                         try {
-                             while (it.hasNext() && numPendingReads.get() > 0) {
+                     synchronized (subscriberCallLock) {
+                         while (it.hasNext() && numPendingReads.get() > 0) {
+                             try {
                                  numPendingReads.addAndGet(-1);
                                  subscriber.onNext(it.next());
+                             } catch (RuntimeException rt) {
+                                 LOG.warn("processing error occured", rt);
+                                 subscriber.onError(rt);
+                                 isOpen.set(false);
                              }
-
-                             if (numPendingReads.get() > 0) {
-                                 requestDatabaseForMoreRecords();
-                             }
-
-                         } catch (RuntimeException rt) {
-                             LOG.warn("processing error occured", rt);
-                             subscriber.onError(rt);
-                             isOpen.set(false);
                          }
                      }
                  }
@@ -430,22 +432,27 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              private void requestDatabaseForMoreRecords() {
-                 if (rs.isFullyFetched()) {
-                     cancel();
-                 }
-                 
-                 synchronized (this) {
-                     if (runningDatabaseQuery.get() == null) {
-                         Runnable databaseRequest = new Runnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            runningDatabaseQuery.set(null); processReadRequests();                                 
-                                                                        }
-                                                                   };
-                         runningDatabaseQuery.set(databaseRequest);
-                         
-                         ListenableFuture<Void> future = rs.fetchMoreResults();
-                         future.addListener(databaseRequest, ForkJoinPool.commonPool());
+                 if (isOpen.get()) {
+                     if (rs.isFullyFetched()) {
+                         cancel();
+                     }
+                     
+                     synchronized (dbQueryLock) {
+                         if (runningDatabaseQuery.get() == null) {
+                             Runnable databaseRequest = new Runnable() {
+                                                                 @Override
+                                                                 public void run() {
+                                                                     synchronized (dbQueryLock) {
+                                                                         runningDatabaseQuery.set(null); 
+                                                                     }
+                                                                     processReadRequests();
+                                                                 }                                                                           
+                                                        };
+                             runningDatabaseQuery.set(databaseRequest);
+                             
+                             ListenableFuture<Void> future = rs.fetchMoreResults();
+                             future.addListener(databaseRequest, ctx.getTaskExecutor());
+                         }
                      }
                  }
              }
@@ -454,7 +461,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              @Override
              public void cancel() {
                  isOpen.set(false);
-                 subscriber.onComplete();
+                 synchronized (subscriberCallLock) {
+                     subscriber.onComplete();
+                 }
              }
          }
      } 
