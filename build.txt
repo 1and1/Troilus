@@ -8,8 +8,8 @@ mvn release:prepare -DpushChanges=false
 RELEASE
 mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true"
 
-TAGGING
-git tag -a v0.3 -m 'release 0.3'
-
 STAGING REPO
 https://oss.sonatype.org/#stagingRepositories
+
+TAGGING
+https://github.com/1and1/Troilus/releases
