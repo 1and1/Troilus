@@ -19,7 +19,14 @@ package net.oneandone.troilus;
 
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.java7.Dao;
+import net.oneandone.troilus.java7.Deletion;
+import net.oneandone.troilus.java7.Insertion;
+import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.RecordList;
+import net.oneandone.troilus.java7.SingleReadWithUnit;
+import net.oneandone.troilus.java7.UpdateWithValuesAndCounter;
+import net.oneandone.troilus.java7.WriteWithCounter;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;

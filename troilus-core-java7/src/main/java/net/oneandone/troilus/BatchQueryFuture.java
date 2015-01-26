@@ -20,8 +20,6 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.ExecutionException;
 
-import net.oneandone.troilus.java7.Dao.StatementSource;
-
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.UnmodifiableIterator;

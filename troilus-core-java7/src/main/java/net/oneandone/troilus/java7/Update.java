@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7.interceptor;
+package net.oneandone.troilus.java7;
 
-
-import com.google.common.util.concurrent.ListenableFuture;
-
-import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.java7.RecordList;
-
-
-
+import com.datastax.driver.core.querybuilder.Clause;
 
 
 /**
- * Interceptor which will be executed after performing a list read query  
- */  
-public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
-    
+ * Update query
+ * @param <U> the query type 
+ */
+public interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
+
     /**
-     * @param queryData   the request data
-     * @param recordList  the requested record list
-     * @return the (modified) requested record list
+     * @param conditions the conditions 
+     * @return a cloned query instance with lwt (only-if)
      */
-    ListenableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
+    Mutation<?> onlyIf(Clause... conditions);
 }
- 

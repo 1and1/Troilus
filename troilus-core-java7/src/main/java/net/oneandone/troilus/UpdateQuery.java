@@ -15,11 +15,9 @@
  */
 package net.oneandone.troilus;
 
-
-import net.oneandone.troilus.java7.Dao.CounterBatchable;
-import net.oneandone.troilus.java7.Dao.CounterMutation;
-import net.oneandone.troilus.java7.Dao.UpdateWithValuesAndCounter;
-import net.oneandone.troilus.java7.Dao.WriteWithCounter;
+import net.oneandone.troilus.java7.CounterMutation;
+import net.oneandone.troilus.java7.UpdateWithValuesAndCounter;
+import net.oneandone.troilus.java7.WriteWithCounter;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
@@ -38,7 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * update query implementation
  */
 class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
-    
+     
     
     /**
      * @param ctx   the context 

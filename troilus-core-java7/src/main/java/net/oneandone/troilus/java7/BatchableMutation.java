@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7.interceptor;
+package net.oneandone.troilus.java7;
 
-
-import com.google.common.util.concurrent.ListenableFuture;
-
-import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.java7.RecordList;
-
+import net.oneandone.troilus.Batchable;
 
 
 
 
 /**
- * Interceptor which will be executed after performing a list read query  
- */  
-public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
-    
+ * Batchable mutation
+ * @param <Q>  the query
+ */
+public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable {
+
     /**
-     * @param queryData   the request data
-     * @param recordList  the requested record list
-     * @return the (modified) requested record list
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
      */
-    ListenableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
+    BatchMutation combinedWith(Batchable other);
 }
- 

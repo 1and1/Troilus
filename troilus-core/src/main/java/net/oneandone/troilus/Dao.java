@@ -16,6 +16,7 @@
 package net.oneandone.troilus;
 
 import java.time.Duration;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -27,7 +28,6 @@ import net.oneandone.troilus.interceptor.QueryInterceptor;
 import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
@@ -322,18 +322,7 @@ public interface Dao {
     }
 
     
-    /**
-     * Batchable mutation query
-     */
-    public static interface Batchable {
-
-        /**
-         * @return the statement future
-         */
-        CompletableFuture<Statement> getStatementAsync();
-    }
-
-
+ 
     /**
      * Batchable mutation
      * @param <Q>  the query
@@ -529,16 +518,6 @@ public interface Dao {
  
     }
 
-    /**
-     * counter batchable query
-     */
-    public static interface CounterBatchable {
-
-        /**
-         * @return a cloned query instance with the modified behavior
-         */
-        CompletableFuture<Statement> getStatementAsync();
-    }
 
     
     /**

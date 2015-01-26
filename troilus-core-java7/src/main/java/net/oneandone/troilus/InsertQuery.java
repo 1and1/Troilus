@@ -15,9 +15,9 @@
  */
 package net.oneandone.troilus;
 
+import net.oneandone.troilus.java7.Insertion;
 
 
-import net.oneandone.troilus.java7.Dao.Insertion;
 
 
 

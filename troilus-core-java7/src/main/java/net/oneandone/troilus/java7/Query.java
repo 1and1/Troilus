@@ -13,38 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
-
-
-
-import com.datastax.driver.core.BatchStatement.Type;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
 
 /**
- * abstract mutation query implementation
+ * The Query 
+ * @param <T>  the result type
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
-    
+public interface Query<T> {
+
+    /**
+     * performs the query in an async way 
+     * @return the result future 
+     */
+    ListenableFuture<T> executeAsync();
     
     /**
-     * @param ctx   the context
+     * performs the query in a sync way 
+     * @return the result
      */
-    MutationQuery(Context ctx) {
-        super(ctx);
-    }
-    
-    public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
-    }
-  
-    
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    public abstract ListenableFuture<Result> executeAsync();
-}
+    T execute();
+} 
+
+

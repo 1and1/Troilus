@@ -16,35 +16,17 @@
 package net.oneandone.troilus;
 
 
-
-
-import com.datastax.driver.core.BatchStatement.Type;
-import com.google.common.collect.ImmutableList;
+import com.datastax.driver.core.Statement;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-
 /**
- * abstract mutation query implementation
+ * Statement soure
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
-    
-    
+public interface StatementSource {
+
     /**
-     * @param ctx   the context
+     * @return the statement future
      */
-    MutationQuery(Context ctx) {
-        super(ctx);
-    }
-    
-    public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
-    }
-  
-    
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    public abstract ListenableFuture<Result> executeAsync();
+    ListenableFuture<Statement> getStatementAsync();
 }

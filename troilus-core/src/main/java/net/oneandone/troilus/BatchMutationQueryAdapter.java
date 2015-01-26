@@ -25,11 +25,9 @@ import net.oneandone.troilus.BatchMutationQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.BatchMutation;
-import net.oneandone.troilus.Dao.Batchable;
+import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Dao.Query;
 
-import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -68,7 +66,7 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchableAdapter(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
     }
     
     @Override
@@ -79,28 +77,5 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     @Override
     public CompletableFuture<Result> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
-    
-    
-
-    /**
-     * Java8 adapter of a Batchable
-     */
-    static final class BatchableAdapter implements net.oneandone.troilus.java7.Dao.Batchable {
-        private final Batchable batchable;
-        
-        
-        /**
-         * @param batchable the underyling batchable
-         */
-        public BatchableAdapter(Batchable batchable) {
-            this.batchable = batchable;
-        }
-        
-        @Override
-        public ListenableFuture<Statement> getStatementAsync() {
-            return CompletableFutures.toListenableFuture(batchable.getStatementAsync());
-        }
-    }
+    }  
 }

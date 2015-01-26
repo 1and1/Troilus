@@ -24,10 +24,6 @@ import net.oneandone.troilus.Context;
 import net.oneandone.troilus.CounterBatchMutationQuery;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.CounterBatchMutation;
-import net.oneandone.troilus.Dao.CounterBatchable;
-
-import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -57,7 +53,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     
     @Override
     public CounterBatchMutation combinedWith(CounterBatchable other) {
-        return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(new CounterBatchableAdapter(other)));
+        return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(other));
     }
     
     @Override
@@ -69,25 +65,5 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     public CompletableFuture<Result> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
-    
 
-
-    /**
-     * Java8 adapter of a CounterBatchable
-     */
-    static final class CounterBatchableAdapter implements net.oneandone.troilus.java7.Dao.CounterBatchable {
-        private final CounterBatchable batchable;
-        
-        /**
-         * @param batchable the underlying batchable
-         */
-        CounterBatchableAdapter(CounterBatchable batchable) {
-            this.batchable = batchable;
-        }
-        
-        @Override
-        public ListenableFuture<Statement> getStatementAsync() {
-            return CompletableFutures.toListenableFuture(batchable.getStatementAsync());
-        }
-    }
 }

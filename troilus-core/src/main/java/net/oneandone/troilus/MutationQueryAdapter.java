@@ -18,13 +18,15 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
+
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Dao.BatchMutation;
-import net.oneandone.troilus.Dao.Batchable;
 
 import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
  
 
 
@@ -49,11 +51,11 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
     }
     
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(new BatchMutationQueryAdapter.BatchableAdapter(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
     }
        
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
+    public ListenableFuture<Statement> getStatementAsync() {
+        return query.getStatementAsync();
     }
 
     public Result execute() {

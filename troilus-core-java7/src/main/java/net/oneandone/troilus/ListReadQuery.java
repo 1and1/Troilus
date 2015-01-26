@@ -20,6 +20,11 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
+
+
+
+
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
@@ -27,11 +32,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import net.oneandone.troilus.java7.ListRead;
+import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
-import net.oneandone.troilus.java7.Dao.EntityList;
-import net.oneandone.troilus.java7.Dao.ListRead;
-import net.oneandone.troilus.java7.Dao.ListReadWithUnit;
-import net.oneandone.troilus.java7.Dao.RecordList;
+import net.oneandone.troilus.java7.RecordList;
 import net.oneandone.troilus.java7.interceptor.ListReadQueryData;
 import net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor;

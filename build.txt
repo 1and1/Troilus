@@ -6,10 +6,10 @@ PREPARE
 mvn release:prepare -DpushChanges=false
 
 RELEASE
-mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.skip=true -Dadditionalparam=-Xdoclint:none -DskipTests=true -Dpmd.skip=true -Dfindbugs.skip=true -Dcpd.skip=true -Dcheckstyle.skip=true -Dlicense.skip=true"
+mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true"
 
 TAGGING
-...
+git tag -a v0.3 -m 'release 0.3'
 
 STAGING REPO
 https://oss.sonatype.org/#stagingRepositories

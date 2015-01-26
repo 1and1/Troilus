@@ -506,13 +506,13 @@ public class DaoImpl implements Dao {
      * Java8 adapter of a RecordList
      */
     static class RecordListAdapter implements RecordList {
-        private final net.oneandone.troilus.java7.Dao.RecordList recordList;
+        private final net.oneandone.troilus.java7.RecordList recordList;
         
-        private RecordListAdapter(net.oneandone.troilus.java7.Dao.RecordList recordList) {
+        private RecordListAdapter(net.oneandone.troilus.java7.RecordList recordList) {
             this.recordList = recordList;
         }
         
-        static RecordList convertFromJava7(net.oneandone.troilus.java7.Dao.RecordList recordList) {
+        static RecordList convertFromJava7(net.oneandone.troilus.java7.RecordList recordList) {
             return new RecordListAdapter(recordList);
         }
         
@@ -587,9 +587,9 @@ public class DaoImpl implements Dao {
         
         
         
-        static net.oneandone.troilus.java7.Dao.RecordList convertToJava7(RecordList recordList) {
+        static net.oneandone.troilus.java7.RecordList convertToJava7(RecordList recordList) {
             
-            return new net.oneandone.troilus.java7.Dao.RecordList() {
+            return new net.oneandone.troilus.java7.RecordList() {
                 
                 @Override
                 public boolean wasApplied() {
@@ -665,10 +665,10 @@ public class DaoImpl implements Dao {
    
         
    static class EntityListAdapter<F> implements EntityList<F> {
-       private final net.oneandone.troilus.java7.Dao.EntityList<F> entityList;
+       private final net.oneandone.troilus.EntityList<F> entityList;
    
        
-       public EntityListAdapter(net.oneandone.troilus.java7.Dao.EntityList<F> entityList) {
+       public EntityListAdapter(net.oneandone.troilus.EntityList<F> entityList) {
            this.entityList = entityList;
        }
    
@@ -954,7 +954,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.Dao.RecordList> onListReadResponseAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.Dao.RecordList recordList) {
+        public ListenableFuture<net.oneandone.troilus.java7.RecordList> onListReadResponseAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.RecordList recordList) {
             return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
                                                                     .thenApply(list -> RecordListAdapter.convertToJava7(list)));
         }

@@ -18,7 +18,7 @@ package net.oneandone.troilus;
 import com.datastax.driver.core.querybuilder.Clause;
 
 import net.oneandone.troilus.Dao;
-import net.oneandone.troilus.Dao.Batchable;
+import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.DaoImpl;
 
 

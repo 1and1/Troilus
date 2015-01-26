@@ -29,7 +29,6 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
 import net.oneandone.troilus.Dao.CounterBatchMutation;
-import net.oneandone.troilus.Dao.CounterBatchable;
 import net.oneandone.troilus.Dao.CounterMutation;
 import net.oneandone.troilus.Dao.Insertion;
 import net.oneandone.troilus.Dao.Update;
@@ -41,6 +40,7 @@ import net.oneandone.troilus.UpdateQuery.CounterMutationQuery;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -178,12 +178,12 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
         
         @Override
         public CounterBatchMutation combinedWith(CounterBatchable other) {
-            return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(new CounterBatchMutationQueryAdapter.CounterBatchableAdapter(other)));
+            return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(other));
         }
    
         @Override
-        public CompletableFuture<Statement> getStatementAsync() {
-            return CompletableFutures.toCompletableFuture(query.getStatementAsync());
+        public ListenableFuture<Statement> getStatementAsync() {
+            return query.getStatementAsync();
         }
 
         @Override

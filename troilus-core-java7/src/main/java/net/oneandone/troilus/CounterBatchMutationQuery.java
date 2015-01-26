@@ -18,9 +18,7 @@ package net.oneandone.troilus;
 
 
 
-
-import net.oneandone.troilus.java7.Dao.CounterBatchMutation;
-import net.oneandone.troilus.java7.Dao.CounterBatchable;
+import net.oneandone.troilus.java7.CounterBatchMutation;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
