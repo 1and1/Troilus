@@ -40,6 +40,9 @@ public class User {
     
     @Field(name = "picture")
     private Optional<ByteBuffer> picture;  
+
+    @Field(name = "sec_id")
+    private Optional<byte[]> secId;  
     
     @Field(name = "modified")
     private Long modified;
@@ -50,6 +53,9 @@ public class User {
     @Field(name = "addresses")
     private ImmutableList<String> addresses;
 
+    @Field(name = "not_existing")
+    private ImmutableList<String> notExisting;
+
     
     public User() {
         
@@ -57,11 +63,12 @@ public class User {
     
     
     
-    public User(String userId, String name, boolean isCustomer, ByteBuffer picture, long modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
+    public User(String userId, String name, boolean isCustomer, ByteBuffer picture, byte[] secId, long modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
         this.userId = userId;
         this.name = name;
         this.isCustomer = Optional.of(isCustomer);
         this.picture = Optional.of(picture);
+        this.secId = Optional.of(secId);
         this.modified = modified;
         this.phoneNumbers = phoneNumbers;
         this.addresses = addresses;
@@ -82,10 +89,15 @@ public class User {
         return isCustomer;
     }
 
+    public Optional<byte[]> getSecId() {
+        return secId;
+    }
+
     public ByteBuffer getPicture() {
         return picture.get();
     }
 
+    
     public void setPicture(Optional<ByteBuffer> data) {
         this.picture = data;
     }

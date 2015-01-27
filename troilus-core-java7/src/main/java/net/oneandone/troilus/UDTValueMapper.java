@@ -162,7 +162,7 @@ class UDTValueMapper {
             }
         };
         
-        return beanMapper.fromValues(type, propsSource);
+        return beanMapper.fromValues(type, propsSource, ImmutableSet.<String>of());
     }
 
     
@@ -198,7 +198,7 @@ class UDTValueMapper {
             };
 
             
-            T element = beanMapper.fromValues(type, propsSource);
+            T element = beanMapper.fromValues(type, propsSource, ImmutableSet.<String>of());
             elements.add(element);
         }
         
@@ -234,7 +234,7 @@ class UDTValueMapper {
                     }
                 };
 
-                keyElement = beanMapper.fromValues(keystype, propsSource);
+                keyElement = beanMapper.fromValues(keystype, propsSource, ImmutableSet.<String>of());
             }
             
             
@@ -259,7 +259,7 @@ class UDTValueMapper {
                     }
                 };
                 
-                valueElement = beanMapper.fromValues(valuesType, propsSource);
+                valueElement = beanMapper.fromValues(valuesType, propsSource, ImmutableSet.<String>of());
             }
 
             elements.put(keyElement, valueElement);
@@ -270,7 +270,9 @@ class UDTValueMapper {
     
     
     @SuppressWarnings("unchecked")
-    public Object toUdtValue(LoadingCache<String, UserType> userTypeCache, DataType datatype, Object value) {
+    public Object toUdtValue(LoadingCache<String, UserType> userTypeCache, 
+                             DataType datatype, 
+                             Object value) {
         
         // build-in type (will not be converted)
         if (isBuildInType(datatype)) {

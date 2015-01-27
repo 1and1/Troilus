@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -52,7 +53,7 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
     
     /**
      * @param ctx     the context 
-     * @param query   the underyling query
+     * @param query   the underlying query
      */
     UpdateQueryAdapter(Context ctx, UpdateQuery query) {
         super(ctx, query);
@@ -79,7 +80,7 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
     }
 
     public Insertion entity(Object entity) {
-        return new InsertQueryAdapter(getContext(), new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity))));
+        return new InsertQueryAdapter(getContext(), new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames()))));
     }
     
     @Override
@@ -89,7 +90,7 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
     
     @Override
     public <T> Write value(ColumnName<T> name, T value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), name.convertWrite(value)));
+        return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), value));
     }
     
     @Override

@@ -223,7 +223,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
             }
         }
         
-        Select select = selection.from(ctx.getTable());
+        Select select = selection.from(ctx.getDbSession().getTablename());
   
         if (data.getLimit() != null) {
             select.limit(data.getLimit());
@@ -263,7 +263,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
                 
             }
 
-            return ctx.prepare(select).bind(values.toArray());
+            return ctx.getDbSession().prepare(select).bind(values.toArray());
         }
     }
     

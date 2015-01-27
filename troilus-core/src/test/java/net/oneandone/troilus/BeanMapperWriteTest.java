@@ -35,42 +35,42 @@ public class BeanMapperWriteTest {
         
         BeanMapper mapper = new BeanMapper();
         
-        MyBean bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.of("test"))));
+        MyBean bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getS());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.absent())));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.absent())), ImmutableSet.of());
         Assert.assertNull(bean.getS());
         
         
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.of("test"))));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getSo().get());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.absent())));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.absent())), ImmutableSet.of());
         Assert.assertFalse(bean.getSo().isPresent());
         
         
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.of("test"))));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getSj().get());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.absent())));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.absent())), ImmutableSet.of());
         Assert.assertFalse(bean.getSj().isPresent());
         
         
 
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.of(ImmutableSet.of("set1", "set2")))));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.of(ImmutableSet.of("set1", "set2")))), ImmutableSet.of());
         Assert.assertTrue(bean.getSet().contains("set1"));
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.absent())));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.absent())), ImmutableSet.of());
         Assert.assertNull(bean.getSet());
         
         
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("e", Optional.of(UserType.GOLD))));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("e", Optional.of(UserType.GOLD))), ImmutableSet.of());
         Assert.assertEquals(UserType.GOLD, bean.getE());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("oe", Optional.of(UserType.GOLD))));
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("oe", Optional.of(UserType.GOLD))), ImmutableSet.of());
         Assert.assertEquals(UserType.GOLD, bean.getOe().get());
     }        
     

@@ -48,7 +48,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
 
@@ -69,6 +69,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         
         Assert.assertTrue(optionalUser.isPresent());
         Assert.assertEquals("paul", optionalUser.get().getName());
+        Assert.assertArrayEquals(new byte[] { 5, 7, 8, 5}, optionalUser.get().getSecId().get());
         Assert.assertTrue(optionalUser.get().isCustomer().get());
         Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
         
@@ -114,7 +115,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // update
-        userDao.writeEntity(new User("4454", null, true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of()))
+        userDao.writeEntity(new User("4454", null, true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of()))
                .execute();
 
  

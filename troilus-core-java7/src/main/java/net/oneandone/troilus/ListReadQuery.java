@@ -509,7 +509,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()));
+                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDbSession().getColumnNames());
                 }
             };
         }
@@ -540,7 +540,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             @SuppressWarnings("unchecked")
             @Override
             public void onNext(Record record) {
-                subscriber.onNext((G) ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record)));
+                subscriber.onNext((G) ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), ctx.getDbSession().getColumnNames()));
             }
     
             @Override
@@ -711,7 +711,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      
             selection.countAll();
             
-            Select select = selection.from(getContext().getTable());
+            Select select = selection.from(getContext().getDbSession().getTablename());
             
             for (Clause whereCondition : queryData.getWhereConditions()) {
                 select.where(whereCondition);

@@ -19,9 +19,11 @@ package net.oneandone.troilus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -45,42 +47,31 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 
 
 
 class Context {
     
-    private final String table;
-    private final Session session;
     private final ExecutionSpec executionSpec;
     private final InterceptorRegistry interceptorRegistry;
     private final BeanMapper beanMapper;
-    private final UDTValueMapper udtValueMapper;
-
     private final Executor executors;
-    private final Cache<String, PreparedStatement> preparedStatementsCache;
-    private final Cache<String, ColumnMetadata> columnMetadataCache;
-    private final LoadingCache<String, UserType> userTypeCache;
-
+    private final DBSession dbSession;
     
-    Context(Session session, String table) {
-        this(session, 
-             table,
-             new BeanMapper());
+    
+    Context(Session session, String tablename) {
+        this(session, tablename, new BeanMapper());
     }
-
-    private Context(Session session, String table, BeanMapper beanMapper) {
-        this(session, 
-             table,
+    
+    private Context(Session session, String tablename, BeanMapper beanMapper) {
+        this(new DBSession(session, tablename, beanMapper), 
              new ExecutionSpec(), 
              new InterceptorRegistry(),
              beanMapper,
-             new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper),
-             CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build(),
-             CacheBuilder.newBuilder().maximumSize(300).<String, ColumnMetadata>build(),
-             CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session)),
              newTaskExecutor());
     }
     
@@ -95,131 +86,81 @@ class Context {
         }
     }
     
-    private Context(Session session, 
-                    String table, 
+    private Context(DBSession dbSession, 
                     ExecutionSpec executionSpec,
                     InterceptorRegistry interceptorRegistry,
                     BeanMapper beanMapper,
-                    UDTValueMapper udtValueMapper,
-                    Cache<String, PreparedStatement> preparedStatementsCache, 
-                    Cache<String, ColumnMetadata> columnMetadataCache,
-                    LoadingCache<String, UserType> userTypeCache,
                     Executor executors) {
-        this.table = table;
-        this.session = session;
+        this.dbSession = dbSession;
         this.executionSpec = executionSpec;
         this.interceptorRegistry = interceptorRegistry;
-        this.beanMapper = beanMapper;
-        this.udtValueMapper = udtValueMapper;
-        this.preparedStatementsCache = preparedStatementsCache;
-        this.columnMetadataCache = columnMetadataCache;
-        this.userTypeCache = userTypeCache;
         this.executors = executors;
+        this.beanMapper = beanMapper;
     }
  
     
     Context withInterceptor(QueryInterceptor interceptor) {
-        return new Context(session, 
-                           table,      
+        return new Context(dbSession,
                            executionSpec,  
                            interceptorRegistry.withInterceptor(interceptor),
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);
 
     }
     
     Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withSerialConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);
     }
 
     Context withTtl(int ttlSec) {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withTtl(ttlSec),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);        
     }
 
     Context withWritetime(long microsSinceEpoch) {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withWritetime(microsSinceEpoch),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);        
     }
     
     Context withEnableTracking() {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withEnableTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);        
     }
     
     Context withDisableTracking() {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withDisableTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);        
     }
     
     Context withRetryPolicy(RetryPolicy policy) {
-        return new Context(session, 
-                           table,
+        return new Context(dbSession,
                            executionSpec.withRetryPolicy(policy),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);        
     }
     
     Context withConsistency(ConsistencyLevel consistencyLevel) {
-        return new Context(session, 
-                           table, 
+        return new Context(dbSession,
                            executionSpec.withConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           udtValueMapper,
-                           preparedStatementsCache,
-                           columnMetadataCache,
-                           userTypeCache,
                            executors);
     }
     
@@ -245,22 +186,14 @@ class Context {
         return executionSpec.getEnableTracing();
     }
     
+    DBSession getDbSession() {
+        return dbSession;
+    }
+    
     RetryPolicy getRetryPolicy() {
         return executionSpec.getRetryPolicy();
     }   
     
-    
-    
-    
-        
-    Session getSession() {
-        return session;
-    }
-    
-    String getTable() {
-        return table;
-    }
-
     Executor getTaskExecutor() {
         return executors;
     }
@@ -269,38 +202,10 @@ class Context {
         return beanMapper;
     }
      
-    UDTValueMapper getUDTValueMapper() {
-        return udtValueMapper;
-    }
-
     InterceptorRegistry getInterceptorRegistry() {
         return interceptorRegistry;
     }
-    
-    ProtocolVersion getProtocolVersion() {
-        return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
-    }
-
-
-    ColumnMetadata getColumnMetadata(String columnName) {
-        ColumnMetadata metadata = columnMetadataCache.getIfPresent(columnName);
-        if (metadata == null) {
-            TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(table);
-            if (tableMetadata == null) {
-                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + table + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
-            }
-            
-            metadata = tableMetadata.getColumn(columnName);
-            if (metadata == null) {
-                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + table + " does not support column '" + columnName + "'");
-            }
-            columnMetadataCache.put(columnName, metadata);
-        }
-
-        return metadata;
-    }
-  
-    
+        
     ImmutableList<Object> toStatementValues(String name, ImmutableList<Object> values) {
         List<Object> result = Lists.newArrayList(); 
 
@@ -316,7 +221,7 @@ class Context {
             return null;
         } 
         
-        DataType dataType = getColumnMetadata(name).getType();
+        DataType dataType = dbSession.getColumnMetadata(name).getType();
         
         // build in
         if (UDTValueMapper.isBuildInType(dataType)) {
@@ -326,11 +231,17 @@ class Context {
                 return value.toString();
             }
             
+            // byte buffer (byte[])
+            if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
+                return ByteBuffer.wrap((byte[]) value);
+            }
+
+            
             return value;
          
         // udt    
         } else {
-            return udtValueMapper.toUdtValue(userTypeCache, getColumnMetadata(name).getType(), value);
+            return dbSession.getUDTValueMapper().toUdtValue(dbSession.getUserTypeCache(), dbSession.getColumnMetadata(name).getType(), value);
         }
     }
     
@@ -347,39 +258,21 @@ class Context {
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
                (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
-    
-    
-
-    PreparedStatement prepare(BuiltStatement statement) {
-        PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
-        if (preparedStatment == null) {
-            preparedStatment = session.prepare(statement);
-            preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
-        }
-
-        return preparedStatment;
-    }
-    
- 
-    
-    
+        
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                          .add("table", table)
+                          .add("dsession", dbSession)
                           .add("execution-spec", executionSpec)
                           .add("interceptorRegistry", interceptorRegistry)
-                          .add("preparedStatementsCache", printCache(preparedStatementsCache))
                           .toString();
     }
+   
     
+  
+
     
-    private String printCache(Cache<String, ?> cache) {
-        return Joiner.on(", ").withKeyValueSeparator("=").join(cache.asMap());
-    }
-    
-    
-    protected static class ExecutionSpec {
+    static class ExecutionSpec {
         
         private final ConsistencyLevel consistencyLevel;
         private final ConsistencyLevel serialConsistencyLevel;
@@ -526,18 +419,115 @@ class Context {
     
     
 
-    private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
+    
+    
+    static class DBSession  {
         private final Session session;
-        
-        public UserTypeCacheLoader(Session session) {
+        private final String tablename;
+        private final TableMetadata tableMetadata;
+        private final ImmutableSet<String> columnNames; 
+        private final UDTValueMapper udtValueMapper;
+        private final Cache<String, PreparedStatement> preparedStatementsCache;
+        private final LoadingCache<String, UserType> userTypeCache;
+
+        public DBSession(Session session, String tablename, BeanMapper beanMapper) {
             this.session = session;
+            this.tablename = tablename;
+            this.tableMetadata = loadTableMetadata(session, tablename);
+            this.columnNames = loadColumnNames(tableMetadata);
+            
+            this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
+            this.preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build();
+            this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
         }
 
-        @Override
-        public UserType load(String usertypeName) throws Exception {
-            return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
+        private static TableMetadata loadTableMetadata(Session session, String tablename) {
+            TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
+            if (tableMetadata == null) {
+                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
+            }
+
+            return tableMetadata;
         }
-    }    
+
+        private static ImmutableSet<String> loadColumnNames(TableMetadata tableMetadata) {
+            Set<String> columnNames = Sets.newHashSet();
+            for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+                columnNames.add(columnMetadata.getName());
+            }
+            
+            return ImmutableSet.copyOf(columnNames);
+        }
+
+        Session getSession() {
+            return session;
+        }
+        
+        String getTablename() {
+            return tablename;
+        }
+        
+        ProtocolVersion getProtocolVersion() {
+            return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+        }
+        
+        LoadingCache<String, UserType> getUserTypeCache() {
+            return userTypeCache; 
+        }
+                
+        UDTValueMapper getUDTValueMapper() {
+            return udtValueMapper;
+        }
+        
+        ImmutableSet<String> getColumnNames() {
+            return columnNames;
+        }
+        
+        ColumnMetadata getColumnMetadata(String columnName) {
+            ColumnMetadata metadata = tableMetadata.getColumn(columnName);
+            if (metadata == null) {
+                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " does not support column '" + columnName + "'");
+            }
+            return metadata;
+        }
+        
+        PreparedStatement prepare(BuiltStatement statement) {
+            PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
+            if (preparedStatment == null) {
+                preparedStatment = session.prepare(statement);
+                preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
+            }
+
+            return preparedStatment;
+        }
+        
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                              .add("tablename", tablename)
+                              .add("preparedStatementsCache", printCache(preparedStatementsCache))
+                              .toString();
+        }
+        
+        private String printCache(Cache<String, ?> cache) {
+            return Joiner.on(", ").withKeyValueSeparator("=").join(cache.asMap());
+        }
+        
+        
+        
+        private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
+            private final Session session;
+            
+            public UserTypeCacheLoader(Session session) {
+                this.session = session;
+            }
+
+            @Override
+            public UserType load(String usertypeName) throws Exception {
+                return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
+            }
+        }    
+    }
 }
 
 

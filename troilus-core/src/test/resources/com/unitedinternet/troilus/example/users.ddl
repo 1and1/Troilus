@@ -4,6 +4,7 @@ CREATE TABLE users (
                     name text,
                     is_customer boolean,
                     picture blob,
+                    sec_id blob,
                     modified bigint, 
                     phone_numbers set<text>,
                     addresses list<text>,

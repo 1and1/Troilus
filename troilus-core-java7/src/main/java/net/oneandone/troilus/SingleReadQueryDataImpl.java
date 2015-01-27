@@ -112,7 +112,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
         
         
         
-        Select select = selection.from(ctx.getTable());
+        Select select = selection.from(ctx.getDbSession().getTablename());
         
         // set the query conditions 
         List<Object> values = Lists.newArrayList();
@@ -122,7 +122,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
         }
         
 
-        return ctx.prepare(select).bind(values.toArray());
+        return ctx.getDbSession().prepare(select).bind(values.toArray());
     }
 
 }

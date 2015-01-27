@@ -109,7 +109,7 @@ class CounterMutationQueryData {
     }
     
     ListenableFuture<Statement> toStatementAsync(Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
+        com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
         
         // key-based update
         if (getWhereConditions().isEmpty()) {
@@ -134,7 +134,7 @@ class CounterMutationQueryData {
                 values.add((Integer) ctx.getTtlSec());
             }
             
-            return Futures.<Statement>immediateFuture(ctx.prepare(update).bind(values.toArray()));
+            return Futures.<Statement>immediateFuture(ctx.getDbSession().prepare(update).bind(values.toArray()));
 
             
         // where condition-based update

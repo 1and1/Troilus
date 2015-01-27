@@ -354,7 +354,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static Statement toInsertStatement(WriteQueryData data,Context ctx) {
-        Insert insert = insertInto(ctx.getTable());
+        Insert insert = insertInto(ctx.getDbSession().getTablename());
         
         List<Object> values = Lists.newArrayList();
         
@@ -375,7 +375,7 @@ class WriteQueryDataImpl implements WriteQueryData {
             values.add((Integer) ctx.getTtlSec());
         }
 
-        PreparedStatement stmt = ctx.prepare(insert);
+        PreparedStatement stmt = ctx.getDbSession().prepare(insert);
         return stmt.bind(values.toArray());
     }
     
@@ -383,7 +383,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static Statement toUpdateStatement(WriteQueryData data,Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getTable());
+        com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
         
         
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
@@ -438,7 +438,7 @@ class WriteQueryDataImpl implements WriteQueryData {
                 values.add((Integer) ctx.getTtlSec()); 
             }
             
-            return ctx.prepare(update).bind(values.toArray());
+            return ctx.getDbSession().prepare(update).bind(values.toArray());
 
             
         // where condition-based update

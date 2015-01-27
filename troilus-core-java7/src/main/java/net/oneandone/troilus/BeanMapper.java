@@ -29,7 +29,6 @@ import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.base.Optional;
@@ -40,8 +39,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
  
 
 class BeanMapper {
@@ -56,24 +53,25 @@ class BeanMapper {
     
     private static final class PropertiesMapper {
         private final Class<?> clazz;
-        private final ImmutableSet<PropertyWriter> propertyWriters;
-        
+        private final ImmutableMap<String, PropertyWriter> propertyWriters;
         private final ImmutableMap<String, PropertyReader> propertyReaders;
         
     
-        public PropertiesMapper(ImmutableMap<String, PropertyReader> propertyReaders, ImmutableSet<PropertyWriter> propertyWriters, Class<?> clazz) {
+        public PropertiesMapper(ImmutableMap<String, PropertyReader> propertyReaders,  ImmutableMap<String, PropertyWriter> propertyWriters, Class<?> clazz) {
             this.propertyReaders = propertyReaders;
             this.propertyWriters = propertyWriters;
             this.clazz = clazz;
         }
      
       
-        public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
+        public ImmutableMap<String, Optional<Object>> toValues(Object entity, ImmutableSet<String> namesToMap) {
             Map<String, Optional<Object>> values = Maps.newHashMap();
             
-            for (PropertyReader propertyReader : propertyReaders.values()) {
-                Map.Entry<String, Optional<Object>> pair = propertyReader.readProperty(entity);
-                values.put(pair.getKey(), pair.getValue());
+            for (Entry<String, PropertyReader> entry : propertyReaders.entrySet()) {
+                if (namesToMap.isEmpty() || namesToMap.contains(entry.getKey())) {
+                    Map.Entry<String, Optional<Object>> pair = entry.getValue().readProperty(entity);
+                    values.put(pair.getKey(), pair.getValue());
+                }
             }
 
             return ImmutableMap.copyOf(values);
@@ -81,13 +79,16 @@ class BeanMapper {
 
         
         @SuppressWarnings("unchecked")
-        public <T> T fromValues(PropertiesSource datasource) {
+        public <T> T fromValues(PropertiesSource datasource, ImmutableSet<String> namesToMap) {
             try {
                 T bean = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
-                for (PropertyWriter propertyWriter : propertyWriters) {
-                    propertyWriter.writeProperty(bean, datasource);
-                }
                 
+                for (Entry<String, PropertyWriter> entry : propertyWriters.entrySet()) {
+                    if (namesToMap.isEmpty() || namesToMap.contains(entry.getKey())) {
+                        entry.getValue().writeProperty(bean, datasource);
+                    }
+                }
+                    
                 return bean;
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
@@ -139,14 +140,17 @@ class BeanMapper {
         }
     }  
 
-    
     public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
-        return getPropertiesMapper(entity.getClass()).toValues(entity);
+        return toValues(entity, ImmutableSet.<String>of());
+    }
+    
+    public ImmutableMap<String, Optional<Object>> toValues(Object entity, ImmutableSet<String> namesToMap) {
+        return getPropertiesMapper(entity.getClass()).toValues(entity, namesToMap);
     }
 
     
-    public <T> T fromValues(Class<?> clazz, PropertiesSource datasource) {
-        return getPropertiesMapper(clazz).fromValues(datasource);
+    public <T> T fromValues(Class<?> clazz, PropertiesSource datasource, ImmutableSet<String> columnNames) {
+        return getPropertiesMapper(clazz).fromValues(datasource, columnNames);
     }
     
     
@@ -179,16 +183,16 @@ class BeanMapper {
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
             valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
      
-            
-            Set<PropertyWriter> propertyWriters = Sets.newHashSet();
-            propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.addAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.addAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.addAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.addAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+     
+            Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
+            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyWriters.putAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.putAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
                    
-            return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableSet.copyOf(propertyWriters), clazz);
+            return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableMap.copyOf(propertyWriters), clazz);
         }
      
         
@@ -267,25 +271,25 @@ class BeanMapper {
         
    
 
-        private ImmutableSet<PropertyWriter> fetchFieldWriters(ImmutableSet<Field> beanFields) {
-            Set<PropertyWriter> propertyWriters = Sets.newHashSet();
+        private Map<String, PropertyWriter> fetchFieldWriters(ImmutableSet<Field> beanFields) {
+            Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
                 
                 final net.oneandone.troilus.Field field = beanField.getAnnotation(net.oneandone.troilus.Field.class);
                 if (field != null) {
-                    propertyWriters.add(new PropertyWriter(field.name(), beanField));
+                    propertyWriters.put(field.name(), new PropertyWriter(field.name(), beanField));
                 }
             }
             
-            return ImmutableSet.copyOf(propertyWriters);
+            return ImmutableMap.copyOf(propertyWriters);
         }
 
         
         
         
-        private ImmutableSet<PropertyWriter> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
-            Set<PropertyWriter> propertyWriters = Sets.newHashSet();
+        private Map<String, PropertyWriter> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
+            Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -295,7 +299,7 @@ class BeanMapper {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    propertyWriters.add(new PropertyWriter(columnName, beanField));
+                                    propertyWriters.put(columnName, new PropertyWriter(columnName, beanField));
                                 } catch (ReflectiveOperationException ignore) { }
                             }
                         }
@@ -303,13 +307,13 @@ class BeanMapper {
                 }
             }
             
-            return ImmutableSet.copyOf(propertyWriters);
+            return ImmutableMap.copyOf(propertyWriters);
         }
 
         
                 
-        private ImmutableSet<PropertyWriter> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
-            Set<PropertyWriter> propertyWriters = Sets.newHashSet();
+        private Map<String, PropertyWriter> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
+            Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
 
             for (Field beanField : beanFields) {
                 for (Annotation annotation : beanField.getAnnotations()) {
@@ -319,7 +323,7 @@ class BeanMapper {
                             if (attributeMethod.getName().equalsIgnoreCase("name")) {
                                 try {
                                     String columnName = (String) attributeMethod.invoke(annotation);
-                                    propertyWriters.add(new PropertyWriter(columnName, beanField));
+                                    propertyWriters.put(columnName, new PropertyWriter(columnName, beanField));
                                 } catch (ReflectiveOperationException ignore) { }
                             }
                         }
@@ -327,7 +331,7 @@ class BeanMapper {
                 }
             }
             
-            return ImmutableSet.copyOf(propertyWriters);
+            return ImmutableMap.copyOf(propertyWriters);
         }    
     }    
     

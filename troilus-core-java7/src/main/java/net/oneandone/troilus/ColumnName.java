@@ -52,16 +52,6 @@ public abstract class ColumnName<T> {
     }
 
 
-    /**
-     * @param value the value to convert
-     * @return the converted value
-     */
-    Object convertWrite(T value) {
-        return value; 
-    }
-    
-    
-    
     abstract Optional<T> read(PropertiesSource propertiesSource);
     
     
@@ -243,6 +233,18 @@ public abstract class ColumnName<T> {
         return define(name, UUID.class);
     }
     
+
+    /**
+     * defines a new name with ByteBuffer-typed value
+     * 
+     * @param name        the name 
+     * @return a new instance
+     */
+    public static ColumnName<byte[]> defineBytes(String name) {
+        return define(name, byte[].class);
+    }
+    
+    
     private static class SkalarName<T> extends ColumnName<T> {
         private final Class<T> type;
         
@@ -264,47 +266,6 @@ public abstract class ColumnName<T> {
     }
     
 
-    /**
-     * defines a new name with ByteBuffer-typed value
-     * 
-     * @param name        the name 
-     * @return a new instance
-     */
-    public static ColumnName<byte[]> defineBytes(String name) {
-        return new ByteSkalarName<>(name);
-    }
-    
-  
-    private static class ByteSkalarName<T> extends SkalarName<byte[]> {
-        
-        /**
-         * @param name      the name
-         */
-        ByteSkalarName(String name) {
-            super(name, byte[].class);
-        }
-     
-        @Override
-        Object convertWrite(byte[] value) {
-            return ByteBuffer.wrap(value);
-        } 
-       
-        @Override
-        Optional<byte[]> read(PropertiesSource propertiesSource) {
-            Optional<ByteBuffer> optionalByteBufffer = propertiesSource.read(getName(), ByteBuffer.class);
-            
-            if (optionalByteBufffer.isPresent()) {
-                ByteBuffer bb = optionalByteBufffer.get();
-                byte[] bytes = new byte[bb.remaining()];
-                bb.get(bytes, 0, bytes.length);
-                return Optional.of(bytes);
-                
-            } else  {
-                return Optional.absent();
-            }
-        }
-    }
-    
     
     /**
      * A list name which defines the class type of the associated list member value type 

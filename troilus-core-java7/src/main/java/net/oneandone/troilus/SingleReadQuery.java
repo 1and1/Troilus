@@ -217,7 +217,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     private Record paranoiaCheck(Record record) {
         
         for (Entry<String, Object> entry : data.getKey().entrySet()) {
-            ByteBuffer in = DataType.serializeValue(entry.getValue(), getContext().getProtocolVersion());
+            ByteBuffer in = DataType.serializeValue(entry.getValue(), getContext().getDbSession().getProtocolVersion());
             ByteBuffer out = record.getBytesUnsafe(entry.getKey());
 
             if (in.compareTo(out) != 0) {
@@ -268,7 +268,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             Function<Record, E> mapEntity = new Function<Record, E>() {
                 @Override
                 public E apply(Record record) {
-                    return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record));
+                    return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getContext().getDbSession().getColumnNames());
                 }
             };
             

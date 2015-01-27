@@ -119,7 +119,7 @@ abstract class AbstractQuery<Q> {
             }
         }
         
-        return ctx.getSession().executeAsync(statement);
+        return ctx.getDbSession().getSession().executeAsync(statement);
     }
     
     

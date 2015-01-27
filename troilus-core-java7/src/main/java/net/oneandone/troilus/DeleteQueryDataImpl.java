@@ -126,7 +126,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @return the query data statement
      */
     static Statement toStatement(DeleteQueryData data, Context ctx) {
-        Delete delete = delete().from(ctx.getTable());
+        Delete delete = delete().from(ctx.getDbSession().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
@@ -147,7 +147,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
             }
             
-            return ctx.prepare(delete).bind(values.toArray());
+            return ctx.getDbSession().prepare(delete).bind(values.toArray());
 
             
         // where condition-based delete    
