@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
-
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
-
+package net.oneandone.troilus;
 
 
 /**
- * Record list
+ * counter-aware batch mutation query  
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface CounterBatchMutation extends ConfiguredQuery<CounterBatchMutation, Result> {
+
+    /**
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
+     */
+    CounterBatchMutation combinedWith(CounterBatchable other);
 }

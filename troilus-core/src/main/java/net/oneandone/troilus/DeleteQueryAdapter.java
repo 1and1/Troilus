@@ -21,7 +21,6 @@ import java.time.Duration;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
-import net.oneandone.troilus.Dao.Deletion;
 
 import com.datastax.driver.core.querybuilder.Clause;
 

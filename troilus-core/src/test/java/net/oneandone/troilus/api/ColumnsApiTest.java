@@ -31,7 +31,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Batchable;
-import net.oneandone.troilus.Dao.CounterMutation;
+import net.oneandone.troilus.CounterMutation;
 
 import org.junit.Assert;
 import org.junit.Test;

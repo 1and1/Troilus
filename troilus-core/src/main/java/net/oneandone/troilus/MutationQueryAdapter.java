@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Dao.BatchMutation;
 
 import com.datastax.driver.core.Statement;
 import com.google.common.util.concurrent.ListenableFuture;

@@ -23,7 +23,6 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.CounterBatchMutationQuery;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Dao.CounterBatchMutation;
 
 
  

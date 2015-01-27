@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
-
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
+package net.oneandone.troilus;
 
 
 
 /**
- * Record list
+ * list read query 
+ * 
+ * @param <T>  the result type
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
-}
+public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
+
+    /**
+     * @return  a cloned query instance which reads all columns
+     */
+    ListRead<T> all();
+
+    /**
+     * @return a cloned query instance which returns the count
+     */
+    ListRead<Count> count();
+
+    /**
+     * @param objectClass  the entity type
+     * @return  a cloned query instance with the modified behavior 
+     */
+    <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
+} 

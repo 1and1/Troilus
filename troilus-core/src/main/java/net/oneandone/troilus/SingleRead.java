@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
-
-import java.util.concurrent.CompletableFuture;
-
-import net.oneandone.troilus.RecordList;
-import net.oneandone.troilus.interceptor.QueryInterceptor;
+package net.oneandone.troilus;
 
 
-
+import com.datastax.driver.core.ConsistencyLevel;
 
 
 
 
 /**
- * Interceptor which will be executed after performing a list read query   
- */ 
-public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
+ * Single read query 
+ *
+ * @param <T>  the result type
+ */
+public interface SingleRead<T> extends Query<T> {
+
+    /**
+     * @return a cloned query instance with deactivated tracking 
+     */
+    SingleRead<T> withEnableTracking();
+
+    /**
+     * @return a cloned query instance with deactivated tracking 
+     */
+    SingleRead<T> withDisableTracking();
     
     /**
-     * @param queryData    the request data
-     * @param recordList   the response
-     * @return the (modified) response
+     * @param consistencyLevel   the  consistency level to use
+     * @return a cloned query instance with the modified behavior
      */
-    CompletableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
+    SingleRead<T> withConsistency(ConsistencyLevel consistencyLevel);
 }
- 

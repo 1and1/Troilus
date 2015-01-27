@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
 
 
 
 /**
- * Record list
+ * write query
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface Write extends UpdateWithValues<Write> {
+ 
+    /**
+     * @return a cloned query instance with lwt (if-not-exits)
+     */
+    Mutation<?> ifNotExists();
 }
+

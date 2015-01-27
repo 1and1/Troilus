@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
 
 
 
 /**
- * Record list
+ * BatchMutation
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result> {
+
+    /**
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
+     */
+    BatchMutation combinedWith(Batchable other);
+
+    /**
+     * @return a cloned query instance with write ahead log
+     */
+    Query<Result> withWriteAheadLog();
+
+    /**
+     * @return a cloned query instance without write ahead log
+     */
+    Query<Result> withoutWriteAheadLog();
 }

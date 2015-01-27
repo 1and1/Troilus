@@ -20,9 +20,7 @@ import java.time.Duration;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.InsertQuery;
-import net.oneandone.troilus.Dao.Insertion;
-import net.oneandone.troilus.Dao.Mutation;
- 
+
 
 
 /**

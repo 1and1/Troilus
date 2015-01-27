@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
 import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
-
 
 
 /**

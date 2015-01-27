@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
+import java.util.concurrent.CompletableFuture;
 
 
 
 /**
- * Record list
+ * The Query 
+ * @param <T>  the result type
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface Query<T> {
+
+    /**
+     * performs the query in an async way 
+     * @return the result future 
+     */
+    CompletableFuture<T> executeAsync();
+
+    /**
+     * performs the query in a sync way 
+     * @return the result
+     */
+    T execute();
 }
+

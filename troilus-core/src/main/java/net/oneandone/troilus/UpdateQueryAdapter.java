@@ -29,13 +29,6 @@ import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
-import net.oneandone.troilus.Dao.CounterBatchMutation;
-import net.oneandone.troilus.Dao.CounterMutation;
-import net.oneandone.troilus.Dao.Insertion;
-import net.oneandone.troilus.Dao.Update;
-import net.oneandone.troilus.Dao.UpdateWithValuesAndCounter;
-import net.oneandone.troilus.Dao.Write;
-import net.oneandone.troilus.Dao.WriteWithCounter;
 import net.oneandone.troilus.UpdateQuery.CounterMutationQuery;
 
 import com.datastax.driver.core.Statement;

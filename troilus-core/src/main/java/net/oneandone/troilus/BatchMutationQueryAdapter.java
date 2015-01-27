@@ -24,9 +24,7 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.BatchMutationQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Dao.BatchMutation;
 import net.oneandone.troilus.Batchable;
-import net.oneandone.troilus.Dao.Query;
 
 
 

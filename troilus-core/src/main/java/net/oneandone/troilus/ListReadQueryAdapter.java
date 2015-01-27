@@ -18,25 +18,11 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
-
-
-
-
-
-
-
-
-
-
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.ListReadQuery;
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.Dao.EntityList;
-import net.oneandone.troilus.Dao.ListRead;
-import net.oneandone.troilus.Dao.ListReadWithUnit;
-import net.oneandone.troilus.Dao.RecordList;
 import net.oneandone.troilus.ListReadQuery.CountReadQuery;
 import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 

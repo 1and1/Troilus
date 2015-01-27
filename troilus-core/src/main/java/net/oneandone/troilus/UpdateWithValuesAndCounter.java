@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
-
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
-
+package net.oneandone.troilus;
 
 
 /**
- * Record list
+ * values and counter aware update query
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface UpdateWithValuesAndCounter extends UpdateWithValues<Write>, WithCounter {
+
 }

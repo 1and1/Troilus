@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
-
-import net.oneandone.troilus.Result;
+import com.datastax.driver.core.querybuilder.Clause;
 
 
 
 /**
- * Record list
+ * delete query
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
+public interface Deletion extends BatchableMutation<Deletion> {
+
+    /**
+     * @param conditions  the conditions
+     * @return a cloned query instance with lwt (only-if)
+     */
+    Mutation<?> onlyIf(Clause... conditions);
     
+    /**
+     * @return a cloned query instance with lwt (if-exits)
+     */
+    Mutation<?> ifExists();
 }

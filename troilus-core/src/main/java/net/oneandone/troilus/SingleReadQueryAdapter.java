@@ -22,9 +22,6 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.SingleReadQuery;
-import net.oneandone.troilus.Dao.SingleRead;
-import net.oneandone.troilus.Dao.SingleReadWithColumns;
-import net.oneandone.troilus.Dao.SingleReadWithUnit;
 import net.oneandone.troilus.SingleReadQuery.SingleEntityReadQuery;
 
 

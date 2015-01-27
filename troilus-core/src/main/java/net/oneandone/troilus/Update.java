@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
+import com.datastax.driver.core.querybuilder.Clause;
 
-import net.oneandone.troilus.Result;
+
 
 
 
 /**
- * Record list
+ * update query
+ * @param <U> the query type 
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
+
+    /**
+     * @param conditions  the condtions
+     * @return a cloned query instance with lwt (only-if)
+     */
+    Mutation<?> onlyIf(Clause... conditions);
 }
