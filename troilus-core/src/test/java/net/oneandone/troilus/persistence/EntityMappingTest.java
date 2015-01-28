@@ -51,7 +51,6 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
-
         
         
         
@@ -146,6 +145,14 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
                           .get();
                       
         Assert.assertEquals("paul", usr.getName());
+        
+        
+        
+
+        
+        userDao.writeEntity(new User("452324234234", "bertra", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+               .ifNotExists()
+               .execute();
     }        
 }
 

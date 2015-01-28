@@ -36,6 +36,9 @@ public class TooManyResultsException extends RuntimeException {
         this.result = result;
     }
     
+    /**
+     * @return the result
+     */
     public Result getResult() {
         return result;
     }

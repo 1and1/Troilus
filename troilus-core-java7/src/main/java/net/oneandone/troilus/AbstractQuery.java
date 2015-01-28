@@ -64,7 +64,7 @@ abstract class AbstractQuery<Q> {
   
     /**
      * @param consistencyLevel  the consistency level to use
-     * @return a cloned Dao instance with the modified behavior
+     * @return a cloned query instance with the modified behavior
      */
     public Q withConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(ctx.withConsistency(consistencyLevel));
@@ -72,7 +72,7 @@ abstract class AbstractQuery<Q> {
 
     
     /**
-     * @return a cloned Dao instance with activated tracking
+     * @return a cloned query instance with activated tracking
      */
     public Q withTracking() {
         return newQuery(ctx.withEnableTracking());
@@ -80,7 +80,7 @@ abstract class AbstractQuery<Q> {
     
 
     /**
-     * @return a cloned Dao instance with deactivated tracking 
+     * @return a cloned query instance with deactivated tracking 
      */
     public Q withoutTracking() {
         return newQuery(ctx.withDisableTracking());
@@ -95,7 +95,7 @@ abstract class AbstractQuery<Q> {
     }
     
     /**
-     * @param microsSinceEpoch  the writetime in since epoch to set
+     * @param microsSinceEpoch the writetime in since epoch to set
      * @return a cloned query instance with the modified behavior
      */
     public Q withWritetime(long writetimeMicrosSinceEpoch) {
@@ -116,6 +116,10 @@ abstract class AbstractQuery<Q> {
     
     ////////////////////////
     // utility methods
+    
+    /**
+     * @return the context
+     */
     protected Context getContext() {
         return ctx; 
     }
@@ -222,4 +226,3 @@ abstract class AbstractQuery<Q> {
         }
     }    
 }
-

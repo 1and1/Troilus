@@ -178,26 +178,27 @@ class BeanMapper {
 
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
-            Map<String, PropertyReader> valueReaders = Maps.newHashMap();
-            
-            // check attributes
-            valueReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            valueReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            valueReaders.putAll(fetchCMapperFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            valueReaders.putAll(fetchCMapperFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            valueReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+
+            // readers
+            Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
+            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
      
-     
+            // writers
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
             propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.putAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.putAll(fetchCMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
             propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
             propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
                    
-            return new PropertiesMapper(ImmutableMap.copyOf(valueReaders), ImmutableMap.copyOf(propertyWriters), clazz);
+            
+            return new PropertiesMapper(ImmutableMap.copyOf(propertyReaders), ImmutableMap.copyOf(propertyWriters), clazz);
         }
      
         
@@ -205,7 +206,6 @@ class BeanMapper {
             Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
-
                 final net.oneandone.troilus.Field field = beanField.getAnnotation(net.oneandone.troilus.Field.class);
                 if (field != null) {
                     propertyReaders.put(field.name(), new PropertyReader(field.name(), beanField));
@@ -243,7 +243,7 @@ class BeanMapper {
         }
         
 
-        private static ImmutableMap<String, PropertyReader> fetchCMapperFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
+        private static ImmutableMap<String, PropertyReader> fetchCassandraMapperFieldReaders(ImmutableSet<java.lang.reflect.Field> beanFields) {
             Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
@@ -310,7 +310,7 @@ class BeanMapper {
 
         
                 
-        private Map<String, PropertyWriter> fetchCMapperFieldWriters(ImmutableSet<Field> beanFields) {
+        private Map<String, PropertyWriter> fetchCassandraMapperFieldWriters(ImmutableSet<Field> beanFields) {
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
 
             for (Field beanField : beanFields) {
@@ -342,8 +342,9 @@ class BeanMapper {
         
         public PropertyReader(String fieldName, java.lang.reflect.Field field) {
             this.fieldName = fieldName;
+
             this.field = field;
-            
+            AccessController.doPrivileged(new SetFieldAccessible(field));
             
             if (Optional.class.isAssignableFrom(field.getType())) {
                 this.optionalWrapper = new GuavaOptionalWrapper();
@@ -361,7 +362,6 @@ class BeanMapper {
             
             Object value = null;
             try {
-                AccessController.doPrivileged(new SetFieldAccessible(field));
                 value = field.get(bean);
             } catch (IllegalArgumentException | IllegalAccessException e) { }
             
@@ -445,7 +445,10 @@ class BeanMapper {
         
         public PropertyWriter(String fieldName, java.lang.reflect.Field field) {
             this.fieldName = fieldName;
+
             this.field = field;
+            AccessController.doPrivileged(new SetFieldAccessible(field));
+
             
             if (Optional.class.isAssignableFrom(field.getType())) {
                 this.optionalWrapper = new GuavaOptionalWrapper();
@@ -476,7 +479,6 @@ class BeanMapper {
             }
             
             try {
-                AccessController.doPrivileged(new SetFieldAccessible(field));
                 field.set(bean, optionalWrapper.unwrap(optionalValue));
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();
