@@ -31,17 +31,29 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
 
- 
+/**
+ * Query implementation base
+ *  
+ * @param <Q> the query type
+ */
 abstract class AbstractQuery<Q> {
     
     private final Context ctx;
     
     
-    public AbstractQuery(Context ctx) {
+    /**
+     * constructor
+     * @param ctx  the context to use
+     */
+    AbstractQuery(Context ctx) {
         this.ctx = ctx;
     }
 
     
+    /**
+     * @param newContext  the new context
+     * @return a "cloned" query considering the new context 
+     */
     abstract protected Q newQuery(Context newContext);
     
 
@@ -50,26 +62,50 @@ abstract class AbstractQuery<Q> {
     // default implementations
   
   
+    /**
+     * @param consistencyLevel  the consistency level to use
+     * @return a cloned Dao instance with the modified behavior
+     */
     public Q withConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(ctx.withConsistency(consistencyLevel));
     }
 
-    public Q withEnableTracking() {
+    
+    /**
+     * @return a cloned Dao instance with activated tracking
+     */
+    public Q withTracking() {
         return newQuery(ctx.withEnableTracking());
     }
     
-    public Q withDisableTracking() {
+
+    /**
+     * @return a cloned Dao instance with deactivated tracking 
+     */
+    public Q withoutTracking() {
         return newQuery(ctx.withDisableTracking());
     }
     
+    /**
+     * @param policy  the retry policy
+     * @return a cloned query instance with the modified behavior
+     */
     public Q withRetryPolicy(RetryPolicy policy) {
         return newQuery(ctx.withRetryPolicy(policy));
     }
     
+    /**
+     * @param microsSinceEpoch  the writetime in since epoch to set
+     * @return a cloned query instance with the modified behavior
+     */
     public Q withWritetime(long writetimeMicrosSinceEpoch) {
         return newQuery(getContext().withWritetime(writetimeMicrosSinceEpoch));
     }
        
+    /**
+     * @param consistencyLevel  the consistency level to use
+     * @return a cloned query instance with the modified behavior
+    */
     public Q withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(getContext().withSerialConsistency(consistencyLevel));
     }
@@ -85,6 +121,10 @@ abstract class AbstractQuery<Q> {
     }
     
     
+    /**
+     * @param statementFuture  the statement to perform in an async way
+     * @return the result future 
+     */
     protected ListenableFuture<ResultSet> performAsync(ListenableFuture<Statement> statementFuture) {
         
         Function<Statement, ListenableFuture<ResultSet>> statementToResultSetFuture = new Function<Statement, ListenableFuture<ResultSet>>() {
@@ -98,6 +138,10 @@ abstract class AbstractQuery<Q> {
     }
         
     
+    /**
+     * @param statementFuture  the statement to perform in a sync way
+     * @return the result future 
+     */
     protected ListenableFuture<ResultSet> performAsync(Statement statement) {
         if (getContext().getConsistencyLevel() != null) {
             statement.setConsistencyLevel(getContext().getConsistencyLevel());
@@ -132,10 +176,11 @@ abstract class AbstractQuery<Q> {
     }
     
     
+    
     private static class ResultImpl implements Result {
         private final ResultSet rs;
         
-        public ResultImpl(ResultSet rs) {
+        ResultImpl(ResultSet rs) {
             this.rs = rs;
         }
         
@@ -154,7 +199,7 @@ abstract class AbstractQuery<Q> {
             return ImmutableList.copyOf(rs.getAllExecutionInfo());
         }
         
-
+        @Override
         public String toString() {
             StringBuilder builder = new StringBuilder(); 
             for (ExecutionInfo info : getAllExecutionInfo())  {

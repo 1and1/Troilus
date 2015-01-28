@@ -15,6 +15,7 @@
  */
 package net.oneandone.troilus.java7;
 
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
 
@@ -34,12 +35,12 @@ public interface ConfiguredQuery<Q, R> extends Query<R> {
     /**
      * @return a cloned query instance with activated tracking
      */
-    Q withEnableTracking();
+    Q withTracking();
 
     /**
-     * @return a cloned query instance with deactivated tracking
+     * @return a cloned query instance with deactivated tracking 
      */
-    Q withDisableTracking();
+    Q withoutTracking();
     
     /**
      * @param policy  the retry policy

@@ -53,7 +53,10 @@ import com.google.common.collect.Sets;
 
 
 
-
+/**
+ * the context
+ * 
+ */
 class Context {
     
     private final ExecutionSpec executionSpec;
@@ -62,7 +65,10 @@ class Context {
     private final Executor executors;
     private final DBSession dbSession;
     
-    
+    /**
+     * @param session    the underlying session
+     * @param tablename  the tablename
+     */
     Context(Session session, String tablename) {
         this(session, tablename, new BeanMapper());
     }
@@ -75,9 +81,7 @@ class Context {
              newTaskExecutor());
     }
     
-    
     private static Executor newTaskExecutor() {
-
         try {
             Method commonPoolMeth = ForkJoinPool.class.getMethod("commonPool");  // Java8 method
             return (Executor) commonPoolMeth.invoke(ForkJoinPool.class);
@@ -164,8 +168,6 @@ class Context {
                            executors);
     }
     
-    
-
     ConsistencyLevel getConsistencyLevel() {
         return executionSpec.getConsistencyLevel();
     }
@@ -245,14 +247,12 @@ class Context {
         }
     }
     
-    
     boolean isTextDataType(DataType dataType) {
         return dataType.equals(DataType.text()) ||
                dataType.equals(DataType.ascii()) ||
                dataType.equals(DataType.varchar());
     }
  
-    
     private boolean isNullOrEmpty(Object value) {
         return (value == null) || 
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
@@ -269,9 +269,7 @@ class Context {
     }
    
     
-  
-
-    
+     
     static class ExecutionSpec {
         
         private final ConsistencyLevel consistencyLevel;
@@ -281,8 +279,7 @@ class Context {
         private final Boolean enableTracing;
         private final RetryPolicy retryPolicy;
         
-    
-        public ExecutionSpec() {
+        ExecutionSpec() {
             this(null, 
                  null,
                  null,
@@ -291,7 +288,6 @@ class Context {
                  null);
         }
     
-        
         public ExecutionSpec(ConsistencyLevel consistencyLevel, 
                              ConsistencyLevel serialConsistencyLevel,
                              Integer ttlSec,
@@ -306,7 +302,6 @@ class Context {
             this.retryPolicy = retryPolicy;
         }
         
-    
         ExecutionSpec withConsistency(ConsistencyLevel consistencyLevel) {
             return new ExecutionSpec(consistencyLevel,
                                      this.serialConsistencyLevel,
@@ -316,8 +311,6 @@ class Context {
                                      this.retryPolicy);
         }
     
-        
-
         ExecutionSpec withSerialConsistency(ConsistencyLevel consistencyLevel) {
             return new ExecutionSpec(this.consistencyLevel,
                                      consistencyLevel,
@@ -326,7 +319,6 @@ class Context {
                                      this.enableTracing,
                                      this.retryPolicy);
         }
-    
         
         ExecutionSpec withTtl(int ttlSec) {
             return new ExecutionSpec(this.consistencyLevel,
@@ -336,7 +328,6 @@ class Context {
                                      this.enableTracing,
                                      this.retryPolicy);
         }
-    
         
         ExecutionSpec withWritetime(long microsSinceEpoch) {
             return new ExecutionSpec(this.consistencyLevel,
@@ -347,7 +338,6 @@ class Context {
                                      this.retryPolicy);
         }
 
-        
         ExecutionSpec withEnableTracking() {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
@@ -365,7 +355,6 @@ class Context {
                                      false,
                                      this.retryPolicy);
         }
-
         
         ExecutionSpec withRetryPolicy(RetryPolicy policy) {
             return new ExecutionSpec(this.consistencyLevel,
@@ -379,17 +368,14 @@ class Context {
         public ConsistencyLevel getConsistencyLevel() {
             return consistencyLevel;
         }
-    
         
         public ConsistencyLevel getSerialConsistencyLevel() {
             return serialConsistencyLevel;
         }
     
-    
         public Integer getTtl() {
             return ttlSec;
         }
-    
     
         public Long getWritetime() {
             return writetimeMicrosSinceEpoch;
@@ -513,8 +499,6 @@ class Context {
             return Joiner.on(", ").withKeyValueSeparator("=").join(cache.asMap());
         }
         
-        
-        
         private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
             private final Session session;
             
@@ -529,5 +513,3 @@ class Context {
         }    
     }
 }
-
-

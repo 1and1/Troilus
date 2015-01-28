@@ -30,12 +30,19 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
  
-
+/**
+ * Batch mutation query
+ */
 class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
     
+    /**
+     * @param ctx         the context to use
+     * @param type        the batch type
+     * @param batchables  the statements to be performed within the batch 
+     */
     BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
         super(ctx);
         this.type = type;
@@ -62,15 +69,10 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
     }
 
-    private ListenableFuture<Statement> getStatementAsync() {
-        return new BatchQueryFuture<Batchable>(new BatchStatement(type), batchables.iterator());
-    }
-    
     @Override
     public Result execute() {
         return ListenableFutures.getUninterruptibly(executeAsync());
     }
-    
     
     @Override
     public ListenableFuture<Result> executeAsync() {
@@ -84,5 +86,9 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         };
         
         return Futures.transform(future, mapEntity);
+    }
+    
+    private ListenableFuture<Statement> getStatementAsync() {
+        return new BatchQueryFutureAdapter<Batchable>(new BatchStatement(type), batchables.iterator());
     }
 }

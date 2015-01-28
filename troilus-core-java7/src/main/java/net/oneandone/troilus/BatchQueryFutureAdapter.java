@@ -29,11 +29,17 @@ import com.google.common.util.concurrent.MoreExecutors;
 
  
 
-class BatchQueryFuture<T extends StatementSource> extends AbstractFuture<Statement> {
-        
-    public BatchQueryFuture(BatchStatement batchStmt, UnmodifiableIterator<T> batchablesIt) {
+/**
+ * BatchQueryFutureAdapter 
+ * @param <T> the batchable type
+ */
+class BatchQueryFutureAdapter<T extends StatementSource> extends AbstractFuture<Statement> {
+    
+    
+    BatchQueryFutureAdapter(BatchStatement batchStmt, UnmodifiableIterator<T> batchablesIt) {
         handle(batchStmt, batchablesIt);
     }
+    
     
     private void handle(final BatchStatement batchStmt, final UnmodifiableIterator<T> batchablesIt) {
         

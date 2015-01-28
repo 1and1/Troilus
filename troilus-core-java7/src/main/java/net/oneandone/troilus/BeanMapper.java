@@ -41,11 +41,16 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
  
 
+/**
+ * bean mapper
+ *
+ */
 class BeanMapper {
     
     private final LoadingCache<Class<?>, PropertiesMapper> propertiesMapperCache;
     
-    public BeanMapper() {        
+    
+    BeanMapper() {        
         this.propertiesMapperCache = CacheBuilder.newBuilder()
                                                  .build(new PropertiesMapperLoader());
     }
@@ -140,15 +145,24 @@ class BeanMapper {
         }
     }  
 
+    /**
+     * @param entity       the entity to map
+     * @param namesToMap   the properties names to consider 
+     * @return the extracted name-value pairs
+     */
     public ImmutableMap<String, Optional<Object>> toValues(Object entity, ImmutableSet<String> namesToMap) {
         return getPropertiesMapper(entity.getClass()).toValues(entity, namesToMap);
     }
 
-    
-    public <T> T fromValues(Class<?> clazz, PropertiesSource datasource, ImmutableSet<String> columnNames) {
-        return getPropertiesMapper(clazz).fromValues(datasource, columnNames);
+    /**
+     * @param clazz         the object type
+     * @param datasource    the data source to fetch the property values
+     * @param propertyNames the property names to be considered 
+     * @return the object instance
+     */
+    public <T> T fromValues(Class<?> clazz, PropertiesSource datasource, ImmutableSet<String> propertyNames) {
+        return getPropertiesMapper(clazz).fromValues(datasource, propertyNames);
     }
-    
     
     
     private PropertiesMapper getPropertiesMapper(Class<?> clazz) {
@@ -159,14 +173,9 @@ class BeanMapper {
         }
     }
     
-    
-
-    
+        
     private static final class PropertiesMapperLoader extends CacheLoader<Class<?>, PropertiesMapper> {
 
-        
-        
-        
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
             Map<String, PropertyReader> valueReaders = Maps.newHashMap();
@@ -192,7 +201,6 @@ class BeanMapper {
         }
      
         
-
         private static ImmutableMap<String, PropertyReader> fetchFieldReaders(ImmutableSet<Field> beanFields) {
             Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
             
@@ -206,9 +214,6 @@ class BeanMapper {
             
             return ImmutableMap.copyOf(propertyReaders);
         }
-        
-        
-        
         
         
         private static ImmutableMap<String, PropertyReader> fetchJEEFieldReaders(ImmutableSet<Field> beanFields) {
@@ -266,7 +271,6 @@ class BeanMapper {
         }
         
    
-
         private Map<String, PropertyWriter> fetchFieldWriters(ImmutableSet<Field> beanFields) {
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             
@@ -280,8 +284,6 @@ class BeanMapper {
             
             return ImmutableMap.copyOf(propertyWriters);
         }
-
-        
         
         
         private Map<String, PropertyWriter> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {

@@ -30,12 +30,18 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
  
-
+/**
+ * Counter batch mutation query 
+ * 
+ */
 class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> implements CounterBatchMutation {
     private final ImmutableList<CounterBatchable> batchables;
     
-    
-    protected CounterBatchMutationQuery(Context ctx, ImmutableList<CounterBatchable> batchables) {
+    /**
+     * @param ctx         the context to use
+     * @param batchables  the statements to be performed within the batch
+     */
+    CounterBatchMutationQuery(Context ctx, ImmutableList<CounterBatchable> batchables) {
         super(ctx);
         this.batchables = batchables;
     }
@@ -52,7 +58,7 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
 
         
     private ListenableFuture<Statement> getStatementAsync() {
-        return new BatchQueryFuture<CounterBatchable>(new BatchStatement(Type.COUNTER), batchables.iterator());
+        return new BatchQueryFutureAdapter<CounterBatchable>(new BatchStatement(Type.COUNTER), batchables.iterator());
     }
   
     @Override
