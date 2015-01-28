@@ -44,7 +44,6 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
         this.query = query;
     }
     
-    
     @Override
     protected CounterBatchMutation newQuery(Context newContext) {
         return new CounterBatchMutationQueryAdapter(newContext, query.newQuery(newContext));

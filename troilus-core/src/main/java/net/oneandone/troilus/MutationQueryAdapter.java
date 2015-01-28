@@ -32,7 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter base for mutation operations
  */
-abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q>  {
+abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource { 
     
     private final T query;
   
@@ -45,24 +45,40 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
         this.query = query;
     }
     
+    /**
+     * @return  the query
+     */
     protected T getQuery() {
         return query;
     }
-    
+
+    /**
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
+     */
     public BatchMutation combinedWith(Batchable other) {
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
     }
-       
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
-    }
 
+    /**
+     * performs the query in a sync way 
+     * @return the result
+     */
     public Result execute() {
         return CompletableFutures.getUninterruptibly(executeAsync());
     }
     
+    /**
+     * performs the query in an async way 
+     * @return the result future 
+     */
     public CompletableFuture<Result> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
+    }
+    
+    @Override
+    public ListenableFuture<Statement> getStatementAsync() {
+        return query.getStatementAsync();
     }
     
     @Override

@@ -70,6 +70,7 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithUnitAndCounter, 
         return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
     }
 
+    @Override
     public UpdateQueryAdapter entity(Object entity) {
         return new UpdateQueryAdapter(getContext(), getQuery().entity(entity));
     }

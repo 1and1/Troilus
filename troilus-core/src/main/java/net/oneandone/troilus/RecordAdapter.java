@@ -55,11 +55,6 @@ class RecordAdapter implements Record {
         this.record = record;
     }
     
-    public static Record convertFromJava7(net.oneandone.troilus.java7.Record record) {
-        return new RecordAdapter(record);
-    }
-    
-    
     @Override
     public ExecutionInfo getExecutionInfo() {
         return record.getExecutionInfo();
@@ -95,7 +90,6 @@ class RecordAdapter implements Record {
         return Optional.ofNullable(record.getLong(name));
     }
     
-
     @Override
     public Optional<String> getString(String name) {
         return Optional.ofNullable(record.getString(name));
@@ -126,7 +120,6 @@ class RecordAdapter implements Record {
         return Optional.ofNullable(record.getDate(name));
     }
      
-
     @Override
     public Optional<BigDecimal> getDecimal(String name) {
         return Optional.ofNullable(record.getDecimal(name));
@@ -196,17 +189,22 @@ class RecordAdapter implements Record {
     public String toString() {
         return record.toString();
     }
-    
-    
+
+    /**
+     * @param record  the record
+     * @return the record as property source
+     */
     static PropertiesSource toPropertiesSource(Record record) {
         return new PropertiesSourceAdapter(record);
     }
     
     
     private static class PropertiesSourceAdapter implements PropertiesSource {
-        
         private final Record record;
-        
+    
+        /**
+         * @param record the record to adapt
+         */
         public PropertiesSourceAdapter(Record record) {
             this.record = record;
         }
@@ -221,21 +219,30 @@ class RecordAdapter implements Record {
         public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
             return toGuavaOptional((Optional<T>) record.getObject(name, clazz1));
         }
-    }
-    
-
-    private static <T> com.google.common.base.Optional<T> toGuavaOptional(Optional<T> optional) {
-        if (optional.isPresent()) {
-            return com.google.common.base.Optional.of((T) optional.get());
-        } else {
-            return com.google.common.base.Optional.absent();
+        
+        private static <T> com.google.common.base.Optional<T> toGuavaOptional(Optional<T> optional) {
+            if (optional.isPresent()) {
+                return com.google.common.base.Optional.of((T) optional.get());
+            } else {
+                return com.google.common.base.Optional.absent();
+            }
         }
     }
     
+    
 
+    /**
+     * @param record  the java7-based record
+     * @return the java8-based record
+     */
+    public static Record convertFromJava7(net.oneandone.troilus.java7.Record record) {
+        return new RecordAdapter(record);
+    }
     
-    
-    
+    /**
+     * @param record the java8-based record
+     * @return the java7-based record
+     */
     static net.oneandone.troilus.java7.Record convertToJava7(Record record) {
         
         return new net.oneandone.troilus.java7.Record() {

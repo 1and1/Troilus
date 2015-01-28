@@ -66,13 +66,15 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         ////////////////
         // inserts
-        hotelsDao.writeEntity(new Hotel("BUP45544", 
-                                        "Corinthia Budapest",
-                                        ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
-                                        Optional.of(ClassifierEnum.FIVE), 
-                                        Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
-                                        new Address("Erzsébet körút 43", "Budapest", "1073"))
-                                       )
+        
+        Hotel entity = new Hotel("BUP45544", 
+                                 "Corinthia Budapest",
+                                 ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
+                                 Optional.of(ClassifierEnum.FIVE), 
+                                 Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
+                                 new Address("Erzsébet körút 43", "Budapest", "1073"));
+               
+        hotelsDao.writeEntity(entity)
                  .ifNotExists()
                  .withConsistency(ConsistencyLevel.QUORUM)      
                  .withSerialConsistency(ConsistencyLevel.SERIAL)

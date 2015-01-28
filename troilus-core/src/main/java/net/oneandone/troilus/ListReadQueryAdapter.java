@@ -124,7 +124,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     @Override
     public CompletableFuture<RecordList> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync())
-                            .thenApply(recordList -> DaoImpl.RecordListAdapter.convertFromJava7(recordList));
+                                 .thenApply(recordList -> DaoImpl.RecordListAdapter.convertFromJava7(recordList));
     }        
     
     
@@ -191,9 +191,8 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
      * Java8 adapter of a CountReadQuery
      */
     private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count> {
-        
+
         private final CountReadQuery query;
-    
     
         /**
          * @param ctx     the context
@@ -241,4 +240,3 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }        
     }  
 }
-    

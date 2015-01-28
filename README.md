@@ -67,11 +67,13 @@ hotelsDao.writeWithKey("id", "BUP932432")
 
 Write a row in an entity-oriented way.  
 ``` java
-hotelsDao.writeEntity(new Hotel("BUP14334", 
-                                "Richter Panzio",
-                                ImmutableSet.of("1", "2", "3", "4", "5"),
-                                Optional.of(ClassifierEnum.TWO),
-                                Optional.empty()))
+hotel = new Hotel("BUP14334", 
+                  "Richter Panzio",
+       	          ImmutableSet.of("1", "2", "3", "4", "5"),
+                  Optional.of(ClassifierEnum.TWO),
+                  Optional.empty());
+
+hotelsDao.writeEntity(hotel)
          .execute();
 ```
 
@@ -376,12 +378,14 @@ hotelsDao.writeWithKey("id", "BUP932432")
 
 Write a row in a entity-oriented way
 ``` java
-hotelsDao.writeEntity(new Hotel("BUP14334", 
-                                "Richter Panzio",
-                                ImmutableSet.of("1", "2", "3", "4", "5"),
-                                Optional.of(ClassifierEnum.TWO),
-                                Optional.empty(),
-                                new Address("Thököly Ut 111", "Budapest", "1145")))
+hotel = new Hotel("BUP14334", 
+                  "Richter Panzio",
+                  ImmutableSet.of("1", "2", "3", "4", "5"),
+                  Optional.of(ClassifierEnum.TWO),
+                  Optional.empty(),
+                  new Address("Thököly Ut 111", "Budapest", "1145"));
+
+hotelsDao.writeEntity(hotel)
          .execute();
 ```
 
@@ -489,7 +493,12 @@ System.out.println(record.getObject("address", Address.class));
 ##Async Write
 By calling `executeAsync()` instead `execute()` the method returns immediately without waiting for the database response. Further more the `executeAsync()` returns a Java8 [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) object which can be used for async processing
 ``` java
-CompletableFuture<Result> future = hotelsDao.writeEntity(new Hotel("BUP14334", "Richter Panzio", Optional.of(ClassifierEnum.TWO), Optional.empty()))
+hotel = new Hotel("BUP14334", 
+                  "Richter Panzio", 
+                  Optional.of(ClassifierEnum.TWO), 
+                  Optional.empty());
+                  
+CompletableFuture<Result> future = hotelsDao.writeEntity(hotel)
                                             .withConsistency(ConsistencyLevel.ANY)
                                             .executeAsync();
 ```
