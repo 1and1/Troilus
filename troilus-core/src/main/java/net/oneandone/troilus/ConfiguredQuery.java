@@ -33,13 +33,13 @@ public interface ConfiguredQuery<Q, R> extends Query<R> {
 
     /**
      * @return a cloned query instance with activated tracking
-     */
-    Q withEnableTracking();
+     */ 
+    Q withTracking();
 
     /**
      * @return a cloned query instance with deactivated tracking
      */
-    Q withDisableTracking();
+    Q withoutTracking();
     
     /**
      * @param policy  the retry policy

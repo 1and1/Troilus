@@ -31,12 +31,12 @@ public interface SingleRead<T> extends Query<T> {
     /**
      * @return a cloned query instance with deactivated tracking 
      */
-    SingleRead<T> withEnableTracking();
+    SingleRead<T> withTracking();
 
     /**
      * @return a cloned query instance with deactivated tracking 
      */
-    SingleRead<T> withDisableTracking();
+    SingleRead<T> withoutTracking();
     
     /**
      * @param consistencyLevel   the  consistency level to use

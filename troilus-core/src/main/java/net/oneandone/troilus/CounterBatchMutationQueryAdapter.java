@@ -34,7 +34,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     
     private final CounterBatchMutationQuery query;
     
-    
+     
     /**
      * @param ctx     the context 
      * @param query   the underlying query

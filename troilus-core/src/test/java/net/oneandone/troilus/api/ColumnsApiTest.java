@@ -86,7 +86,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                       .ifNotExists()
                                       .withTtl(Duration.ofMinutes(2))
                                       .withWritetime(Instant.now().toEpochMilli() * 1000)
-                                      .withEnableTracking()
+                                      .withTracking()
                                       .execute()
                                       .getExecutionInfo();
 
@@ -100,7 +100,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                 .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
                 .ifNotExists()
-                .withEnableTracking()
+                .withTracking()
                 .execute();
 
 
@@ -615,7 +615,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTableFields.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                 .value(UsersTableFields.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
                 .ifNotExists()
-                .withEnableTracking()
+                .withTracking()
                 .execute();
 
         record = usersDao.readWithKey(UsersTableFields.USER_ID, "343434")
