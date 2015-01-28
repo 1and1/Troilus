@@ -128,7 +128,24 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(user.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12313241243"));
 
 
+        
+        ////////////////
+        // inserts
+        userDao.writeWithKey("user_id", "566655")
+               .entity(new MinimalUser("paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+               .execute();
 
+        
+        
+        
+        ////////////////
+        // reads
+        User usr = userDao.readWithKey("user_id", "566655")   
+                          .asEntity(User.class)
+                          .execute()
+                          .get();
+                      
+        Assert.assertEquals("paul", usr.getName());
     }        
 }
 

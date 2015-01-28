@@ -24,8 +24,14 @@ import com.google.common.collect.ImmutableMap;
  * value-aware update query
  * @param <U> the query type
  */    
-public interface UpdateWithValues<U extends Update<U>> extends Update<U> {
+public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
 
+    /**
+     * @param entity  the entity to write
+     * @return a cloned query instance with the modified behavior 
+     */
+    U entity(Object entity);
+    
     /**
      * @param name  the column name 
      * @param value the value to add

@@ -6,7 +6,7 @@ PREPARE
 mvn release:prepare -DpushChanges=false
 
 RELEASE
-mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true"
+mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true -Dlicense.skip=true"
 
 STAGING REPO
 https://oss.sonatype.org/#stagingRepositories

@@ -24,11 +24,9 @@ import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
-import net.oneandone.troilus.InsertQuery;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
-import net.oneandone.troilus.WriteQueryDataImpl;
 import net.oneandone.troilus.UpdateQuery.CounterMutationQuery;
 
 import com.datastax.driver.core.Statement;
@@ -41,7 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter, UpdateQuery> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithUnitAndCounter, UpdateQuery> implements WriteWithCounter, UpdateWithUnitAndCounter  {
 
     
     /**
@@ -72,8 +70,8 @@ class UpdateQueryAdapter extends MutationQueryAdapter<UpdateWithValuesAndCounter
         return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
     }
 
-    public Insertion entity(Object entity) {
-        return new InsertQueryAdapter(getContext(), new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames()))));
+    public UpdateQueryAdapter entity(Object entity) {
+        return new UpdateQueryAdapter(getContext(), getQuery().entity(entity));
     }
     
     @Override

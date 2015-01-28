@@ -25,13 +25,14 @@ import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.RecordList;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
-import net.oneandone.troilus.java7.UpdateWithValuesAndCounter;
+import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
 import net.oneandone.troilus.java7.WriteWithCounter;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -86,11 +87,12 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        return new UpdateQuery(ctx, new WriteQueryDataImpl()).entity(entity);
+        ImmutableMap<String, Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDbSession().getColumnNames());
+        return new InsertQuery(ctx, new WriteQueryDataImpl().valuesToMutate(values));
     }
     
     @Override
-    public UpdateWithValuesAndCounter writeWhere(Clause... clauses) {
+    public UpdateWithUnitAndCounter writeWhere(Clause... clauses) {
         return new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses))));
     }
   

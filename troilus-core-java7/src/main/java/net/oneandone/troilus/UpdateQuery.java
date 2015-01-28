@@ -16,7 +16,7 @@
 package net.oneandone.troilus;
 
 import net.oneandone.troilus.java7.CounterMutation;
-import net.oneandone.troilus.java7.UpdateWithValuesAndCounter;
+import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
 import net.oneandone.troilus.java7.WriteWithCounter;
 
 import com.datastax.driver.core.ResultSet;
@@ -35,7 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * update query implementation
  */
-class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithValuesAndCounter  {
+class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCounter, UpdateWithUnitAndCounter  {
      
     
     /**
@@ -54,10 +54,11 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     /**
      * @param entity   the entity to insert
      * @return the new insert query
-     */
-    InsertQuery entity(Object entity) {
-        return new InsertQuery(getContext(), 
-                               new WriteQueryDataImpl().valuesToMutate(getContext().getBeanMapper().toValues(entity)));
+     */@Override
+     public UpdateQuery entity(Object entity) {
+        ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames());
+        return new UpdateQuery(getContext(), 
+                getData().valuesToMutate(Immutables.merge(getData().getValuesToMutate(), values)));
     }
     
     @Override

@@ -140,10 +140,6 @@ class BeanMapper {
         }
     }  
 
-    public ImmutableMap<String, Optional<Object>> toValues(Object entity) {
-        return toValues(entity, ImmutableSet.<String>of());
-    }
-    
     public ImmutableMap<String, Optional<Object>> toValues(Object entity, ImmutableSet<String> namesToMap) {
         return getPropertiesMapper(entity.getClass()).toValues(entity, namesToMap);
     }

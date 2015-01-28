@@ -43,7 +43,7 @@ public class BeanMapperReadTest {
                                                                                    ImmutableSet.of("s1", "s2"), 
                                                                                    Optional.of(ImmutableSet.of("so1", "so2")),
                                                                                    UserType.GOLD,
-                                                                                   Optional.of(UserType.SILVER)));
+                                                                                   Optional.of(UserType.SILVER)), ImmutableSet.<String>of());
         Assert.assertEquals("test", result.get("s").get());
         Assert.assertEquals("guavaOptional", result.get("s2").get());
         Assert.assertEquals("javaOptional", result.get("s3").get());

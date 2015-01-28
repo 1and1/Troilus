@@ -80,7 +80,7 @@ public interface Dao {
      * @param clauses the clauses 
      * @return a write query 
      */
-    UpdateWithValuesAndCounter writeWhere(Clause... clauses);
+    UpdateWithUnitAndCounter writeWhere(Clause... clauses);
 
     /**
      * @param entity the entity to write

@@ -333,7 +333,7 @@ class UDTValueMapper {
                 UserType usertype = getUserType(userTypeCache, ((UserType) datatype).getTypeName());
                 UDTValue udtValue = usertype.newValue();
                 
-                for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value).entrySet()) {
+                for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value, ImmutableSet.<String>of()).entrySet()) {
                     if (!entry.getValue().isPresent()) {
                         return null;
                     }

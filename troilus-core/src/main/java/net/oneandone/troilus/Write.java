@@ -21,7 +21,7 @@ package net.oneandone.troilus;
 /**
  * write query
  */
-public interface Write extends UpdateWithValues<Write> {
+public interface Write extends UpdateWithUnit<Write> {
  
     /**
      * @return a cloned query instance with lwt (if-not-exits)
