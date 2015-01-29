@@ -316,7 +316,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          private final ResultSet rs;
 
          private final Iterator<Row> iterator;
-         private final AtomicReference<DatabaseSubscription> subscriptionRef = new AtomicReference<>();
+         private boolean subscribed = false; // true after first subscribe
          
          RecordListImpl(Context ctx, ResultSet rs) {
              this.ctx = ctx;
@@ -359,12 +359,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          @Override
          public void subscribe(Subscriber<? super Record> subscriber) {
              synchronized (this) {
-                 if (subscriptionRef.get() == null) {
-                     DatabaseSubscription subscription = new DatabaseSubscription(subscriber);
-                     subscriptionRef.set(subscription);
-                     subscriber.onSubscribe(subscription);
+                 if (subscribed == true) {
+                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
                  } else {
-                     subscriber.onError(new IllegalStateException("subription already exists. Multi-subscribe is not supported")); 
+                     subscribed = true;
+                     subscriber.onSubscribe(new DatabaseSubscription(subscriber));
                  }
              }
          }
@@ -397,26 +396,27 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              private void processReadRequests() {
-                 processAvailableRecords();
+                 processAvailableDatabaseRecords();
 
                  // more db records required? 
                  if (numPendingReads.get() > 0) {
+                     // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
+                     // will be executed without the need of more records. However, it does not matter
                      requestDatabaseForMoreRecords();
                  }
              }
              
              
-             private void processAvailableRecords() {
+             private void processAvailableDatabaseRecords() {
                  synchronized (subscriberCallLock) {
                      if (isOpen) {
                          while (it.hasNext() && numPendingReads.get() > 0) {
                              try {
-                                 numPendingReads.addAndGet(-1);
+                                 numPendingReads.decrementAndGet();
                                  subscriber.onNext(it.next());
                              } catch (RuntimeException rt) {
                                  LOG.warn("processing error occured", rt);
-                                 isOpen = false;
-                                 subscriber.onError(rt);
+                                 teminateWithError(rt);
                              }
                          }
 
@@ -430,7 +430,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private void requestDatabaseForMoreRecords() {
                  // no more data to fetch?
                  if (rs.isFullyFetched()) {
-                     cancel();
+                     terminateRegularly();
                      return;
                  } 
                  
@@ -456,11 +456,29 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              @Override
              public void cancel() {
+                 terminateRegularly();
+             }
+
+             
+
+             ////////////
+             // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
+             
+             private void terminateRegularly() {
                  synchronized (subscriberCallLock) {
                      if (isOpen) {
+                         isOpen = false;
                          subscriber.onComplete();
                      }
-                     isOpen = false;
+                 }
+             }
+             
+             private void teminateWithError(Throwable t) {
+                 synchronized (subscriberCallLock) {
+                     if (isOpen) {
+                         isOpen = false;
+                         subscriber.onError(t);
+                     }
                  }
              }
          }
