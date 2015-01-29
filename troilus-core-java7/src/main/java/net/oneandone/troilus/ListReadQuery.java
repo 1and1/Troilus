@@ -372,7 +372,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          private final class DatabaseSubscription implements Subscription {
              private boolean isOpen = true;
              
-             private final Object subscriberCallLock = new Object();
+             private final Object subscriberCallbackLock = new Object();
              private final Object dbQueryLock = new Object();
              
              private final Subscriber<? super Record> subscriber;
@@ -408,7 +408,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              private void processAvailableDatabaseRecords() {
-                 synchronized (subscriberCallLock) {
+                 synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          while (it.hasNext() && numPendingReads.get() > 0) {
                              try {
@@ -465,7 +465,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
              
              private void terminateRegularly() {
-                 synchronized (subscriberCallLock) {
+                 synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
                          subscriber.onComplete();
@@ -474,7 +474,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              }
              
              private void teminateWithError(Throwable t) {
-                 synchronized (subscriberCallLock) {
+                 synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
                          subscriber.onError(t);
