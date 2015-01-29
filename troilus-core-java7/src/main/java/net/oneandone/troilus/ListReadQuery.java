@@ -388,8 +388,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  this.it = RecordListImpl.this.iterator();
              }
              
-             public void request(long n) {
-                 
+             public void request(long n) {                
                  if (n > 0) {
                      numPendingReads.addAndGet(n);
                      processReadRequests();
@@ -416,8 +415,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                                  subscriber.onNext(it.next());
                              } catch (RuntimeException rt) {
                                  LOG.warn("processing error occured", rt);
-                                 subscriber.onError(rt);
                                  isOpen = false;
+                                 subscriber.onError(rt);
                              }
                          }
 
@@ -429,9 +428,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              private void requestDatabaseForMoreRecords() {
+                 // no more data to fetch?
                  if (rs.isFullyFetched()) {
                      cancel();
-                 }
+                     return;
+                 } 
                  
                  synchronized (dbQueryLock) {
                      if (runningDatabaseQuery.get() == null) {
@@ -456,8 +457,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              @Override
              public void cancel() {
                  synchronized (subscriberCallLock) {
+                     if (isOpen) {
+                         subscriber.onComplete();
+                     }
                      isOpen = false;
-                     subscriber.onComplete();
                  }
              }
          }
