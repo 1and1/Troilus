@@ -23,7 +23,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;
@@ -370,7 +369,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          
          
          private final class DatabaseSubscription implements Subscription {
-             private boolean isOpen = true;
              
              private final Object subscriberCallbackLock = new Object();
              private final Object dbQueryLock = new Object();
@@ -379,7 +377,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private final Iterator<? extends Record> it;
              
              private final AtomicLong numPendingReads = new AtomicLong();
-             private final AtomicReference<Runnable> runningDatabaseQuery = new AtomicReference<>();
+             
+             private Runnable runningDatabaseQuery = null;
+             private boolean isOpen = true;
 
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
@@ -435,17 +435,17 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  } 
                  
                  synchronized (dbQueryLock) {
-                     if (runningDatabaseQuery.get() == null) {
+                     if (runningDatabaseQuery == null) {
                          Runnable databaseRequest = new Runnable() {
                                                              @Override
                                                              public void run() {
                                                                  synchronized (dbQueryLock) {
-                                                                     runningDatabaseQuery.set(null); 
+                                                                     runningDatabaseQuery = null; 
                                                                  }
                                                                  processReadRequests();
                                                              }                                                                           
                                                     };
-                         runningDatabaseQuery.set(databaseRequest);
+                         runningDatabaseQuery = databaseRequest;
                          
                          ListenableFuture<Void> future = rs.fetchMoreResults();
                          future.addListener(databaseRequest, ctx.getTaskExecutor());
