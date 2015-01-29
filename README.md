@@ -2,9 +2,10 @@
 Troilus
 ======
 **Troilus** is a high level Cassandra Java client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
-It supports synchronous programming and asynchronous programming. Troilus supports a Java8 interface as well as a Java7 interface (module troilus-core-java7)
+It supports synchronous programming and asynchronous programming.
 
 The main features of Troilus are 
+* providing a Java8-based Interface as well as a Java7-based interface (module troilus-core-java7)
 * Supporting sync as well as async programming
 * [reactive streams](http://www.reactive-streams.org) support
 * (Entity) Bean-Mapping support for tables and user defined data types (incl. mapping support of generic artefacts such as Java8/Guava Optional and Guava ImmutableCollections)
@@ -14,7 +15,6 @@ The main features of Troilus are
 
 #Maven
 -------
-
 Java8-based
 ``` java
 <dependency>
