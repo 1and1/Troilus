@@ -244,7 +244,7 @@ try {
 
 
 ##Batching        
-Non conditional mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation. This is provided by the `combinedWith(...)` method. 
+Non if-conditional mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation. This is provided by the `combinedWith(...)` method. 
 ``` java
 Batchable deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
