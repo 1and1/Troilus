@@ -11,7 +11,7 @@ The main features of Troilus are
 * (Entity) Bean-Mapping support for tables and user defined data types (incl. mapping support of generic artefacts such as Java8/Guava Optional and Guava ImmutableCollections)
 * Build-in data swap check 
 * Build-in prepared statement management 
-* Implementation support for data-related constraints on the app-level (mandatory fields, more complex data swap validation checks, …)          
+* Implementation support for data-related constraint checks (mandatory fields, more complex data swap validation checks, …)          
 
 #Maven
 -------
