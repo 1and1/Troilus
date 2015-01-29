@@ -4,6 +4,12 @@ Troilus
 **Troilus** is a high level Cassandra Java client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
 It supports synchronous programming and asynchronous programming including [reactive streams](http://www.reactive-streams.org). Troilus supports a Java8 interface as well as a Java7 interface (module troilus-core-java7)
 
+The main features of Troilus are 
+* Supporting sync as well as async programming
+* (Entity) Bean-Mapping support for tables and user defined data types (incl. mapping support of generic artefacts such as Java8/Guava Optional and Guava ImmutableCollections)
+* Build-in data swap check 
+* Build-in prepared statement management 
+* Implementation support for data-related constraints on the app-level (mandatory fields, more complex data swap validation checks, …)          
 
 #Maven
 -------
@@ -177,42 +183,62 @@ hotelsDao.deleteWithKey("id", "BUP932432")
 ### lightweight transactions 
 transaction-safe, ***unique insert*** with `ifNotExists()`(performs the insertion only if the row does not already exist)        
 ``` java
-hotelsDao.writeWithKey("id", "BUP932432")
-         .value("name", "City Budapest")
-         .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
-         .value("classification", ClassifierEnum.FOUR)
-         .withWritetime(microsSinceEpoch)
-         .ifNotExists()
-         .withSerialConsistency(ConsistencyLevel.SERIAL)
-         .execute();
-  ```  
+try {
+   hotelsDao.writeWithKey("id", "BUP932432")
+            .value("name", "City Budapest")
+            .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
+            .value("classification", ClassifierEnum.FOUR)
+            .withWritetime(microsSinceEpoch)
+            .ifNotExists()
+            .withSerialConsistency(ConsistencyLevel.SERIAL)
+            .execute();
+         
+} catch (IfConditionException ice) {
+   // ...
+}
+```  
         
 transaction-safe, ***conditional update*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
-hotelsDao.writeWithKey("id", "BUP932432")
-         .value("name" "Budapest City")
-         .onlyIf(QueryBuilder.eq("name", "City Budapest"))
-         .withSerialConsistency(ConsistencyLevel.SERIAL)
-         .execute();
-  ```  
+try {
+   hotelsDao.writeWithKey("id", "BUP932432")
+            .value("name" "Budapest City")
+            .onlyIf(QueryBuilder.eq("name", "City Budapest"))
+            .withSerialConsistency(ConsistencyLevel.SERIAL)
+            .execute();
+                                 
+} catch (IfConditionException ice) {
+   // ...
+}
+```  
        
 
 transaction-safe, ***conditional delete*** with `onlyIf(..conditions..)` (uses IF followed by a condition to be met for the update to succeed)        
 ``` java
-hotelsDao.deleteWithKey("id","BUP932432")
-         .onlyIf(QueryBuilder.eq("name", "Budapest City"))
-         .withSerialConsistency(ConsistencyLevel.SERIAL)
-         .execute();
-  ```  
+try {
+   hotelsDao.deleteWithKey("id","BUP932432")
+            .onlyIf(QueryBuilder.eq("name", "Budapest City"))
+            .withSerialConsistency(ConsistencyLevel.SERIAL)
+            .execute();
+                                
+} catch (IfConditionException ice) {
+   // ...
+}         
+```  
   
   
 transaction-safe ***delete*** with `ifExists` 
 ``` java
-hotelsDao.deleteWithKey("id","BUP932432")
-         .ifExists()
-         .withSerialConsistency(ConsistencyLevel.SERIAL)
-         .execute();
-  ```  
+try {
+   hotelsDao.deleteWithKey("id","BUP932432")
+            .ifExists()
+            .withSerialConsistency(ConsistencyLevel.SERIAL)
+            .execute();
+                                
+} catch (IfConditionException ice) {
+   // ...
+}         
+```  
 
 
 
@@ -257,7 +283,9 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP3443")
                                            .column(NAME)
                                            .column(CLASSIFICATION)
                                            .execute();
-optionalRecord.ifPresent(record -> record.getValue(NAME).ifPresent(name -> System.out.println(name)));
+optionalRecord.ifPresent(record -> record.getValue(NAME).
+
+Present(name -> System.out.println(name)));
 optionalRecord.ifPresent(record -> record.getValue(CLASSIFICATION).ifPresent(classification -> System.out.println(classification)));
 ```        
 

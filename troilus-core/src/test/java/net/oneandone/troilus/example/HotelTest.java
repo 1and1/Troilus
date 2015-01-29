@@ -83,6 +83,17 @@ public class HotelTest extends AbstractCassandraBasedTest {
                  .execute();
 
         
+        try {
+            hotelsDao.writeEntity(entity)
+                     .ifNotExists()
+                     .withConsistency(ConsistencyLevel.QUORUM)      
+                     .withSerialConsistency(ConsistencyLevel.SERIAL)
+                     .withWritetime(System.currentTimeMillis() * 10000)
+                     .withTtl(Duration.ofDays(222))
+                     .execute();
+        } catch (IfConditionException ice) {
+            // ...
+        }
         
         Record record = hotelsDao.readWithKey(HotelsTable.ID, "BUP45544")
                                  .column(HotelsTable.NAME)
@@ -301,7 +312,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                      .onlyIf(QueryBuilder.eq(HotelsTable.NAME, "City Budapest"))
                      .execute();
             Assert.fail("IfConditionException expected");
-        } catch (IfConditionException expected) { }
+        } catch (IfConditionException ice) { 
+            System.out.println(ice.getResult().getExecutionInfo().getQueriedHost());
+        }
         
 
         hotelsDao.deleteWithKey(HotelsTable.ID,"BUP932432")
