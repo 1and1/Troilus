@@ -38,11 +38,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
  
-
+/**
+ * Dao impl
+ *
+ */
 public class Java7DaoImpl implements Dao {
     
     private final Context ctx;
     
+    /**
+     * @param session    the underlying session
+     * @param tablename  the table name
+     */
     public Java7DaoImpl(Session session, String tablename) {
         this(new Context(session, tablename));
     }
@@ -51,8 +58,6 @@ public class Java7DaoImpl implements Dao {
         this.ctx = ctx;
     }
     
-   
-   
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
@@ -79,7 +84,6 @@ public class Java7DaoImpl implements Dao {
         return new Java7DaoImpl(ctx.withRetryPolicy(policy));
     }
 
-    
     @Override
     public Dao withInterceptor(QueryInterceptor queryInterceptor) {
         return new Java7DaoImpl(ctx.withInterceptor(queryInterceptor));
@@ -94,8 +98,7 @@ public class Java7DaoImpl implements Dao {
     @Override
     public UpdateWithUnitAndCounter writeWhere(Clause... clauses) {
         return new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses))));
-    }
-  
+    }  
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
@@ -145,25 +148,21 @@ public class Java7DaoImpl implements Dao {
         return writeWithKey(keyName1.getName(), (Object) keyValue1,
                             keyName2.getName(), (Object) keyValue2,
                             keyName3.getName(), (Object) keyValue3); 
-    }
-    
+    }    
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
         return new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions)));
-    };
-   
+    };   
     
     @Override
     public Deletion deleteWithKey(String keyName, Object keyValue) {
-        
         return deleteWithKey(ImmutableMap.of(keyName, keyValue));
     }
 
     @Override
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2) {
-        
         return deleteWithKey(ImmutableMap.of(keyName1, keyValue1, 
                                              keyName2, keyValue2));
     }
@@ -172,13 +171,11 @@ public class Java7DaoImpl implements Dao {
     public Deletion deleteWithKey(String keyName1, Object keyValue1, 
                                   String keyName2, Object keyValue2, 
                                   String keyName3, Object keyValue3) {
-        
         return deleteWithKey(ImmutableMap.of(keyName1, keyValue1,
                                              keyName2, keyValue2, 
                                              keyName3, keyValue3));
     }
     
-
     @Override
     public <T> Deletion deleteWithKey(ColumnName<T> keyName, T keyValue) {
         return deleteWithKey(keyName.getName(), (Object) keyValue);
@@ -205,13 +202,10 @@ public class Java7DaoImpl implements Dao {
         return new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
     }
     
-    
-    
     @Override
     public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
         return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().key(composedkey));
     }
-    
     
     @Override
     public SingleReadWithUnit<Record> readWithKey(String keyName, Object keyValue) {
@@ -234,7 +228,6 @@ public class Java7DaoImpl implements Dao {
                                            keyName3, keyValue3));
     }
     
-    
     @Override
     public <T> SingleReadWithUnit<Record> readWithKey(ColumnName<T> keyName, T keyValue) {
         return readWithKey(keyName.getName(), (Object) keyValue);
@@ -255,8 +248,6 @@ public class Java7DaoImpl implements Dao {
                            keyName2.getName(), (Object) keyValue2,                         
                            keyName3.getName(), (Object) keyValue3);
     }
-    
-    
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
@@ -333,7 +324,6 @@ public class Java7DaoImpl implements Dao {
         return new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
     }
      
-    
     @Override
     public ListReadQuery readAll() {
         return new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
