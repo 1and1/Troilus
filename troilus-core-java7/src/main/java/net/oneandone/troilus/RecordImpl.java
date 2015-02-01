@@ -31,6 +31,7 @@ import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
@@ -182,7 +183,7 @@ class RecordImpl implements Record {
         
     @Override
     public <T extends Enum<T>> T getEnum(String name, Class<T> enumType) {
-        return getObject(name, enumType);
+        return getValue(name, enumType);
     }
     
     @Override
@@ -192,7 +193,7 @@ class RecordImpl implements Record {
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public <T> T getObject(String name, Class<T> elementsClass) {
+    public <T> T getValue(String name, Class<T> elementsClass) {
         if (isNull(name)) {
             return null;
         }
@@ -290,8 +291,18 @@ class RecordImpl implements Record {
         for (Definition definition : getRow().getColumnDefinitions().asList()) {
             toStringHelper.add(definition.getName(), toString(definition.getName(), definition.getType()));
         }
+
+        String s = "[" + result.getExecutionInfo().getQueriedHost() + "] "+  toStringHelper.toString();
+
+        if (result.getExecutionInfo().getQueryTrace() != null) {
+            StringBuilder sb = new StringBuilder("\n");
+            for (Event event : result.getExecutionInfo().getQueryTrace().getEvents()) {
+                sb.append(event.getSource() + " - " + event.getSourceElapsedMicros() + ": " + event.getDescription() +"\n");
+            }
+            s = s + sb.toString();
+        }
         
-        return toStringHelper.toString();
+        return s;
     }
     
     private String toString(String name, DataType dataType) {
@@ -333,7 +344,7 @@ class RecordImpl implements Record {
         @SuppressWarnings("unchecked")
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
-            T value = (T) record.getObject(name, clazz1);
+            T value = (T) record.getValue(name, clazz1);
             if (value == null) {
                 return Optional.absent();
             } else {

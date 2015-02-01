@@ -652,6 +652,22 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
         
+        
+        
+        record = usersDao.withTracking().readWithKey(UsersTableFields.USER_ID, "45436")
+                .execute()
+                .get();
+        
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        Assert.assertNotNull(record.getExecutionInfo().getQueryTrace());
+        Assert.assertTrue(record.toString().contains("Merging memtable tombstones"));
+        
+        record = usersDao.withoutTracking().readWithKey(UsersTableFields.USER_ID, "45436")
+                .execute()
+                .get();
+        
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        Assert.assertNull(record.getExecutionInfo().getQueryTrace());
       }        
 }
 

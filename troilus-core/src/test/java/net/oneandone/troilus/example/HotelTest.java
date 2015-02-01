@@ -208,9 +208,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .execute()
                           .get();
         
-        Assert.assertNotNull(record.getObject("address", Address.class));
+        Assert.assertNotNull(record.getValue("address", Address.class));
         Assert.assertEquals("TWO",  record.getString("classification").get());
-        Assert.assertEquals("Budapest", record.getObject("address", Address.class).get().getCity());
+        Assert.assertEquals("Budapest", record.getValue("address", Address.class).get().getCity());
 
 
         

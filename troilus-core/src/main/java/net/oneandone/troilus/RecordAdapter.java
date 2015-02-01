@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 import java.math.BigDecimal;
 
 
+
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -29,7 +30,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.PropertiesSource;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.UDTValue;
@@ -166,8 +166,8 @@ class RecordAdapter implements Record {
     }
 
     @Override
-    public <T> Optional<T> getObject(String name, Class<T> elementsClass) {
-        return Optional.ofNullable(record.getObject(name, elementsClass));
+    public <T> Optional<T> getValue(String name, Class<T> elementsClass) {
+        return Optional.ofNullable(record.getValue(name, elementsClass));
     }
 
     @Override
@@ -189,46 +189,6 @@ class RecordAdapter implements Record {
     public String toString() {
         return record.toString();
     }
-
-    /**
-     * @param record  the record
-     * @return the record as property source
-     */
-    static PropertiesSource toPropertiesSource(Record record) {
-        return new PropertiesSourceAdapter(record);
-    }
-    
-    
-    private static class PropertiesSourceAdapter implements PropertiesSource {
-        private final Record record;
-    
-        /**
-         * @param record the record to adapt
-         */
-        public PropertiesSourceAdapter(Record record) {
-            this.record = record;
-        }
-        
-        @Override
-        public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1) {
-            return read(name, clazz1, Object.class);
-        }
-            
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> com.google.common.base.Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
-            return toGuavaOptional((Optional<T>) record.getObject(name, clazz1));
-        }
-        
-        private static <T> com.google.common.base.Optional<T> toGuavaOptional(Optional<T> optional) {
-            if (optional.isPresent()) {
-                return com.google.common.base.Optional.of((T) optional.get());
-            } else {
-                return com.google.common.base.Optional.absent();
-            }
-        }
-    }
-    
     
 
     /**
@@ -308,8 +268,8 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public <T> T getObject(String name, Class<T> type) {
-                return record.getObject(name, type).orElse(null);
+            public <T> T getValue(String name, Class<T> type) {
+                return record.getValue(name, type).orElse(null);
             }
             
             @Override

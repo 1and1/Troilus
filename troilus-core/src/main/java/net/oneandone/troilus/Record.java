@@ -169,7 +169,7 @@ public interface Record extends Result {
      * @param <T>  the object type
      * @return  the value of column name 
      */
-    <T> Optional<T> getObject(String name, Class<T> type);    
+    <T> Optional<T> getValue(String name, Class<T> type);    
     
     /**
      * @param name           the column name 

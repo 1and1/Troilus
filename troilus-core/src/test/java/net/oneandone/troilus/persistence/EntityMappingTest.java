@@ -85,6 +85,22 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         ImmutableList.copyOf(list).forEach(user -> System.out.println(user.getAddresses()));
         
         
+            
+        Iterator<Record> records = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
+                                          .execute()
+                                          .iterator();
+        
+        Record record = records.next();
+        Assert.assertEquals("4454", record.getString("user_Id").get());
+        Assert.assertEquals(true, record.getBool("is_customer").get());
+        Assert.assertNotNull(record.getLong("modified").get());
+        Assert.assertTrue(record.getSet("phone_numbers", String.class).get().contains("12313241243"));
+        Assert.assertArrayEquals(new byte[] { 6, 7, 8}, record.getValue("picture", byte[].class).get());
+        Assert.assertFalse(records.hasNext());
+        
+        
+        
+        
         list = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
                       .asEntity(User.class)   
                       .execute()

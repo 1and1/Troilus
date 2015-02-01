@@ -161,7 +161,7 @@ public interface Record extends Result {
      * @param <T>    the result type
      * @return  the value of column name 
      */
-    <T> T getObject(String name, Class<T> type);    
+    <T> T getValue(String name, Class<T> type);    
     
     /**
      * @param name           the column name 
