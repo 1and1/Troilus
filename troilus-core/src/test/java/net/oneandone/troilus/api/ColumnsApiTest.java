@@ -463,7 +463,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                          .get();
         Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
         Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isPresent());
+        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
 
         
         
@@ -511,7 +511,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
         Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
         Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
-        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isPresent());
+        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
         
         
         
@@ -661,14 +661,31 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
         Assert.assertNotNull(record.getExecutionInfo().getQueryTrace());
-        Assert.assertTrue(record.toString().contains("Merging memtable tombstones"));
+  //      Assert.assertTrue(record.toString().contains("Merging memtable tombstones"));
         
-        record = usersDao.withoutTracking().readWithKey(UsersTableFields.USER_ID, "45436")
-                .execute()
-                .get();
+        record = usersDao.withoutTracking()
+                         .readWithKey(UsersTableFields.USER_ID, "45436")
+                         .execute()
+                         .get();
         
         Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
         Assert.assertNull(record.getExecutionInfo().getQueryTrace());
+        
+        
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "23452342342")
+                .value(UsersTable.IS_CUSTOMER, true) 
+               // .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3})) 
+               // .value(UsersTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden")) 
+                .execute();
+
+        record = usersDao.readWithKey(UsersTableFields.USER_ID, "23452342342")
+                .execute()
+                .get();
+
+        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().isEmpty());
+        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().isEmpty());
+        Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE).get());
       }        
 }
 

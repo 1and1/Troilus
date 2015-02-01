@@ -23,6 +23,9 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import net.oneandone.troilus.java7.Record;
@@ -194,18 +197,33 @@ class RecordImpl implements Record {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <T> T getValue(String name, Class<T> elementsClass) {
-        if (isNull(name)) {
-            return null;
-        }
-
         DataType datatype = getColumnDefinitions().getType(name);
         
         if (datatype != null) {
             
             // build-in
             if (UDTValueMapper.isBuildInType(datatype)) {
+         
+                ByteBuffer byteBuffer = getBytesUnsafe(name); 
+                Object obj;
+                if (byteBuffer == null) {
+                    obj = null;
+                } else  {
+                    obj = datatype.deserialize(byteBuffer, ctx.getDbSession().getProtocolVersion());
+                }
                 
-                Object obj = datatype.deserialize(getBytesUnsafe(name), ctx.getDbSession().getProtocolVersion()); 
+                if ((obj == null) & datatype.isCollection()) {
+                    
+                    if (List.class.isAssignableFrom(datatype.asJavaClass())) {
+                        return (T) ImmutableList.of();
+                    } else if (Set.class.isAssignableFrom(datatype.asJavaClass())) {
+                        return (T) ImmutableSet.of();
+                    } if (Map.class.isAssignableFrom(datatype.asJavaClass())) {
+                        return (T) ImmutableMap.of();
+                    }
+                    
+                }
+                
                 
                 // enum
                 if ((obj != null) && ctx.isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {
@@ -213,11 +231,15 @@ class RecordImpl implements Record {
                 }
                 
                 // bytebuffer (byte[])
-                if ((obj != null) && datatype.equals(DataType.blob()) && byte[].class.isAssignableFrom(elementsClass)) {
-                    ByteBuffer bb = (ByteBuffer) obj;
-                    byte[] bytes = new byte[bb.remaining()];
-                    bb.get(bytes, 0, bytes.length);
-                    return (T) bytes;
+                if (datatype.equals(DataType.blob()) && byte[].class.isAssignableFrom(elementsClass)) {
+                    if (obj == null) {
+                        return (T) new byte[0];
+                    } else {
+                        ByteBuffer bb = (ByteBuffer) obj;
+                        byte[] bytes = new byte[bb.remaining()];
+                        bb.get(bytes, 0, bytes.length);
+                        return (T) bytes;
+                    }
                 }
                 
                 return (T) obj;
@@ -236,7 +258,7 @@ class RecordImpl implements Record {
     @Override
     public <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass) {
         if (isNull(name)) {
-            return null;
+            return ImmutableSet.of();
         }
 
         DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
@@ -250,7 +272,7 @@ class RecordImpl implements Record {
     @Override
     public <T> ImmutableList<T> getList(String name, Class<T> elementsClass) {
         if (isNull(name)) {
-            return null;
+            return ImmutableList.of();
         }
         
         DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
@@ -264,7 +286,7 @@ class RecordImpl implements Record {
     @Override
     public <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
         if (isNull(name)) {
-            return null;
+            return ImmutableMap.of();
         }
         
         DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
