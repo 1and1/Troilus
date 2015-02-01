@@ -8,7 +8,7 @@
 		<version>1.5.1</version>
 	</parent>
 
-	<groupId>net.oneandone</groupId>
+	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
 	<version>0.5-SNAPSHOT</version>
 	<packaging>pom</packaging>

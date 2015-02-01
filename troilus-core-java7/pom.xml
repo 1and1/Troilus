@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>net.oneandone</groupId>
+		<groupId>net.oneandone.troilus</groupId>
 		<artifactId>troilus-parent</artifactId>
 		<version>0.5-SNAPSHOT</version>
 	</parent>
