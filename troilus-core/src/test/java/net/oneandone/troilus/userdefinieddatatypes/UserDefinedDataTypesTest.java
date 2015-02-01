@@ -19,6 +19,7 @@ package net.oneandone.troilus.userdefinieddatatypes;
 
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -69,6 +70,26 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("frankfurter ring", record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).get().iterator().next().getLines().get(0).getLine());
         Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get().get(new Classifier("reliability")).getScore());
         Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get().get(5).getScore());
+        
+        
+        
+        
+        // inserts
+        customersDao.writeWithKey(CustomersTable.ID, "4563434434")
+                    .value(CustomersTable.NAME, "peter")
+                    .execute();
+
+        
+        record = customersDao.readWithKey(CustomersTable.ID, "4563434434")
+                             .execute()
+                             .get();
+        Assert.assertTrue(record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).get().isEmpty());
+        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get().isEmpty());
+        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get().isEmpty());
+        
+        Assert.assertTrue(record.getValue(ColumnName.defineSet("old_addresses", Addr.class)).get().isEmpty());
+        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Classifier.class, Score.class)).get().isEmpty());
+        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Integer.class, Score.class)).get().isEmpty());
     }               
 }
 

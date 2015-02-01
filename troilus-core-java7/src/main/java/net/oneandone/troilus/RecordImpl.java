@@ -19,13 +19,11 @@ package net.oneandone.troilus;
 import java.math.BigDecimal;
 
 
+
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import net.oneandone.troilus.java7.Record;
@@ -53,7 +51,6 @@ class RecordImpl implements Record {
     private final Context ctx;
     private final Result result;
     private final Row row;
-    private final PropertiesSourceAdapter propertiesSourceAdapter;
     
     /**
      * @param ctx     the context
@@ -64,7 +61,6 @@ class RecordImpl implements Record {
         this.ctx = ctx;
         this.result = result;
         this.row = row;
-        this.propertiesSourceAdapter = new PropertiesSourceAdapter(this);
     }
 
     /**
@@ -191,7 +187,7 @@ class RecordImpl implements Record {
     
     @Override
     public <T> T getValue(ColumnName<T> name) {
-        return name.read(propertiesSourceAdapter).orNull();
+        return name.read(this);
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -211,7 +207,8 @@ class RecordImpl implements Record {
                 } else  {
                     obj = datatype.deserialize(byteBuffer, ctx.getDbSession().getProtocolVersion());
                 }
-                
+            
+                /* remove me
                 if ((obj == null) & datatype.isCollection()) {
                     
                     if (List.class.isAssignableFrom(datatype.asJavaClass())) {
@@ -221,9 +218,8 @@ class RecordImpl implements Record {
                     } if (Map.class.isAssignableFrom(datatype.asJavaClass())) {
                         return (T) ImmutableMap.of();
                     }
-                    
-                }
-                
+                }                    
+                */
                 
                 // enum
                 if ((obj != null) && ctx.isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {

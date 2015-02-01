@@ -25,8 +25,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import net.oneandone.troilus.java7.Record;
+
 import com.datastax.driver.core.TupleValue;
-import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 
  
@@ -52,7 +54,7 @@ public abstract class ColumnName<T> {
     }
 
 
-    abstract Optional<T> read(PropertiesSource propertiesSource);
+    abstract T read(Record record);
     
     
     
@@ -258,10 +260,10 @@ public abstract class ColumnName<T> {
             this.type = type;
         }
         
+        @SuppressWarnings("unchecked")
         @Override
-        @SuppressWarnings("unchecked")         
-        Optional<T> read(PropertiesSource propertiesSource) {
-            return (Optional<T>) propertiesSource.read(getName(), (Class<Object>) type);
+        T read(Record record) {
+            return (T) record.getValue(getName(), (Class<Object>) type);
         }
     }
     
@@ -284,10 +286,9 @@ public abstract class ColumnName<T> {
             this.elementType = elementType;
         }
         
-        @SuppressWarnings("unchecked")
         @Override
-        Optional<List<T>> read(PropertiesSource propertiesSource) {
-            return propertiesSource.read(getName(), (Class<Object>) elementType);
+        ImmutableList<T> read(Record record) {
+            return record.getList(getName(), (Class<T>) elementType);
         }
     }
     
@@ -311,10 +312,9 @@ public abstract class ColumnName<T> {
             this.elementType = elementType;
         }
         
-        @SuppressWarnings("unchecked")       
         @Override
-        Optional<Set<T>> read(PropertiesSource propertiesSource) {
-            return propertiesSource.read(getName(), (Class<Object>) elementType);
+        Set<T> read(Record record) {
+            return record.getSet(getName(), (Class<T>) elementType);
         }
     } 
     
@@ -342,10 +342,9 @@ public abstract class ColumnName<T> {
             this.valueType = valueType;
         }
         
-        @SuppressWarnings("unchecked")        
         @Override
-        Optional<Map<T, V>> read(PropertiesSource propertiesSource) {
-            return propertiesSource.read(getName(), (Class<Object>) (Class<Object>) keyType, (Class<Object>) valueType);
+        Map<T,V> read(Record record) {
+            return record.getMap(getName(), (Class<T>) keyType, (Class<V>) valueType);
         }
     } 
 }
