@@ -33,10 +33,10 @@ import com.google.common.collect.ImmutableMap;
 public interface DeleteQueryData {
 
     /**
-     * @param keys  the keys
+     * @param key  the key
      * @return the new delete query data
      */
-    DeleteQueryData keys(ImmutableMap<String, Object> keys);
+    DeleteQueryData key(ImmutableMap<String, Object> key);
 
     /**
      * @param whereConditions the where conditions
@@ -57,9 +57,9 @@ public interface DeleteQueryData {
     DeleteQueryData ifExists(Boolean IfExists);
     
     /**
-     * @return the keys
+     * @return the key
      */
-    ImmutableMap<String, Object> getKeys();
+    ImmutableMap<String, Object> getKey();
 
     /**
      * @return the where conditions

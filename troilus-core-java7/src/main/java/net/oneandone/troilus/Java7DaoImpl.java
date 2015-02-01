@@ -199,7 +199,7 @@ public class Java7DaoImpl implements Dao {
     }
     
     public DeleteQuery deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs));
+        return new DeleteQuery(ctx, new DeleteQueryDataImpl().key(keyNameValuePairs));
     }
     
     @Override

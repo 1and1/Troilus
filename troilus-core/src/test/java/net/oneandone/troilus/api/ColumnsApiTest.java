@@ -655,8 +655,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         record = usersDao.withTracking().readWithKey(UsersTableFields.USER_ID, "45436")
-                .execute()
-                .get();
+                         .withConsistency(ConsistencyLevel.ALL)
+                         .execute()
+                         .get();
         
         Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
         Assert.assertNotNull(record.getExecutionInfo().getQueryTrace());

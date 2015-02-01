@@ -68,7 +68,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     }
     
     @Override
-    public DeleteQueryDataImpl keys(ImmutableMap<String, Object> keyNameValuePairs) {
+    public DeleteQueryDataImpl key(ImmutableMap<String, Object> keyNameValuePairs) {
         return new DeleteQueryDataImpl(keyNameValuePairs, 
                                        this.whereConditions, 
                                        this.onlyIfConditions,
@@ -100,7 +100,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     }
     
     @Override
-    public ImmutableMap<String, Object> getKeys() {
+    public ImmutableMap<String, Object> getKey() {
         return keyNameValuePairs;
     }
 
@@ -140,7 +140,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         if (data.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
-            for (Entry<String, Object> entry : data.getKeys().entrySet()) {
+            for (Entry<String, Object> entry : data.getKey().entrySet()) {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 

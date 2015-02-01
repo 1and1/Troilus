@@ -260,7 +260,7 @@ public class DaoImpl implements Dao {
     }
     
     public Deletion deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().keys(keyNameValuePairs)));      
+        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().key(keyNameValuePairs)));      
     }
     
     
