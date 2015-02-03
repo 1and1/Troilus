@@ -62,80 +62,80 @@ public interface Record extends Result {
      
     /**
      * @param name the column name 
-     * @return the value of column name as a long
+     * @return the value of column name as a long or <code>null<code>
      */
     Long getLong(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a string
+     * @return the value of column name as a string or <code>null<code>
      */
     String getString(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a boolean
+     * @return the value of column name as a boolean or <code>null<code>
      */
     Boolean getBool(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a ByteBuffer
+     * @return the value of column name as a ByteBuffer or <code>null<code>
      */
     ByteBuffer getBytes(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a ByteBuffer. This method always return the bytes composing the value, even if the column is not of type BLOB
+     * @return the value of column name as a ByteBuffer or <code>null<code>. This method always return the bytes composing the value, even if the column is not of type BLOB
      */
     ByteBuffer getBytesUnsafe(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as a float
+     * @return value of column name as a float or <code>null<code>
      */
     Float getFloat(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as a date
+     * @return value of column name as a date or <code>null<code>
      */
     Date getDate(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a dedcimal
+     * @return the value of column name as a dedcimal or <code>null<code>
      */
     BigDecimal getDecimal(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an integer
+     * @return value of column name as an integer or <code>null<code>
      */
     Integer getInt(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an InetAddress
+     * @return value of column name as an InetAddress or <code>null<code>
      */
     InetAddress getInet(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a variable length integer
+     * @return the value of column name as a variable length integer or <code>null<code>
      */
     BigInteger getVarint(String name);
   
   
     /**
      * @param name the column name 
-     * @return the value of column name as a UUID
+     * @return the value of column name as a UUID or <code>null<code>
      */
     UUID getUUID(String name);
    
     /**
      * @param name the column name 
-     * @return the value for column name as a UDT value
+     * @return the value for column name as a UDT value or <code>null<code>
      */
     UDTValue getUDTValue(String name);
     
@@ -144,14 +144,14 @@ public interface Record extends Result {
      * @param name      the column name 
      * @param enumType  the enum type
      * @param <T>       the enum type class
-     * @return the value for column name as an enum value
+     * @return the value for column name as an enum value or <code>null<code>
      */
     <T extends Enum<T>> T getEnum(String name, Class<T> enumType);
         
     /**
      * @param name the column name
      * @param <T>  the name type 
-     * @return the value for column name as an value type according the name definition
+     * @return the value for column name as an value type according the name definition or <code>null<code>
      */
     <T> T getValue(ColumnName<T> name);
    
@@ -159,7 +159,7 @@ public interface Record extends Result {
      * @param name   the column name 
      * @param type   the class for value to retrieve.
      * @param <T>    the result type
-     * @return  the value of column name 
+     * @return  the value of column name or <code>null<code>
      */
     <T> T getValue(String name, Class<T> type);    
     
@@ -167,7 +167,7 @@ public interface Record extends Result {
      * @param name           the column name 
      * @param elementsClass  the class for the elements of the set to retrieve
      * @param <T>            the set member type
-     * @return  the value of column name as a set
+     * @return  the value of column name as a set of an empty Set
      */
     <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass);
          
@@ -175,7 +175,7 @@ public interface Record extends Result {
      * @param name          the column name 
      * @param elementsClass the class for the elements of the list to retrieve
      * @param <T>           the list member type 
-     * @return  the value of column name as a list
+     * @return  the value of column name as a list or an empty List
      */
     <T> ImmutableList<T> getList(String name, Class<T> elementsClass);
     
@@ -185,7 +185,7 @@ public interface Record extends Result {
      * @param valuesClass   the class for the value element
      * @param <K>  the member key type
      * @param <V>  the member key value 
-     * @return  the value of column name as a map
+     * @return  the value of column name as a map or an empty Map
      */
     <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
 }

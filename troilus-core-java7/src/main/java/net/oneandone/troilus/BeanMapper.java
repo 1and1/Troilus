@@ -27,8 +27,10 @@ import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.base.Optional;
@@ -39,7 +41,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
- 
+
 
 /**
  * bean mapper
@@ -350,6 +352,8 @@ class BeanMapper {
                 this.optionalWrapper = new GuavaOptionalWrapper();
                 
             } else if (field.getType().getName().equals("java.util.Optional")) {
+                getActualTypeArgument(field.getType(), 0);
+
                 this.optionalWrapper = new JavaOptionalWrapper();
                 
             } else {
@@ -375,7 +379,13 @@ class BeanMapper {
             
             Optional<Object> wrap(Object obj);
         }
-
+        private static final class NonOptionalWrapper implements OptionalWrapper {
+            
+            public Optional<Object> wrap(Object obj) {
+                return Optional.fromNullable(obj);
+            }
+        }
+        
         
         private static final class GuavaOptionalWrapper implements OptionalWrapper {
             
@@ -390,14 +400,7 @@ class BeanMapper {
         }
 
         
-        private static final class NonOptionalWrapper implements OptionalWrapper {
-            
-            public Optional<Object> wrap(Object obj) {
-                return Optional.fromNullable(obj);
-            }
-        }
         
-
         private static final class JavaOptionalWrapper implements OptionalWrapper {
             
             private final Method meth;
@@ -412,7 +415,8 @@ class BeanMapper {
             
             public Optional<Object> wrap(Object obj) {
                 try {
-                    return Optional.of(meth.invoke(obj));
+                    Object o = meth.invoke(obj);
+                    return Optional.fromNullable(o);
                 } catch (InvocationTargetException | IllegalAccessException |  SecurityException e) {
                     return Optional.absent();
                 }
@@ -532,15 +536,6 @@ class BeanMapper {
             
             Object unwrap(Optional<Object> obj);
         }
-
-        
-        private static final class GuavaOptionalWrapper implements OptionalWrapper {
-            
-            public Object unwrap(Optional<Object> obj) {
-                return obj;
-            }
-        }
-
         
         private static final class NonOptionalWrapper implements OptionalWrapper {
             
@@ -548,7 +543,41 @@ class BeanMapper {
                 return obj.orNull();
             }
         }
+
         
+        private static final class GuavaOptionalWrapper implements OptionalWrapper {
+            
+            public Object unwrap(Optional<Object> obj) {
+                return Optional.fromNullable(emptyToNull(obj.orNull()));
+            }
+        }
+
+        private static Object emptyToNull(Object obj) {
+            if (obj == null) {
+                return null;
+            }
+            
+            if (List.class.isAssignableFrom(obj.getClass())) {
+                if (((List<?>) obj).isEmpty()) {
+                    obj = null;
+                }
+            } else if (Set.class.isAssignableFrom(obj.getClass())) {
+                if (((Set<?>) obj).isEmpty()) {
+                    obj = null;
+                }
+            } else if (Map.class.isAssignableFrom(obj.getClass())) {
+                if (((Map<?, ?>) obj).isEmpty()) {
+                    obj = null;
+                }
+            } else if (byte[].class.isAssignableFrom(obj.getClass())) {
+                if (((byte[]) obj).length == 0) {
+                    obj = null;
+                }
+            }
+            
+            return obj;
+        }
+
 
         private static final class JavaOptionalWrapper implements OptionalWrapper {
             
@@ -565,7 +594,8 @@ class BeanMapper {
             @Override
             public Object unwrap(Optional<Object> obj) { 
                 try {
-                    return meth.invoke(null, obj.orNull());
+                    Object o = emptyToNull(obj.orNull());
+                    return meth.invoke(null, o);
                 } catch (InvocationTargetException | IllegalAccessException |  SecurityException e) {
                     throw new RuntimeException(e);
                 }

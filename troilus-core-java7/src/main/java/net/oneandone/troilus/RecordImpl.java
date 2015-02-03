@@ -208,19 +208,6 @@ class RecordImpl implements Record {
                     obj = datatype.deserialize(byteBuffer, ctx.getDbSession().getProtocolVersion());
                 }
             
-                /* remove me
-                if ((obj == null) & datatype.isCollection()) {
-                    
-                    if (List.class.isAssignableFrom(datatype.asJavaClass())) {
-                        return (T) ImmutableList.of();
-                    } else if (Set.class.isAssignableFrom(datatype.asJavaClass())) {
-                        return (T) ImmutableSet.of();
-                    } if (Map.class.isAssignableFrom(datatype.asJavaClass())) {
-                        return (T) ImmutableMap.of();
-                    }
-                }                    
-                */
-                
                 // enum
                 if ((obj != null) && ctx.isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {
                     return (T) Enum.valueOf((Class<Enum>) elementsClass, obj.toString());

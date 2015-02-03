@@ -166,9 +166,16 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         
 
         
-        userDao.writeEntity(new User("452324234234", "bertra", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("452324234234", "bertra", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), null, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
+        
+        usr = userDao.readWithKey("user_id", "452324234234")   
+                     .asEntity(User.class)
+                     .execute()
+                     .get();
+            
+        Assert.assertFalse(usr.getSecId().isPresent());
     }        
 }
 

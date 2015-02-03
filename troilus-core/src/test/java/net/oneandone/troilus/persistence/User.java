@@ -68,7 +68,7 @@ public class User {
         this.name = name;
         this.isCustomer = Optional.of(isCustomer);
         this.picture = Optional.of(picture);
-        this.secId = Optional.of(secId);
+        this.secId = Optional.ofNullable(secId);
         this.modified = modified;
         this.phoneNumbers = phoneNumbers;
         this.addresses = addresses;
