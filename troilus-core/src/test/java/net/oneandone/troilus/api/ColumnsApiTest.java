@@ -137,6 +137,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(optionalRecord.isPresent());
         optionalRecord.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class)));
         System.out.println(optionalRecord.get());
+     
+        
+        
         
         
         
@@ -675,8 +678,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         usersDao.writeWithKey(UsersTable.USER_ID, "23452342342")
                 .value(UsersTable.IS_CUSTOMER, true) 
-               // .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 8, 4, 3})) 
-               // .value(UsersTable.ADDRESSES, ImmutableList.of("stuttgart", "baden-baden")) 
                 .execute();
 
         record = usersDao.readWithKey(UsersTableFields.USER_ID, "23452342342")
@@ -686,7 +687,20 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).isEmpty());
         Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).isEmpty());
         Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE));
-      }        
+        Assert.assertNull(record.getValue(UsersTableFields.USER_TYPE));
+        
+        
+        
+        record = usersDao.readWithKey(UsersTableFields.USER_ID, "23452342342")
+                         .column(UsersTable.USER_TYPE)
+                         .execute()
+                         .get();
+
+        try {
+            Assert.assertNull(record.getBool(UsersTableFields.IS_CUSTOMER.getName()));
+            Assert.fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException expected) { }
+    }        
 }
 
 
