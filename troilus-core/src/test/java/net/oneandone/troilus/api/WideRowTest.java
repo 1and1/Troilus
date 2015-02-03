@@ -56,7 +56,7 @@ public class WideRowTest extends AbstractCassandraBasedTest {
                                                  .execute();
         Assert.assertTrue(optionalRecord.isPresent());
         
-        Map<String, Integer> keys = (Map<String, Integer>) optionalRecord.get().getMap(IdsTable.IDS, String.class, Integer.class).get();
+        Map<String, Integer> keys = (Map<String, Integer>) optionalRecord.get().getMap(IdsTable.IDS, String.class, Integer.class);
         Assert.assertEquals(23, (int) keys.get("ID_433433"));        
         Assert.assertEquals(556,(int) keys.get("ID_33434443"));
     }        

@@ -59,15 +59,15 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
     @Override
     public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> optionalRecord) {
 
-        if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
-            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id").get())
+        if (optionalRecord.isPresent() && (optionalRecord.get().getString("device_id") != null)) {
+            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id"))
                             .column("phone_numbers")
                             .withConsistency(ConsistencyLevel.ONE)
                             .executeAsync()
                             .thenApply(optionalRec -> {
                                                         optionalRec.ifPresent(rec -> {
-                                                            Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                            if (set.isPresent() && !set.get().contains(queryData.getKey().get("number"))) {
+                                                            ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
+                                                            if (!set.isEmpty() && !set.contains(queryData.getKey().get("number"))) {
                                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
                                                             }
                                                         });

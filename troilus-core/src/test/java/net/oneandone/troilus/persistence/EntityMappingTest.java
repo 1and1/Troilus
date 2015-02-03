@@ -91,11 +91,11 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
                                           .iterator();
         
         Record record = records.next();
-        Assert.assertEquals("4454", record.getString("user_Id").get());
-        Assert.assertEquals(true, record.getBool("is_customer").get());
-        Assert.assertNotNull(record.getLong("modified").get());
-        Assert.assertTrue(record.getSet("phone_numbers", String.class).get().contains("12313241243"));
-        Assert.assertArrayEquals(new byte[] { 6, 7, 8}, record.getValue("picture", byte[].class).get());
+        Assert.assertEquals("4454", record.getString("user_Id"));
+        Assert.assertEquals(true, record.getBool("is_customer"));
+        Assert.assertNotNull(record.getLong("modified"));
+        Assert.assertTrue(record.getSet("phone_numbers", String.class).contains("12313241243"));
+        Assert.assertArrayEquals(new byte[] { 6, 7, 8}, record.getValue("picture", byte[].class));
         Assert.assertFalse(records.hasNext());
         
         
@@ -122,8 +122,8 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         Record user = userDao.readWithKey("user_id", "4454")   
                              .execute()
                              .get();
-        Assert.assertEquals("eric", user.getString(UsersTable.NAME).get());
-        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED).get());
+        Assert.assertEquals("eric", user.getString(UsersTable.NAME));
+        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED));
         Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
         
         
@@ -137,10 +137,10 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
         user = userDao.readWithKey("user_id", "4454")   
                       .execute()
                       .get(); 
-        Assert.assertFalse(user.getString(UsersTable.NAME).isPresent());
-        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED).get());
-        Assert.assertTrue(user.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
-        Assert.assertTrue(user.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12313241243"));
+        Assert.assertNull(user.getString(UsersTable.NAME));
+        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED));
+        Assert.assertTrue(user.getList(UsersTable.ADDRESSES, String.class).isEmpty());
+        Assert.assertTrue(user.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("12313241243"));
 
 
         

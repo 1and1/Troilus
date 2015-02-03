@@ -102,7 +102,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
                               .executeAsync()
                               .thenApply(optionalRecord -> optionalRecord.<RuntimeException>orElseThrow(RuntimeException::new))
                               .get();   // waits for completion;
-        Assert.assertEquals((Integer) 1223, record.getInt(FeesTable.AMOUNT).get());
+        Assert.assertEquals((Integer) 1223, record.getInt(FeesTable.AMOUNT));
     }        
 }
 

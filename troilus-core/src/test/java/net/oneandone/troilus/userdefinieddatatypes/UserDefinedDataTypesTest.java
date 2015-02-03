@@ -63,13 +63,13 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
                                     .execute()
                                     .get();
         
-        Assert.assertEquals("peter", record.getString(CustomersTable.NAME).get());
-        Assert.assertTrue(record.getSet(CustomersTable.PHONE_NUMBERS, String.class).get().contains("454545"));       
-        Assert.assertEquals("e33", record.getMap(CustomersTable.ROLES, String .class, String.class).get().get("employee"));
-        Assert.assertEquals("brauerstrasse", record.getValue(CustomersTable.CURRENT_ADDRESS, Addr.class).get().getLines().get(0).getLine());
-        Assert.assertEquals("frankfurter ring", record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).get().iterator().next().getLines().get(0).getLine());
-        Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get().get(new Classifier("reliability")).getScore());
-        Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get().get(5).getScore());
+        Assert.assertEquals("peter", record.getString(CustomersTable.NAME));
+        Assert.assertTrue(record.getSet(CustomersTable.PHONE_NUMBERS, String.class).contains("454545"));       
+        Assert.assertEquals("e33", record.getMap(CustomersTable.ROLES, String .class, String.class).get("employee"));
+        Assert.assertEquals("brauerstrasse", record.getValue(CustomersTable.CURRENT_ADDRESS, Addr.class).getLines().get(0).getLine());
+        Assert.assertEquals("frankfurter ring", record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).iterator().next().getLines().get(0).getLine());
+        Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get(new Classifier("reliability")).getScore());
+        Assert.assertEquals((Integer) 23, record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get(5).getScore());
         
         
         
@@ -83,13 +83,13 @@ public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
         record = customersDao.readWithKey(CustomersTable.ID, "4563434434")
                              .execute()
                              .get();
-        Assert.assertTrue(record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).get().isEmpty());
-        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).get().isEmpty());
-        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).get().isEmpty());
+        Assert.assertTrue(record.getSet(CustomersTable.OLD_ADDRESSES, Addr.class).isEmpty());
+        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION, Classifier.class, Score.class).isEmpty());
+        Assert.assertTrue(record.getMap(CustomersTable.CLASSIFICATION2, Integer.class, Score.class).isEmpty());
         
-        Assert.assertTrue(record.getValue(ColumnName.defineSet("old_addresses", Addr.class)).get().isEmpty());
-        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Classifier.class, Score.class)).get().isEmpty());
-        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Integer.class, Score.class)).get().isEmpty());
+        Assert.assertTrue(record.getValue(ColumnName.defineSet("old_addresses", Addr.class)).isEmpty());
+        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Classifier.class, Score.class)).isEmpty());
+        Assert.assertTrue(record.getValue(ColumnName.defineMap("classification", Integer.class, Score.class)).isEmpty());
     }               
 }
 

@@ -100,10 +100,10 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                  .columnWithMetadata(HotelsTable.DESCRIPTION)
                                  .execute()
                                  .get();
-        Assert.assertTrue(record.getWritetime(HotelsTable.DESCRIPTION).isPresent());
-        Assert.assertFalse(record.getWritetime(HotelsTable.NAME).isPresent());
-        Assert.assertTrue(record.getTtl(HotelsTable.DESCRIPTION).isPresent());
-        Assert.assertFalse(record.getTtl(HotelsTable.NAME).isPresent());
+        Assert.assertNotNull(record.getWritetime(HotelsTable.DESCRIPTION));
+        Assert.assertNull(record.getWritetime(HotelsTable.NAME));
+        Assert.assertNotNull(record.getTtl(HotelsTable.DESCRIPTION));
+        Assert.assertNull(record.getTtl(HotelsTable.NAME));
         
         
         
@@ -209,8 +209,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .get();
         
         Assert.assertNotNull(record.getValue("address", Address.class));
-        Assert.assertEquals("TWO",  record.getString("classification").get());
-        Assert.assertEquals("Budapest", record.getValue("address", Address.class).get().getCity());
+        Assert.assertEquals("TWO",  record.getString("classification"));
+        Assert.assertEquals("Budapest", record.getValue("address", Address.class).getCity());
 
 
         
@@ -240,8 +240,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .column(HotelsTable.DESCRIPTION)
                           .execute()
                           .get();
-        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
-        Assert.assertEquals("The City Budapest is in the business district on the Pest side of the river.", record.getString(HotelsTable.DESCRIPTION).get());
+        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME));
+        Assert.assertEquals("The City Budapest is in the business district on the Pest side of the river.", record.getString(HotelsTable.DESCRIPTION));
                
         
         
@@ -257,9 +257,9 @@ public class HotelTest extends AbstractCassandraBasedTest {
                           .execute()
                           .get();
         
-        Assert.assertEquals(ClassifierEnum.FOUR.toString(), record.getString(HotelsTable.CLASSIFICATION).get());
-        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME).get());
-        Assert.assertFalse(record.getString(HotelsTable.DESCRIPTION).isPresent());
+        Assert.assertEquals(ClassifierEnum.FOUR.toString(), record.getString(HotelsTable.CLASSIFICATION));
+        Assert.assertEquals("City Budapest", record.getString(HotelsTable.NAME));
+        Assert.assertNull(record.getString(HotelsTable.DESCRIPTION));
         
         
         hotelsDao.writeWithKey(HotelsTable.ID, "BUP932432")
@@ -276,7 +276,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
 
-        Assert.assertEquals("Budapest City", record.getString(HotelsTable.NAME).get());
+        Assert.assertEquals("Budapest City", record.getString(HotelsTable.NAME));
     
         
 
@@ -295,7 +295,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
 
-        Assert.assertEquals(ClassifierEnum.FOUR, record.getEnum(HotelsTable.CLASSIFICATION, ClassifierEnum.class).get());
+        Assert.assertEquals(ClassifierEnum.FOUR, record.getEnum(HotelsTable.CLASSIFICATION, ClassifierEnum.class));
         
         
         
@@ -364,10 +364,10 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                  .execute()
                                  .get();
         
-        Assert.assertEquals("Korona", record.getValue(NAME).get());
-        Assert.assertEquals(ClassifierEnum.FOUR, record.getValue(CLASSIFICATION).get());
-        Assert.assertTrue(record.getValue(ROOM_IDS).get().contains("8"));
-        Assert.assertEquals("Budapest", record.getValue(ADDRESS).get().getCity());
+        Assert.assertEquals("Korona", record.getValue(NAME));
+        Assert.assertEquals(ClassifierEnum.FOUR, record.getValue(CLASSIFICATION));
+        Assert.assertTrue(record.getValue(ROOM_IDS).contains("8"));
+        Assert.assertEquals("Budapest", record.getValue(ADDRESS).getCity());
 
         
         
@@ -375,8 +375,8 @@ public class HotelTest extends AbstractCassandraBasedTest {
                                                    .column(NAME)
                                                    .column(CLASSIFICATION)
                                                    .execute();
-        optionalRecord.ifPresent(rec -> rec.getValue(NAME).ifPresent(name -> System.out.println(name)));
-        optionalRecord.ifPresent(rec -> rec.getValue(CLASSIFICATION).ifPresent(classification -> System.out.println(classification)));
+        optionalRecord.ifPresent(rec -> System.out.println(rec.getValue(NAME)));
+        optionalRecord.ifPresent(rec -> System.out.println(rec.getValue(CLASSIFICATION)));
 
     }
                 

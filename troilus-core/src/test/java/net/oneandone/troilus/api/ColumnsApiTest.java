@@ -135,7 +135,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                                   .column(UsersTable.PHONE_NUMBERS)
                                                   .execute();
         Assert.assertTrue(optionalRecord.isPresent());
-        optionalRecord.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class).get()));
+        optionalRecord.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class)));
         System.out.println(optionalRecord.get());
         
         
@@ -144,7 +144,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                                                    .columns(UsersTable.PICTURE, UsersTable.ADDRESSES, UsersTable.PHONE_NUMBERS)
                                                    .execute();
         Assert.assertTrue(optionalRecord2.isPresent());
-        optionalRecord2.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class).get()));
+        optionalRecord2.ifPresent(record -> System.out.println(record.getList(UsersTable.ADDRESSES, String.class)));
 
  
         
@@ -215,10 +215,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         Record record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                                 .execute()
                                 .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertEquals(true, record.getBool(UsersTable.IS_CUSTOMER).get());
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertEquals(true, record.getBool(UsersTable.IS_CUSTOMER));
         
-        Iterator<String> phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().iterator();
+        Iterator<String> phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).iterator();
         Assert.assertEquals("24234244", phoneNumbers.next());
         Assert.assertFalse(phoneNumbers.hasNext());
         
@@ -232,7 +232,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 1l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 1l, record.getLong(LoginsTable.LOGINS));
         
         
         loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
@@ -242,7 +242,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS));
 
         
         
@@ -253,7 +253,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS));
 
 
         
@@ -266,7 +266,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 3l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 3l, record.getLong(LoginsTable.LOGINS));
 
 
 
@@ -280,7 +280,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS));
 
 
         
@@ -293,7 +293,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 1l, record.getLong(PlusLoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 1l, record.getLong(PlusLoginsTable.LOGINS));
         
         
         
@@ -312,12 +312,12 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
                 .execute()
                 .get();
-        Assert.assertEquals((Long) 2l, record.getLong(PlusLoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 2l, record.getLong(PlusLoginsTable.LOGINS));
 
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                 .execute()
                 .get();
-        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS).get());
+        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS));
 
 
         
@@ -336,10 +336,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
 
-        phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().iterator();
+        phoneNumbers = record.getSet(UsersTable.PHONE_NUMBERS, String.class).iterator();
         Assert.assertEquals("24234244", phoneNumbers.next());
         Assert.assertFalse(phoneNumbers.hasNext());
         
@@ -366,7 +366,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        Iterator<String> addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Iterator<String> addresses= record.getList(UsersTable.ADDRESSES, String.class).iterator();
         Assert.assertEquals("berlin", addresses.next());
         Assert.assertEquals("budapest", addresses.next());
         Assert.assertFalse(addresses.hasNext());        
@@ -382,7 +382,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        addresses= record.getList(UsersTable.ADDRESSES, String.class).iterator();
         Assert.assertEquals("nürnberg", addresses.next());
         Assert.assertFalse(addresses.hasNext());   
         
@@ -398,7 +398,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        addresses= record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        addresses= record.getList(UsersTable.ADDRESSES, String.class).iterator();
         Assert.assertEquals("berlin", addresses.next());
         Assert.assertEquals("budapest", addresses.next());
         Assert.assertFalse(addresses.hasNext());        
@@ -441,10 +441,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                 .execute()
                 .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertTrue(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
-        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().isEmpty());
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertTrue(record.getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertFalse(record.getList(UsersTable.ADDRESSES, String.class).isEmpty());
+        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).isEmpty());
         
 
 
@@ -461,9 +461,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).isEmpty());
 
         
         
@@ -476,9 +476,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("12142343"));
         
         
         
@@ -492,10 +492,10 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
-        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("12142343"));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("23234234"));
         
         
         // remove set value
@@ -507,11 +507,11 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("12142343"));
-        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).get().contains("23234234"));
-        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).get().isEmpty());
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertFalse(record.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("12142343"));
+        Assert.assertTrue(record.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("23234234"));
+        Assert.assertTrue(record.getList(UsersTable.ADDRESSES, String.class).isEmpty());
         
         
         
@@ -525,9 +525,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        Iterator<String> addrIt = record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        Iterator<String> addrIt = record.getList(UsersTable.ADDRESSES, String.class).iterator();
         Assert.assertEquals("bonn", addrIt.next());
         Assert.assertEquals("stuttgart", addrIt.next());
         Assert.assertFalse(addrIt.hasNext());
@@ -550,9 +550,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER).get());
-        addrIt = record.getList(UsersTable.ADDRESSES, String.class).get().iterator();
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertFalse(record.getBool(UsersTable.IS_CUSTOMER));
+        addrIt = record.getList(UsersTable.ADDRESSES, String.class).iterator();
         Assert.assertEquals("ulm", addrIt.next());
         Assert.assertEquals("neustadt", addrIt.next());
         Assert.assertEquals("bern", addrIt.next());
@@ -576,8 +576,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID).get());
-        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("customer"));
+        Assert.assertEquals("8345345", record.getString(UsersTable.USER_ID));
+        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get("customer"));
         
         
         
@@ -590,9 +590,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = usersDao.readWithKey(UsersTable.USER_ID, "8345345")
                          .execute()
                          .get();
-        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("customer"));
-        Assert.assertEquals("p14334", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("player_type1"));
-        Assert.assertEquals("p233", record.getMap(UsersTable.ROLES, String.class, String.class).get().get("player_type2"));
+        Assert.assertEquals("xe333", record.getMap(UsersTable.ROLES, String.class, String.class).get("customer"));
+        Assert.assertEquals("p14334", record.getMap(UsersTable.ROLES, String.class, String.class).get("player_type1"));
+        Assert.assertEquals("p233", record.getMap(UsersTable.ROLES, String.class, String.class).get("player_type2"));
 
 
         
@@ -622,13 +622,13 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        Assert.assertEquals("343434", record.getValue(UsersTableFields.USER_ID).get());
-        Assert.assertTrue(record.getValue(UsersTableFields.IS_CUSTOMER).isPresent());
-        Assert.assertFalse(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("12142343"));
-        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().contains("34324543"));
-        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().contains("karlsruhe"));
-        Assert.assertEquals("xe333", record.getValue(UsersTableFields.ROLES).get().get("customer"));
-        Assert.assertArrayEquals(new byte[] { 4, 5, 5}, record.getValue(UsersTableFields.PICTURE).get());
+        Assert.assertEquals("343434", record.getValue(UsersTableFields.USER_ID));
+        Assert.assertNotNull(record.getValue(UsersTableFields.IS_CUSTOMER));
+        Assert.assertFalse(record.getValue(UsersTableFields.PHONE_NUMBERS).contains("12142343"));
+        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).contains("34324543"));
+        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).contains("karlsruhe"));
+        Assert.assertEquals("xe333", record.getValue(UsersTableFields.ROLES).get("customer"));
+        Assert.assertArrayEquals(new byte[] { 4, 5, 5}, record.getValue(UsersTableFields.PICTURE));
         
         
         
@@ -650,7 +650,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
         
-        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE));
         
         
         
@@ -659,7 +659,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                          .execute()
                          .get();
         
-        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE));
         Assert.assertNotNull(record.getExecutionInfo().getQueryTrace());
   //      Assert.assertTrue(record.toString().contains("Merging memtable tombstones"));
         
@@ -668,7 +668,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                          .execute()
                          .get();
         
-        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE).get());
+        Assert.assertEquals(UserType.METAL, record.getValue(UsersTableFields.USER_TYPE));
         Assert.assertNull(record.getExecutionInfo().getQueryTrace());
         
         
@@ -683,9 +683,9 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .execute()
                 .get();
 
-        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).get().isEmpty());
-        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).get().isEmpty());
-        Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE).get());
+        Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).isEmpty());
+        Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).isEmpty());
+        Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE));
       }        
 }
 

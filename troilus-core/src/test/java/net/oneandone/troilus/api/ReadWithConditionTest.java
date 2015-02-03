@@ -92,8 +92,8 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
                                           .execute()
                                           .iterator();
         
-        Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER).get());
-        Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER).get());
+        Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER));
+        Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER));
         Assert.assertFalse(records.hasNext());
         
 

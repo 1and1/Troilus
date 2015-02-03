@@ -273,7 +273,7 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey("id", "BUP14334")
                                            .column("name")
                                            .withConsistency(ConsistencyLevel.LOCAL_ONE)
                                            .execute();
-optionalRecord.ifPresent(record -> record.getString("name").ifPresent(name -> System.out.println(name)));
+optionalRecord.ifPresent(record -> System.out.println(record.getString("name")));
 ```        
 
 Read a row in a column-oriented way with `Name` definitions. 
@@ -284,10 +284,8 @@ Optional<Record> optionalRecord = hotelsDao.readWithKey(ID, "BUP3443")
                                            .column(NAME)
                                            .column(CLASSIFICATION)
                                            .execute();
-optionalRecord.ifPresent(record -> record.getValue(NAME).
-
-Present(name -> System.out.println(name)));
-optionalRecord.ifPresent(record -> record.getValue(CLASSIFICATION).ifPresent(classification -> System.out.println(classification)));
+optionalRecord.ifPresent(record -> System.out.println(record.getValue(NAME)));
+optionalRecord.ifPresent(record -> System.out.println(record.getValue(CLASSIFICATION)));
 ```        
 
 
@@ -315,7 +313,7 @@ Record record = hotelsDao.readWithKey("id", "BUP14334")
                          .execute()
                          .get();
                                            
-record.getTtl("description").ifPresent(ttl -> System.out.println("ttl=" + ttl)));
+System.out.println("ttl=" + record.getTtl("description")));
 ```        
 
   
@@ -650,15 +648,15 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
     @Override
     public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> optionalRecord) {
 
-        if (optionalRecord.isPresent() && optionalRecord.get().getString("device_id").isPresent()) {
-            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id").get())
+        if (optionalRecord.isPresent() && (optionalRecord.get().getString("device_id") != null)) {
+            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id"))
                             .column("phone_numbers")
                             .withConsistency(ConsistencyLevel.ONE)
                             .executeAsync()
                             .thenApply(optionalRec -> {
                                                         optionalRec.ifPresent(rec -> {
-                                                            Optional<ImmutableSet<String>> set = rec.getSet("phone_numbers", String.class);
-                                                            if (set.isPresent() && !set.get().contains(queryData.getKey().get("number"))) {
+                                                            ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
+                                                            if (!set.isEmpty() && !set.get().contains(queryData.getKey().get("number"))) {
                                                                 throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
                                                             }
                                                         });

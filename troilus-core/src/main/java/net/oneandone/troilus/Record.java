@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 import net.oneandone.troilus.ColumnName;
@@ -48,13 +47,13 @@ public interface Record extends Result {
      * @param name  the column name 
      * @return the write time of this column or empty if no write time was requested
      */
-    Optional<Long> getWritetime(String name);
+    Long getWritetime(String name);
     
     /**
      * @param name  the column name 
      * @return the ttl of this column or empty if no ttl was requested or <code>null</code>
      */
-    Optional<Duration> getTtl(String name);
+    Duration getTtl(String name);
     
     /**
      * @param name  the column name 
@@ -67,86 +66,86 @@ public interface Record extends Result {
      * @param name the column name 
      * @return the value of column name as a long
      */
-    Optional<Long> getLong(String name);
+    Long getLong(String name);
     
     /**
      * @param name the column name 
      * @return the value of column name as a string
      */
-    Optional<String> getString(String name);
+    String getString(String name);
     
     /**
      * @param name the column name 
      * @return the value of column name as a boolean
      */
-    Optional<Boolean> getBool(String name);
+    Boolean getBool(String name);
     
     /**
      * @param name the column name 
      * @return the value of column name as a ByteBuffer
      */
-    Optional<ByteBuffer> getBytes(String name);
+    ByteBuffer getBytes(String name);
      
     /**
      * @param name the column name 
      * @return the value of column name as a ByteBuffer. This method always return the bytes composing the value, even if the column is not of type BLOB
      */
-    Optional<ByteBuffer> getBytesUnsafe(String name);
+    ByteBuffer getBytesUnsafe(String name);
     
     /**
      * @param name the column name 
      * @return value of column name as a float
      */
-    Optional<Float> getFloat(String name);
+    Float getFloat(String name);
     
     /**
      * @param name the column name 
      * @return value of column name as a date
      */
-    Optional<Date> getDate(String name);
+    Date getDate(String name);
      
     /**
      * @param name the column name 
      * @return the value of column name as a dedcimal
      */
-    Optional<BigDecimal> getDecimal(String name);
+    BigDecimal getDecimal(String name);
     
     /**
      * @param name the column name 
      * @return value of column name as an integer
      */
-    Optional<Integer> getInt(String name);
+    Integer getInt(String name);
     
     /**
      * @param name the column name 
      * @return value of column name as an InetAddress
      */
-    Optional<InetAddress> getInet(String name);
+    InetAddress getInet(String name);
      
     /**
      * @param name the column name 
      * @return the value of column name as a variable length integer
      */
-    Optional<BigInteger> getVarint(String name);
+    BigInteger getVarint(String name);
   
   
     /**
      * @param name the column name 
      * @return the value of column name as a UUID
      */
-    Optional<UUID> getUUID(String name);
+    UUID getUUID(String name);
    
     /**
      * @param name the column name 
      * @return the value for column name as a UDT value
      */
-    Optional<UDTValue> getUDTValue(String name);
+    UDTValue getUDTValue(String name);
     
     /**
      * @param name the column name 
      * @return the value for column name as an Instant value
      */
-    Optional<Instant> getInstant(String name);
+    Instant getInstant(String name);
     
     /**
      * @param name      the column name 
@@ -154,14 +153,14 @@ public interface Record extends Result {
      * @param <T> the enum type class
      * @return the value for column name as an enum value
      */
-    <T extends Enum<T>> Optional<T> getEnum(String name, Class<T> enumType);
+    <T extends Enum<T>> T getEnum(String name, Class<T> enumType);
         
     /**
      * @param name the column name 
      * @param <T> the name type
      * @return the value for column name as an value type according the name definition
      */
-    <T> Optional<T> getValue(ColumnName<T> name);
+    <T> T getValue(ColumnName<T> name);
    
     /**
      * @param name   the column name 
@@ -169,7 +168,7 @@ public interface Record extends Result {
      * @param <T>  the object type
      * @return  the value of column name 
      */
-    <T> Optional<T> getValue(String name, Class<T> type);    
+    <T> T getValue(String name, Class<T> type);    
     
     /**
      * @param name           the column name 
@@ -177,7 +176,7 @@ public interface Record extends Result {
      * @param <T>  the element type
      * @return  the value of column name as a set
      */
-    <T> Optional<ImmutableSet<T>> getSet(String name, Class<T> elementsClass);
+    <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass);
          
     /**
      * @param name          the column name 
@@ -185,7 +184,7 @@ public interface Record extends Result {
      * @param <T> the element type
      * @return  the value of column name as a list
      */
-    <T> Optional<ImmutableList<T>> getList(String name, Class<T> elementsClass);
+    <T> ImmutableList<T> getList(String name, Class<T> elementsClass);
     
     /**
      * @param name          the column name 
@@ -195,5 +194,5 @@ public interface Record extends Result {
      * @param <V> the member value type
      * @return  the value of column name as a map
      */
-    <K, V> Optional<ImmutableMap<K, V>> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
+    <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass);
 }

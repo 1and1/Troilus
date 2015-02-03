@@ -77,12 +77,12 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
         usersDao.readWithKey("user_id", "34334234234")
                 .execute();
         Assert.assertEquals("34334234234", singleReadRequestInterceptor.getQueryData().getKey().get("user_id"));
-        Assert.assertEquals("tom", singleReadResponseInterceptor.getRecord().get().getString("name").get());
+        Assert.assertEquals("tom", singleReadResponseInterceptor.getRecord().get().getString("name"));
 
         usersDao.readWhere(QueryBuilder.in("user_id", "34334234234"))
                 .execute();
         Assert.assertTrue(listReadRequestInterceptor.getQueryData().getWhereConditions().size() > 0);
-        Assert.assertEquals("tom", listReadResponseInterceptor.getRecord().iterator().next().getString("name").get());
+        Assert.assertEquals("tom", listReadResponseInterceptor.getRecord().iterator().next().getString("name"));
 
 
         
