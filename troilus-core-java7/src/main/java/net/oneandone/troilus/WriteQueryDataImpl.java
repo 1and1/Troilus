@@ -345,6 +345,17 @@ class WriteQueryDataImpl implements WriteQueryData {
      * @return the query data as statement
      */
     static Statement toStatement(WriteQueryData data, Context ctx) {
+        
+        if (isKeyOnlyStatement(data)) {
+            Map<String, Optional<Object>> valuesToMUtate = Maps.newHashMap();
+            for (Entry<String, Object> entry : data.getKeys().entrySet()) {
+                valuesToMUtate.put(entry.getKey(), Optional.of(entry.getValue()));
+            }
+            
+            data = data.valuesToMutate(ImmutableMap.copyOf(valuesToMUtate)).keys(ImmutableMap.<String, Object>of());
+        }
+        
+        
         if ((data.getIfNotExits() != null) || (data.getKeys().isEmpty() && data.getWhereConditions().isEmpty())) {
             return toInsertStatement(data, ctx);
         } else {
@@ -382,7 +393,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     
-    private static Statement toUpdateStatement(WriteQueryData data,Context ctx) {
+    private static Statement toUpdateStatement(WriteQueryData data, Context ctx) {
         com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
         
         
@@ -481,6 +492,17 @@ class WriteQueryDataImpl implements WriteQueryData {
                         
             return update;
         }
+    }
+    
+    
+    private static boolean isKeyOnlyStatement(WriteQueryData data) {
+        return data.getListValuesToAppend().isEmpty() && 
+               data.getListValuesToPrepend().isEmpty() &&
+               data.getListValuesToRemove().isEmpty() &&
+               data.getMapValuesToMutate().isEmpty() &&
+               data.getSetValuesToAdd().isEmpty() &&
+               data.getSetValuesToRemove().isEmpty() &&
+               data.getValuesToMutate().isEmpty();
     }
     
 

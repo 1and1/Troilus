@@ -20,6 +20,7 @@ package net.oneandone.troilus;
 import java.io.IOException;
 
 import net.oneandone.troilus.api.FeesTable;
+import net.oneandone.troilus.api.HistoryTable;
 import net.oneandone.troilus.api.IdsTable;
 import net.oneandone.troilus.api.LoginsTable;
 import net.oneandone.troilus.api.PlusLoginsTable;
@@ -103,6 +104,7 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(CustomersTable.CREATE_STMT);
         session.execute(DeviceTable.CREATE_STMT);
         session.execute(PhonenumbersTable.CREATE_STMT);
+        session.execute(HistoryTable.CREATE_STMT);
     }
     
     
