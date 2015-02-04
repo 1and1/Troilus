@@ -700,6 +700,13 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
             Assert.assertNull(record.getBool(UsersTableFields.IS_CUSTOMER.getName()));
             Assert.fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException expected) { }
+        
+        
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "5553344")
+                .value(UsersTable.IS_CUSTOMER, true) 
+                .withTtl(Duration.ofSeconds(1))
+                .execute();
     }        
 }
 

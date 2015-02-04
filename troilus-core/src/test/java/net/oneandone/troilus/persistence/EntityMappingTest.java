@@ -17,6 +17,7 @@ package net.oneandone.troilus.persistence;
 
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -176,6 +177,13 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
                      .get();
             
         Assert.assertFalse(usr.getSecId().isPresent());
+        
+        
+        
+        userDao.writeEntity(new User("3432424234", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+               .ifNotExists()
+               .withTtl(Duration.ofSeconds(11))
+               .execute();
     }        
 }
 

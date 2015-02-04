@@ -395,6 +395,12 @@ class WriteQueryDataImpl implements WriteQueryData {
         if (data.getWhereConditions().isEmpty()) {
             List<Object> values = Lists.newArrayList();
             
+            
+            if (ctx.getTtlSec() != null) {
+                update.using(QueryBuilder.ttl(bindMarker())); 
+                values.add((Integer) ctx.getTtlSec()); 
+            }
+            
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
                 update.with(set(entry.getKey(), bindMarker())); 
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue().orNull()));
@@ -433,10 +439,7 @@ class WriteQueryDataImpl implements WriteQueryData {
                 values.add(toStatementValue(ctx, entry.getKey(), entry.getValue())); 
             }
             
-            if (ctx.getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add((Integer) ctx.getTtlSec()); 
-            }
+   
             
             return ctx.getDbSession().prepare(update).bind(values.toArray());
 
