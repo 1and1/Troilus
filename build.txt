@@ -7,6 +7,7 @@ mvn release:prepare -DpushChanges=false
 
 RELEASE
 mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true -Dlicense.skip=true"
+// -Dadditionalparam=-Xdoclint:none
 
 STAGING REPO
 https://oss.sonatype.org/#stagingRepositories

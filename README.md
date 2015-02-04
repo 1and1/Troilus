@@ -18,9 +18,9 @@ The main features of Troilus are
 Java8-based
 ``` java
 <dependency>
-	<groupId>net.oneandone</groupId>
+	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core</artifactId>
-	<version>0.4</version>
+	<version>0.5</version>
 </dependency>
 ```
 
@@ -28,9 +28,9 @@ Java8-based
 Java7-based
 ``` java
 <dependency>
-	<groupId>net.oneandone</groupId>
+	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core-java7</artifactId>
-	<version>0.4</version>
+	<version>0.5</version>
 </dependency>
 ```
 
