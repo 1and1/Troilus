@@ -235,7 +235,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 1l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(1, record.getLong(LoginsTable.LOGINS));
         
         
         loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
@@ -245,7 +245,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(5, record.getLong(LoginsTable.LOGINS));
 
         
         
@@ -256,7 +256,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(4, record.getLong(LoginsTable.LOGINS));
 
 
         
@@ -269,7 +269,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 3l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(3, record.getLong(LoginsTable.LOGINS));
 
 
 
@@ -283,7 +283,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 4l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(4, record.getLong(LoginsTable.LOGINS));
 
 
         
@@ -296,7 +296,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
                           .execute()
                           .get();
-        Assert.assertEquals((Long) 1l, record.getLong(PlusLoginsTable.LOGINS));
+        Assert.assertEquals(1, record.getLong(PlusLoginsTable.LOGINS));
         
         
         
@@ -315,12 +315,12 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         record = plusLoginsDao.readWithKey(PlusLoginsTable.USER_ID, "8345345")
                 .execute()
                 .get();
-        Assert.assertEquals((Long) 2l, record.getLong(PlusLoginsTable.LOGINS));
+        Assert.assertEquals(2, record.getLong(PlusLoginsTable.LOGINS));
 
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
                 .execute()
                 .get();
-        Assert.assertEquals((Long) 5l, record.getLong(LoginsTable.LOGINS));
+        Assert.assertEquals(5, record.getLong(LoginsTable.LOGINS));
 
 
         

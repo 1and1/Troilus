@@ -49,7 +49,7 @@ public interface Record extends Result {
     
     /**
      * @param name  the column name 
-     * @return the ttl of this column or empty if no ttl was requested or <code>null</code>
+     * @return the ttl of this column or empty if no ttl was requested or NULL
      */
     Integer getTtl(String name);
     
@@ -62,9 +62,9 @@ public interface Record extends Result {
      
     /**
      * @param name the column name 
-     * @return the value of column name as a long or null
+     * @return the value of column name as a long. If the value is NULL, 0L is returned.
      */
-    Long getLong(String name);
+    long getLong(String name);
     
     /**
      * @param name the column name 
@@ -74,9 +74,9 @@ public interface Record extends Result {
     
     /**
      * @param name the column name 
-     * @return the value of column name as a boolean or null
+     * @return the value of column name as a boolean. If the value is NULL, false is returned.
      */
-    Boolean getBool(String name);
+    boolean getBool(String name);
     
     /**
      * @param name the column name 
@@ -92,50 +92,50 @@ public interface Record extends Result {
     
     /**
      * @param name the column name 
-     * @return value of column name as a float or null
+     * @return value of column name as a float. If the value is NULL, 0.0f is returned.
      */
-    Float getFloat(String name);
+    float getFloat(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as a date or null
+     * @return value of column name as a date. If the value is NULL, null is returned.
      */
     Date getDate(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a dedcimal or null
+     * @return the value of column name as a decimal. If the value is NULL, null is returned
      */
     BigDecimal getDecimal(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an integer or null
+     * @return value of column name as an integer. If the value is NULL, 0 is returned
      */
-    Integer getInt(String name);
+    int getInt(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an InetAddress or null
+     * @return value of column name as an InetAddress. If the value is NULL, null is returned.
      */
     InetAddress getInet(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a variable length integer or null
+     * @return the value of column name as a variable length integer. If the value is NULL, null is returned.
      */
     BigInteger getVarint(String name);
   
   
     /**
      * @param name the column name 
-     * @return the value of column name as a UUID or null
+     * @return the value of column name as a UUID. If the value is NULL, null is returned.
      */
     UUID getUUID(String name);
    
     /**
      * @param name the column name 
-     * @return the value for column name as a UDT value or null
+     * @return the value for column name as a UDT value. If the value is NULL, then null will be returned.
      */
     UDTValue getUDTValue(String name);
     

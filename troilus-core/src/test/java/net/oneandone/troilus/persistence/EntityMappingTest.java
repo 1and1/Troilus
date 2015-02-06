@@ -124,7 +124,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
                              .execute()
                              .get();
         Assert.assertEquals("eric", user.getString(UsersTable.NAME));
-        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED));
+        Assert.assertEquals(1345553, user.getLong(UsersTable.MODIFIED));
         Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
         
         
@@ -139,7 +139,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
                       .execute()
                       .get(); 
         Assert.assertNull(user.getString(UsersTable.NAME));
-        Assert.assertEquals((Long) 1345553l, user.getLong(UsersTable.MODIFIED));
+        Assert.assertEquals(1345553, user.getLong(UsersTable.MODIFIED));
         Assert.assertTrue(user.getList(UsersTable.ADDRESSES, String.class).isEmpty());
         Assert.assertTrue(user.getSet(UsersTable.PHONE_NUMBERS, String.class).contains("12313241243"));
 

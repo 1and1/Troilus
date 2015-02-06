@@ -90,7 +90,7 @@ class RecordAdapter implements Record {
     }
      
     @Override
-    public Long getLong(String name) {
+    public long getLong(String name) {
         return record.getLong(name);
     }
     
@@ -100,7 +100,7 @@ class RecordAdapter implements Record {
     }
 
     @Override
-    public Boolean getBool(String name) {
+    public boolean getBool(String name) {
         return record.getBool(name);
     }
 
@@ -115,7 +115,7 @@ class RecordAdapter implements Record {
     }
 
     @Override
-    public Float getFloat(String name) {
+    public float getFloat(String name) {
         return record.getFloat(name);
     }
 
@@ -130,7 +130,7 @@ class RecordAdapter implements Record {
     }
     
     @Override
-    public Integer getInt(String name) {
+    public int getInt(String name) {
         return record.getInt(name);
     }
     
@@ -157,7 +157,7 @@ class RecordAdapter implements Record {
     @Override
     public Instant getInstant(String name) {
        Long millis = getLong(name);
-       if (millis == null) {
+       if (millis == 0) {
            return null;
        } else {
            return Instant.ofEpochMilli(millis);
@@ -292,7 +292,7 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public Long getLong(String name) {
+            public long getLong(String name) {
                 return record.getLong(name);
             }
             
@@ -302,7 +302,7 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public Integer getInt(String name) {
+            public int getInt(String name) {
                 return record.getInt(name);
             }
             
@@ -312,7 +312,7 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public Float getFloat(String name) {
+            public float getFloat(String name) {
                 return record.getFloat(name);
             }
             
@@ -342,7 +342,7 @@ class RecordAdapter implements Record {
             }
             
             @Override
-            public Boolean getBool(String name) {
+            public boolean getBool(String name) {
                 return record.getBool(name);
             }
         };

@@ -61,89 +61,89 @@ public interface Record extends Result {
      */
     boolean isNull(String name);
     
-     
     /**
      * @param name the column name 
-     * @return the value of column name as a long
+     * @return the value of column name as a long. If the value is NULL, 0L is returned.
      */
-    Long getLong(String name);
+    long getLong(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a string
+     * @return the value of column name as a string or null
      */
     String getString(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a boolean
+     * @return the value of column name as a boolean. If the value is NULL, false is returned.
      */
-    Boolean getBool(String name);
+    boolean getBool(String name);
     
     /**
      * @param name the column name 
-     * @return the value of column name as a ByteBuffer
+     * @return the value of column name as a ByteBuffer or null
      */
     ByteBuffer getBytes(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a ByteBuffer. This method always return the bytes composing the value, even if the column is not of type BLOB
+     * @return the value of column name as a ByteBuffer or null. This method always return the bytes composing the value, even if the column is not of type BLOB
      */
     ByteBuffer getBytesUnsafe(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as a float
+     * @return value of column name as a float. If the value is NULL, 0.0f is returned.
      */
-    Float getFloat(String name);
+    float getFloat(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as a date
+     * @return value of column name as a date. If the value is NULL, null is returned.
      */
     Date getDate(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a dedcimal
+     * @return the value of column name as a decimal. If the value is NULL, null is returned
      */
     BigDecimal getDecimal(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an integer
+     * @return value of column name as an integer. If the value is NULL, 0 is returned.
      */
-    Integer getInt(String name);
+    int getInt(String name);
     
     /**
      * @param name the column name 
-     * @return value of column name as an InetAddress
+     * @return value of column name as an InetAddress. If the value is NULL, null is returned.
      */
     InetAddress getInet(String name);
      
     /**
      * @param name the column name 
-     * @return the value of column name as a variable length integer
+     * @return the value of column name as a variable length integer. If the value is NULL, null is returned.
      */
     BigInteger getVarint(String name);
   
   
     /**
      * @param name the column name 
-     * @return the value of column name as a UUID
+     * @return the value of column name as a UUID. If the value is NULL, null is returned.
      */
     UUID getUUID(String name);
    
     /**
      * @param name the column name 
-     * @return the value for column name as a UDT value
+     * @return the value for column name as a UDT value. If the value is NULL, then null will be returned.
      */
     UDTValue getUDTValue(String name);
     
+     
     /**
      * @param name the column name 
-     * @return the value for column name as an Instant value
+     * @return the value for column name as an Instant value. If the value is NULL, then null will be returned.
      */
     Instant getInstant(String name);
     

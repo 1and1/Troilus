@@ -116,7 +116,7 @@ class RecordImpl implements Record {
     }
 
     @Override
-    public Long getLong(String name) {
+    public long getLong(String name) {
         return row.getLong(name);
     }
     
@@ -126,7 +126,7 @@ class RecordImpl implements Record {
     }
 
     @Override
-    public Boolean getBool(String name) {
+    public boolean getBool(String name) {
         return row.getBool(name);
     }
     
@@ -141,7 +141,7 @@ class RecordImpl implements Record {
     }
 
     @Override
-    public Float getFloat(String name) {
+    public float getFloat(String name) {
         return row.getFloat(name);
     }
 
@@ -156,7 +156,7 @@ class RecordImpl implements Record {
     }
 
     @Override
-    public Integer getInt(String name) {
+    public int getInt(String name) {
         return row.getInt(name);
     }
 
