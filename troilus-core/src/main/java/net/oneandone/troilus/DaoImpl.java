@@ -665,27 +665,12 @@ public class DaoImpl implements Dao {
 
    
         
-   static class EntityListAdapter<F> implements EntityList<F> {
+   static class EntityListAdapter<F> extends ResultAdapter implements EntityList<F> {
        private final net.oneandone.troilus.EntityList<F> entityList;
    
-       
-       public EntityListAdapter(net.oneandone.troilus.EntityList<F> entityList) {
+       EntityListAdapter(net.oneandone.troilus.EntityList<F> entityList) {
+           super(entityList);
            this.entityList = entityList;
-       }
-   
-       @Override
-       public ExecutionInfo getExecutionInfo() {
-           return entityList.getExecutionInfo();
-       }
-       
-       @Override
-       public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-           return entityList.getAllExecutionInfo();
-       }
-       
-       @Override
-       public boolean wasApplied() {
-           return entityList.wasApplied();
        }
    
        @Override

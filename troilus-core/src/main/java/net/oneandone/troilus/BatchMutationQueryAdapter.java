@@ -53,12 +53,12 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     }
     
     @Override
-    public Query<Result> withWriteAheadLog() {
+    public BatchMutation withWriteAheadLog() {
         return new BatchMutationQueryAdapter(getContext(), query.withWriteAheadLog());
     }
     
     @Override
-    public Query<Result> withoutWriteAheadLog() {
+    public BatchMutation withoutWriteAheadLog() {
         return new BatchMutationQueryAdapter(getContext(), query.withoutWriteAheadLog());
     }
 

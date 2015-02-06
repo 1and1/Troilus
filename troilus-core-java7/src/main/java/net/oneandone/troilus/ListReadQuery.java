@@ -485,32 +485,18 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      } 
     
     
-    private static class EntityListImpl<F> implements EntityList<F> {
+    private static class EntityListImpl<F> extends ResultAdapter implements EntityList<F> {
         private final Context ctx;
         private final RecordList recordList;
         private final Class<F> clazz;
     
         EntityListImpl(Context ctx, RecordList recordList, Class<F> clazz) {
+            super(recordList);
             this.ctx = ctx;
             this.recordList = recordList;
             this.clazz = clazz;
         }
-    
-        @Override
-        public ExecutionInfo getExecutionInfo() {
-            return recordList.getExecutionInfo();
-        }
         
-        @Override
-        public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-            return recordList.getAllExecutionInfo();
-        }
-        
-        @Override
-        public boolean wasApplied() {
-            return recordList.wasApplied();
-        }
-    
         @Override
         public Iterator<F> iterator() {
     

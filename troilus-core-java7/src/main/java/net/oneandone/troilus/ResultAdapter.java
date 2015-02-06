@@ -16,26 +16,39 @@
 package net.oneandone.troilus;
 
 
+import com.datastax.driver.core.ExecutionInfo;
+import com.google.common.collect.ImmutableList;
 
 
 /**
- * BatchMutation
+ * query result adapter
  */
-public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result> {
+abstract class ResultAdapter implements Result {
+
+    private final Result result;
 
     /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
+     * @param result the underlying result
      */
-    BatchMutation combinedWith(Batchable other);
+    ResultAdapter(Result result) {
+        this.result = result;
+    }
+    
+    @Override
+    public ExecutionInfo getExecutionInfo() {
+        return result.getExecutionInfo();
+    }
 
-    /**
-     * @return a cloned query instance with write ahead log
-     */
-    ConfiguredQuery<BatchMutation, Result> withWriteAheadLog();
+    @Override
+    public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+        return result.getAllExecutionInfo();
+    }
 
-    /** 
-     * @return a cloned query instance without write ahead log
-     */
-    ConfiguredQuery<BatchMutation, Result> withoutWriteAheadLog();
+    @Override
+    public boolean wasApplied() {
+        return result.wasApplied();
+    }
 }
+
+
+

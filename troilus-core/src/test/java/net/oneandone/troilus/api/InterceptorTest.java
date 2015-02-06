@@ -68,6 +68,10 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
                                  .withInterceptor(listReadRequestInterceptor)
                                  .withInterceptor(listReadResponseInterceptor);
         
+        
+        String s = usersDao.toString();
+        Assert.assertTrue(s.contains("ListReadQueryPostInterceptor (with"));
+         
         usersDao.writeEntity(new User("34334234234", "tom", false, ByteBuffer.allocate(0), new byte[0], System.currentTimeMillis(), null, null))
                 .execute();
         Assert.assertEquals("tom", writeRequestInterceptor.getQueryData().getValuesToMutate().get("name").get());
@@ -100,6 +104,16 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
         @Override
         public CompletableFuture<WriteQueryData> onWriteRequestAsync(WriteQueryData queryData) {
             this.queryDataRef.set(queryData);
+            
+            queryData = queryData.keys(queryData.getKeys())
+                                 .valuesToMutate(queryData.getValuesToMutate())
+                                 .listValuesToAppend(queryData.getListValuesToAppend())
+                                 .listValuesToPrepend(queryData.getListValuesToPrepend())
+                                 .listValuesToRemove(queryData.getListValuesToRemove())
+                                 .mapValuesToMutate(queryData.getMapValuesToMutate())
+                                 .ifNotExists(queryData.getIfNotExits())
+                                 .onlyIfConditions(queryData.getOnlyIfConditions());
+                    
             return CompletableFuture.completedFuture(queryData);
         }
         
@@ -150,6 +164,10 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
         @Override
         public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> record) {
             this.recordRef.set(record);
+            
+            queryData = queryData.key(queryData.getKey())
+                                 .columnsToFetch(queryData.getColumnsToFetch());
+            
             return CompletableFuture.completedFuture(record);
         }
         
@@ -167,6 +185,14 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
         @Override
         public CompletableFuture<ListReadQueryData> onListReadRequestAsync(ListReadQueryData queryData) {
             this.queryDataRef.set(queryData);
+            
+            queryData = queryData.keys(queryData.getKeys())
+                                 .columnsToFetch(queryData.getColumnsToFetch())
+                                 .whereConditions(queryData.getWhereConditions())
+                                 .limit(queryData.getLimit())
+                                 .distinct(queryData.getDistinct())
+                                 .allowFiltering(queryData.getAllowFiltering());
+            
             return CompletableFuture.completedFuture(queryData);
         }
         

@@ -707,6 +707,23 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .value(UsersTable.IS_CUSTOMER, true) 
                 .withTtl(Duration.ofSeconds(1))
                 .execute();
+        
+        
+        
+   
+        Batchable insert5 = usersDao.writeWithKey(UsersTable.USER_ID, "234234234424")
+                                    .value(UsersTable.IS_CUSTOMER, true)
+                                    .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                    .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        
+        usersDao.writeWithKey(UsersTable.USER_ID, "235423423424")
+                .value(UsersTable.IS_CUSTOMER, true)
+                .value(UsersTable.ADDRESSES, ImmutableList.of("hamburg"))
+                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("945453", "23432234"))
+                .combinedWith(insert5)
+                .withoutWriteAheadLog()
+                .withConsistency(ConsistencyLevel.QUORUM)
+                .execute();
     }        
 }
 
