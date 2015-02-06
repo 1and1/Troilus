@@ -15,13 +15,15 @@
  */
 package net.oneandone.troilus.java7;
 
+import net.oneandone.troilus.Batchable;
+
 
 
 
 /**
  * Insertion query
  */
-public interface Insertion extends BatchableMutation<Insertion> {
+public interface Insertion extends BatchableMutation<Insertion>, Batchable, CombinableMutation {
 
     /**
      * @return a cloned query instance with lwt (if-not-exits)

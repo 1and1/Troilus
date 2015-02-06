@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.java7;
 
+import net.oneandone.troilus.Batchable;
+
 import com.datastax.driver.core.querybuilder.Clause;
 
 
@@ -22,7 +24,7 @@ import com.datastax.driver.core.querybuilder.Clause;
  * Update query
  * @param <U> the query type 
  */
-public interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U> {
+public interface Update<U extends BatchableMutation<U>> extends BatchableMutation<U>, Batchable, CombinableMutation {
 
     /**
      * @param conditions the conditions 

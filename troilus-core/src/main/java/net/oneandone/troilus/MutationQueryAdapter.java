@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
@@ -32,7 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter base for mutation operations
  */
-abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource { 
+abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource, CombinableMutation { 
     
     private final T query;
   

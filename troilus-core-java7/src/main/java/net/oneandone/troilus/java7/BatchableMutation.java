@@ -15,7 +15,6 @@
  */
 package net.oneandone.troilus.java7;
 
-import net.oneandone.troilus.Batchable;
 
 
 
@@ -24,7 +23,7 @@ import net.oneandone.troilus.Batchable;
  * Batchable mutation
  * @param <Q>  the query
  */
-public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable, CombinableMutation {
+public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>> {
 
 
 }

@@ -23,6 +23,6 @@ package net.oneandone.troilus;
  * Batchable mutation
  * @param <Q>  the query
  */
-public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable, CombinableMutation {
+public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>> {
     
 }

@@ -18,6 +18,8 @@ package net.oneandone.troilus;
 
 
 
+import net.oneandone.troilus.java7.CombinableMutation;
+
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -27,7 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * abstract mutation query implementation
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
+abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable, CombinableMutation {
     
     
     /**
