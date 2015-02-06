@@ -24,11 +24,7 @@ import net.oneandone.troilus.Batchable;
  * Batchable mutation
  * @param <Q>  the query
  */
-public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable {
+public interface BatchableMutation<Q extends BatchableMutation<Q>> extends Mutation<BatchableMutation<Q>>, Batchable, CombinableMutation {
 
-    /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
-     */
-    BatchMutation combinedWith(Batchable other);
+
 }

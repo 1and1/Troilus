@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
+import net.oneandone.troilus.Batchable;
 
 
 
 
 /**
- * Combinable 
+ * Combinable mutation
  */
-public interface Combinable extends Batchable {
+public interface CombinableMutation {
 
     /**
      * @param other  the other query to combine with
