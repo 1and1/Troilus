@@ -15,21 +15,13 @@
  */
 package net.oneandone.troilus.java7;
 
-
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Result;
 
 
 /**
  * BatchMutation
  */
-public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result> {
-
-    /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
-     */
-    BatchMutation combinedWith(Batchable other);
+public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result>, CombinableMutation {
 
     /**
      * @return a cloned query instance with write ahead log

@@ -35,8 +35,7 @@ public class CompilerCheck {
     
     // by uncommenting a method a compile error (per method) occurs
 
-    
-    /* 
+/*    
     private void checkDeleteWithOnlyIfIsNotBatchable() {
         Deletion deletion = dao.deleteWhere((Clause) null);
         Batchable batchable = deletion.onlyIf(null);
@@ -94,8 +93,7 @@ public class CompilerCheck {
            .ifNotExits()
            .combinedWith(null);
     }
-   */
     
-   
+  */ 
 }
     
