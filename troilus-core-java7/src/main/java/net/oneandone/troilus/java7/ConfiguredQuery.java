@@ -33,6 +33,12 @@ public interface ConfiguredQuery<Q, R> extends Query<R> {
     Q withConsistency(ConsistencyLevel consistencyLevel);
 
     /**
+      * @param consistencyLevel  the consistency level to use
+      * @return a cloned query instance with the modified behavior
+     */
+    Q withSerialConsistency(ConsistencyLevel consistencyLevel);
+    
+    /**
      * @return a cloned query instance with activated tracking
      */
     Q withTracking();

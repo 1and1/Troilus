@@ -15,27 +15,18 @@
  */
 package net.oneandone.troilus;
 
-import java.time.Duration;
 
 
 
 
 /**
- * Mutation query
- * 
- * @param <Q> the query type
+ * Combinable 
  */
-public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
+public interface Combinable extends Batchable {
 
     /**
-     * @param ttl  the time-to-live set
+     * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    Mutation<Q> withTtl(Duration ttl);
-
-    /**
-     * @param microsSinceEpoch  the writetime in since epoch to set
-     * @return a cloned query instance with the modified behavior
-     */
-    Mutation<Q> withWritetime(long microsSinceEpoch);
+    BatchMutation combinedWith(Batchable other);
 }

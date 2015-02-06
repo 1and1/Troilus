@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus;
 
+import java.time.Duration;
+
 import com.datastax.driver.core.querybuilder.Clause;
 
 import net.oneandone.troilus.Dao;
@@ -34,11 +36,16 @@ public class CompilerCheck {
     // by uncommenting a method a compile error (per method) occurs
 
     
-    /*
-     
+    /* 
     private void checkDeleteWithOnlyIfIsNotBatchable() {
-        Batchable batchable = dao.deleteWhere((Clause) null)
-                                 .onlyIf(null);
+        Deletion deletion = dao.deleteWhere((Clause) null);
+        Batchable batchable = deletion.onlyIf(null);
+    }
+    
+    
+    private void checkDeleteDoesNotSupportTTL() {
+        Deletion deletion = dao.deleteWhere((Clause) null);
+        deletion.withTtl(Duration.ofSeconds(1));
     }
     
     
@@ -87,9 +94,7 @@ public class CompilerCheck {
            .ifNotExits()
            .combinedWith(null);
     }
-    
-    */
-   
+   */
     
    
 }

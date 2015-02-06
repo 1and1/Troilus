@@ -17,19 +17,12 @@ package net.oneandone.troilus.java7;
 
 import net.oneandone.troilus.Result;
 
-import com.datastax.driver.core.ConsistencyLevel;
 
 
 /**
  * @param <Q> the query type
  */
 public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
-
-    /**
-      * @param consistencyLevel  the consistency level to use
-      * @return a cloned query instance with the modified behavior
-     */
-    Mutation<Q> withSerialConsistency(ConsistencyLevel consistencyLevel);
 
     /**
      * @param ttlSec  the time-to-live in sec to set
