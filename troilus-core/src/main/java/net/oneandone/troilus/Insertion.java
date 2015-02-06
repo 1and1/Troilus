@@ -21,12 +21,12 @@ package net.oneandone.troilus;
 /**
  * insertion query
  */
-public interface Insertion extends BatchableMutation<Insertion>, Batchable, CombinableMutation {
+public interface Insertion extends Modification<Insertion>, Batchable, CombinableMutation {
 
     /**
      * @return a cloned query instance with lwt (if-not-exits)
      */
-    Mutation<?> ifNotExists();
+    Modification<?> ifNotExists();
 }
 
 

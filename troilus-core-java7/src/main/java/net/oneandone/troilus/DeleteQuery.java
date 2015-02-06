@@ -46,11 +46,6 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         super(ctx);
         this.data = data;
     }
-
-    @Override
-    public Deletion withTtl(int ttlSec) {
-        return newQuery(getContext().withTtl(ttlSec));
-    }
     
     @Override
     protected DeleteQuery newQuery(Context newContext) {

@@ -17,7 +17,6 @@ package net.oneandone.troilus;
 
 
 
-import java.time.Duration;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
@@ -46,11 +45,6 @@ class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> imp
         return new DeleteQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
     
-    @Override
-    public Deletion withTtl(Duration ttl) {
-        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
-    }
-
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
         return new DeleteQueryAdapter(getContext(), getQuery().onlyIf(onlyIfConditions));

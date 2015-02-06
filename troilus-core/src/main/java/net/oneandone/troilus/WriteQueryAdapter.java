@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -38,56 +39,29 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements WriteWithCounter, UpdateWithUnitAndCounter  {
-    
-    private final UpdateQuery query;
+class WriteQueryAdapter extends MutationQueryAdapter<WriteWithCounter, UpdateQuery> implements WriteWithCounter {
     
     /**
      * @param ctx     the context 
      * @param query   the underlying query
      */
-    UpdateQueryAdapter(Context ctx, UpdateQuery query) {
-        super(ctx);
-        this.query = query;
-    }
-    
-    private UpdateQuery getQuery() {
-        return query;
+    WriteQueryAdapter(Context ctx, UpdateQuery query) {
+        super(ctx, query);
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
-    }
-    
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
-    @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
-    }
-    
-    @Override
-    protected UpdateQueryAdapter newQuery(Context newContext) {
-        return new UpdateQueryAdapter(newContext, getQuery().newQuery(newContext));
+    protected WriteQueryAdapter newQuery(Context newContext) {
+        return new WriteQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
 
     @Override
-    public UpdateQueryAdapter withTtl(Duration ttl) {
-        return new UpdateQueryAdapter(getContext(), getQuery().withTtl((int) ttl.getSeconds()));
+    public WriteQueryAdapter withTtl(Duration ttl) {
+        return new WriteQueryAdapter(getContext(), getQuery().withTtl((int) ttl.getSeconds()));
     }
 
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
-        return new UpdateQueryAdapter(getContext(), getQuery().onlyIf(conditions));
+        return new WriteQueryAdapter(getContext(), getQuery().onlyIf(conditions));
     }
 
     @Override
@@ -96,53 +70,53 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     }
 
     @Override
-    public UpdateQueryAdapter entity(Object entity) {
-        return new UpdateQueryAdapter(getContext(), getQuery().entity(entity));
+    public WriteQueryAdapter entity(Object entity) {
+        return new WriteQueryAdapter(getContext(), getQuery().entity(entity));
     }
     
     @Override
-    public UpdateQueryAdapter value(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().value(name, value));
+    public WriteQueryAdapter value(String name, Object value) {
+        return new WriteQueryAdapter(getContext(), getQuery().value(name, value));
     }
     
     @Override
     public <T> Write value(ColumnName<T> name, T value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), value));
+        return new WriteQueryAdapter(getContext(), getQuery().value(name.getName(), value));
     }
     
     @Override
-    public UpdateQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new UpdateQueryAdapter(getContext(), getQuery().values(nameValuePairsToAdd));
+    public WriteQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
+        return new WriteQueryAdapter(getContext(), getQuery().values(nameValuePairsToAdd));
     }
 
     @Override
-    public UpdateQueryAdapter removeSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().removeSetValue(name, value));
+    public WriteQueryAdapter removeSetValue(String name, Object value) {
+        return new WriteQueryAdapter(getContext(), getQuery().removeSetValue(name, value));
     }
 
     @Override
-    public Write addSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().addSetValue(name, value));
+    public WriteQueryAdapter addSetValue(String name, Object value) {
+        return new WriteQueryAdapter(getContext(), getQuery().addSetValue(name, value));
     }
    
     @Override
     public Write prependListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().prependListValue(name, value));
+        return new WriteQueryAdapter(getContext(), getQuery().prependListValue(name, value));
     } 
     
     @Override
     public Write appendListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().appendListValue(name, value));
+        return new WriteQueryAdapter(getContext(), getQuery().appendListValue(name, value));
     }
     
     @Override
     public Write removeListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().removeListValue(name, value));
+        return new WriteQueryAdapter(getContext(), getQuery().removeListValue(name, value));
     }
     
     @Override
     public Write putMapValue(String name, Object key, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().putMapValue(name, key, value));
+        return new WriteQueryAdapter(getContext(), getQuery().putMapValue(name, key, value));
     }
         
     @Override

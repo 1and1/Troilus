@@ -47,7 +47,7 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     }
     
     @Override
-    public Mutation<?> ifNotExists() {
+    public Modification<?> ifNotExists() {
         return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
     }
 }
