@@ -27,7 +27,7 @@ package net.oneandone.troilus;
 public interface ListRead<T> extends SingleRead<T> {
 
     /**
-     * @param limit thr max num of records to read 
+     * @param limit the max number of records to read 
      * @return a cloned query instance with deactivated tracking
      */
     ListRead<T> withLimit(int limit);

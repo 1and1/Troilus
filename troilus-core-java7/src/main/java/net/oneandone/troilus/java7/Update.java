@@ -30,5 +30,5 @@ public interface Update<U extends Modification<U>> extends Modification<U>, Batc
      * @param conditions the conditions 
      * @return a cloned query instance with lwt (only-if)
      */
-    Modification<?> onlyIf(Clause... conditions);
+    Modification<U> onlyIf(Clause... conditions);
 }

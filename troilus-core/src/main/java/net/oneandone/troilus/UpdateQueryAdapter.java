@@ -164,60 +164,61 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     public CounterMutationQueryAdapter decr(String name, long value) {
         return new CounterMutationQueryAdapter(getContext(), getQuery().decr(name, value));
     }
-        
-      
-
+    
+    
+    
     /**
      * Java8 adapter of a CounterMutationQuery
      */
-    private static final class CounterMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
-        
-        private final CounterMutationQuery query;
+     private static class CounterMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
+            
+         private final CounterMutationQuery query;
+         
+         /**
+          * @param ctx     the context
+          * @param query   the underlying query
+          */
+         CounterMutationQueryAdapter(Context ctx, CounterMutationQuery query) {
+             super(ctx);
+             this.query = query;
+         }
+         
+         @Override
+         protected CounterMutation newQuery(Context newContext) {
+             return new CounterMutationQueryAdapter(newContext, query.newQuery(newContext));
+         }
+    
+         @Override
+         public CounterMutation withTtl(Duration ttl) {
+             return new CounterMutationQueryAdapter(getContext(), query.withTtl((int) ttl.getSeconds()));
+         }
+         
+         @Override
+         public CounterBatchMutation combinedWith(CounterBatchable other) {
+             return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(other));
+         }
+    
+         @Override
+         public ListenableFuture<Statement> getStatementAsync() {
+             return query.getStatementAsync();
+         }
+    
+         @Override
+         public Result execute() {
+             return CompletableFutures.getUninterruptibly(executeAsync());
+         }
+         
+         @Override
+         public CompletableFuture<Result> executeAsync() {
+             return CompletableFutures.toCompletableFuture(query.executeAsync());
+         }
+         
+         @Override
+         public String toString() {
+             return query.toString();
+         }
+     }
+    
 
-        
-        /**
-         * @param ctx     the context
-         * @param query   the undewrlying query
-         */
-        CounterMutationQueryAdapter(Context ctx, CounterMutationQuery query) {
-            super(ctx);
-            this.query = query;
-        }
-        
-        @Override
-        protected CounterMutation newQuery(Context newContext) {
-            return new CounterMutationQueryAdapter(newContext, query.newQuery(newContext));
-        }
-   
-        @Override
-        public CounterMutation withTtl(Duration ttl) {
-            return new CounterMutationQueryAdapter(getContext(), query.withTtl((int) ttl.getSeconds()));
-        }
-        
-        @Override
-        public CounterBatchMutation combinedWith(CounterBatchable other) {
-            return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(other));
-        }
-   
-        @Override
-        public ListenableFuture<Statement> getStatementAsync() {
-            return query.getStatementAsync();
-        }
-
-        @Override
-        public Result execute() {
-            return CompletableFutures.getUninterruptibly(executeAsync());
-        }
-        
-        @Override
-        public CompletableFuture<Result> executeAsync() {
-            return CompletableFutures.toCompletableFuture(query.executeAsync());
-        }
-        
-        @Override
-        public String toString() {
-            return query.toString();
-        }
-    }
-}
+ }
 

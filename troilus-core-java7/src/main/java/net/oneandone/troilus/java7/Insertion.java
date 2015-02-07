@@ -28,5 +28,5 @@ public interface Insertion extends Modification<Insertion>, Batchable, Combinabl
     /**
      * @return a cloned query instance with lwt (if-not-exits)
      */
-    Modification<?> ifNotExists();
+    Modification<Insertion> ifNotExists();
 }
