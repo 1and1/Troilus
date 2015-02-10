@@ -381,6 +381,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private Runnable runningDatabaseQuery = null;
              private boolean isOpen = true;
 
+             private final Runnable requestTask = new Runnable() {
+                
+                @Override
+                public void run() {
+                    processReadRequests();
+                }
+            };
+             
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
                  this.subscriber = subscriber;
@@ -390,7 +398,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              public void request(long n) {                
                  if (n > 0) {
                      numPendingReads.addAndGet(n);
-                     processReadRequests();
+                     
+                     // Subscription: MUST NOT allow unbounded recursion such as Subscriber.onNext -> Subscription.request -> Subscriber.onNext
+                     ctx.getTaskExecutor().execute(requestTask);
                  }
              }
              
