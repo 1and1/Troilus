@@ -49,13 +49,8 @@ import com.google.common.collect.Maps;
  */
 class BeanMapper {
     
-    private final LoadingCache<Class<?>, PropertiesMapper> propertiesMapperCache;
-    
-    
-    BeanMapper() {        
-        this.propertiesMapperCache = CacheBuilder.newBuilder()
-                                                 .build(new PropertiesMapperLoader());
-    }
+    private final LoadingCache<Class<?>, PropertiesMapper> propertiesMapperCache = CacheBuilder.newBuilder()
+                                                                                               .build(new PropertiesMapperLoader());
     
     
     private static final class PropertiesMapper {

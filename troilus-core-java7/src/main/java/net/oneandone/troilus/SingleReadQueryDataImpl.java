@@ -39,8 +39,8 @@ import com.google.common.collect.Lists;
  */
 class SingleReadQueryDataImpl implements SingleReadQueryData {
 
-    final ImmutableMap<String, Object> keyNameValuePartPairs;
-    final ImmutableMap<String, Boolean> columnsToFetch;
+    private final ImmutableMap<String, Object> keyNameValuePartPairs;
+    private final ImmutableMap<String, Boolean> columnsToFetch;
 
 
     /**

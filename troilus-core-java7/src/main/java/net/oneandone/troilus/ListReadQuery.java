@@ -63,7 +63,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     
-    final ListReadQueryDataImpl data;
+    private final ListReadQueryDataImpl data;
 
     
     /**
@@ -381,13 +381,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private Runnable runningDatabaseQuery = null;
              private boolean isOpen = true;
 
-             private final Runnable requestTask = new Runnable() {
-                
-                @Override
-                public void run() {
-                    processReadRequests();
-                }
-            };
+             private final Runnable requestTask = new ProcessingTask();
+
              
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
@@ -395,6 +390,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  this.it = RecordListImpl.this.iterator();
              }
              
+             @Override
              public void request(long n) {                
                  if (n > 0) {
                      numPendingReads.addAndGet(n);
@@ -404,6 +400,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  }
              }
              
+             private final class ProcessingTask implements Runnable {
+             
+                 @Override
+                 public void run() {
+                     processReadRequests();
+                        
+                 }
+             }
              
              private void processReadRequests() {
                  processAvailableDatabaseRecords();
