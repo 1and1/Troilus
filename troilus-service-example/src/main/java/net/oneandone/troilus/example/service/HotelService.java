@@ -32,11 +32,11 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import net.oneandone.reactive.pipe.Pipes;
+import net.oneandone.reactive.sse.ServerSentEvent;
+import net.oneandone.reactive.sse.servlet.ServletSseSubscriber;
 import net.oneandone.troilus.Dao;
-import net.oneandone.troilus.example.utils.jaxrs.ResultConsumer;
-import net.oneandone.troilus.example.utils.reactive.sse.SSEEvent;
-import net.oneandone.troilus.example.utils.reactive.sse.ServerSentEvents;
-import net.oneandone.troilus.example.utils.reactive.stream.Streams;
+import static net.oneandone.reactive.rest.container.ResultConsumer.writeTo;
 
 import com.datastax.driver.core.ConsistencyLevel;
 
@@ -68,7 +68,7 @@ public class HotelService implements Closeable {
                  .executeAsync()
                  .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
                  .thenApply(hotel -> new HotelRepresentation(hotel.getId(), hotel.getName(), hotel.getRoomIds()))
-                 .whenComplete(ResultConsumer.write(resp));
+                 .whenComplete(writeTo(resp));
     }
     
     
@@ -86,8 +86,8 @@ public class HotelService implements Closeable {
                  .asEntity(Hotel.class)
                  .withConsistency(ConsistencyLevel.QUORUM)
                  .executeAsync()
-                 .thenAccept(publisher -> Streams.newStream(publisher)
-                                                 .map(hotel -> SSEEvent.newEvent().data(hotel.getName()))
-                                                 .consume(ServerSentEvents.newSubscriber(out, executor)));
+                 .thenAccept(publisher -> Pipes.newPipe(publisher)
+                                               .map(hotel -> ServerSentEvent.newEvent().data(hotel.getName()))
+                                               .consume(new ServletSseSubscriber(out, executor)));
     }   
 }
