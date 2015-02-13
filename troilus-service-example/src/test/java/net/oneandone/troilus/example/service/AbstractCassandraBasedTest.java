@@ -19,9 +19,6 @@ package net.oneandone.troilus.example.service;
 
 import java.io.IOException;
 
-import net.oneandone.troilus.example.EmbeddedCassandra;
-import net.oneandone.troilus.example.HotelsTable;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -47,13 +44,13 @@ public abstract class AbstractCassandraBasedTest {
                          .addContactPointsWithPorts(ImmutableSet.of(EmbeddedCassandra.getNodeaddress()))
                          .build();
         
-        
-        
         dropKeyspace(cluster);
         createKeyspace(cluster);
         
         session = cluster.connect(KEYYSPACENAME);
         createTables(session);
+        
+        System.setProperty("cassandra_port", Integer.toString(EmbeddedCassandra.getPort()));
     }
 
     

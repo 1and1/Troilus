@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.example;
+package net.oneandone.troilus.example.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -83,7 +83,12 @@ public class EmbeddedCassandra {
     public static InetSocketAddress getNodeaddress() {
         return new InetSocketAddress("localhost", nativePort);
     }
+
+    public static int getPort() {
+        return nativePort;
+    }
     
+
 
 
     

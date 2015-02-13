@@ -15,7 +15,7 @@
  */
 package net.oneandone.troilus.example.service;
 
-import net.oneandone.troilus.example.EmbeddedCassandra;
+import java.net.InetSocketAddress;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -25,11 +25,32 @@ import com.google.common.collect.ImmutableSet;
 
 
 public class SessionBuilder {
+    private final String keyspace;
+    private final String host;
+    private final int port;
 
+    public SessionBuilder(String keyspace, String host, int port) {
+        this.keyspace = keyspace;
+        this.host = host;
+        this.port = port;
+    }
+    
+    public String getKeyspace() {
+        return keyspace;
+    }
+
+    public String getHost() {
+        return host;
+    }
+    
+    public int getPort() {
+        return port;
+    }
+    
     public Session build() {
         return Cluster.builder()
-                     .addContactPointsWithPorts(ImmutableSet.of(EmbeddedCassandra.getNodeaddress()))
+                     .addContactPointsWithPorts(ImmutableSet.of(new InetSocketAddress(host, port)))
                      .build()
-                     .connect("testks1");
+                     .connect(keyspace);
     }
 }
