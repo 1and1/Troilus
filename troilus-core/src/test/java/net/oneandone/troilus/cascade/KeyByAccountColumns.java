@@ -67,10 +67,10 @@ public interface KeyByAccountColumns  {
             
             List<Write> writes = Lists.newArrayList();
             for (Entry<String, Long> entry : fk.entrySet()) {
-                keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
-                             .value(KeyByEmailColumns.KEY, (byte[]) queryData.getValuesToMutate().get(KEY.getName()).get())
-                             .value(KeyByEmailColumns.ACCOUNT_ID, (String) queryData.getKeys().get(ACCOUNT_ID.getName()))
-                             .withConsistency(ConsistencyLevel.QUORUM);
+                writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+                                        .value(KeyByEmailColumns.KEY, (byte[]) queryData.getValuesToMutate().get(KEY.getName()).get())
+                                        .value(KeyByEmailColumns.ACCOUNT_ID, (String) queryData.getKeys().get(ACCOUNT_ID.getName()))
+                                        .withConsistency(ConsistencyLevel.QUORUM));
             }
             
             return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));

@@ -16,12 +16,19 @@
 package net.oneandone.troilus;
 
 
+import java.util.Set;
+
+import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -70,6 +77,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
     }
     
 
+    
     public ListenableFuture<Statement> getStatementAsync() {
         // perform request executors
         ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));        
@@ -81,8 +89,28 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                 return WriteQueryDataImpl.toStatement(queryData, getContext());
             }
         };
-        return Futures.transform(queryDataFuture, queryDataToStatement);
+        
+        ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
+        
+        
+        
+        if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
+            return statementFuture;
+            
+        } else {
+            // TODO make is real async
+            ListenableFuture<ImmutableSet<Statement>> cascadingStatments = executeCascadeInterceptorsAsync(queryDataFuture);
+            
+            BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
+            batchStatement.add(ListenableFutures.getUninterruptibly(statementFuture));
+            for (Statement statement : ListenableFutures.getUninterruptibly(cascadingStatments)) {
+                batchStatement.add(statement);
+            }
+            
+            return Futures.<Statement>immediateFuture(batchStatement);
+        }
     }
+    
     
     private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
 
@@ -101,4 +129,24 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
 
         return queryDataFuture; 
     }
+    
+    
+    
+    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
+        // TODO make is real async
+        WriteQueryData queryData = ListenableFutures.getUninterruptibly(queryDataFuture);
+        
+        Set<Statement> statements = Sets.newHashSet();
+        for (CascadeOnWriteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).reverse()) {
+            
+            ImmutableSet<? extends Batchable> batchables = ListenableFutures.getUninterruptibly(interceptor.onWriteAsync(queryData));
+            for (Batchable batchable : batchables) {
+                Statement stmt = ListenableFutures.getUninterruptibly(batchable.getStatementAsync());
+                statements.add(stmt);
+            }
+        }
+
+        return Futures.immediateFuture(ImmutableSet.copyOf(statements)); 
+    }
+
 }

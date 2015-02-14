@@ -37,7 +37,6 @@ import com.google.common.collect.ImmutableMap;
 public class CascadingTest extends AbstractCassandraBasedTest {
     
 
-    @Ignore
     @Test
     public void testCasscading() throws Exception {   
         

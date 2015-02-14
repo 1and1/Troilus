@@ -17,15 +17,23 @@ package net.oneandone.troilus;
 
 
 
+import java.util.Set;
+
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
+import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
+import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
+import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -99,7 +107,26 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 return DeleteQueryDataImpl.toStatement(queryData, getContext());
             }
         };
-        return Futures.transform(queryDataFuture, queryDataToStatement);
+        
+        
+        ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
+        
+        if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
+            return statementFuture;
+            
+        } else {
+            // TODO make is real async
+            ListenableFuture<ImmutableSet<Statement>> cascadingStatments = executeCascadeInterceptorsAsync(queryDataFuture);
+            
+            BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
+            batchStatement.add(ListenableFutures.getUninterruptibly(statementFuture));
+            for (Statement statement : ListenableFutures.getUninterruptibly(cascadingStatments)) {
+                batchStatement.add(statement);
+            }
+            
+            return Futures.<Statement>immediateFuture(batchStatement);
+        }
+    
     }
     
     
@@ -121,5 +148,23 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         }
 
         return queryDataFuture; 
+    }
+    
+    
+    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
+        // TODO make is real async
+        DeleteQueryData queryData = ListenableFutures.getUninterruptibly(queryDataFuture);
+        
+        Set<Statement> statements = Sets.newHashSet();
+        for (CascadeOnDeleteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).reverse()) {
+            
+            ImmutableSet<? extends Batchable> batchables = ListenableFutures.getUninterruptibly(interceptor.onDeleteAsync(queryData));
+            for (Batchable batchable : batchables) {
+                Statement stmt = ListenableFutures.getUninterruptibly(batchable.getStatementAsync());
+                statements.add(stmt);
+            }
+        }
+
+        return Futures.immediateFuture(ImmutableSet.copyOf(statements)); 
     }
 }

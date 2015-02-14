@@ -25,6 +25,8 @@ import net.oneandone.troilus.api.IdsTable;
 import net.oneandone.troilus.api.LoginsTable;
 import net.oneandone.troilus.api.PlusLoginsTable;
 import net.oneandone.troilus.api.UsersTable;
+import net.oneandone.troilus.cascade.KeyByAccountColumns;
+import net.oneandone.troilus.cascade.KeyByEmailColumns;
 import net.oneandone.troilus.example.AddressType;
 import net.oneandone.troilus.example.HotelsTable;
 import net.oneandone.troilus.example.RoomsTable;
@@ -105,6 +107,8 @@ public abstract class AbstractCassandraBasedTest {
         session.execute(DeviceTable.CREATE_STMT);
         session.execute(PhonenumbersTable.CREATE_STMT);
         session.execute(HistoryTable.CREATE_STMT);
+        session.execute(KeyByAccountColumns.CREATE_STMT);
+        session.execute(KeyByEmailColumns.CREATE_STMT);
     }
     
     
