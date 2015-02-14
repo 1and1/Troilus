@@ -18,10 +18,11 @@ package net.oneandone.troilus;
 
 
 import java.util.concurrent.ExecutionException;
-
 import java.util.concurrent.Executor;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -40,19 +41,100 @@ class ListenableFutures {
         }
     }
     
+  
     
+    public static <T> ListenableFuture<ImmutableSet<T>> join(ListenableFuture<ImmutableSet<T>> futureSet, ListenableFuture<T> future, Executor executor) {
+        return new JoiningFuture<>(futureSet, future, executor);
+    }
+    
+
+    private static final class JoiningFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+        private Optional<T> futureResult = null; 
+        private ImmutableSet<T> futureSetResult = null;
+        private boolean isHandled = false;
+        
+        public JoiningFuture(ListenableFuture<ImmutableSet<T>> futureSet, ListenableFuture<T> future, Executor executor) {
+            future.addListener(new FutureListner(future), executor);
+            futureSet.addListener(new FutureSetListner(futureSet), executor);
+        }
+        
+        private void onSet() {
+            if (!isHandled) {
+                if ((futureResult != null) && (futureSetResult != null)) {
+                    isHandled = true;
+                    if (futureResult.isPresent()) {
+                        set(ImmutableSet.<T>builder().addAll(futureSetResult).add(futureResult.get()).build());
+                    } else {
+                        set(futureSetResult);
+                    }
+                }
+            }
+        }
+
+        private void onSetResult(ListenableFuture<ImmutableSet<T>> futureSet) {
+            synchronized (this) {
+                try {
+                    futureSetResult = futureSet.get();
+                    onSet();
+                } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                    isHandled = true;
+                    setException(ListenableFutures.unwrapIfNecessary(e));
+                }
+            }
+        }
+        
+        private void onSingleResult(ListenableFuture<T> future) {
+            synchronized (this) {
+                try {
+                    futureResult = Optional.fromNullable(future.get());
+                    onSet();
+                } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                    isHandled = true;
+                    setException(ListenableFutures.unwrapIfNecessary(e));
+                }
+            }
+        }
+        
+        private final class FutureListner implements Runnable  {
+            private final ListenableFuture<T> future;
+            
+            public FutureListner(ListenableFuture<T> future) {
+                this.future = future;
+            }
+            
+            @Override
+            public void run() {
+                onSingleResult(future);
+            }
+        }
+
+        private final class FutureSetListner implements Runnable  {
+            private final ListenableFuture<ImmutableSet<T>> futureSet;
+            
+            public FutureSetListner(ListenableFuture<ImmutableSet<T>> futureSet) {
+                this.futureSet = futureSet;
+            }
+            
+            @Override
+            public void run() {
+                onSetResult(futureSet);
+            }
+        }
+    }
+        
+  
     
     
     public static <T, E> ListenableFuture<E> transform(ListenableFuture<T> future, Function<T, ListenableFuture<E>> mapperFunction, Executor executor) {
-        return new QueryFuture<>(future, mapperFunction, executor);
+        return new MappingFuture<>(future, mapperFunction, executor);
     }
     
         
-    private static final class QueryFuture<T, E> extends AbstractFuture<E> implements Runnable {
+    private static final class MappingFuture<T, E> extends AbstractFuture<E> implements Runnable {
         private final ListenableFuture<T> future;
         private final Function<T, ListenableFuture<E>> func;
         
-        public QueryFuture(ListenableFuture<T> future, Function<T, ListenableFuture<E>> func, Executor executor) {
+        public MappingFuture(ListenableFuture<T> future, Function<T, ListenableFuture<E>> func, Executor executor) {
             this.future = future;
             this.func = func;
             future.addListener(this, executor);

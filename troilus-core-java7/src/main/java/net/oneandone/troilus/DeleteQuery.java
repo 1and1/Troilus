@@ -94,6 +94,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
+        
         // perform request executors
         ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data));
         
@@ -110,24 +111,29 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         
         
         ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
-        
         if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
             return statementFuture;
-            
+        
+        // cascading statements   
         } else {
-            // TODO make is real async
-            ListenableFuture<ImmutableSet<Statement>> cascadingStatments = executeCascadeInterceptorsAsync(queryDataFuture);
-            
-            BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
-            batchStatement.add(ListenableFutures.getUninterruptibly(statementFuture));
-            for (Statement statement : ListenableFutures.getUninterruptibly(cascadingStatments)) {
-                batchStatement.add(statement);
-            }
-            
-            return Futures.<Statement>immediateFuture(batchStatement);
+            ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(queryDataFuture);
+            ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, getContext().getTaskExecutor());
+
+            Function<ImmutableSet<Statement>, Statement> statementsBatcher = new Function<ImmutableSet<Statement>, Statement>() {
+                
+                public Statement apply(ImmutableSet<Statement> statements) {
+                    BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
+                    for (Statement statement : statements) {
+                        batchStatement.add(statement);
+                    }       
+                    return batchStatement;
+                };
+            };
+            return Futures.transform(statementsFuture, statementsBatcher);
         }
-    
     }
+
+    
     
     
    
