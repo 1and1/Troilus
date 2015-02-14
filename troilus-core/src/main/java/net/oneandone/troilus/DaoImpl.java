@@ -25,9 +25,6 @@ import java.util.Optional;
 
 
 
-
-
-
 import java.util.Map.Entry;
 
 import net.oneandone.troilus.Context;
@@ -40,6 +37,8 @@ import net.oneandone.troilus.SingleReadQuery;
 import net.oneandone.troilus.SingleReadQueryDataImpl;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
+import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
+import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ListReadQueryData;
@@ -144,6 +143,14 @@ public class DaoImpl implements Dao {
         if (DeleteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
             context = context.withInterceptor(new DeleteQueryRequestInterceptorAdapter((DeleteQueryRequestInterceptor) queryInterceptor));
         } 
+
+        if (CascadeOnWriteInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new CascadeOnWriteInterceptorAdapter((CascadeOnWriteInterceptor) queryInterceptor));
+        }
+
+        if (CascadeOnDeleteInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new CascadeOnDeleteInterceptorAdapter((CascadeOnDeleteInterceptor) queryInterceptor));
+        }
 
         return new DaoImpl(context);
     }
@@ -1033,6 +1040,46 @@ public class DaoImpl implements Dao {
         @Override
         public String toString() {
             return "WriteQueryPreInterceptorAdapter (with " + interceptor + ")";
+        }
+    }
+    
+    
+    private static final class CascadeOnWriteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor {
+        private CascadeOnWriteInterceptor interceptor;
+        
+        public CascadeOnWriteInterceptorAdapter(CascadeOnWriteInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+
+        @Override
+        public ListenableFuture<ImmutableSet<? extends Batchable>> onWriteAsync(net.oneandone.troilus.java7.interceptor.WriteQueryData queryData) {
+            return CompletableFutures.toListenableFuture(interceptor.onWrite(new WriteQueryDataAdapter(queryData)));
+        }
+        
+        @Override
+        public String toString() {
+            return "CascadeOnWriteInterceptorAdapter (with " + interceptor + ")";
+        }
+    }
+
+    
+    private static final class CascadeOnDeleteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor {
+        private CascadeOnDeleteInterceptor interceptor;
+        
+        public CascadeOnDeleteInterceptorAdapter(CascadeOnDeleteInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+        
+        
+        @Override
+        public ListenableFuture<ImmutableSet<? extends Batchable>> onDeleteAsync(DeleteQueryData queryData) {
+            return CompletableFutures.toListenableFuture(interceptor.onDelete(queryData));
+        }
+        
+        @Override
+        public String toString() {
+            return "CascadeOnDeleteInterceptorAdapter (with " + interceptor + ")";
         }
     }
 }

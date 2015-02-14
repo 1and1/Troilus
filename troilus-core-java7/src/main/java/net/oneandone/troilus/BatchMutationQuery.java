@@ -66,7 +66,7 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
 
     @Override
     public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), type, Immutables.merge(batchables, other));
+        return new BatchMutationQuery(getContext(), type, Immutables.join(batchables, other));
     }
 
     @Override

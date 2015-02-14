@@ -38,7 +38,7 @@ class Immutables {
      * @param entryToAdd  the entry to add
      * @return the new merged immutable set
      */
-    public static <T> ImmutableSet<T> merge(ImmutableSet<T> set, T entryToAdd) {
+    public static <T> ImmutableSet<T> join(ImmutableSet<T> set, T entryToAdd) {
         return ImmutableSet.<T>builder().addAll(set).add(entryToAdd).build();
     }
     
@@ -50,7 +50,7 @@ class Immutables {
      * @param set2  the set2 to merge
      * @return the new merged immutable set
      */
-    public static <T> ImmutableSet<T> merge(ImmutableSet<T> set1, ImmutableSet<T> set2) {
+    public static <T> ImmutableSet<T> join(ImmutableSet<T> set1, ImmutableSet<T> set2) {
         return ImmutableSet.<T>builder().addAll(set1).addAll(set2).build();
     }
 
@@ -62,7 +62,7 @@ class Immutables {
      * @param entryToAdd  the entry to add
      * @return the new merged immutable list
      */
-    public static <T> ImmutableList<T> merge(ImmutableList<T> list, T entryToAdd) {
+    public static <T> ImmutableList<T> join(ImmutableList<T> list, T entryToAdd) {
         return ImmutableList.<T>builder().addAll(list).add(entryToAdd).build();
     }
  
@@ -74,7 +74,7 @@ class Immutables {
      * @param list2  the list2 to merge
      * @return the new merged immutable list
      */
-    public static <T> ImmutableList<T> merge(ImmutableList<T> list1, ImmutableList<T> list2) {
+    public static <T> ImmutableList<T> join(ImmutableList<T> list1, ImmutableList<T> list2) {
         return ImmutableList.<T>builder().addAll(list1).addAll(list2).build();
     }
 
@@ -87,7 +87,7 @@ class Immutables {
      * @param value  the value of the new entry
      * @return the new merged immutable map
      */
-    public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map, K key, V value) {
+    public static <K, V> ImmutableMap<K, V> join(ImmutableMap<K, V> map, K key, V value) {
         Map<K, V> m = Maps.newHashMap(map);
         m.put(key, value);
         return ImmutableMap.copyOf(m);
@@ -101,7 +101,7 @@ class Immutables {
      * @param map2   the map2 to merge
      * @return the new merged immutable map
      */
-    public static <K, V> ImmutableMap<K, V> merge(ImmutableMap<K, V> map1, ImmutableMap<K, V> map2) {
+    public static <K, V> ImmutableMap<K, V> join(ImmutableMap<K, V> map1, ImmutableMap<K, V> map2) {
         return ImmutableMap.<K, V>builder().putAll(map1).putAll(map2).build();
     }
 }  

@@ -53,7 +53,7 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
     
     @Override
     public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
-        return new CounterBatchMutationQuery(getContext(), Immutables.merge(batchables, other));
+        return new CounterBatchMutationQuery(getContext(), Immutables.join(batchables, other));
     }
 
         

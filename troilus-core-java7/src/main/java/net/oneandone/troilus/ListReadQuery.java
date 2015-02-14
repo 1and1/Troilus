@@ -97,13 +97,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public ListReadQuery column(String name) {
         return new ListReadQuery(getContext(), 
-                                 data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+                                 data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
     }
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
         return new ListReadQuery(getContext(), 
-                                 data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+                                 data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
     }
     
     @Override

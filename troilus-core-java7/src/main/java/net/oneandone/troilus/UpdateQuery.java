@@ -58,7 +58,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
      public UpdateQuery entity(Object entity) {
         ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames());
         return new UpdateQuery(getContext(), 
-                getData().valuesToMutate(Immutables.merge(getData().getValuesToMutate(), values)));
+                getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     
     @Override
@@ -69,7 +69,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     @Override
     public UpdateQuery value(String name, Object value) {
         return new UpdateQuery(getContext(), 
-                getData().valuesToMutate(Immutables.merge(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
+                getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
     }
     
     @Override
@@ -80,61 +80,61 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return new UpdateQuery(getContext(), 
-                               getData().valuesToMutate(Immutables.merge(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
+                               getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
     }
 
     @Override
     public UpdateQuery removeSetValue(String name, Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToRemove().get(name);
-        values = (values == null) ? ImmutableSet.of(value) : Immutables.merge(values, value);
+        values = (values == null) ? ImmutableSet.of(value) : Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
-                               getData().setValuesToRemove(Immutables.merge(getData().getSetValuesToRemove(), name, values)));
+                               getData().setValuesToRemove(Immutables.join(getData().getSetValuesToRemove(), name, values)));
     }
 
     @Override
     public UpdateQuery addSetValue(String name, Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToAdd().get(name);
-        values = (values == null) ? ImmutableSet.of(value): Immutables.merge(values, value);
+        values = (values == null) ? ImmutableSet.of(value): Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
-                               getData().setValuesToAdd(Immutables.merge(getData().getSetValuesToAdd(), name, values)));
+                               getData().setValuesToAdd(Immutables.join(getData().getSetValuesToAdd(), name, values)));
     }
    
     @Override
     public UpdateQuery prependListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToPrepend().get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
-                               getData().listValuesToPrepend(Immutables.merge(getData().getListValuesToPrepend(), name, values)));
+                               getData().listValuesToPrepend(Immutables.join(getData().getListValuesToPrepend(), name, values)));
     } 
     
     @Override
     public UpdateQuery appendListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToAppend().get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
-                               getData().listValuesToAppend(Immutables.merge(getData().getListValuesToAppend(), name, values)));
+                               getData().listValuesToAppend(Immutables.join(getData().getListValuesToAppend(), name, values)));
     }
     
     @Override
     public UpdateQuery removeListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToRemove().get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.merge(values, value);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
-                               getData().listValuesToRemove(Immutables.merge(getData().getListValuesToRemove(), name, values)));
+                               getData().listValuesToRemove(Immutables.join(getData().getListValuesToRemove(), name, values)));
     }
    
     @Override
     public UpdateQuery putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
-        values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.merge(values, key, Optionals.toGuavaOptional(value));
+        values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
 
         return new UpdateQuery(getContext(), 
-                               getData().mapValuesToMutate(Immutables.merge(getData().getMapValuesToMutate(), name, values)));
+                               getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
     }
     
     @Override
@@ -147,8 +147,8 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
 
     @Override
     public InsertQuery ifNotExists() {
-        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.merge(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
-                                                                    .ifNotExists(true));
+        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
+                                                                     .ifNotExists(true));
     }
         
     @Override

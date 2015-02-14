@@ -78,13 +78,13 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     @Override
     public SingleReadQuery column(String name) {
         return new SingleReadQuery(getContext(), 
-                                   data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, false)));
+                                   data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
         return new SingleReadQuery(getContext(), 
-                                   data.columnsToFetch(Immutables.merge(data.getColumnsToFetch(), name, true)));
+                                   data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
