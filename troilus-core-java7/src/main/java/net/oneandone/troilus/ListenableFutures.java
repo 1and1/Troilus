@@ -99,10 +99,11 @@ class ListenableFutures {
     private static RuntimeException unwrapIfNecessary(Throwable throwable , int maxDepth)  {
         
         if (ExecutionException.class.isAssignableFrom(throwable.getClass())) {
-            Throwable e = ((ExecutionException) throwable).getCause();
-
-            if (maxDepth > 1) {
-                throwable = unwrapIfNecessary(e, maxDepth - 1);
+            Throwable e = throwable.getCause();
+            if (e != null) {
+                if (maxDepth > 1) {
+                    throwable = unwrapIfNecessary(e, maxDepth - 1);
+                }
             }
         }
         
