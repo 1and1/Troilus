@@ -73,7 +73,7 @@ class ListenableFutures {
                     }
                     
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    setException(e);
                 }
             }
         }
@@ -95,7 +95,7 @@ class ListenableFutures {
                         }
                         
                     } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                        setException(ListenableFutures.unwrapIfNecessary(e));
+                        setException(e);
                     }
                 }
             }
@@ -144,7 +144,7 @@ class ListenableFutures {
                         set(ImmutableSet.copyOf(result));
                     }
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    setException(e);
                 }
             }
         }
@@ -199,7 +199,7 @@ class ListenableFutures {
                     futureSetResult = futureSet.get();
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    setException(e);
                 }
             }
         }
@@ -210,7 +210,7 @@ class ListenableFutures {
                     futureResult = Optional.fromNullable(future.get());
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    setException(e);
                 }
             }
         }
@@ -250,7 +250,7 @@ class ListenableFutures {
     }
     
         
-    private static final class MappingFuture<T, E> extends AbstractFuture<E> implements Runnable {
+    private static final class MappingFuture<T, E> extends FutureImplBase<E> implements Runnable {
         private final ListenableFuture<T> future;
         private final Function<T, ListenableFuture<E>> func;
         
@@ -272,14 +272,14 @@ class ListenableFutures {
                         try {
                             set(iFuture.get());
                         } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            setException(ListenableFutures.unwrapIfNecessary(e));
+                            setException(e);
                         }
                     }
                 };
                 iFuture.addListener(resultForwarder, MoreExecutors.directExecutor());
                 
             } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                setException(ListenableFutures.unwrapIfNecessary(e));
+                setException(e);
             }
         };
     }
@@ -318,8 +318,6 @@ class ListenableFutures {
     
     
     
-    
-
     private static abstract class FutureImplBase<T> extends AbstractFuture<T> {
         private final AtomicBoolean isHandled = new AtomicBoolean();
 
@@ -335,13 +333,11 @@ class ListenableFutures {
         @Override
         protected boolean setException(Throwable throwable) {
             if (!isHandled.getAndSet(true)) {
-                return super.setException(throwable);
+                return super.setException(unwrapIfNecessary(throwable));
             } else {
                 return false;
             } 
         }
     }
-    
-
 }
 

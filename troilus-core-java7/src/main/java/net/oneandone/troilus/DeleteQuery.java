@@ -22,7 +22,6 @@ import java.util.Set;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
-import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
 import com.datastax.driver.core.BatchStatement.Type;
@@ -111,7 +110,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         
         
         ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
-        if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
+        if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).isEmpty()) {
             return statementFuture;
         
         // cascading statements   
