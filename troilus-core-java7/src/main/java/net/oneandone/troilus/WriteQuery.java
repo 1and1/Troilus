@@ -153,19 +153,19 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
             ListenableFuture<ImmutableSet<? extends Batchable>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
                     
-            Function<ImmutableSet<? extends Batchable>, ImmutableSet<Statement>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable>, ImmutableSet<Statement>>() {                
+            Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>>() {                
                 @Override
-                public ImmutableSet<Statement> apply(ImmutableSet<? extends Batchable> batchables) {
-                    Set<Statement> statementFutureSet = Sets.newHashSet();
+                public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable> batchables) {
+                    Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
                     for(Batchable batchable : batchables) {
-                        // TODO make it async
-                        statementFutureSet.add(ListenableFutures.getUninterruptibly(batchable.getStatementAsync()));
+                        statementFutureSet.add(batchable.getStatementAsync());
                     }
                     return ImmutableSet.copyOf(statementFutureSet);                    
                 }
             };            
-            ListenableFuture<ImmutableSet<Statement>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
-            statmentFutures.add(statementFutureSet);
+            ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
+            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = ListenableFutures.flat(statementFutureSet, getContext().getTaskExecutor());
+            statmentFutures.add(flattenStatementFutureSet);
         }
 
         return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());

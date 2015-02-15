@@ -43,7 +43,86 @@ class ListenableFutures {
         }
     }
     
-  
+
+    public static <T> ListenableFuture<ImmutableSet<T>> flat(ListenableFuture<ImmutableSet<ListenableFuture<T>>>futureSet, Executor executor) {
+        return new FlatFuture<>(futureSet, executor);
+    }
+
+    private static final class FlatFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+        private final Executor executor;
+        private final Set<T> result = Sets.newHashSet();
+        private int numPendingFutures = 0;
+        private boolean isHandled = false;
+        
+        public FlatFuture(ListenableFuture<ImmutableSet<ListenableFuture<T>>>futureSet, Executor executor) {
+            this.executor = executor;
+            futureSet.addListener(new FutureSetListner(futureSet), executor);
+        }
+        
+        private void onResult(ListenableFuture<T> future) {
+            synchronized (this) {
+                try {
+                    T t = future.get();
+                    if (t != null) {
+                        result.add(t);
+                    }
+                    
+                    numPendingFutures--;
+                    if (numPendingFutures == 0) {
+                        if (!isHandled) {
+                            isHandled = true;
+                            set(ImmutableSet.copyOf(result));
+                        }
+                    }
+                    
+                } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                    if (!isHandled) {
+                        isHandled = true;
+                        setException(ListenableFutures.unwrapIfNecessary(e));
+                    }
+                }
+            }
+        }
+        
+        private final class FutureSetListner implements Runnable  {
+            private final ListenableFuture<ImmutableSet<ListenableFuture<T>>> futureSet;
+            
+            public FutureSetListner(ListenableFuture<ImmutableSet<ListenableFuture<T>>>futureSet) {
+                this.futureSet = futureSet;
+            }
+            
+            @Override
+            public void run() {
+                synchronized (FlatFuture.this) {
+                    try {
+                        for (ListenableFuture<T> future : futureSet.get()) {
+                            numPendingFutures++;
+                            future.addListener(new FutureListner(future), executor);
+                        }
+                        
+                    } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                        if (!isHandled) {
+                            isHandled = true;
+                            setException(ListenableFutures.unwrapIfNecessary(e));
+                        }
+                    }
+                }
+            }
+        }
+        
+        private final class FutureListner implements Runnable  {
+            private final ListenableFuture<T> future;
+            
+            public FutureListner(ListenableFuture<T> future) {
+                this.future = future;
+            }
+            
+            @Override
+            public void run() {
+                onResult(future);
+            }
+        }
+    }
     
     
     public static <T> ListenableFuture<ImmutableSet<T>> flat(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
