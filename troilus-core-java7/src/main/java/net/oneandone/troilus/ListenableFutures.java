@@ -20,6 +20,7 @@ package net.oneandone.troilus;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -48,11 +49,10 @@ class ListenableFutures {
         return new FlatFuture<>(futureSet, executor);
     }
 
-    private static final class FlatFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+    private static final class FlatFuture<T> extends FutureImplBase<ImmutableSet<T>> {
         private final Executor executor;
         private final Set<T> result = Sets.newHashSet();
         private int numPendingFutures = 0;
-        private boolean isHandled = false;
         
         public FlatFuture(ListenableFuture<ImmutableSet<ListenableFuture<T>>>futureSet, Executor executor) {
             this.executor = executor;
@@ -69,17 +69,11 @@ class ListenableFutures {
                     
                     numPendingFutures--;
                     if (numPendingFutures == 0) {
-                        if (!isHandled) {
-                            isHandled = true;
-                            set(ImmutableSet.copyOf(result));
-                        }
+                        set(ImmutableSet.copyOf(result));
                     }
                     
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    if (!isHandled) {
-                        isHandled = true;
-                        setException(ListenableFutures.unwrapIfNecessary(e));
-                    }
+                    setException(ListenableFutures.unwrapIfNecessary(e));
                 }
             }
         }
@@ -101,10 +95,7 @@ class ListenableFutures {
                         }
                         
                     } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                        if (!isHandled) {
-                            isHandled = true;
-                            setException(ListenableFutures.unwrapIfNecessary(e));
-                        }
+                        setException(ListenableFutures.unwrapIfNecessary(e));
                     }
                 }
             }
@@ -124,16 +115,16 @@ class ListenableFutures {
         }
     }
     
+        
     
     public static <T> ListenableFuture<ImmutableSet<T>> flat(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
         return new FlattingFuture<>(futureSet, executor);
     }
     
     
-    private static final class FlattingFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+    private static final class FlattingFuture<T> extends FutureImplBase<ImmutableSet<T>> {
         private final Set<T> result = Sets.newHashSet();
         private int numPendingFutures;
-        private boolean isHandled = false;
         
         public FlattingFuture(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
             numPendingFutures = futureSet.size();
@@ -150,16 +141,10 @@ class ListenableFutures {
                     numPendingFutures--;
                     
                     if (numPendingFutures == 0) {
-                        if (!isHandled) {
-                            isHandled = true;
-                            set(ImmutableSet.copyOf(result));
-                        }
+                        set(ImmutableSet.copyOf(result));
                     }
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    if (!isHandled) {
-                        isHandled = true;
-                        setException(ListenableFutures.unwrapIfNecessary(e));
-                    }
+                    setException(ListenableFutures.unwrapIfNecessary(e));
                 }
             }
         }
@@ -189,10 +174,9 @@ class ListenableFutures {
     }
     
 
-    private static final class JoiningFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+    private static final class JoiningFuture<T> extends FutureImplBase<ImmutableSet<T>> {
         private Optional<T> futureResult = null; 
         private ImmutableSet<T> futureSetResult = null;
-        private boolean isHandled = false;
         
         public JoiningFuture(ListenableFuture<ImmutableSet<T>> futureSet, ListenableFuture<T> future, Executor executor) {
             future.addListener(new FutureListner(future), executor);
@@ -200,14 +184,11 @@ class ListenableFutures {
         }
         
         private void onSet() {
-            if (!isHandled) {
-                if ((futureResult != null) && (futureSetResult != null)) {
-                    isHandled = true;
-                    if (futureResult.isPresent()) {
-                        set(ImmutableSet.<T>builder().addAll(futureSetResult).add(futureResult.get()).build());
-                    } else {
-                        set(futureSetResult);
-                    }
+            if ((futureResult != null) && (futureSetResult != null)) {
+                if (futureResult.isPresent()) {
+                    set(ImmutableSet.<T>builder().addAll(futureSetResult).add(futureResult.get()).build());
+                } else {
+                    set(futureSetResult);
                 }
             }
         }
@@ -218,10 +199,7 @@ class ListenableFutures {
                     futureSetResult = futureSet.get();
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    if (!isHandled) {
-                        isHandled = true;
-                        setException(ListenableFutures.unwrapIfNecessary(e));
-                    }
+                    setException(ListenableFutures.unwrapIfNecessary(e));
                 }
             }
         }
@@ -232,10 +210,7 @@ class ListenableFutures {
                     futureResult = Optional.fromNullable(future.get());
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    if (!isHandled) {
-                        isHandled = true;
-                        setException(ListenableFutures.unwrapIfNecessary(e));
-                    }
+                    setException(ListenableFutures.unwrapIfNecessary(e));
                 }
             }
         }
@@ -339,6 +314,34 @@ class ListenableFutures {
         } else {
             return new RuntimeException(throwable);
         }
-    }   
+    }
+    
+    
+    
+    
+
+    private static abstract class FutureImplBase<T> extends AbstractFuture<T> {
+        private final AtomicBoolean isHandled = new AtomicBoolean();
+
+        @Override
+        protected boolean set(T value) {
+            if (!isHandled.getAndSet(true)) {
+                return super.set(value);
+            } else {
+                return false;
+            }
+        }
+        
+        @Override
+        protected boolean setException(Throwable throwable) {
+            if (!isHandled.getAndSet(true)) {
+                return super.setException(throwable);
+            } else {
+                return false;
+            } 
+        }
+    }
+    
+
 }
 
