@@ -158,19 +158,35 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
     
     private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
-        // TODO make is real async
-        DeleteQueryData queryData = ListenableFutures.getUninterruptibly(queryDataFuture);
+        Set<ListenableFuture<ImmutableSet<Statement>>> statmentFutures = Sets.newHashSet();
         
-        Set<Statement> statements = Sets.newHashSet();
         for (CascadeOnDeleteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).reverse()) {
+            final CascadeOnDeleteInterceptor icptor = interceptor;
+
+            Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Batchable>>> querydataToBatchables = new Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Batchable>>>() {
+                @Override
+                public ListenableFuture<ImmutableSet<? extends Batchable>> apply(DeleteQueryData queryData) {
+                    return icptor.onDeleteAsync(queryData);                    
+                }
+            };
+            ListenableFuture<ImmutableSet<? extends Batchable>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
-            ImmutableSet<? extends Batchable> batchables = ListenableFutures.getUninterruptibly(interceptor.onDeleteAsync(queryData));
-            for (Batchable batchable : batchables) {
-                Statement stmt = ListenableFutures.getUninterruptibly(batchable.getStatementAsync());
-                statements.add(stmt);
-            }
+                    
+            Function<ImmutableSet<? extends Batchable>, ImmutableSet<Statement>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable>, ImmutableSet<Statement>>() {                
+                @Override
+                public ImmutableSet<Statement> apply(ImmutableSet<? extends Batchable> batchables) {
+                    Set<Statement> statementFutureSet = Sets.newHashSet();
+                    for(Batchable batchable : batchables) {
+                        // TODO make it async
+                        statementFutureSet.add(ListenableFutures.getUninterruptibly(batchable.getStatementAsync()));
+                    }
+                    return ImmutableSet.copyOf(statementFutureSet);                    
+                }
+            };            
+            ListenableFuture<ImmutableSet<Statement>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
+            statmentFutures.add(statementFutureSet);
         }
 
-        return Futures.immediateFuture(ImmutableSet.copyOf(statements)); 
+        return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());
     }
 }

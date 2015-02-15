@@ -17,12 +17,14 @@ package net.oneandone.troilus;
 
 
 
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -42,6 +44,66 @@ class ListenableFutures {
     }
     
   
+    
+    
+    public static <T> ListenableFuture<ImmutableSet<T>> flat(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
+        return new FlattingFuture<>(futureSet, executor);
+    }
+    
+    
+    private static final class FlattingFuture<T> extends AbstractFuture<ImmutableSet<T>> {
+        private final Set<T> result = Sets.newHashSet();
+        private int numPendingFutures;
+        private boolean isHandled = false;
+        
+        public FlattingFuture(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
+            numPendingFutures = futureSet.size();
+            
+            for (ListenableFuture<ImmutableSet<T>> future : futureSet) {
+                future.addListener(new FutureListner(future), executor);
+            }
+        }
+        
+        private void onResult(ListenableFuture<ImmutableSet<T>> future) {
+            synchronized (this) {
+                try {
+                    result.addAll(future.get());
+                    numPendingFutures--;
+                    
+                    if (numPendingFutures == 0) {
+                        if (!isHandled) {
+                            isHandled = true;
+                            set(ImmutableSet.copyOf(result));
+                        }
+                    }
+                } catch (InterruptedException | ExecutionException | RuntimeException e) {
+                    if (!isHandled) {
+                        isHandled = true;
+                        setException(ListenableFutures.unwrapIfNecessary(e));
+                    }
+                }
+            }
+        }
+        
+        private final class FutureListner implements Runnable  {
+            private final ListenableFuture<ImmutableSet<T>> future;
+            
+            public FutureListner(ListenableFuture<ImmutableSet<T>> future) {
+                this.future = future;
+            }
+            
+            @Override
+            public void run() {
+                onResult(future);
+            }
+        }
+    }
+        
+  
+    
+    
+    
+        
     
     public static <T> ListenableFuture<ImmutableSet<T>> join(ListenableFuture<ImmutableSet<T>> futureSet, ListenableFuture<T> future, Executor executor) {
         return new JoiningFuture<>(futureSet, future, executor);
@@ -77,8 +139,10 @@ class ListenableFutures {
                     futureSetResult = futureSet.get();
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    isHandled = true;
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    if (!isHandled) {
+                        isHandled = true;
+                        setException(ListenableFutures.unwrapIfNecessary(e));
+                    }
                 }
             }
         }
@@ -89,8 +153,10 @@ class ListenableFutures {
                     futureResult = Optional.fromNullable(future.get());
                     onSet();
                 } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                    isHandled = true;
-                    setException(ListenableFutures.unwrapIfNecessary(e));
+                    if (!isHandled) {
+                        isHandled = true;
+                        setException(ListenableFutures.unwrapIfNecessary(e));
+                    }
                 }
             }
         }
