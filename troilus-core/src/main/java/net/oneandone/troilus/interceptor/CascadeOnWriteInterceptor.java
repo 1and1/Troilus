@@ -25,7 +25,7 @@ import net.oneandone.troilus.Batchable;
 
 /**
  * Interceptor which adds cascading statements to the write statement by using the cql batch command with write ahead.
- * Please consider that the interceptor will fail, if a non-batchable write operation -> ifNotExist(...), onlyIf(...)
+ * Please consider that the interceptor will fail, if a non-batchable write operation e.g. ifNotExist(...), onlyIf(...)
  * is performed   
  */
 public interface CascadeOnWriteInterceptor extends QueryInterceptor {

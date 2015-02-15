@@ -37,6 +37,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -109,6 +111,160 @@ public class CascadingTest extends AbstractCassandraBasedTest {
                                                              .execute());        
     }
     
+
+    
+    
+
+    @Test
+    public void testCasscadingUnssuportedInsert() throws Exception {   
+        
+        DaoManager daoManager = new DaoManager(getSession());
+       
+        Dao keyByAccountDao = daoManager.getKeyByAccountDao();
+
+        
+        String id = "act334345345344";
+        byte[] key = new byte[] { 34, 56, 87, 88 };
+        String email = "me@example.org";
+        long time = System.currentTimeMillis(); 
+        
+        
+        //////////////////////////////////////
+        // insert
+        try {
+            keyByAccountDao.writeWhere(QueryBuilder.in(KeyByAccountColumns.ACCOUNT_ID.getName(), id))
+                           .value(KeyByAccountColumns.KEY, key)
+                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                           .withConsistency(ConsistencyLevel.QUORUM)
+                           .execute();
+            Assert.fail("InvalidQueryException expected");
+        } catch (InvalidQueryException expected) {}        
+    
+    }
+
+    
+    
+
+    @Test
+    public void testCasscadingLwtDelete() throws Exception {   
+        
+        DaoManager daoManager = new DaoManager(getSession());
+       
+        Dao keyByAccountDao = daoManager.getKeyByAccountDao();
+        Dao keyByEmailDao = daoManager.getKeyByEmailDao();
+
+        
+        String id = "act3344";
+        byte[] key = new byte[] { 34, 56, 87, 88 };
+        String email = "me@example.org";
+        long time = System.currentTimeMillis(); 
+        
+        
+        //////////////////////////////////////
+        // insert 
+        keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .value(KeyByAccountColumns.KEY, key)
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        
+        
+        // test 
+        Record record = keyByEmailDao.readWithKey(KeyByEmailColumns.EMAIL, email, KeyByEmailColumns.CREATED, time)
+                                     .withConsistency(ConsistencyLevel.QUORUM)
+                                     .execute()
+                                     .get();
+        Assert.assertEquals(id, record.getValue(KeyByEmailColumns.ACCOUNT_ID));
+        Assert.assertArrayEquals(key, record.getValue(KeyByEmailColumns.KEY));
+        
+        record = keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                .withConsistency(ConsistencyLevel.QUORUM)
+                                .execute()
+                                .get();
+        Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
+        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
+        
+        
+        
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////
+        // Delete
+        try {
+            keyByAccountDao.deleteWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                           .withConsistency(ConsistencyLevel.QUORUM)
+                           .ifExists()
+                           .execute();
+            Assert.fail("InvalidQueryException expected");
+        } catch (InvalidQueryException expected) {}        
+    
+        
+    }
+    
+
+
+    
+    
+    @Test
+    public void testCasscadingUnsupportedDeleteQuery() throws Exception {   
+        
+        DaoManager daoManager = new DaoManager(getSession());
+       
+        Dao keyByAccountDao = daoManager.getKeyByAccountDao();
+        Dao keyByEmailDao = daoManager.getKeyByEmailDao();
+
+        
+        String id = "act3345445544";
+        byte[] key = new byte[] { 34, 56, 87, 88 };
+        String email = "me@example.org";
+        long time = System.currentTimeMillis(); 
+        
+        
+        //////////////////////////////////////
+        // insert 
+        keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .value(KeyByAccountColumns.KEY, key)
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        
+        
+        // test 
+        Record record = keyByEmailDao.readWithKey(KeyByEmailColumns.EMAIL, email, KeyByEmailColumns.CREATED, time)
+                                     .withConsistency(ConsistencyLevel.QUORUM)
+                                     .execute()
+                                     .get();
+        Assert.assertEquals(id, record.getValue(KeyByEmailColumns.ACCOUNT_ID));
+        Assert.assertArrayEquals(key, record.getValue(KeyByEmailColumns.KEY));
+        
+        record = keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                .withConsistency(ConsistencyLevel.QUORUM)
+                                .execute()
+                                .get();
+        Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
+        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
+        
+        
+        
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////
+        // Delete
+        
+        try {
+            keyByAccountDao.deleteWhere(QueryBuilder.in(KeyByAccountColumns.ACCOUNT_ID.getName(), id))
+                           .withConsistency(ConsistencyLevel.QUORUM)
+                           .execute();
+            Assert.fail("InvalidQueryException expected");
+        } catch (InvalidQueryException expected) {}        
+    }
+    
     
     
     
@@ -119,7 +275,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         Dao keyByAccountDao = new DaoImpl(getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnWriteInterceptor());
        
         
-        String id = "act335445544";
+        String id = "act3354455445544";
         byte[] key = new byte[] { 34, 56, 87, 88 };
         String email = "me@example.org";
         long time = System.currentTimeMillis(); 
@@ -146,7 +302,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         Dao keyByAccountDao = new DaoImpl(getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnDeleteInterceptor());
 
         
-        String id = "act334334344";
+        String id = "act3343343454544";
         byte[] key = new byte[] { 34, 56, 87, 88 };
         String email = "me@example.org";
         long time = System.currentTimeMillis(); 

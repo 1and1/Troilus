@@ -61,7 +61,7 @@ class CompletableFutures {
                     complete(future.get());
                     
                 } catch (ExecutionException ee) {
-                    completeExceptionally(ee.getCause());
+                    completeExceptionally((ee.getCause() == null) ? ee : ee.getCause());
                     
                 } catch (InterruptedException | RuntimeException e) {
                     completeExceptionally(e);

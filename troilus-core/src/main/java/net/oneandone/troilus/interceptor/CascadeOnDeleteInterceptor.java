@@ -28,7 +28,7 @@ import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 /**
  * Interceptor which adds cascading statements to the delete statement by using the cql batch command with write ahead.
- * Please consider that the interceptor will fail, if a non-batchable delete operation -> ifExist(...)
+ * Please consider that the interceptor will fail, if a non-batchable delete operation e.g. ifExist(...)
  * is performed   
  */
 public interface CascadeOnDeleteInterceptor extends QueryInterceptor {

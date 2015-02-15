@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -63,27 +64,40 @@ public interface KeyByAccountColumns  {
 
         @Override
         public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
-            Map<String, Long> fk = (Map<String, Long>) queryData.getValuesToMutate().get(EMAIL_IDX.getName()).get();
             
-            List<Write> writes = Lists.newArrayList();
-            for (Entry<String, Long> entry : fk.entrySet()) {
-                writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
-                                        .value(KeyByEmailColumns.KEY, (byte[]) queryData.getValuesToMutate().get(KEY.getName()).get())
-                                        .value(KeyByEmailColumns.ACCOUNT_ID, (String) queryData.getKeys().get(ACCOUNT_ID.getName()))
-                                        .withConsistency(ConsistencyLevel.QUORUM));
+            if (queryData.getValuesToMutate().get(EMAIL_IDX.getName()).isPresent() &&  
+                queryData.getValuesToMutate().get(KEY.getName()).isPresent() && 
+                (queryData.getKeys().get(ACCOUNT_ID.getName()) != null)) {
+                
+                Map<String, Long> fk = (Map<String, Long>) queryData.getValuesToMutate().get(EMAIL_IDX.getName()).get();
+                
+                List<Write> writes = Lists.newArrayList();
+                for (Entry<String, Long> entry : fk.entrySet()) {
+                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+                                            .value(KeyByEmailColumns.KEY, (byte[]) queryData.getValuesToMutate().get(KEY.getName()).get())
+                                            .value(KeyByEmailColumns.ACCOUNT_ID, (String) queryData.getKeys().get(ACCOUNT_ID.getName()))
+                                            .withConsistency(ConsistencyLevel.QUORUM));
+                }
+                return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));
+                
+            } else {
+                throw new InvalidQueryException("query type not supported by cascading");
             }
-            
-            return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));
         }
         
         
         @Override
         public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
-            // resolve dependent records
-            return keyByAccountDao.readWithKey(queryData.getKey())
-                                  .withConsistency(ConsistencyLevel.QUORUM)
-                                  .executeAsync()
-                                  .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
+            
+            if (queryData.getKey().isEmpty()) {
+                throw new InvalidQueryException("query type not supported by casading");
+            } else {
+                // resolve dependent records
+                return keyByAccountDao.readWithKey(queryData.getKey())
+                                      .withConsistency(ConsistencyLevel.QUORUM)
+                                      .executeAsync()
+                                      .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
+            }
         }
         
         

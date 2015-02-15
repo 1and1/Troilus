@@ -30,6 +30,7 @@ public interface SingleReadWithUnit<T> extends SingleReadWithColumns<T> {
 
     /**
      * @param objectClass  the entity type
+     * @param <E> the entity type
      * @return  a cloned query instance with the modified behavior 
      */
     <E> SingleRead<E> asEntity(Class<E> objectClass);
