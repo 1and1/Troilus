@@ -56,7 +56,7 @@ public class AsyncTest extends AbstractCassandraBasedTest {
         // inserts
         CompletableFuture<Result> insert1 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 3)
                                                   .value(FeesTable.AMOUNT, 23433)
-                                                 .executeAsync();
+                                                  .executeAsync();
         
         CompletableFuture<Result> insert2 = feeDao.writeWithKey(FeesTable.CUSTOMER_ID, "233132", FeesTable.YEAR, 4)
                                                   .value(FeesTable.AMOUNT, 1223)

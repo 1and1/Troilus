@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -9,7 +10,7 @@
 	</parent>
 	<artifactId>troilus-core</artifactId>
 	<packaging>jar</packaging>
-    
+
 	<dependencies>
 		<dependency>
 			<groupId>net.oneandone.troilus</groupId>
@@ -24,27 +25,27 @@
 			<version>2.1.0</version>
 			<scope>test</scope>
 		</dependency>
-        
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        		
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<version>2.0.3-beta</version>
 			<scope>test</scope>
 		</dependency>
-        		
-        <dependency>
-          <groupId>org.reactivestreams</groupId>
-          <artifactId>reactive-streams-tck</artifactId>
-          <version>1.0.0.RC1</version>
-          <scope>test</scope>
-        </dependency>
+		
+		<dependency>
+			<groupId>org.reactivestreams</groupId>
+			<artifactId>reactive-streams-tck</artifactId>
+			<version>1.0.0.M3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 
@@ -59,25 +60,25 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-            
-            <!-- Settings required to mix junit and testng tests -->
-            <!-- https://solidsoft.wordpress.com/2013/03/12/mixing-testng-and-junit-tests-in-one-maven-module-2013-edition/ -->
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-junit47</artifactId>
-                        <version>${surefire.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-testng</artifactId>
-                        <version>${surefire.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            
+
+			<!-- Settings required to mix junit and testng tests -->
+			<!-- https://solidsoft.wordpress.com/2013/03/12/mixing-testng-and-junit-tests-in-one-maven-module-2013-edition/ -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-junit47</artifactId>
+						<version>${surefire.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-testng</artifactId>
+						<version>${surefire.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

@@ -673,7 +673,7 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
 
 
 ##OnCascade Interceptor Examples
-To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn interceptors works for non if-conditional mutatE operations (insert, update, delete) only   
+To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn interceptors works for non if-conditional mutate operations (insert, update, delete) only   
  
 ``` java
 Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
