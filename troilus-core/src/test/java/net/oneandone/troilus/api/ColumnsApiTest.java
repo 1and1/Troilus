@@ -472,7 +472,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         // add set value
         usersDao.writeWithKey(UsersTable.USER_ID, "8345345")
-                .addSetValue(UsersTable.PHONE_NUMBERS, "12142343")
+                .addSetValue(UsersTableFields.PHONE_NUMBERS, "12142343")
                 .execute();        
         
         

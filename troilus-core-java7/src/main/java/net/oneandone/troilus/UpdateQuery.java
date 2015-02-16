@@ -15,8 +15,13 @@
  */
 package net.oneandone.troilus;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import net.oneandone.troilus.java7.CounterMutation;
 import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
+import net.oneandone.troilus.java7.Write;
 import net.oneandone.troilus.java7.WriteWithCounter;
 
 import com.datastax.driver.core.ResultSet;
@@ -91,6 +96,11 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         return new UpdateQuery(getContext(), 
                                getData().setValuesToRemove(Immutables.join(getData().getSetValuesToRemove(), name, values)));
     }
+    
+    @Override
+    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
+        return removeSetValue(name.getName(), value);
+    }
 
     @Override
     public UpdateQuery addSetValue(String name, Object value) {
@@ -99,6 +109,11 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
 
         return new UpdateQuery(getContext(), 
                                getData().setValuesToAdd(Immutables.join(getData().getSetValuesToAdd(), name, values)));
+    }
+    
+    @Override
+    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
+        return addSetValue(name.getName(), value);
     }
    
     @Override
@@ -111,12 +126,22 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     } 
     
     @Override
+    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
+        return prependListValue(name.getName(), value);
+    }
+    
+    @Override
     public UpdateQuery appendListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
         return new UpdateQuery(getContext(), 
                                getData().listValuesToAppend(Immutables.join(getData().getListValuesToAppend(), name, values)));
+    }
+    
+    @Override
+    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
+        return appendListValue(name.getName(), value);
     }
     
     @Override
@@ -127,6 +152,11 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         return new UpdateQuery(getContext(), 
                                getData().listValuesToRemove(Immutables.join(getData().getListValuesToRemove(), name, values)));
     }
+    
+    @Override
+    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
+        return removeListValue(name.getName(), value);
+    }
    
     @Override
     public UpdateQuery putMapValue(String name, Object key, Object value) {
@@ -135,6 +165,11 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
 
         return new UpdateQuery(getContext(), 
                                getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
+    }
+    
+    @Override
+    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+        return putMapValue(name, key, value);
     }
     
     @Override

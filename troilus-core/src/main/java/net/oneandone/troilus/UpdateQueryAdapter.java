@@ -19,6 +19,9 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -119,10 +122,20 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     public UpdateQueryAdapter removeSetValue(String name, Object value) {
         return new UpdateQueryAdapter(getContext(), getQuery().removeSetValue(name, value));
     }
+    
+    @Override
+    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
+        return removeSetValue(name.getName(), value);
+    }
 
     @Override
     public Write addSetValue(String name, Object value) {
         return new UpdateQueryAdapter(getContext(), getQuery().addSetValue(name, value));
+    }
+    
+    @Override
+    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
+        return addSetValue(name.getName(), value);
     }
    
     @Override
@@ -131,8 +144,18 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     } 
     
     @Override
+    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
+        return prependListValue(name.getName(), value);
+    }
+    
+    @Override
     public Write appendListValue(String name, Object value) {
         return new UpdateQueryAdapter(getContext(), getQuery().appendListValue(name, value));
+    }
+    
+    @Override
+    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
+        return appendListValue(name.getName(), value);
     }
     
     @Override
@@ -141,8 +164,18 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     }
     
     @Override
+    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
+        return removeListValue(name.getName(), value);
+    }
+    
+    @Override
     public Write putMapValue(String name, Object key, Object value) {
         return new UpdateQueryAdapter(getContext(), getQuery().putMapValue(name, key, value));
+    }
+    
+    @Override
+    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+        return putMapValue(name.getName(), key, value);
     }
         
     @Override

@@ -15,6 +15,10 @@
  */
 package net.oneandone.troilus.java7;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import net.oneandone.troilus.ColumnName;
 
 import com.google.common.collect.ImmutableMap;
@@ -61,11 +65,27 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
     U removeSetValue(String name, Object value);
 
     /**
+     * @param name   the set column name
+     * @param value  the set value to remove
+     * @param <T>    the type
+     * @return a cloned query instance with the modified behavior
+     */
+    <T> U removeSetValue(ColumnName<Set<T>> name, T value);
+
+    /**
      * @param name    the set column name
      * @param value   the set value to set
      * @return a cloned query instance with the modified behavior
      */
     U addSetValue(String name, Object value);
+
+    /**
+     * @param name    the set column name
+     * @param value   the set value to set
+     * @param <T>     the type
+     * @return a cloned query instance with the modified behavior
+     */
+    <T> U addSetValue(ColumnName<Set<T>> name, T value);
 
     /**
      * @param name   the list column name
@@ -76,10 +96,26 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
 
     /**
      * @param name   the list column name
-     * @param value  the list value to preprend
+     * @param value  the list value to append
+     * @param <T>    the type
+     * @return a cloned query instance with the modified behavior
+     */
+    <T> U appendListValue(ColumnName<List<T>> name, T value);
+
+    /**
+     * @param name   the list column name
+     * @param value  the list value to prepend
      * @return a cloned query instance with the modified behavior
      */
     U prependListValue(String name, Object value);
+
+    /**
+     * @param name   the list column name
+     * @param value  the list value to prepend
+     * @param <T>    the type
+     * @return a cloned query instance with the modified behavior
+     */
+    <T> U prependListValue(ColumnName<List<T>> name, T value);
 
     /**
      * @param name   the list column name
@@ -89,11 +125,29 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
     U removeListValue(String name, Object value);
 
     /**
+     * @param name   the list column name
+     * @param value  the list value to remove
+     * @param <T>    the type
+     * @return a cloned query instance with the modified behavior
+     */
+    <T> U removeListValue(ColumnName<List<T>> name, T value);
+
+    /**
      * @param name   the map column name 
      * @param key    the map key name
      * @param value  the map value
      * @return a cloned query instance with the modified behavior
      */
     U putMapValue(String name, Object key, Object value);
+    
+    /**
+     * @param name   the map column name 
+     * @param key    the map key name
+     * @param value  the map value
+     * @param <T>    the key type
+     * @param <V>    the value type 
+     * @return a cloned query instance with the modified behavior
+     */
+    <T, V> U putMapValue(ColumnName<Map<T, V>> name, T key, V value);
 }
 
