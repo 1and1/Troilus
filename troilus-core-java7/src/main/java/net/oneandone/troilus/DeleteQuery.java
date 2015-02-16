@@ -170,22 +170,13 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             };
             ListenableFuture<ImmutableSet<? extends Batchable>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
-                    
-            Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>>() {                
-                @Override
-                public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable> batchables) {
-                    Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
-                    for(Batchable batchable : batchables) {
-                        statementFutureSet.add(batchable.getStatementAsync());
-                    }
-                    return ImmutableSet.copyOf(statementFutureSet);                    
-                }
-            };            
-            ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
-            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = ListenableFutures.flat(statementFutureSet, getContext().getTaskExecutor());
+            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);
         }
 
         return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());
     }
+    
+    
+    
 }
