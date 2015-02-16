@@ -16,13 +16,14 @@
 package net.oneandone.troilus.example.service;
 
 import java.io.File;
-
 import java.util.Optional;
 
 import javax.ws.rs.client.Client;
 
 
 
+
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.example.service.Hotel;
@@ -39,6 +40,7 @@ import com.google.common.collect.ImmutableSet;
 public class HotelServiceTest extends AbstractCassandraBasedTest {
     
     
+    @Ignore
     @Test
     public void testExample() throws Exception {
         filldb();
