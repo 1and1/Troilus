@@ -22,6 +22,7 @@ import java.util.Set;
 
 import net.oneandone.troilus.java7.CombinableMutation;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.base.Function;
@@ -58,6 +59,21 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable, C
     public abstract ListenableFuture<Result> executeAsync();
     
     
+    protected ListenableFuture<Statement> mergeStatements(ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {
+        ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, getContext().getTaskExecutor());
+
+        Function<ImmutableSet<Statement>, Statement> statementsBatcher = new Function<ImmutableSet<Statement>, Statement>() {
+            
+            public Statement apply(ImmutableSet<Statement> statements) {
+                BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
+                for (Statement statement : statements) {
+                    batchStatement.add(statement);
+                }       
+                return batchStatement;
+            };
+        };
+        return Futures.transform(statementsFuture, statementsBatcher);
+    }
     
     
     protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Batchable>> batchablesFutureSet) {

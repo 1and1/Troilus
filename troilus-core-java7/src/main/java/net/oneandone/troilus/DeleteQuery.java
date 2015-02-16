@@ -24,9 +24,7 @@ import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
-import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
@@ -116,19 +114,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         // cascading statements   
         } else {
             ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(queryDataFuture);
-            ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, getContext().getTaskExecutor());
-
-            Function<ImmutableSet<Statement>, Statement> statementsBatcher = new Function<ImmutableSet<Statement>, Statement>() {
-                
-                public Statement apply(ImmutableSet<Statement> statements) {
-                    BatchStatement batchStatement = new BatchStatement(Type.LOGGED);
-                    for (Statement statement : statements) {
-                        batchStatement.add(statement);
-                    }       
-                    return batchStatement;
-                };
-            };
-            return Futures.transform(statementsFuture, statementsBatcher);
+            return mergeStatements(statementFuture, cascadingStatmentsFuture);
         }
     }
 
