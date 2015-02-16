@@ -67,10 +67,10 @@ public interface KeyByAccountColumns  {
             
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
-                throw new InvalidQueryException("query type not supported by cascading");
+                throw new InvalidQueryException("where condition based queries are not supported");
             }
             
-            if (queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY) && queryData.hasKey(ACCOUNT_ID)) {
+            if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY)) {
                 Map<String, Long> fk = queryData.getValueToMutate(EMAIL_IDX).get();
                 
                 List<Write> writes = Lists.newArrayList();
@@ -93,7 +93,7 @@ public interface KeyByAccountColumns  {
 
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
-                throw new InvalidQueryException("query type not supported by casading");
+                throw new InvalidQueryException("where condition based queries are not supported");
             }
                 
             // resolve dependent records
