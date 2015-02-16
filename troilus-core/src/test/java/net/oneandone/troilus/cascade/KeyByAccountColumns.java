@@ -53,11 +53,11 @@ public interface KeyByAccountColumns  {
     
     
     
-    public static final class CascadeByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
+    public static final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
         private final Dao keyByAccountDao;
         private final Dao keyByEmailDao;
         
-        public CascadeByEmailDao(Dao keyByAccountDao, Dao keyByEmailDao) {
+        public CascadeToByEmailDao(Dao keyByAccountDao, Dao keyByEmailDao) {
             this.keyByAccountDao = keyByAccountDao;
             this.keyByEmailDao = keyByEmailDao;
         }

@@ -670,3 +670,72 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
     }    
 }
 ```
+
+
+##More OnCascade Interceptor Examples
+To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn Interceptors will work for non if-conditional mutating operations (insert, update, delete)   
+ 
+``` java
+public static final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
+        private final Dao keyByAccountDao;
+        private final Dao keyByEmailDao;
+        
+        public CascadeToByEmailDao(Dao keyByAccountDao, Dao keyByEmailDao) {
+            this.keyByAccountDao = keyByAccountDao;
+            this.keyByEmailDao = keyByEmailDao;
+        }
+
+        @Override
+        public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
+            
+            // this interceptor does not support where condition based queries
+            if (!queryData.getWhereConditions().isEmpty()) {
+                throw new InvalidQueryException("query type not supported by cascading");
+            }
+            
+            if (queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY) && queryData.hasKey(ACCOUNT_ID)) {
+                Map<String, Long> fk = queryData.getValueToMutate(EMAIL_IDX).get();
+                
+                List<Write> writes = Lists.newArrayList();
+                for (Entry<String, Long> entry : fk.entrySet()) {
+                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY).get())
+                                            .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
+                                            .withConsistency(ConsistencyLevel.QUORUM));
+                }
+                return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));
+                
+            } else {
+                return CompletableFuture.completedFuture(ImmutableSet.of());
+            }
+        }
+        
+        
+        @Override
+        public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
+
+            // this interceptor does not support where condition based queries
+            if (!queryData.getWhereConditions().isEmpty()) {
+                throw new InvalidQueryException("query type not supported by casading");
+            }
+                
+            // resolve dependent records
+            return keyByAccountDao.readWithKey(queryData.getKey())
+                                  .withConsistency(ConsistencyLevel.QUORUM)
+                                  .executeAsync()
+                                  .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
+        }
+        
+        
+        private ImmutableSet<Deletion> getDeletions(Record record) {
+            List<Deletion> deletions = Lists.newArrayList();
+            for (Entry<String, Long> entry : record.getValue(KeyByAccountColumns.EMAIL_IDX).entrySet()) {
+                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+                                           .withConsistency(ConsistencyLevel.QUORUM));
+            }
+            
+            return ImmutableSet.copyOf(deletions);
+        }
+    }
+}
+```
