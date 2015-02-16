@@ -31,7 +31,7 @@ public class DaoManager  {
         Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
         this.keyByEmailDao = new DaoImpl(session, KeyByEmailColumns.TABLE);
         
-        this.keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.CascadeByEmailDao(keyByAccountDao, keyByEmailDao));
+        this.keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.CascadeToByEmailDao(keyByAccountDao, keyByEmailDao));
     }
     
     
