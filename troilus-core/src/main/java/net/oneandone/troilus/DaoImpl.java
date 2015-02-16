@@ -804,7 +804,27 @@ public class DaoImpl implements Dao {
         public ImmutableMap<String, Object> getKeys() {
             return data.getKeys();
         }
-
+        
+        @Override
+        public <T> boolean hasKey(ColumnName<T> name) {
+            return data.hasKey(name);
+        }
+        
+        @Override
+        public boolean hasKey(String name) {
+            return data.hasKey(name);
+        }
+        
+        @Override
+        public <T> T getKey(ColumnName<T> name) {
+            return data.getKey(name);
+        }
+        
+        @Override
+        public Object getKey(String name) {
+            return data.getKey(name);
+        }
+         
         @Override
         public ImmutableList<Clause> getWhereConditions() {
             return data.getWhereConditions();
@@ -814,6 +834,27 @@ public class DaoImpl implements Dao {
         public ImmutableMap<String, Optional<Object>> getValuesToMutate() {
             return fromGuavaOptional(data.getValuesToMutate());
         }
+        
+        @Override
+        public <T> boolean hasValueToMutate(ColumnName<T> name) {
+            return data.hasValueToMutate(name);
+        }
+        
+        @Override
+        public boolean hasValueToMutate(String name) {
+            return data.hasValueToMutate(name);
+        }
+        
+        @Override
+        public <T> Optional<T> getValueToMutate(ColumnName<T> name) {
+            return fromGuavaOptional(data.getValueToMutate(name));
+        }
+        
+        @Override
+        public Optional<Object> getValueToMutate(String name) {
+            return fromGuavaOptional(data.getValueToMutate(name));
+        }
+        
 
         @Override
         public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToAdd() {
@@ -865,6 +906,9 @@ public class DaoImpl implements Dao {
         }
         
         
+        private  static <T> Optional<T> fromGuavaOptional(com.google.common.base.Optional<T> optional) {
+            return Optional.ofNullable(optional.orNull());
+        }
         
         private  static ImmutableMap<String, Optional<Object>> fromGuavaOptional(ImmutableMap<String, com.google.common.base.Optional<Object>> map) {
             Map<String, Optional<Object>> result = Maps.newHashMap();

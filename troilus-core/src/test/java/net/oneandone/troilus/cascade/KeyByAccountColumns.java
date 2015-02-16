@@ -65,39 +65,42 @@ public interface KeyByAccountColumns  {
         @Override
         public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
             
-            if (queryData.getValuesToMutate().get(EMAIL_IDX.getName()).isPresent() &&  
-                queryData.getValuesToMutate().get(KEY.getName()).isPresent() && 
-                (queryData.getKeys().get(ACCOUNT_ID.getName()) != null)) {
-                
-                Map<String, Long> fk = (Map<String, Long>) queryData.getValuesToMutate().get(EMAIL_IDX.getName()).get();
+            // this interceptor does not support where condition based queries
+            if (!queryData.getWhereConditions().isEmpty()) {
+                throw new InvalidQueryException("query type not supported by cascading");
+            }
+            
+            if (queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY) && queryData.hasKey(ACCOUNT_ID)) {
+                Map<String, Long> fk = queryData.getValueToMutate(EMAIL_IDX).get();
                 
                 List<Write> writes = Lists.newArrayList();
                 for (Entry<String, Long> entry : fk.entrySet()) {
                     writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
-                                            .value(KeyByEmailColumns.KEY, (byte[]) queryData.getValuesToMutate().get(KEY.getName()).get())
-                                            .value(KeyByEmailColumns.ACCOUNT_ID, (String) queryData.getKeys().get(ACCOUNT_ID.getName()))
+                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY).get())
+                                            .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
                                             .withConsistency(ConsistencyLevel.QUORUM));
                 }
                 return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));
                 
             } else {
-                throw new InvalidQueryException("query type not supported by cascading");
+                return CompletableFuture.completedFuture(ImmutableSet.of());
             }
         }
         
         
         @Override
         public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
-            
-            if (queryData.getKey().isEmpty()) {
+
+            // this interceptor does not support where condition based queries
+            if (!queryData.getWhereConditions().isEmpty()) {
                 throw new InvalidQueryException("query type not supported by casading");
-            } else {
-                // resolve dependent records
-                return keyByAccountDao.readWithKey(queryData.getKey())
-                                      .withConsistency(ConsistencyLevel.QUORUM)
-                                      .executeAsync()
-                                      .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
             }
+                
+            // resolve dependent records
+            return keyByAccountDao.readWithKey(queryData.getKey())
+                                  .withConsistency(ConsistencyLevel.QUORUM)
+                                  .executeAsync()
+                                  .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
         }
         
         

@@ -17,7 +17,6 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.addAll;
-
 import static com.datastax.driver.core.querybuilder.QueryBuilder.appendAll;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.discardAll;
@@ -287,6 +286,27 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
 
     @Override
+    public <T> boolean hasKey(ColumnName<T> name) {
+        return hasKey(name.getName());
+    }
+    
+    @Override
+    public boolean hasKey(String name) {
+        return getKeys().containsKey(name);
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getKey(ColumnName<T> name) {
+        return (T) getKey(name.getName());
+    }
+
+    @Override
+    public Object getKey(String name) {
+        return getKeys().get(name);
+    }
+    
+    @Override
     public ImmutableList<Clause> getWhereConditions() {
         return whereConditions;
     }
@@ -296,6 +316,27 @@ class WriteQueryDataImpl implements WriteQueryData {
         return valuesToMutate;
     }
 
+    @Override
+    public <T> boolean hasValueToMutate(ColumnName<T> name) {
+        return hasValueToMutate(name.getName());
+    }
+    
+    @Override
+    public boolean hasValueToMutate(String name) {
+        return getValuesToMutate().containsKey(name);
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Optional<T> getValueToMutate(ColumnName<T> name) {
+        return (Optional<T>) getValueToMutate(name.getName());
+    }
+    
+    @Override
+    public Optional<Object> getValueToMutate(String name) {
+        return getValuesToMutate().get(name);
+    }
+    
     @Override
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToAdd() {
         return setValuesToAdd;

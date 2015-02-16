@@ -19,6 +19,9 @@ package net.oneandone.troilus.interceptor;
 import java.util.Optional;
 
 
+
+import net.oneandone.troilus.ColumnName;
+
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -103,6 +106,32 @@ public interface WriteQueryData {
     ImmutableMap<String, Object> getKeys();
 
     /**
+     * @param name the key name
+     * @param <T> the type
+     * @return true, if contained
+     */
+    <T> boolean hasKey(ColumnName<T> name);
+
+    /**
+     * @param name the key name
+     * @return true, if contained
+     */
+    boolean hasKey(String name);
+
+    /**
+     * @param name  the key name
+     * @return the key value or NULL
+     */
+    Object getKey(String name);
+
+    /**
+     * @param name  the key name
+     * @return the key value or NULL
+     */
+    <T> T getKey(ColumnName<T> name);
+
+    
+    /**
      * @return  the whre conditions
      */
     ImmutableList<Clause> getWhereConditions();
@@ -112,6 +141,32 @@ public interface WriteQueryData {
      */
     ImmutableMap<String, Optional<Object>> getValuesToMutate();
 
+    /**
+     * @param name the column name
+     * @return true, if contained
+     */
+    boolean hasValueToMutate(String name);
+
+    /**
+     * @param name the column name
+     * @param <T> the type
+     * @return true, if contained
+     */
+    <T> boolean hasValueToMutate(ColumnName<T> name);
+
+    /**
+     * @param name the column name
+     * @return the optional value 
+     */
+    Optional<Object> getValueToMutate(String name);
+
+    /**
+     * @param name the column name
+     * @param <T> the type
+     * @return the optional value 
+     */
+    <T> Optional<T> getValueToMutate(ColumnName<T> name);
+    
     /**
      * @return the set values to add
      */
