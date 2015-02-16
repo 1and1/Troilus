@@ -434,8 +434,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                              }
                          }
 
-                     } else { 
-                         subscriber.onError(new IllegalStateException("already closed"));
                      }
                  }
              }
@@ -444,7 +442,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private void requestDatabaseForMoreRecords() {
                  // no more data to fetch?
                  if (rs.isFullyFetched()) {
-                     terminateRegularly();
+                     terminateRegularly(true);
                      return;
                  } 
                  
@@ -470,7 +468,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              @Override
              public void cancel() {
-                 terminateRegularly();
+                 terminateRegularly(false);
              }
 
              
@@ -478,11 +476,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              ////////////
              // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
              
-             private void terminateRegularly() {
+             private void terminateRegularly(boolean signalOnComplete) {
                  synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
-                         subscriber.onComplete();
+                         if(signalOnComplete) subscriber.onComplete();
                      }
                  }
              }

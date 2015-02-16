@@ -13,6 +13,10 @@
 	<version>0.7-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+        <properties>
+                <!-- later versions -->
+                <surefire.version>2.15</surefire.version>
+        </properties>
 
 	<name>troilus-parent multimodule</name>
 	<modules>
@@ -79,6 +83,17 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
+                <plugins>
+                       <plugin>
+                              <artifactId>maven-surefire-plugin</artifactId>
+                              <version>${surefire.version}</version>
+                              <configuration>
+                              <!-- Set this to "true" to redirect the unit test standard output to a file 
+                                    (found in reportsDirectory/testName-output.txt). -->
+                                       <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                              </configuration>
+                       </plugin>
+                </plugins>
 	</build>
 </project>
 
