@@ -20,7 +20,7 @@ Java8-based
 <dependency>
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core</artifactId>
-	<version>0.5</version>
+	<version>0.6</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ Java7-based
 <dependency>
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core-java7</artifactId>
-	<version>0.5</version>
+	<version>0.6</version>
 </dependency>
 ```
 
@@ -676,6 +676,14 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
 To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn Interceptors will work for non if-conditional mutating operations (insert, update, delete)   
  
 ``` java
+Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
+Dao keyByEmailDao = new DaoImpl(session, KeyByEmailColumns.TABLE);
+        
+keyByAccountDao = keyByAccountDao.withInterceptor(new CascadeToByEmailDao(keyByAccountDao, keyByEmailDao));
+//...
+
+
+
 public static final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
         private final Dao keyByAccountDao;
         private final Dao keyByEmailDao;
