@@ -672,7 +672,7 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
 ```
 
 
-##More OnCascade Interceptor Examples
+##OnCascade Interceptor Examples
 To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn Interceptors will work for non if-conditional mutating operations (insert, update, delete)   
  
 ``` java
