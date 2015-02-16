@@ -182,7 +182,7 @@ hotelsDao.deleteWithKey("id", "BUP932432")
         
 
 ### lightweight transactions 
-transaction-safe, ***unique insert*** with `ifNotExists()`(performs the insertion only if the row does not already exist)        
+transaction-safe, ***unique insert*** with `ifNotExists()`(will perform the insertion only, if the row does not already exist)        
 ``` java
 try {
    hotelsDao.writeWithKey("id", "BUP932432")
@@ -244,7 +244,7 @@ try {
 
 
 ##Batching        
-Non if-conditional mutating operations (insert, update, delete) can be executed in a batched manner by combining it with another mutating operation. This is provided by the `combinedWith(...)` method. 
+Non if-conditional mutate operations (insert, update, delete) can be executed in a batched manner by combining it with another mutate operation. This is provided by the `combinedWith(...)` method. 
 ``` java
 Batchable deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
@@ -673,7 +673,7 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
 
 
 ##OnCascade Interceptor Examples
-To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn Interceptors will work for non if-conditional mutating operations (insert, update, delete)   
+To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn interceptors works for non if-conditional mutatE operations (insert, update, delete) only   
  
 ``` java
 Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
