@@ -140,11 +140,11 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
             for (String immutableColumn : immutableColumns) {
                 if (queryData.hasValueToMutate(immutableColumn) || 
                     queryData.hasSetValuesToAdd(immutableColumn) || 
-                    queryData.hasSetValueToRemove(immutableColumn) ||
-                    queryData.hasListValueToAppend(immutableColumn) ||
-                    queryData.hasListValueToPrepend(immutableColumn) ||
-                    queryData.hasListValueToRemove(immutableColumn) ||
-                    queryData.hasMapValueToMutate(immutableColumn)) {
+                    queryData.hasSetValuesToRemove(immutableColumn) ||
+                    queryData.hasListValuesToAppend(immutableColumn) ||
+                    queryData.hasListValuesToPrepend(immutableColumn) ||
+                    queryData.hasListValuesToRemove(immutableColumn) ||
+                    queryData.hasMapValuesToMutate(immutableColumn)) {
                     throw new ConstraintException("immutable column " + immutableColumn + " can not be updated (column can be set within ifNotExists() write query only)");
                 }
             }

@@ -884,28 +884,48 @@ public class DaoImpl implements Dao {
         }
         
         @Override
+        public <T> boolean hasSetValuesToAddOrSet(ColumnName<Set<T>> name) {
+            return data.hasSetValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public boolean hasSetValuesToAddOrSet(String name) {
+            return data.hasSetValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public <T> ImmutableSet<T> getSetValuesToAddOrSet( ColumnName<Set<T>> name) {
+            return data.getSetValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public ImmutableSet<Object> getSetValuesToAddOrSet(String name) {
+            return data.getSetValuesToAddOrSet(name);
+        }
+        
+        @Override
         public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToRemove() {
             return data.getSetValuesToRemove();
         }
         
         @Override
-        public <T> boolean hasSetValueToRemove(ColumnName<Set<T>> name) {
-            return data.hasSetValueToRemove(name);
+        public <T> boolean hasSetValuesToRemove(ColumnName<Set<T>> name) {
+            return data.hasSetValuesToRemove(name);
         }
         
         @Override
-        public boolean hasSetValueToRemove(String name) {
-            return data.hasSetValueToRemove(name);
+        public boolean hasSetValuesToRemove(String name) {
+            return data.hasSetValuesToRemove(name);
         }
         
         @Override
-        public <T> ImmutableSet<T> getSetValueToRemove(ColumnName<Set<T>> name) {
-            return data.getSetValueToRemove(name);
+        public <T> ImmutableSet<T> getSetValuesToRemove(ColumnName<Set<T>> name) {
+            return data.getSetValuesToRemove(name);
         }
         
         @Override
-        public ImmutableSet<Object> getSetValueToRemove(String name) {
-            return data.getSetValueToRemove(name);
+        public ImmutableSet<Object> getSetValuesToRemove(String name) {
+            return data.getSetValuesToRemove(name);
         }
 
         @Override
@@ -914,43 +934,43 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public <T> boolean hasListValueToAppend(ColumnName<List<T>> name) {
-            return data.hasListValueToAppend(name);
+        public <T> boolean hasListValuesToAppend(ColumnName<List<T>> name) {
+            return data.hasListValuesToAppend(name);
         }
         
         @Override
-        public boolean hasListValueToAppend(String name) {
-            return data.hasListValueToAppend(name);
+        public boolean hasListValuesToAppend(String name) {
+            return data.hasListValuesToAppend(name);
         }
         
         @Override
-        public <T> ImmutableList<T> getListValueToAppend(ColumnName<List<T>> name) {
-            return data.getListValueToAppend(name);
+        public <T> ImmutableList<T> getListValuesToAppend(ColumnName<List<T>> name) {
+            return data.getListValuesToAppend(name);
         }
         
         @Override
-        public ImmutableList<Object> getListValueToAppend(String name) {
-            return data.getListValueToAppend(name);
+        public ImmutableList<Object> getListValuesToAppend(String name) {
+            return data.getListValuesToAppend(name);
         }
         
         @Override
-        public <T> boolean hasListValueToPrepend(ColumnName<List<T>> name) {
-            return data.hasListValueToPrepend(name);
+        public <T> boolean hasListValuesToPrepend(ColumnName<List<T>> name) {
+            return data.hasListValuesToPrepend(name);
         }
         
         @Override
-        public boolean hasListValueToPrepend(String name) {
-            return data.hasListValueToPrepend(name);
+        public boolean hasListValuesToPrepend(String name) {
+            return data.hasListValuesToPrepend(name);
         }
         
         @Override
-        public <T> ImmutableList<T> getListValueToPrepend(ColumnName<List<T>> name) {
-            return data.getListValueToPrepend(name);
+        public <T> ImmutableList<T> getListValuesToPrepend(ColumnName<List<T>> name) {
+            return data.getListValuesToPrepend(name);
         }
         
         @Override
-        public ImmutableList<Object> getListValueToPrepend(String name) {
-            return data.getListValueToPrepend(name);
+        public ImmutableList<Object> getListValuesToPrepend(String name) {
+            return data.getListValuesToPrepend(name);
         }
         
 
@@ -960,28 +980,48 @@ public class DaoImpl implements Dao {
         }
 
         @Override
+        public <T> boolean hasListValuesToAddOrSet(ColumnName<List<T>> name) {
+            return data.hasListValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public boolean hasListValuesToAddOrSet(String name) {
+            return data.hasListValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public <T> ImmutableList<T> getListValuesToAddOrSet( ColumnName<List<T>> name) {
+            return data.getListValuesToAddOrSet(name);
+        }
+        
+        @Override
+        public ImmutableList<Object> getListValuesToAddOrSet(String name) {
+            return data.getListValuesToAddOrSet(name);
+        }
+        
+        @Override
         public ImmutableMap<String, ImmutableList<Object>> getListValuesToRemove() {
             return data.getListValuesToRemove();
         }
         
         @Override
-        public <T> boolean hasListValueToRemove(ColumnName<List<T>> name) {
-            return data.hasListValueToRemove(name);
+        public <T> boolean hasListValuesToRemove(ColumnName<List<T>> name) {
+            return data.hasListValuesToRemove(name);
         }
         
         @Override
-        public boolean hasListValueToRemove(String name) {
-            return data.hasListValueToRemove(name);
+        public boolean hasListValuesToRemove(String name) {
+            return data.hasListValuesToRemove(name);
         }
         
         @Override
-        public ImmutableList<Object> getListValueToRemove(String name) {
-            return data.getListValueToRemove(name);
+        public ImmutableList<Object> getListValuesToRemove(String name) {
+            return data.getListValuesToRemove(name);
         }
         
         @Override
-        public <T> ImmutableList<T> getListValueToRemove(ColumnName<List<T>> name) {
-            return data.getListValueToRemove(name);
+        public <T> ImmutableList<T> getListValuesToRemove(ColumnName<List<T>> name) {
+            return data.getListValuesToRemove(name);
         }
 
         @Override
@@ -999,23 +1039,23 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public <T, V> boolean hasMapValueToMutate(ColumnName<Map<T, V>> name) {
-            return data.hasMapValueToMutate(name);
+        public <T, V> boolean hasMapValuesToMutate(ColumnName<Map<T, V>> name) {
+            return data.hasMapValuesToMutate(name);
         }
         
         @Override
-        public boolean hasMapValueToMutate(String name) {
-            return data.hasMapValueToMutate(name);
+        public boolean hasMapValuesToMutate(String name) {
+            return data.hasMapValuesToMutate(name);
         }
 
         @Override
-        public <T, V> ImmutableMap<T, Optional<V>> getMapValueToMutate( ColumnName<Map<T, V>> name) {
-            return fromGuavaOptional(data.getMapValueToMutate(name));
+        public <T, V> ImmutableMap<T, Optional<V>> getMapValuesToMutate( ColumnName<Map<T, V>> name) {
+            return fromGuavaOptional(data.getMapValuesToMutate(name));
         }
 
         @Override
-        public ImmutableMap<Object, Optional<Object>> getMapValueToMutate(String name) {
-            return fromGuavaOptional(data.getMapValueToMutate(name));
+        public ImmutableMap<Object, Optional<Object>> getMapValuesToMutate(String name) {
+            return fromGuavaOptional(data.getMapValuesToMutate(name));
         }
         
         @Override

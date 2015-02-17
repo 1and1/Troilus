@@ -335,7 +335,12 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     @Override
     public Object getValueToMutate(String name) {
-        return getValuesToMutate().get(name).orNull();
+        Optional<Object> optional = getValuesToMutate().get(name);
+        if (optional == null) {
+            return null;
+        } else {
+            return optional.orNull();
+        }
     }
     
     @Override
@@ -368,6 +373,34 @@ class WriteQueryDataImpl implements WriteQueryData {
             return values;
         }
     }    
+    
+    @Override
+    public <T> boolean hasSetValuesToAddOrSet(ColumnName<Set<T>> name) {
+        return hasSetValuesToAddOrSet(name.getName());
+    }
+    
+    @Override
+    public boolean hasSetValuesToAddOrSet(String name) {
+        return hasSetValuesToAdd(name) || hasValueToMutate(name);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> ImmutableSet<T> getSetValuesToAddOrSet(ColumnName<Set<T>> name) {
+        return (ImmutableSet<T>) getSetValuesToAddOrSet(name.getName());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public ImmutableSet<Object> getSetValuesToAddOrSet(String name) {
+        ImmutableSet<Object> valuesToAdd = getSetValuesToAdd(name);
+        ImmutableSet<Object> valuesToMutate = (ImmutableSet<Object>) getValueToMutate(name);
+        if (valuesToMutate == null) {
+            return valuesToAdd;
+        } else {
+            return ImmutableSet.<Object>builder().addAll(valuesToAdd).addAll(valuesToMutate).build();
+        }
+    }
 
     @Override
     public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToRemove() {
@@ -375,23 +408,23 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
-    public <T> boolean hasSetValueToRemove(ColumnName<Set<T>> name) {
-        return hasSetValueToRemove(name.getName());
+    public <T> boolean hasSetValuesToRemove(ColumnName<Set<T>> name) {
+        return hasSetValuesToRemove(name.getName());
     }
     
     @Override
-    public boolean hasSetValueToRemove(String name) {
+    public boolean hasSetValuesToRemove(String name) {
         return setValuesToRemove.containsKey(name);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ImmutableSet<T> getSetValueToRemove(ColumnName<Set<T>> name) {
-        return (ImmutableSet<T>) getSetValueToRemove(name.getName());
+    public <T> ImmutableSet<T> getSetValuesToRemove(ColumnName<Set<T>> name) {
+        return (ImmutableSet<T>) getSetValuesToRemove(name.getName());
     }
     
     @Override
-    public ImmutableSet<Object> getSetValueToRemove(String name) {
+    public ImmutableSet<Object> getSetValuesToRemove(String name) {
         ImmutableSet<Object> values = setValuesToRemove.get(name);
         if (values == null) {
             return ImmutableSet.of();
@@ -407,23 +440,23 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
-    public <T> boolean hasListValueToAppend(ColumnName<List<T>> name) {
-        return hasListValueToAppend(name.getName());
+    public <T> boolean hasListValuesToAppend(ColumnName<List<T>> name) {
+        return hasListValuesToAppend(name.getName());
     }
     
     @Override
-    public boolean hasListValueToAppend(String name) {
+    public boolean hasListValuesToAppend(String name) {
         return listValuesToAppend.containsKey(name);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ImmutableList<T> getListValueToAppend(ColumnName<List<T>> name) {
-        return (ImmutableList<T>) getListValueToAppend(name.getName());
+    public <T> ImmutableList<T> getListValuesToAppend(ColumnName<List<T>> name) {
+        return (ImmutableList<T>) getListValuesToAppend(name.getName());
     }
     
     @Override
-    public ImmutableList<Object> getListValueToAppend(String name) {
+    public ImmutableList<Object> getListValuesToAppend(String name) {
         ImmutableList<Object> values = listValuesToAppend.get(name);
         if (values == null) {
             return ImmutableList.of();
@@ -438,23 +471,23 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
-    public <T> boolean hasListValueToPrepend(ColumnName<List<T>> name) {
-        return hasListValueToPrepend(name.getName());
+    public <T> boolean hasListValuesToPrepend(ColumnName<List<T>> name) {
+        return hasListValuesToPrepend(name.getName());
     }
     
     @Override
-    public boolean hasListValueToPrepend(String name) {
+    public boolean hasListValuesToPrepend(String name) {
         return listValuesToPrepend.containsKey(name);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ImmutableList<T> getListValueToPrepend(ColumnName<List<T>> name) {
-        return (ImmutableList<T>) getListValueToPrepend(name.getName());
+    public <T> ImmutableList<T> getListValuesToPrepend(ColumnName<List<T>> name) {
+        return (ImmutableList<T>) getListValuesToPrepend(name.getName());
     }
     
     @Override
-    public ImmutableList<Object> getListValueToPrepend(String name) {
+    public ImmutableList<Object> getListValuesToPrepend(String name) {
         ImmutableList<Object> values = listValuesToPrepend.get(name);
         if (values == null) {
             return ImmutableList.of();
@@ -464,28 +497,58 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
+    public <T> boolean hasListValuesToAddOrSet(ColumnName<List<T>> name) {
+        return hasListValuesToAddOrSet(name.getName());
+    }
+    
+    @Override
+    public boolean hasListValuesToAddOrSet(String name) {
+        return hasListValuesToAppend(name) || hasListValuesToPrepend(name) || hasValueToMutate(name);
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> ImmutableList<T> getListValuesToAddOrSet(ColumnName<List<T>> name) {
+        return (ImmutableList<T>) getListValuesToAddOrSet(name.getName());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public ImmutableList<Object> getListValuesToAddOrSet(String name) {
+        ImmutableList<Object> valuesToAppend = getListValuesToAppend(name);
+        ImmutableList<Object> valuesToPrepend = getListValuesToPrepend(name);
+        ImmutableList<Object> valuesToMutate = (ImmutableList<Object>) getValueToMutate(name);
+        
+        if (valuesToMutate == null) {
+            return ImmutableList.<Object>builder().addAll(valuesToAppend).addAll(valuesToPrepend).build();
+        } else {
+            return ImmutableList.<Object>builder().addAll(valuesToAppend).addAll(valuesToPrepend).addAll(valuesToMutate).build();
+        }
+    }
+    
+    @Override
     public ImmutableMap<String, ImmutableList<Object>> getListValuesToRemove() {
         return listValuesToRemove;
     }
     
     @Override
-    public <T> boolean hasListValueToRemove(ColumnName<List<T>> name) {
-        return hasListValueToRemove(name.getName());
+    public <T> boolean hasListValuesToRemove(ColumnName<List<T>> name) {
+        return hasListValuesToRemove(name.getName());
     }
     
     @Override
-    public boolean hasListValueToRemove(String name) {
+    public boolean hasListValuesToRemove(String name) {
         return listValuesToRemove.containsKey(name);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ImmutableList<T> getListValueToRemove(ColumnName<List<T>> name) {
-        return (ImmutableList<T>) getListValueToRemove(name.getName());
+    public <T> ImmutableList<T> getListValuesToRemove(ColumnName<List<T>> name) {
+        return (ImmutableList<T>) getListValuesToRemove(name.getName());
     }
     
     @Override
-    public ImmutableList<Object> getListValueToRemove(String name) {
+    public ImmutableList<Object> getListValuesToRemove(String name) {
         ImmutableList<Object> values = listValuesToRemove.get(name);
         if (values == null) {
             return ImmutableList.of();
@@ -500,27 +563,27 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
-    public <T, V> boolean hasMapValueToMutate(ColumnName<Map<T, V>> name) {
-        return hasMapValueToMutate(name.getName());
+    public <T, V> boolean hasMapValuesToMutate(ColumnName<Map<T, V>> name) {
+        return hasMapValuesToMutate(name.getName());
     }
     
     @Override
-    public boolean hasMapValueToMutate(String name) {
+    public boolean hasMapValuesToMutate(String name) {
         return mapValuesToMutate.containsKey(name);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, V> ImmutableMap<T, Optional<V>> getMapValueToMutate(ColumnName<Map<T, V>> name) {
+    public <T, V> ImmutableMap<T, Optional<V>> getMapValuesToMutate(ColumnName<Map<T, V>> name) {
         Map<T, Optional<V>> result = Maps.newHashMap();
-        for (Entry<Object, Optional<Object>> entry : getMapValueToMutate(name.getName()).entrySet()) {
+        for (Entry<Object, Optional<Object>> entry : getMapValuesToMutate(name.getName()).entrySet()) {
             result.put((T) entry.getKey(), (Optional<V>) entry.getValue()); 
         }
         return ImmutableMap.copyOf(result);
     }
     
     @Override
-    public ImmutableMap<Object, Optional<Object>> getMapValueToMutate(String name) {
+    public ImmutableMap<Object, Optional<Object>> getMapValuesToMutate(String name) {
         ImmutableMap<Object, Optional<Object>> values = mapValuesToMutate.get(name);
         if (values == null) {
             return ImmutableMap.of();

@@ -31,6 +31,7 @@ import net.oneandone.troilus.ColumnName;
 
 
 
+
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -197,17 +198,43 @@ public interface WriteQueryData {
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the value or empty set
      */
     ImmutableSet<Object> getSetValuesToAdd(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
-     * @return the value or null
+     * @return the value or empty set
      */
     <T> ImmutableSet<T> getSetValuesToAdd(ColumnName<Set<T>> name);
     
+    /**
+     * @param name the column name
+     * @return the value or null
+     */
+    boolean hasSetValuesToAddOrSet(String name);
+
+    /**
+     * @param name the column name
+     * @param <T>  the type
+     * @return true, if contained
+     */
+    <T> boolean hasSetValuesToAddOrSet(ColumnName<Set<T>> name);
+
+    /**
+     * @param name the column name
+     * @return the values or empty set
+     */
+    ImmutableSet<Object> getSetValuesToAddOrSet(String name);
+
+    /**
+     * @param name the column name
+     * @param <T>  the type
+     * @return the values or empty set
+     */
+    <T> ImmutableSet<T> getSetValuesToAddOrSet(ColumnName<Set<T>> name);
+
     /**
      * @return the set values to remove
      */
@@ -217,27 +244,27 @@ public interface WriteQueryData {
      * @param name the column name
      * @return true, if contained
      */
-    boolean hasSetValueToRemove(String name);
+    boolean hasSetValuesToRemove(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
      * @return true, if contained
      */
-    <T> boolean hasSetValueToRemove(ColumnName<Set<T>> name);
+    <T> boolean hasSetValuesToRemove(ColumnName<Set<T>> name);
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the value or empty set
      */
-    ImmutableSet<Object> getSetValueToRemove(String name);
+    ImmutableSet<Object> getSetValuesToRemove(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
-     * @return the value or null
+     * @return the value or empty set
      */
-    <T> ImmutableSet<T> getSetValueToRemove(ColumnName<Set<T>> name);
+    <T> ImmutableSet<T> getSetValuesToRemove(ColumnName<Set<T>> name);
 
     /**
      * @return the list values to append
@@ -248,58 +275,84 @@ public interface WriteQueryData {
      * @param name the column name
      * @return true, if contained
      */
-    boolean hasListValueToAppend(String name);
+    boolean hasListValuesToAppend(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type 
      * @return true, if contained
      */
-    <T> boolean hasListValueToAppend(ColumnName<List<T>> name);
+    <T> boolean hasListValuesToAppend(ColumnName<List<T>> name);
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the values or empty list
      */
-    ImmutableList<Object> getListValueToAppend(String name);
+    ImmutableList<Object> getListValuesToAppend(String name);
 
     /**
      * @param name the column name
      * @return true, if contained
      */
-    boolean hasListValueToPrepend(String name);
+    boolean hasListValuesToPrepend(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
      * @return true, if contained
      */
-    <T> boolean hasListValueToPrepend(ColumnName<List<T>> name);
+    <T> boolean hasListValuesToPrepend(ColumnName<List<T>> name);
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the values or empty list
      */
-    ImmutableList<Object> getListValueToPrepend(String name);
-
-    /**
-     * @param name the column name
-     * @param <T>  the type
-     * @return the value or null
-     */
-    <T> ImmutableList<T> getListValueToPrepend(ColumnName<List<T>> name);
+    ImmutableList<Object> getListValuesToPrepend(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
-     * @return the value or null
+     * @return the value or empty list
      */
-    <T> ImmutableList<T> getListValueToAppend(ColumnName<List<T>> name);
+    <T> ImmutableList<T> getListValuesToPrepend(ColumnName<List<T>> name);
+
+    /**
+     * @param name the column name
+     * @param <T>  the type
+     * @return the value or empty list
+     */
+    <T> ImmutableList<T> getListValuesToAppend(ColumnName<List<T>> name);
 
     /**
      * @return  the list values to prepend
      */
     ImmutableMap<String, ImmutableList<Object>> getListValuesToPrepend();
+
+    /**
+     * @param name the column name
+     * @return true, if contained
+     */
+    boolean hasListValuesToAddOrSet(String name);
+
+    /**
+     * @param name the column name
+     * @param <T>  the type
+     * @return true, if contained
+     */
+    <T> boolean hasListValuesToAddOrSet(ColumnName<List<T>> name);
+
+    /**
+     * @param name the column name
+     * @return the values or empty list
+     */
+    ImmutableList<Object> getListValuesToAddOrSet(String name);
+
+    /**
+     * @param name the column name
+     * @param <T>  the type
+     * @return the values or empty list
+     */
+    <T> ImmutableList<T> getListValuesToAddOrSet(ColumnName<List<T>> name);
 
     /**
      * @return the list values to remove
@@ -310,27 +363,27 @@ public interface WriteQueryData {
      * @param name the column name
      * @return true, if contained
      */
-    boolean hasListValueToRemove(String name);
+    boolean hasListValuesToRemove(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
      * @return true, if contained
      */
-    <T> boolean hasListValueToRemove(ColumnName<List<T>> name);
+    <T> boolean hasListValuesToRemove(ColumnName<List<T>> name);
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the value or empty list
      */
-    ImmutableList<Object> getListValueToRemove(String name);
+    ImmutableList<Object> getListValuesToRemove(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
-     * @return the value or null
+     * @return the value or empty list
      */
-    <T> ImmutableList<T> getListValueToRemove(ColumnName<List<T>> name);
+    <T> ImmutableList<T> getListValuesToRemove(ColumnName<List<T>> name);
 
     /**
      * @return the map values to mutate
@@ -341,27 +394,27 @@ public interface WriteQueryData {
      * @param name the column name
      * @return true, if contained
      */
-    boolean hasMapValueToMutate(String name);
+    boolean hasMapValuesToMutate(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
      * @return true, if contained
      */
-    <T, V> boolean hasMapValueToMutate(ColumnName<Map<T, V>> name);
+    <T, V> boolean hasMapValuesToMutate(ColumnName<Map<T, V>> name);
 
     /**
      * @param name the column name
-     * @return the value or null
+     * @return the value or empty map
      */
-    ImmutableMap<Object, Optional<Object>> getMapValueToMutate(String name);
+    ImmutableMap<Object, Optional<Object>> getMapValuesToMutate(String name);
 
     /**
      * @param name the column name
      * @param <T>  the type
-     * @return the value or null
+     * @return the value or empty map
      */
-    <T, V> ImmutableMap<T, Optional<V>> getMapValueToMutate(ColumnName<Map<T, V>> name);
+    <T, V> ImmutableMap<T, Optional<V>> getMapValuesToMutate(ColumnName<Map<T, V>> name);
     
     /**
      * @return the onyIf conditions

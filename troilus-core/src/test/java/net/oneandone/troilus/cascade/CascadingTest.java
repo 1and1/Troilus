@@ -116,6 +116,74 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     
 
     
+
+    @Test
+    public void testCasscading2() throws Exception {   
+        
+        DaoManager daoManager = new DaoManager(getSession());
+       
+        Dao keyByAccountDao = daoManager.getKeyByAccountDao();
+        Dao keyByEmailDao = daoManager.getKeyByEmailDao();
+
+        
+        String id = "act3344";
+        byte[] key = new byte[] { 34, 56, 87, 88 };
+        String email = "me@example.org";
+        long time = System.currentTimeMillis(); 
+        
+        
+        //////////////////////////////////////
+        // insert 
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .value(KeyByAccountColumns.KEY, key)
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        
+        
+        // test 
+        Record record = keyByEmailDao.readWithKey(KeyByEmailColumns.EMAIL, email, KeyByEmailColumns.CREATED, time)
+                                     .withConsistency(ConsistencyLevel.QUORUM)
+                                     .execute()
+                                     .get();
+        Assert.assertEquals(id, record.getValue(KeyByEmailColumns.ACCOUNT_ID));
+        Assert.assertArrayEquals(key, record.getValue(KeyByEmailColumns.KEY));
+        
+        record = keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                .withConsistency(ConsistencyLevel.QUORUM)
+                                .execute()
+                                .get();
+        Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
+        Assert.assertEquals(email, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getString(0));
+        Assert.assertEquals(time, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getLong(1));
+        
+        
+        
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////
+        // Delete
+        
+        keyByAccountDao.deleteWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        
+        
+        Assert.assertEquals(Optional.empty(), keyByEmailDao.readWithKey(KeyByEmailColumns.EMAIL, email, KeyByEmailColumns.CREATED, time)
+                                                           .withConsistency(ConsistencyLevel.QUORUM)
+                                                           .execute());
+
+        Assert.assertEquals(Optional.empty(), keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                                             .withConsistency(ConsistencyLevel.QUORUM)
+                                                             .execute());        
+    }
+    
+    
     
 
     @Test
