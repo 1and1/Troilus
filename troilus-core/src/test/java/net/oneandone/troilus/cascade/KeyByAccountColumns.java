@@ -70,12 +70,10 @@ public interface KeyByAccountColumns  {
             }
             
             if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY)) {
-                Set<TupleValue> fk = queryData.getValueToMutate(EMAIL_IDX).get();
-                
                 List<Write> writes = Lists.newArrayList();
-                for (TupleValue tupleValue : fk) {
+                for (TupleValue tupleValue : queryData.getValueToMutate(EMAIL_IDX)) {
                     writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
-                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY).get())
+                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY))
                                             .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
                                             .withConsistency(ConsistencyLevel.QUORUM));
                 }

@@ -19,12 +19,15 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 
 
+
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 
 
 
+import java.util.Set;
 import java.util.Map.Entry;
 
 import net.oneandone.troilus.Context;
@@ -846,30 +849,110 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public <T> Optional<T> getValueToMutate(ColumnName<T> name) {
-            return fromGuavaOptional(data.getValueToMutate(name));
+        public <T> T getValueToMutate(ColumnName<T> name) {
+            return data.getValueToMutate(name);
         }
         
         @Override
-        public Optional<Object> getValueToMutate(String name) {
-            return fromGuavaOptional(data.getValueToMutate(name));
+        public Object getValueToMutate(String name) {
+            return data.getValueToMutate(name);
         }
         
-
         @Override
         public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToAdd() {
             return data.getSetValuesToAdd();
         }
+        
+        @Override
+        public <T> boolean hasSetValuesToAdd(ColumnName<Set<T>> name) {
+            return data.hasSetValuesToAdd(name);
+        }
+        
+        @Override
+        public boolean hasSetValuesToAdd(String name) {
+            return data.hasSetValuesToAdd(name);
+        }
 
+        @Override
+        public <T> ImmutableSet<T> getSetValuesToAdd(ColumnName<Set<T>> name) {
+            return data.getSetValuesToAdd(name);
+        }
+        
+        @Override
+        public ImmutableSet<Object> getSetValuesToAdd(String name) {
+            return data.getSetValuesToAdd(name);
+        }
+        
         @Override
         public ImmutableMap<String, ImmutableSet<Object>> getSetValuesToRemove() {
             return data.getSetValuesToRemove();
+        }
+        
+        @Override
+        public <T> boolean hasSetValueToRemove(ColumnName<Set<T>> name) {
+            return data.hasSetValueToRemove(name);
+        }
+        
+        @Override
+        public boolean hasSetValueToRemove(String name) {
+            return data.hasSetValueToRemove(name);
+        }
+        
+        @Override
+        public <T> ImmutableSet<T> getSetValueToRemove(ColumnName<Set<T>> name) {
+            return data.getSetValueToRemove(name);
+        }
+        
+        @Override
+        public ImmutableSet<Object> getSetValueToRemove(String name) {
+            return data.getSetValueToRemove(name);
         }
 
         @Override
         public ImmutableMap<String, ImmutableList<Object>> getListValuesToAppend() {
             return data.getListValuesToAppend();
         }
+        
+        @Override
+        public <T> boolean hasListValueToAppend(ColumnName<List<T>> name) {
+            return data.hasListValueToAppend(name);
+        }
+        
+        @Override
+        public boolean hasListValueToAppend(String name) {
+            return data.hasListValueToAppend(name);
+        }
+        
+        @Override
+        public <T> ImmutableList<T> getListValueToAppend(ColumnName<List<T>> name) {
+            return data.getListValueToAppend(name);
+        }
+        
+        @Override
+        public ImmutableList<Object> getListValueToAppend(String name) {
+            return data.getListValueToAppend(name);
+        }
+        
+        @Override
+        public <T> boolean hasListValueToPrepend(ColumnName<List<T>> name) {
+            return data.hasListValueToPrepend(name);
+        }
+        
+        @Override
+        public boolean hasListValueToPrepend(String name) {
+            return data.hasListValueToPrepend(name);
+        }
+        
+        @Override
+        public <T> ImmutableList<T> getListValueToPrepend(ColumnName<List<T>> name) {
+            return data.getListValueToPrepend(name);
+        }
+        
+        @Override
+        public ImmutableList<Object> getListValueToPrepend(String name) {
+            return data.getListValueToPrepend(name);
+        }
+        
 
         @Override
         public ImmutableMap<String, ImmutableList<Object>> getListValuesToPrepend() {
@@ -879,6 +962,26 @@ public class DaoImpl implements Dao {
         @Override
         public ImmutableMap<String, ImmutableList<Object>> getListValuesToRemove() {
             return data.getListValuesToRemove();
+        }
+        
+        @Override
+        public <T> boolean hasListValueToRemove(ColumnName<List<T>> name) {
+            return data.hasListValueToRemove(name);
+        }
+        
+        @Override
+        public boolean hasListValueToRemove(String name) {
+            return data.hasListValueToRemove(name);
+        }
+        
+        @Override
+        public ImmutableList<Object> getListValueToRemove(String name) {
+            return data.getListValueToRemove(name);
+        }
+        
+        @Override
+        public <T> ImmutableList<T> getListValueToRemove(ColumnName<List<T>> name) {
+            return data.getListValueToRemove(name);
         }
 
         @Override
@@ -896,6 +999,26 @@ public class DaoImpl implements Dao {
         }
         
         @Override
+        public <T, V> boolean hasMapValueToMutate(ColumnName<Map<T, V>> name) {
+            return data.hasMapValueToMutate(name);
+        }
+        
+        @Override
+        public boolean hasMapValueToMutate(String name) {
+            return data.hasMapValueToMutate(name);
+        }
+
+        @Override
+        public <T, V> ImmutableMap<T, Optional<V>> getMapValueToMutate( ColumnName<Map<T, V>> name) {
+            return fromGuavaOptional(data.getMapValueToMutate(name));
+        }
+
+        @Override
+        public ImmutableMap<Object, Optional<Object>> getMapValueToMutate(String name) {
+            return fromGuavaOptional(data.getMapValueToMutate(name));
+        }
+        
+        @Override
         public ImmutableList<Clause> getOnlyIfConditions() {
             return data.getOnlyIfConditions();
         }
@@ -904,15 +1027,10 @@ public class DaoImpl implements Dao {
         public Optional<Boolean> getIfNotExits() {
             return Optional.ofNullable(data.getIfNotExits());
         }
-        
-        
-        private  static <T> Optional<T> fromGuavaOptional(com.google.common.base.Optional<T> optional) {
-            return Optional.ofNullable(optional.orNull());
-        }
-        
-        private  static ImmutableMap<String, Optional<Object>> fromGuavaOptional(ImmutableMap<String, com.google.common.base.Optional<Object>> map) {
-            Map<String, Optional<Object>> result = Maps.newHashMap();
-            for (Entry<String, com.google.common.base.Optional<Object>> entry : map.entrySet()) {
+
+        private static <T, V> ImmutableMap<T, Optional<V>> fromGuavaOptional(ImmutableMap<T, com.google.common.base.Optional<V>> map) {
+            Map<T, Optional<V>> result = Maps.newHashMap();
+            for (Entry<T, com.google.common.base.Optional<V>> entry : map.entrySet()) {
                 result.put(entry.getKey(), Optional.ofNullable(entry.getValue().orNull()));
             }
             
@@ -920,9 +1038,9 @@ public class DaoImpl implements Dao {
         }
 
         
-        private static ImmutableMap<String, com.google.common.base.Optional<Object>> toGuavaOptional(ImmutableMap<String, Optional<Object>> map) {
-            Map<String, com.google.common.base.Optional<Object>> result = Maps.newHashMap();
-            for (Entry<String, Optional<Object>> entry : map.entrySet()) {
+        private static <T,V> ImmutableMap<T, com.google.common.base.Optional<V>> toGuavaOptional(ImmutableMap<T, Optional<V>> map) {
+            Map<T, com.google.common.base.Optional<V>> result = Maps.newHashMap();
+            for (Entry<T, Optional<V>> entry : map.entrySet()) {
                 result.put(entry.getKey(), com.google.common.base.Optional.fromNullable(entry.getValue().orElse(null)));
             }
                 

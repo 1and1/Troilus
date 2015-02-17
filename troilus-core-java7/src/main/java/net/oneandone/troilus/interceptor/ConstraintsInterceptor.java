@@ -31,7 +31,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-
+ 
 
 /**
  * ConstraintsInterceptor
@@ -104,7 +104,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
     private void checkNotNullColumn(WriteQueryData queryData) {
 
         // NOT NULL column check for INSERT
-        if (isInsert(queryData)) {
+        if (isLwtQuery(queryData)) {
             Set<String> missingColumns = Sets.newHashSet(notNullColumns);
             
             // notNull is key column
@@ -113,7 +113,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
             // notNull is non-key column
             for (String column : Sets.newHashSet(missingColumns)) {
                 
-                if ((queryData.getValuesToMutate().get(column) != null) && queryData.getValuesToMutate().get(column).isPresent()) {
+                if (queryData.hasValueToMutate(column)) {
                     missingColumns.remove(column);
                 }
             }
@@ -126,21 +126,25 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
         // NOT NULL column check for UPDATE
         } else {
             for (String notNullColumn : notNullColumns) {
-                if ((queryData.getValuesToMutate().containsKey(notNullColumn) && ((queryData.getValuesToMutate().get(notNullColumn) != null) && !queryData.getValuesToMutate().get(notNullColumn).isPresent()))) {
+                if (queryData.hasValueToMutate(notNullColumn) && (queryData.getValueToMutate(notNullColumn) == null)) {
                     throw new ConstraintException("NOT NULL column " + notNullColumn + " can not be set with NULL");
                 }
             }
         }
     }
     
-    
 
-    
     private void checkImmutableColumn(WriteQueryData queryData) {
 
-        if (!isInsert(queryData)) {
+        if (!isLwtQuery(queryData)) {
             for (String immutableColumn : immutableColumns) {
-                if ((queryData.getValuesToMutate().containsKey(immutableColumn) && ((queryData.getValuesToMutate().get(immutableColumn) != null) && queryData.getValuesToMutate().get(immutableColumn).isPresent()))) {
+                if (queryData.hasValueToMutate(immutableColumn) || 
+                    queryData.hasSetValuesToAdd(immutableColumn) || 
+                    queryData.hasSetValueToRemove(immutableColumn) ||
+                    queryData.hasListValueToAppend(immutableColumn) ||
+                    queryData.hasListValueToPrepend(immutableColumn) ||
+                    queryData.hasListValueToRemove(immutableColumn) ||
+                    queryData.hasMapValueToMutate(immutableColumn)) {
                     throw new ConstraintException("immutable column " + immutableColumn + " can not be updated (column can be set within ifNotExists() write query only)");
                 }
             }
@@ -150,7 +154,7 @@ public class ConstraintsInterceptor implements WriteQueryRequestInterceptor {
 
     
     
-    private boolean isInsert(WriteQueryData queryData) {
+    private boolean isLwtQuery(WriteQueryData queryData) {
         return (queryData.getIfNotExits() != null) && queryData.getIfNotExits();
     }
 }    
