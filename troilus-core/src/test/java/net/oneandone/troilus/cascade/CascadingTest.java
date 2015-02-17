@@ -68,7 +68,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                       .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -119,6 +119,62 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     
 
     @Test
+    public void testCasscadingNoIndex() throws Exception {   
+        
+        DaoManager daoManager = new DaoManager(getSession());
+       
+        Dao keyByAccountDao = daoManager.getKeyByAccountDao();
+        Dao keyByEmailDao = daoManager.getKeyByEmailDao();
+
+        
+        String id = "act3344";
+        byte[] key = new byte[] { 34, 56, 87, 88 };
+        String email = "me@example.org";
+        long time = System.currentTimeMillis(); 
+        
+        
+        //////////////////////////////////////
+        // insert 
+        keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .value(KeyByAccountColumns.KEY, key)
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        
+        
+        // test 
+        Optional<Record> optionalRecord = keyByEmailDao.readWithKey(KeyByEmailColumns.EMAIL, email, KeyByEmailColumns.CREATED, time)
+                                                       .withConsistency(ConsistencyLevel.QUORUM)
+                                                       .execute();
+        Assert.assertFalse(optionalRecord.isPresent());
+        
+        Record record = keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                       .withConsistency(ConsistencyLevel.QUORUM)
+                                       .execute()
+                                       .get();
+        Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
+        Assert.assertTrue(record.getValue(KeyByAccountColumns.EMAIL_IDX).isEmpty());
+        
+        
+        
+        
+        
+        ///////////////////////////////////////////////////////
+        // Delete
+        
+        keyByAccountDao.deleteWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                       .withConsistency(ConsistencyLevel.QUORUM)
+                       .execute();
+        
+        Assert.assertEquals(Optional.empty(), keyByAccountDao.readWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
+                                                             .withConsistency(ConsistencyLevel.QUORUM)
+                                                             .execute());        
+    }
+    
+    
+    
+
+    @Test
     public void testCasscadingUnssuportedInsert() throws Exception {   
         
         DaoManager daoManager = new DaoManager(getSession());
@@ -138,7 +194,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         try {
             keyByAccountDao.writeWhere(QueryBuilder.in(KeyByAccountColumns.ACCOUNT_ID.getName(), id))
                            .value(KeyByAccountColumns.KEY, key)
-                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                           .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                            .withConsistency(ConsistencyLevel.QUORUM)
                            .execute();
             Assert.fail("InvalidQueryException expected");
@@ -169,7 +225,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());       
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                       .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -233,7 +289,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                       .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -294,7 +350,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
             TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());            
             keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                            .value(KeyByAccountColumns.KEY, key)
-                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                           .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                            .withConsistency(ConsistencyLevel.QUORUM)
                            .execute();
             
@@ -321,7 +377,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
+                       .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         

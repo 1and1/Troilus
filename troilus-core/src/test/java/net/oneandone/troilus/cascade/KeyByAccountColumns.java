@@ -69,9 +69,9 @@ public interface KeyByAccountColumns  {
                 throw new InvalidQueryException("where condition based queries are not supported");
             }
             
-            if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY)) {
+            if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(KEY) && queryData.hasSetValuesToAdd(EMAIL_IDX)) {
                 List<Write> writes = Lists.newArrayList();
-                for (TupleValue tupleValue : queryData.getValueToMutate(EMAIL_IDX)) {
+                for (TupleValue tupleValue : queryData.getSetValuesToAdd(EMAIL_IDX)) {
                     writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
                                             .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY))
                                             .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))

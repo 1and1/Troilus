@@ -89,9 +89,14 @@ class ListenableFutures {
             public void run() {
                 synchronized (FlatFuture.this) {
                     try {
-                        for (ListenableFuture<T> future : futureSet.get()) {
-                            numPendingFutures++;
-                            future.addListener(new FutureListner(future), executor);
+                        ImmutableSet<ListenableFuture<T>> ftrs = futureSet.get();  
+                        if (ftrs.isEmpty()) {
+                            set(ImmutableSet.<T>of());
+                        } else {
+                            for (ListenableFuture<T> future : futureSet.get()) {
+                                numPendingFutures++;
+                                future.addListener(new FutureListner(future), executor);
+                            }
                         }
                         
                     } catch (InterruptedException | ExecutionException | RuntimeException e) {
@@ -127,10 +132,14 @@ class ListenableFutures {
         private int numPendingFutures;
         
         public FlattingFuture(ImmutableSet<ListenableFuture<ImmutableSet<T>>> futureSet, Executor executor) {
-            numPendingFutures = futureSet.size();
-            
-            for (ListenableFuture<ImmutableSet<T>> future : futureSet) {
-                future.addListener(new FutureListner(future), executor);
+            if (futureSet.isEmpty()) {
+                set(ImmutableSet.<T>of());
+            } else {
+                numPendingFutures = futureSet.size();
+                
+                for (ListenableFuture<ImmutableSet<T>> future : futureSet) {
+                    future.addListener(new FutureListner(future), executor);
+                }
             }
         }
         
