@@ -42,13 +42,13 @@ import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 
 public interface KeyByAccountColumns  {
    
+    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/key_by_accountid.ddl");
+    
     public static final String TABLE = "key_by_accountid";
 
     public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
     public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
     public static final ColumnName<Set<TupleValue>> EMAIL_IDX = ColumnName.defineSet("email_idx", TupleValue.class);
-    
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/key_by_accountid.ddl");
     
     
     

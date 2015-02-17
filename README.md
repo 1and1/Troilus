@@ -679,11 +679,20 @@ To add cascading queries to the current queries the `CascadeOnWriteInterceptor` 
 Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
 Dao keyByEmailDao = new DaoImpl(session, KeyByEmailColumns.TABLE);
         
-keyByAccountDao = keyByAccountDao.withInterceptor(new CascadeToByEmailDao(keyByAccountDao, keyByEmailDao));
+keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.CascadeToByEmailDao(keyByAccountDao, keyByEmailDao));
 //...
 
 
- public final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
+public interface KeyByAccountColumns  {
+    public static final String TABLE = "key_by_accountid";
+
+    public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
+    public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
+    public static final ColumnName<Set<TupleValue>> EMAIL_IDX = ColumnName.defineSet("email_idx", TupleValue.class);
+    
+    
+    
+    public static final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
         private final Dao keyByAccountDao;
         private final Dao keyByEmailDao;
         
@@ -701,12 +710,10 @@ keyByAccountDao = keyByAccountDao.withInterceptor(new CascadeToByEmailDao(keyByA
             }
             
             if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY)) {
-                Map<String, Long> fk = queryData.getValueToMutate(EMAIL_IDX).get();
-                
                 List<Write> writes = Lists.newArrayList();
-                for (Entry<String, Long> entry : fk.entrySet()) {
-                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
-                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY).get())
+                for (TupleValue tupleValue : queryData.getValueToMutate(EMAIL_IDX)) {
+                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
+                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY))
                                             .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
                                             .withConsistency(ConsistencyLevel.QUORUM));
                 }
@@ -736,12 +743,13 @@ keyByAccountDao = keyByAccountDao.withInterceptor(new CascadeToByEmailDao(keyByA
         
         private ImmutableSet<Deletion> getDeletions(Record record) {
             List<Deletion> deletions = Lists.newArrayList();
-            for (Entry<String, Long> entry : record.getValue(KeyByAccountColumns.EMAIL_IDX).entrySet()) {
-                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+            for (TupleValue tupleValue : record.getValue(KeyByAccountColumns.EMAIL_IDX)) {
+                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
                                            .withConsistency(ConsistencyLevel.QUORUM));
             }
             
             return ImmutableSet.copyOf(deletions);
         }
     }
+}
 ```
