@@ -169,7 +169,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     
     @Override
     public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
-        return putMapValue(name, key, value);
+        return putMapValue(name.getName(), key, value);
     }
     
     @Override
