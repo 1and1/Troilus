@@ -32,6 +32,7 @@ import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.UDTValue;
@@ -173,6 +174,11 @@ class RecordImpl implements Record {
     @Override
     public UUID getUUID(String name) {
         return row.getUUID(name);
+    }
+    
+    @Override
+    public TupleValue getTupleValue(String name) {
+        return row.getTupleValue(name);
     }
 
     @Override

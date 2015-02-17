@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.TupleType;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
 import com.google.common.base.Optional;
@@ -58,8 +59,7 @@ class UDTValueMapper {
             throw new RuntimeException(e.getCause());
         }
     }
-
-
+    
 
 
     static boolean isBuildInType(DataType dataType) {        
@@ -72,7 +72,7 @@ class UDTValueMapper {
             return true;
 
         } else {
-            return DataType.allPrimitiveTypes().contains(dataType);
+            return DataType.allPrimitiveTypes().contains(dataType) || (TupleType.class.isAssignableFrom(dataType.getClass()));
         }
     }
     

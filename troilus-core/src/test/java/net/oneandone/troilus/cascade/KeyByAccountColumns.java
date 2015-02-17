@@ -16,13 +16,12 @@
 package net.oneandone.troilus.cascade;
 
 import java.util.List;
-import java.util.Map;
 
-
-import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -47,7 +46,7 @@ public interface KeyByAccountColumns  {
 
     public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
     public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
-    public static final ColumnName<Map<String, Long>> EMAIL_IDX = ColumnName.defineMap("email_idx", String.class, Long.class);
+    public static final ColumnName<Set<TupleValue>> EMAIL_IDX = ColumnName.defineSet("email_idx", TupleValue.class);
     
     public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/key_by_accountid.ddl");
     
@@ -71,11 +70,11 @@ public interface KeyByAccountColumns  {
             }
             
             if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(EMAIL_IDX) && queryData.hasValueToMutate(KEY)) {
-                Map<String, Long> fk = queryData.getValueToMutate(EMAIL_IDX).get();
+                Set<TupleValue> fk = queryData.getValueToMutate(EMAIL_IDX).get();
                 
                 List<Write> writes = Lists.newArrayList();
-                for (Entry<String, Long> entry : fk.entrySet()) {
-                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+                for (TupleValue tupleValue : fk) {
+                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
                                             .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY).get())
                                             .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
                                             .withConsistency(ConsistencyLevel.QUORUM));
@@ -106,8 +105,8 @@ public interface KeyByAccountColumns  {
         
         private ImmutableSet<Deletion> getDeletions(Record record) {
             List<Deletion> deletions = Lists.newArrayList();
-            for (Entry<String, Long> entry : record.getValue(KeyByAccountColumns.EMAIL_IDX).entrySet()) {
-                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, entry.getKey(), KeyByEmailColumns.CREATED, entry.getValue())
+            for (TupleValue tupleValue : record.getValue(KeyByAccountColumns.EMAIL_IDX)) {
+                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
                                            .withConsistency(ConsistencyLevel.QUORUM));
             }
             

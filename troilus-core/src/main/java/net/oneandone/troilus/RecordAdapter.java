@@ -31,6 +31,7 @@ import java.util.UUID;
 import net.oneandone.troilus.ColumnName;
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -148,6 +149,11 @@ class RecordAdapter implements Record {
     public UUID getUUID(String name) {
         return record.getUUID(name);
     }
+    
+    @Override
+    public TupleValue getTupleValue(String name) {
+        return record.getTupleValue(name);
+    }
 
     @Override
     public UDTValue getUDTValue(String name) {
@@ -254,6 +260,11 @@ class RecordAdapter implements Record {
             @Override
             public UUID getUUID(String name) {
                 return record.getUUID(name);
+            }
+            
+            @Override
+            public TupleValue getTupleValue(String name) {
+                return record.getTupleValue(name);
             }
             
             @Override

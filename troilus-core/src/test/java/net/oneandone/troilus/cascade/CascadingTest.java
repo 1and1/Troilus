@@ -37,9 +37,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.TupleType;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 
@@ -64,9 +65,10 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         
         //////////////////////////////////////
         // insert 
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -85,7 +87,8 @@ public class CascadingTest extends AbstractCassandraBasedTest {
                                 .execute()
                                 .get();
         Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
-        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
+        Assert.assertEquals(email, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getString(0));
+        Assert.assertEquals(time, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getLong(1));
         
         
         
@@ -131,10 +134,11 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         
         //////////////////////////////////////
         // insert
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
         try {
             keyByAccountDao.writeWhere(QueryBuilder.in(KeyByAccountColumns.ACCOUNT_ID.getName(), id))
                            .value(KeyByAccountColumns.KEY, key)
-                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                            .withConsistency(ConsistencyLevel.QUORUM)
                            .execute();
             Assert.fail("InvalidQueryException expected");
@@ -162,9 +166,10 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         
         //////////////////////////////////////
         // insert 
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());       
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -183,8 +188,8 @@ public class CascadingTest extends AbstractCassandraBasedTest {
                                 .execute()
                                 .get();
         Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
-        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
-        
+        Assert.assertEquals(email, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getString(0));
+        Assert.assertEquals(time, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getLong(1));
         
         
         
@@ -225,9 +230,10 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         
         //////////////////////////////////////
         // insert 
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -246,8 +252,9 @@ public class CascadingTest extends AbstractCassandraBasedTest {
                                 .execute()
                                 .get();
         Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
-        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
-        
+        Assert.assertEquals(email, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getString(0));
+        Assert.assertEquals(time, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getLong(1));
+
         
         
         
@@ -284,9 +291,10 @@ public class CascadingTest extends AbstractCassandraBasedTest {
         //////////////////////////////////////
         // insert 
         try {
+            TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());            
             keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                            .value(KeyByAccountColumns.KEY, key)
-                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                           .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                            .withConsistency(ConsistencyLevel.QUORUM)
                            .execute();
             
@@ -310,9 +318,10 @@ public class CascadingTest extends AbstractCassandraBasedTest {
 
         //////////////////////////////////////
         // insert 
+        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
-                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableMap.of(email, time))
+                       .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
                        .withConsistency(ConsistencyLevel.QUORUM)
                        .execute();
         
@@ -325,8 +334,9 @@ public class CascadingTest extends AbstractCassandraBasedTest {
                                        .execute()
                                        .get();
         Assert.assertEquals(id, record.getValue(KeyByAccountColumns.ACCOUNT_ID));
-        Assert.assertEquals((Long) time, record.getValue(KeyByAccountColumns.EMAIL_IDX).get(email));
-        
+        Assert.assertEquals(email, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getString(0));
+        Assert.assertEquals(time, record.getValue(KeyByAccountColumns.EMAIL_IDX).iterator().next().getLong(1));
+
         
         
         

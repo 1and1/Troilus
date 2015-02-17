@@ -26,6 +26,7 @@ import java.util.UUID;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
 
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -133,6 +134,12 @@ public interface Record extends Result {
      */
     UUID getUUID(String name);
    
+    /**
+     * @param name the name to retrieve.
+     * @return the value of {@code name} as a tuple value. If the value is NULL, null will be returned.
+     */
+    TupleValue getTupleValue(String name);
+    
     /**
      * @param name the column name 
      * @return the value for column name as a UDT value. If the value is NULL, then null will be returned.
