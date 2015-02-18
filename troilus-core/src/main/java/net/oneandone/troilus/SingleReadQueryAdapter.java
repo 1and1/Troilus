@@ -44,14 +44,26 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     }
    
     
+    ////////////////////
+    // factory methods
+     
     @Override
     protected SingleReadQueryAdapter newQuery(Context newContext) {
         return new SingleReadQueryAdapter(newContext, query.newQuery(newContext));
     }
     
+    private SingleReadQueryAdapter newQuery(SingleReadQuery query) {
+        return new SingleReadQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+    
+    // 
+    ////////////////////
+    
+
+    
     @Override
     public SingleRead<Optional<Record>> all() {
-        return new SingleReadQueryAdapter(getContext(), query.all());
+        return newQuery(query.all());
     }
     
     @Override
@@ -61,32 +73,32 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     
     @Override
     public SingleReadQueryAdapter column(String name) {
-        return new SingleReadQueryAdapter(getContext(), query.column(name));
+        return newQuery(query.column(name));
     }
 
     @Override
     public SingleReadQueryAdapter columnWithMetadata(String name) {
-        return new SingleReadQueryAdapter(getContext(), query.columnWithMetadata(name));
+        return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
     public SingleReadQueryAdapter columns(String... names) {
-        return new SingleReadQueryAdapter(getContext(), query.columns(names));
+        return newQuery(query.columns(names));
     }
 
     @Override
     public SingleReadWithColumns<Optional<Record>> column(ColumnName<?> name) {
-        return new SingleReadQueryAdapter(getContext(), query.column(name));
+        return newQuery(query.column(name));
     }
 
     @Override
     public SingleReadWithColumns<Optional<Record>> columnWithMetadata(ColumnName<?> name) {
-        return new SingleReadQueryAdapter(getContext(), query.columnWithMetadata(name));
+        return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
     public SingleReadWithColumns<Optional<Record>> columns(ColumnName<?>... names) {
-        return new SingleReadQueryAdapter(getContext(), query.columns(names));
+        return newQuery(query.columns(names));
     }
     
     @Override

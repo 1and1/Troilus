@@ -50,13 +50,23 @@ abstract class AbstractQuery<Q> {
     }
 
     
+    ////////////////////////
+    // factory methods
+    
     /**
+     * query factory method
+     * 
      * @param newContext  the new context
      * @return a "cloned" query considering the new context 
      */
     abstract protected Q newQuery(Context newContext);
-    
 
+    //
+    ////////////////////////
+
+    
+    
+    
     
     ////////////////////////
     // default implementations
@@ -109,6 +119,9 @@ abstract class AbstractQuery<Q> {
     public Q withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return newQuery(getContext().withSerialConsistency(consistencyLevel));
     }
+
+    // 
+    ////////////////////////
 
     
 

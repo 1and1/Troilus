@@ -23,6 +23,7 @@ import net.oneandone.troilus.java7.CounterMutation;
 import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
 import net.oneandone.troilus.java7.Write;
 import net.oneandone.troilus.java7.WriteWithCounter;
+import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
@@ -47,14 +48,26 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
      * @param ctx   the context 
      * @param data  the query data
      */
-    UpdateQuery(Context ctx, WriteQueryDataImpl data) {
+    UpdateQuery(Context ctx, WriteQueryData data) {
         super(ctx, data);
     }
-     
+
+    
+    ////////////////////
+    // factory methods
+    
     @Override
     protected UpdateQuery newQuery(Context newContext) {
         return new UpdateQuery(newContext, getData());
     }
+    
+    private UpdateQuery newQuery(WriteQueryData data) {
+        return new UpdateQuery(getContext(), data);
+    }
+
+    // 
+    ////////////////////
+
     
     /**
      * @param entity   the entity to insert
@@ -62,8 +75,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
      */@Override
      public UpdateQuery entity(Object entity) {
         ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames());
-        return new UpdateQuery(getContext(), 
-                getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
+        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     
     @Override
@@ -73,8 +85,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     
     @Override
     public UpdateQuery value(String name, Object value) {
-        return new UpdateQuery(getContext(), 
-                getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
+        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
     }
     
     @Override
@@ -84,8 +95,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     
     @Override
     public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new UpdateQuery(getContext(), 
-                               getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
+        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
     }
 
     @Override
@@ -93,8 +103,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableSet<Object> values = getData().getSetValuesToRemove().get(name);
         values = (values == null) ? ImmutableSet.of(value) : Immutables.join(values, value);
 
-        return new UpdateQuery(getContext(), 
-                               getData().setValuesToRemove(Immutables.join(getData().getSetValuesToRemove(), name, values)));
+        return newQuery(getData().setValuesToRemove(Immutables.join(getData().getSetValuesToRemove(), name, values)));
     }
     
     @Override
@@ -107,8 +116,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableSet<Object> values = getData().getSetValuesToAdd().get(name);
         values = (values == null) ? ImmutableSet.of(value): Immutables.join(values, value);
 
-        return new UpdateQuery(getContext(), 
-                               getData().setValuesToAdd(Immutables.join(getData().getSetValuesToAdd(), name, values)));
+        return newQuery(getData().setValuesToAdd(Immutables.join(getData().getSetValuesToAdd(), name, values)));
     }
     
     @Override
@@ -121,8 +129,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableList<Object> values = getData().getListValuesToPrepend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
-        return new UpdateQuery(getContext(), 
-                               getData().listValuesToPrepend(Immutables.join(getData().getListValuesToPrepend(), name, values)));
+        return newQuery(getData().listValuesToPrepend(Immutables.join(getData().getListValuesToPrepend(), name, values)));
     } 
     
     @Override
@@ -135,8 +142,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableList<Object> values = getData().getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
-        return new UpdateQuery(getContext(), 
-                               getData().listValuesToAppend(Immutables.join(getData().getListValuesToAppend(), name, values)));
+        return newQuery(getData().listValuesToAppend(Immutables.join(getData().getListValuesToAppend(), name, values)));
     }
     
     @Override
@@ -149,8 +155,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableList<Object> values = getData().getListValuesToRemove().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
-        return new UpdateQuery(getContext(), 
-                               getData().listValuesToRemove(Immutables.join(getData().getListValuesToRemove(), name, values)));
+        return newQuery(getData().listValuesToRemove(Immutables.join(getData().getListValuesToRemove(), name, values)));
     }
     
     @Override
@@ -163,8 +168,7 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
         values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
 
-        return new UpdateQuery(getContext(), 
-                               getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
+        return newQuery(getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
     }
     
     @Override
@@ -174,10 +178,9 @@ class UpdateQuery extends WriteQuery<WriteWithCounter> implements WriteWithCount
     
     @Override
     public UpdateQuery onlyIf(Clause... conditions) {
-        return new UpdateQuery(getContext(), 
-                               getData().onlyIfConditions(ImmutableList.<Clause>builder().addAll(getData().getOnlyIfConditions())
-                                                                                         .addAll(ImmutableList.copyOf(conditions))
-                                                                                         .build()));
+        return newQuery(getData().onlyIfConditions(ImmutableList.<Clause>builder().addAll(getData().getOnlyIfConditions())
+                                                                                  .addAll(ImmutableList.copyOf(conditions))
+                                                                                  .build()));
     }
 
     @Override

@@ -43,15 +43,28 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
         super(ctx);
         this.query = query;
     }
+
+    
+    ////////////////////
+    // factory methods
     
     @Override
     protected CounterBatchMutation newQuery(Context newContext) {
         return new CounterBatchMutationQueryAdapter(newContext, query.newQuery(newContext));
     }
+
+    private CounterBatchMutation newQuery(CounterBatchMutationQuery query) {
+        return new CounterBatchMutationQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+    
+    //
+    ////////////////////
+
+    
     
     @Override
     public CounterBatchMutation combinedWith(CounterBatchable other) {
-        return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(other));
+        return newQuery(query.combinedWith(other));
     }
     
     @Override

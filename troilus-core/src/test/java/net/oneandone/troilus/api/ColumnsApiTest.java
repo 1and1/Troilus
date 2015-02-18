@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.CombinableMutation;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -32,6 +33,7 @@ import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.CounterMutation;
+import net.oneandone.troilus.Write;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -724,7 +726,21 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                 .withoutWriteAheadLog()
                 .withConsistency(ConsistencyLevel.QUORUM)
                 .execute();
+        
+        
+        
+        /*
+        
+
+        CombinableMutation w1 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
+                                        .value(UsersTable.IS_CUSTOMER, true)
+                                        .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                                        .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        
+        */
+        
     }        
 }
+
 
 

@@ -53,6 +53,23 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
         super(ctx);
         this.query = query;
     }
+
+
+    ////////////////////
+    // factory methods
+     
+    @Override
+    protected UpdateQueryAdapter newQuery(Context newContext) {
+        return new UpdateQueryAdapter(newContext, getQuery().newQuery(newContext));
+    }
+
+    private UpdateQueryAdapter newQuery(UpdateQuery query) {
+        return new UpdateQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+    
+    //
+    ////////////////////
+
     
     private UpdateQuery getQuery() {
         return query;
@@ -78,19 +95,15 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
     }
     
-    @Override
-    protected UpdateQueryAdapter newQuery(Context newContext) {
-        return new UpdateQueryAdapter(newContext, getQuery().newQuery(newContext));
-    }
 
     @Override
     public UpdateQueryAdapter withTtl(Duration ttl) {
-        return new UpdateQueryAdapter(getContext(), getQuery().withTtl((int) ttl.getSeconds()));
+        return newQuery(getQuery().withTtl((int) ttl.getSeconds()));
     }
 
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
-        return new UpdateQueryAdapter(getContext(), getQuery().onlyIf(conditions));
+        return newQuery(getQuery().onlyIf(conditions));
     }
 
     @Override
@@ -100,27 +113,27 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
 
     @Override
     public UpdateQueryAdapter entity(Object entity) {
-        return new UpdateQueryAdapter(getContext(), getQuery().entity(entity));
+        return newQuery(getQuery().entity(entity));
     }
     
     @Override
     public UpdateQueryAdapter value(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().value(name, value));
+        return newQuery(getQuery().value(name, value));
     }
     
     @Override
     public <T> Write value(ColumnName<T> name, T value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().value(name.getName(), value));
+        return newQuery(getQuery().value(name.getName(), value));
     }
     
     @Override
     public UpdateQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return new UpdateQueryAdapter(getContext(), getQuery().values(nameValuePairsToAdd));
+        return newQuery(getQuery().values(nameValuePairsToAdd));
     }
 
     @Override
     public UpdateQueryAdapter removeSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().removeSetValue(name, value));
+        return newQuery(getQuery().removeSetValue(name, value));
     }
     
     @Override
@@ -130,7 +143,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
 
     @Override
     public Write addSetValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().addSetValue(name, value));
+        return newQuery(getQuery().addSetValue(name, value));
     }
     
     @Override
@@ -140,7 +153,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
    
     @Override
     public Write prependListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().prependListValue(name, value));
+        return newQuery(getQuery().prependListValue(name, value));
     } 
     
     @Override
@@ -150,7 +163,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     
     @Override
     public Write appendListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().appendListValue(name, value));
+        return newQuery(getQuery().appendListValue(name, value));
     }
     
     @Override
@@ -160,7 +173,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     
     @Override
     public Write removeListValue(String name, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().removeListValue(name, value));
+        return newQuery(getQuery().removeListValue(name, value));
     }
     
     @Override
@@ -170,7 +183,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     
     @Override
     public Write putMapValue(String name, Object key, Object value) {
-        return new UpdateQueryAdapter(getContext(), getQuery().putMapValue(name, key, value));
+        return newQuery(getQuery().putMapValue(name, key, value));
     }
     
     @Override

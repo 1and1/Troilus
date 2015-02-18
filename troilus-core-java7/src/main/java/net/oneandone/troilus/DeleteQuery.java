@@ -52,19 +52,32 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         this.data = data;
     }
     
+    
+    ////////////////////
+    // factory methods
+
     @Override
     protected DeleteQuery newQuery(Context newContext) {
         return new DeleteQuery(newContext, data);
     }
     
+    private DeleteQuery newQuery(DeleteQueryData data) {
+        return new DeleteQuery(getContext(), data);
+    }
+
+    //
+    ////////////////////
+
+    
+    
     @Override
     public DeleteQuery onlyIf(Clause... onlyIfConditions) {
-        return new DeleteQuery(getContext(), data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
+        return newQuery(data.onlyIfConditions(ImmutableList.copyOf(onlyIfConditions)));
     }
    
     @Override
     public DeleteQuery ifExists() {
-        return new DeleteQuery(getContext(), data.ifExists(true));
+        return newQuery(data.ifExists(true));
     }
     
     @Override
@@ -162,7 +175,4 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
         return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());
     }
-    
-    
-    
 }

@@ -45,11 +45,23 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         super(ctx);
         this.query = query;
     }
+
+    
+    ////////////////////
+    // factory methods
     
     @Override
     protected ListReadQueryAdapter newQuery(Context newContext) {
         return new ListReadQueryAdapter(newContext, query.newQuery(newContext));
     }
+
+    private ListReadQueryAdapter newQuery(ListReadQuery query) {
+        return new ListReadQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+
+    // 
+    ////////////////////
+
     
     @Override
     public ListReadQueryAdapter all() {
@@ -58,52 +70,52 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     
     @Override
     public ListReadQueryAdapter column(String name) {
-        return new ListReadQueryAdapter(getContext(), query.column(name));
+        return newQuery(query.column(name));
     }
     
     @Override
     public ListReadQueryAdapter columnWithMetadata(String name) {
-        return new ListReadQueryAdapter(getContext(), query.column(name));
+        return newQuery(query.column(name));
     }
     
     @Override
     public ListReadWithUnit<RecordList> columns(String... names) {
-        return new ListReadQueryAdapter(getContext(), query.columns(names));
+        return newQuery(query.columns(names));
     }
     
     @Override
     public ListReadWithUnit<RecordList> column(ColumnName<?> name) {
-        return new ListReadQueryAdapter(getContext(), query.column(name));
+        return newQuery(query.column(name));
     }
     
     @Override
     public ListReadWithUnit<RecordList> columnWithMetadata(ColumnName<?> name) {
-        return new ListReadQueryAdapter(getContext(), query.columnWithMetadata(name));
+        return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
     public ListReadWithUnit<RecordList> columns(ColumnName<?>... names) {
-        return new ListReadQueryAdapter(getContext(), query.columns(names));
+        return newQuery(query.columns(names));
     }
 
     @Override
     public ListReadQueryAdapter withLimit(int limit) {
-        return new ListReadQueryAdapter(getContext(), query.withLimit(limit));
+        return newQuery(query.withLimit(limit));
     }
     
     @Override
     public ListReadQueryAdapter withAllowFiltering() {
-        return new ListReadQueryAdapter(getContext(), query.withAllowFiltering());
+        return newQuery(query.withAllowFiltering());
     }
 
     @Override
     public ListReadQueryAdapter withFetchSize(int fetchSize) {
-        return new ListReadQueryAdapter(getContext(), query.withFetchSize(fetchSize));
+        return newQuery(query.withFetchSize(fetchSize));
     }
     
     @Override
     public ListReadQueryAdapter withDistinct() {
-        return new ListReadQueryAdapter(getContext(), query.withDistinct());
+        return newQuery(query.withDistinct());
     }
     
     @Override

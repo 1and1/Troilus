@@ -49,24 +49,37 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         this.batchables = batchables;
     }
     
+    
+    ////////////////////
+    // factory methods
+    
     @Override
     protected BatchMutationQuery newQuery(Context newContext) {
         return new BatchMutationQuery(newContext, type, batchables);
     }
     
+    private BatchMutationQuery newQuery(Type type, ImmutableList<Batchable> batchables) {
+        return new BatchMutationQuery(getContext(), type, batchables);
+    }
+    
+    //
+    ///////////////////
+    
+    
+    
     @Override
     public BatchMutationQuery withWriteAheadLog() {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, batchables);
+        return newQuery(Type.LOGGED, batchables);
     }
     
     @Override
     public BatchMutationQuery withoutWriteAheadLog() {
-        return new BatchMutationQuery(getContext(), Type.UNLOGGED, batchables);
+        return newQuery(Type.UNLOGGED, batchables);
     }
 
     @Override
     public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), type, Immutables.join(batchables, other));
+        return newQuery(type, Immutables.join(batchables, other));
     }
 
     @Override

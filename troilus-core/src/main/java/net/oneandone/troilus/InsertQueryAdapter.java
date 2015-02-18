@@ -36,11 +36,23 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
         super(ctx, query);
     }
     
+    
+    ////////////////////
+    // factory methods
+    
     @Override
     protected InsertQueryAdapter newQuery(Context newContext) {
         return new InsertQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
-  
+    
+    private InsertQueryAdapter newQuery(InsertQuery query) {
+        return new InsertQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+    
+    // 
+    ////////////////////
+    
+    
     @Override
     public InsertQueryAdapter withTtl(Duration ttl) {
         return newQuery(getContext().withTtl((int) ttl.getSeconds()));
@@ -48,6 +60,6 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     @Override
     public Modification<Insertion> ifNotExists() {
-        return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
+        return newQuery(getQuery().ifNotExists());
     }
 }

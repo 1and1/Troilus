@@ -63,27 +63,39 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     
-    private final ListReadQueryDataImpl data;
+    private final ListReadQueryData data;
 
     
     /**
      * @param ctx   the context 
      * @param data  the data
      */
-    ListReadQuery(Context ctx, ListReadQueryDataImpl data) {
+    ListReadQuery(Context ctx, ListReadQueryData data) {
         super(ctx);
         this.data = data;
     }
+
     
+    ////////////////////
+    // factory methods
+
     @Override
     protected ListReadQuery newQuery(Context newContext) {
         return new ListReadQuery(newContext, data);
     }
     
+    private ListReadQuery newQuery(ListReadQueryData data) {
+        return new ListReadQuery(getContext(), data);
+    }
+
+    //
+    ////////////////////
+
+    
+    
     @Override
     public ListReadQuery all() {
-        return new ListReadQuery(getContext(), 
-                                 data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
+        return newQuery(data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
     
     private ListReadQuery columns(ImmutableCollection<String> namesToRead) {
@@ -96,14 +108,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListReadQuery column(String name) {
-        return new ListReadQuery(getContext(), 
-                                 data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
+        return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
     }
     
     @Override
     public ListReadQuery columnWithMetadata(String name) {
-        return new ListReadQuery(getContext(), 
-                                 data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
+        return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
     }
     
     @Override
@@ -132,22 +142,22 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     @Override
     public ListReadQuery withLimit(int limit) {
-        return new ListReadQuery(getContext(), data.limit(limit));
+        return newQuery(data.limit(limit));
     }
     
     @Override
     public ListReadQuery withAllowFiltering() {
-        return new ListReadQuery(getContext(), data.allowFiltering(true));
+        return newQuery(data.allowFiltering(true));
     }
 
     @Override
     public ListReadQuery withFetchSize(int fetchSize) {
-        return new ListReadQuery(getContext(), data.fetchSize(fetchSize));
+        return newQuery(data.fetchSize(fetchSize));
     }
     
     @Override
     public ListReadQuery withDistinct() {
-        return new ListReadQuery(getContext(), data.distinct(true));
+        return newQuery(data.distinct(true));
     }
     
     @Override

@@ -40,18 +40,30 @@ class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> imp
         super(ctx, query);
     }
     
+    
+    ////////////////////
+    // factory methods
+    
     @Override
     protected Deletion newQuery(Context newContext) {
         return new DeleteQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
+
+    private Deletion newQuery(DeleteQuery query) {
+        return new DeleteQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+
+    // 
+    ////////////////////
+
     
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
-        return new DeleteQueryAdapter(getContext(), getQuery().onlyIf(onlyIfConditions));
+        return newQuery(getQuery().onlyIf(onlyIfConditions));
     }
     
     @Override
     public Deletion ifExists() {
-        return new DeleteQueryAdapter(getContext(), getQuery().ifExists());
+        return newQuery(getQuery().ifExists());
     }
 }

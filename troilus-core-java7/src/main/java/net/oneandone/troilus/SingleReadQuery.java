@@ -63,28 +63,37 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     }
    
     
+    ////////////////////
+    // factory methods
+    
     @Override
     protected SingleReadQuery newQuery(Context newContext) {
         return new SingleReadQuery(newContext, data);
     }
+
+    private SingleReadQuery newQuery(SingleReadQueryData data) {
+        return new SingleReadQuery(getContext(), data);
+    }
+
+    //
+    ////////////////////
+
+
     
     @Override
     public SingleReadQuery all() {
-        return new SingleReadQuery(getContext(), 
-                                   data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
+        return newQuery(data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
     
    
     @Override
     public SingleReadQuery column(String name) {
-        return new SingleReadQuery(getContext(), 
-                                   data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
+        return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
     }
 
     @Override
     public SingleReadQuery columnWithMetadata(String name) {
-        return new SingleReadQuery(getContext(), 
-                                   data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
+        return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
     }
     
     @Override

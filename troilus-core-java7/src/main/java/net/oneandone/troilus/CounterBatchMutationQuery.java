@@ -45,15 +45,28 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
         super(ctx);
         this.batchables = batchables;
     }
+
+    
+    ////////////////////
+    // factory methods
     
     @Override
     protected CounterBatchMutationQuery newQuery(Context newContext) {
         return new CounterBatchMutationQuery(newContext, batchables);
     }
     
+    private CounterBatchMutationQuery newQuery(ImmutableList<CounterBatchable> batchables) {
+        return new CounterBatchMutationQuery(getContext(), batchables);
+    }
+
+    //
+    ////////////////////
+
+
+    
     @Override
     public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
-        return new CounterBatchMutationQuery(getContext(), Immutables.join(batchables, other));
+        return newQuery(Immutables.join(batchables, other));
     }
 
         

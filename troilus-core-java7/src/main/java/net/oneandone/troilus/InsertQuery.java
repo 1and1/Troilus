@@ -16,6 +16,7 @@
 package net.oneandone.troilus;
 
 import net.oneandone.troilus.java7.Insertion;
+import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
 
 
@@ -32,15 +33,28 @@ class InsertQuery extends WriteQuery<Insertion> implements Insertion {
      * @param ctx   the context
      * @param data  the data
      */
-    InsertQuery(Context ctx, WriteQueryDataImpl data) {
+    InsertQuery(Context ctx, WriteQueryData data) {
         super(ctx, data);
     }
     
     
+    ////////////////////
+    // factory methods
+
     @Override
     protected InsertQuery newQuery(Context newContext) {
         return new InsertQuery(newContext, getData());
     }
+    
+    private InsertQuery newQuery(WriteQueryData data) {
+        return new InsertQuery(getContext(), data);
+    }
+
+    //
+    ////////////////////
+
+
+    
     
     @Override
     public InsertQuery withTtl(int ttlSec) {
@@ -49,6 +63,6 @@ class InsertQuery extends WriteQuery<Insertion> implements Insertion {
     
     @Override
     public InsertQuery ifNotExists() {
-        return new InsertQuery(getContext(), getData().ifNotExists(true));
+        return newQuery(getData().ifNotExists(true));
     }
 }

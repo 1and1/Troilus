@@ -37,19 +37,19 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 abstract class WriteQuery<Q> extends MutationQuery<Q> {
     
-    private final WriteQueryDataImpl data;
+    private final WriteQueryData data;
   
     
     /**
      * @param ctx   the context
      * @param data  the data
      */
-    WriteQuery(Context ctx, WriteQueryDataImpl data) {
+    WriteQuery(Context ctx, WriteQueryData data) {
         super(ctx);
         this.data = data;
     }
     
-    protected WriteQueryDataImpl getData() {
+    protected WriteQueryData getData() {
         return data;
     }
     

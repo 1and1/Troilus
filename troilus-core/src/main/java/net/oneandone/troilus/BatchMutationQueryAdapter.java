@@ -47,24 +47,37 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     }
 
     
+    ////////////////////
+    // factory methods
+    
     @Override
     protected BatchMutationQueryAdapter newQuery(Context newContext) {
         return new BatchMutationQueryAdapter(newContext, query.newQuery(newContext));
     }
     
+    private BatchMutationQueryAdapter newQuery(BatchMutationQuery query) {
+        return new BatchMutationQueryAdapter(getContext(), query.newQuery(getContext()));
+    }
+    
+    // 
+    ////////////////////
+    
+    
+    
+    
     @Override
     public BatchMutation withWriteAheadLog() {
-        return new BatchMutationQueryAdapter(getContext(), query.withWriteAheadLog());
+        return newQuery(query.withWriteAheadLog());
     }
     
     @Override
     public BatchMutation withoutWriteAheadLog() {
-        return new BatchMutationQueryAdapter(getContext(), query.withoutWriteAheadLog());
+        return newQuery(query.withoutWriteAheadLog());
     }
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
+        return newQuery(query.combinedWith(other));
     }
     
     @Override
