@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
-
+import net.oneandone.troilus.Result;
 
 
 /**
  * BatchMutation
  */
-public interface BatchMutation extends ConfiguredQuery<BatchMutation, Result>, CombinableMutation {
+public interface Batch extends ConfiguredQuery<Batch, Result>, Batchable {
 
     /**
      * @return a cloned query instance with write ahead log
      */
-    ConfiguredQuery<BatchMutation, Result> withWriteAheadLog();
+    ConfiguredQuery<Batch, Result> withWriteAheadLog();
 
-    /** 
+    /**
      * @return a cloned query instance without write ahead log
      */
-    ConfiguredQuery<BatchMutation, Result> withoutWriteAheadLog();
+    ConfiguredQuery<Batch, Result> withoutWriteAheadLog();
 }

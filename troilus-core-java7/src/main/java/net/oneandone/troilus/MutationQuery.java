@@ -21,7 +21,6 @@ package net.oneandone.troilus;
 import java.util.Set;
 
 import net.oneandone.troilus.java7.Batchable;
-import net.oneandone.troilus.java7.CombinableMutation;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
@@ -38,7 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * abstract mutation query implementation
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable, CombinableMutation {
+abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     
     
     /**
@@ -49,7 +48,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable, C
     }
     
     public BatchMutationQuery combinedWith(Batchable other) {
-        return new BatchMutationQuery(getContext(), Type.LOGGED, ImmutableList.of(this, other));
+        return new BatchMutationQuery(getContext(), ImmutableList.of(this, other));
     }
   
     

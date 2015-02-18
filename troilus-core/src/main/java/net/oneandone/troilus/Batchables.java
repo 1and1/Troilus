@@ -15,14 +15,14 @@
  */
 package net.oneandone.troilus;
 
-
 import com.datastax.driver.core.Statement;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import net.oneandone.troilus.java7.Batch;
 
-/**
- * Batchable utility class
- */
+
+
 class Batchables {
     
     private Batchables() {  }
@@ -31,20 +31,27 @@ class Batchables {
      * @param batchable the batchable to map
      * @return the mapped batchable
      */
-    public static net.oneandone.troilus.java7.Batchable toJava7Batchable(Batchable batchable) {
-        return new BatchableToJava7BatchableAdapter(batchable);
+    public static net.oneandone.troilus.java7.Batchable toJava7Batchable(Context ctx, Batchable batchable) {
+        return new BatchableToJava7BatchableAdapter(ctx, batchable);
     }
     
     private static class BatchableToJava7BatchableAdapter implements net.oneandone.troilus.java7.Batchable {
         private final Batchable batchable;
+        private final Context ctx;
         
-        public BatchableToJava7BatchableAdapter(Batchable batchable) {
+        public BatchableToJava7BatchableAdapter(Context ctx, Batchable batchable) {
+            this.ctx = ctx;
             this.batchable = batchable;
         }
-        
+              
         @Override
         public ListenableFuture<Statement> getStatementAsync() {
             return CompletableFutures.toListenableFuture(batchable.getStatementAsync());
+        }
+        
+        @Override
+        public Batch combinedWith(net.oneandone.troilus.java7.Batchable other) {
+            return new BatchMutationQuery(ctx, ImmutableList.of(other));
         }
     }
 }

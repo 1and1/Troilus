@@ -1248,7 +1248,7 @@ public class DaoImpl implements Dao {
     }
     
     
-    private static final class CascadeOnWriteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor {
+    private final class CascadeOnWriteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor {
         private CascadeOnWriteInterceptor interceptor;
         
         public CascadeOnWriteInterceptorAdapter(CascadeOnWriteInterceptor interceptor) {
@@ -1259,7 +1259,7 @@ public class DaoImpl implements Dao {
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable>> onWriteAsync(net.oneandone.troilus.java7.interceptor.WriteQueryData queryData) {
             return CompletableFutures.toListenableFuture(interceptor.onWrite(new WriteQueryDataAdapter(queryData))
-                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
+                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(ctx, batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
                                                                     .thenApply(batchables -> ImmutableSet.copyOf(batchables)));
         }
         
@@ -1270,7 +1270,7 @@ public class DaoImpl implements Dao {
     }
 
     
-    private static final class CascadeOnDeleteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor {
+    private final class CascadeOnDeleteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor {
         private CascadeOnDeleteInterceptor interceptor;
         
         public CascadeOnDeleteInterceptorAdapter(CascadeOnDeleteInterceptor interceptor) {
@@ -1281,7 +1281,7 @@ public class DaoImpl implements Dao {
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable>> onDeleteAsync(DeleteQueryData queryData) {
             return CompletableFutures.toListenableFuture(interceptor.onDelete(queryData)
-                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
+                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(ctx, batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
                                                                     .thenApply(batchables -> ImmutableSet.copyOf(batchables)));
         }
         

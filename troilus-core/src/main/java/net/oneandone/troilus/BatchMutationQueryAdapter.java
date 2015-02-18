@@ -20,6 +20,8 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.datastax.driver.core.Statement;
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.BatchMutationQuery;
 import net.oneandone.troilus.Context;
@@ -30,7 +32,7 @@ import net.oneandone.troilus.Result;
 /**
  * Java8 adapter of a BatchMutationQuery
  */
-class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements BatchMutation {
+class BatchMutationQueryAdapter extends AbstractQuery<Batch> implements Batch {
     
     private final BatchMutationQuery query;  
     
@@ -64,18 +66,18 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     
     
     @Override
-    public BatchMutation withWriteAheadLog() {
+    public Batch withWriteAheadLog() {
         return newQuery(query.withWriteAheadLog());
     }
     
     @Override
-    public BatchMutation withoutWriteAheadLog() {
+    public Batch withoutWriteAheadLog() {
         return newQuery(query.withoutWriteAheadLog());
     }
 
     @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return newQuery(query.combinedWith(Batchables.toJava7Batchable(other)));
+    public Batch combinedWith(Batchable other) {
+        return newQuery(query.combinedWith(Batchables.toJava7Batchable(getContext(), other)));
     }
     
     @Override
@@ -87,4 +89,9 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
     public CompletableFuture<Result> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }  
+    
+    @Override
+    public CompletableFuture<Statement> getStatementAsync() {
+       return CompletableFutures.toCompletableFuture(query.getStatementAsync());
+    }
 }

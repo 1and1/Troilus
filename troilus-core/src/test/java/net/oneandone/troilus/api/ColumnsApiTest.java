@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Batch;
 import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
@@ -727,16 +728,23 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
         
-        /*
-        
 
-        CombinableMutation w1 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
-                                        .value(UsersTable.IS_CUSTOMER, true)
-                                        .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
-                                        .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
+        Batchable w1 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
+                               .value(UsersTable.IS_CUSTOMER, true)
+                               .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                               .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        */
+        Batchable w2 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
+                               .value(UsersTable.IS_CUSTOMER, true)
+                               .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
+                               .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
+        Batch batch = w1.combinedWith(w2);
+        batch.execute();
+
+     //   Batchable batchable = w1.combinedWith(w2);
+     //   batchable.execute();
+
     }        
 }
 

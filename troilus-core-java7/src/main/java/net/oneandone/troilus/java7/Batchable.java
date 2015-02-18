@@ -23,4 +23,9 @@ package net.oneandone.troilus.java7;
  */
 public interface Batchable extends StatementSource {
 
+    /**
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
+     */
+    Batch combinedWith(Batchable other);
 }

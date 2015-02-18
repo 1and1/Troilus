@@ -22,7 +22,7 @@ package net.oneandone.troilus.java7;
 /**
  * Insertion query
  */
-public interface Insertion extends Modification<Insertion>, Batchable, CombinableMutation {
+public interface Insertion extends Modification<Insertion>, Batchable {
 
     /**
      * @return a cloned query instance with lwt (if-not-exits)

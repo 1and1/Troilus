@@ -91,8 +91,8 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     }
     
     @Override
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(other)));
+    public Batch combinedWith(Batchable other) {
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(getContext(), other)));
     }
     
 

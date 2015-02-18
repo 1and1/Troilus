@@ -18,16 +18,18 @@ package net.oneandone.troilus;
 
 
 
-
-
 /**
- * Combinable mutation
+ * BatchMutation
  */
-public interface CombinableMutation {
+public interface Batch extends ConfiguredQuery<Batch, Result>, Batchable {
 
     /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
+     * @return a cloned query instance with write ahead log
      */
-    BatchMutation combinedWith(Batchable other);
+    ConfiguredQuery<Batch, Result> withWriteAheadLog();
+
+    /** 
+     * @return a cloned query instance without write ahead log
+     */
+    ConfiguredQuery<Batch, Result> withoutWriteAheadLog();
 }

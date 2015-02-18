@@ -31,7 +31,7 @@ import com.datastax.driver.core.Statement;
 /**
  * Java8 adapter base for mutation operations
  */
-abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource, CombinableMutation { 
+abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements Batchable { 
     
     private final T query;
   
@@ -55,8 +55,8 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
      * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(other)));
+    public Batch combinedWith(Batchable other) {
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(getContext(), other)));
     }
     
     

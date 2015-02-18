@@ -17,7 +17,7 @@ package net.oneandone.troilus;
 
 
 
-import net.oneandone.troilus.java7.BatchMutation;
+import net.oneandone.troilus.java7.Batch;
 import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
@@ -34,7 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Batch mutation query
  */
-class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
+class BatchMutationQuery extends AbstractQuery<Batch> implements Batch {
     private final ImmutableList<Batchable> batchables;
     private final Type type;  
     
@@ -44,7 +44,11 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
      * @param type        the batch type
      * @param batchables  the statements to be performed within the batch 
      */
-    BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
+    BatchMutationQuery(Context ctx, ImmutableList<Batchable> batchables) {
+        this(ctx, Type.LOGGED, batchables);
+    }
+    
+    private BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable> batchables) {
         super(ctx);
         this.type = type;
         this.batchables = batchables;
@@ -102,7 +106,7 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return Futures.transform(future, mapEntity);
     }
     
-    private ListenableFuture<Statement> getStatementAsync() {
+    public ListenableFuture<Statement> getStatementAsync() {
         return new BatchQueryFutureAdapter<Batchable>(new BatchStatement(type), batchables.iterator());
     }
 }
