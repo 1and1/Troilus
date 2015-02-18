@@ -15,8 +15,6 @@
  */
 package net.oneandone.troilus.java7;
 
-import net.oneandone.troilus.Batchable;
-
 import com.datastax.driver.core.querybuilder.Clause;
 
 

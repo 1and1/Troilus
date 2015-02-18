@@ -17,9 +17,9 @@ package net.oneandone.troilus.interceptor;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.collect.ImmutableSet;
-
 import net.oneandone.troilus.Batchable;
+
+import com.google.common.collect.ImmutableSet;
 
 
 

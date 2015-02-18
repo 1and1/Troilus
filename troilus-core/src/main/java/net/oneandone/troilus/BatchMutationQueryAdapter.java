@@ -24,8 +24,6 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.BatchMutationQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Batchable;
-
 
 
  
@@ -77,7 +75,7 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
 
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return newQuery(query.combinedWith(other));
+        return newQuery(query.combinedWith(Batchables.toJava7Batchable(other)));
     }
     
     @Override

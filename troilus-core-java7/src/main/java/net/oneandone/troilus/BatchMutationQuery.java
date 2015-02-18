@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 
 import net.oneandone.troilus.java7.BatchMutation;
+import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;

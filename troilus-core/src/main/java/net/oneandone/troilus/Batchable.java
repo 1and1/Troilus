@@ -15,19 +15,13 @@
  */
 package net.oneandone.troilus;
 
-
-
+import net.oneandone.troilus.StatementSource;
 
 
 
 /**
- * Combinable mutation
+ * Batchable mutation query
  */
-public interface CombinableMutation {
+public interface Batchable extends StatementSource {
 
-    /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
-     */
-    BatchMutation combinedWith(Batchable other);
 }

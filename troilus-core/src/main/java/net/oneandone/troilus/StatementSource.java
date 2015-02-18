@@ -16,8 +16,9 @@
 package net.oneandone.troilus;
 
 
+import java.util.concurrent.CompletableFuture;
+
 import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
@@ -28,5 +29,5 @@ public interface StatementSource {
     /**
      * @return the statement future
      */
-    ListenableFuture<Statement> getStatementAsync();
+    CompletableFuture<Statement> getStatementAsync();
 }

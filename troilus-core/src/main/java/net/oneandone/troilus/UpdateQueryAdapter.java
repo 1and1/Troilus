@@ -76,8 +76,8 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
+    public CompletableFuture<Statement> getStatementAsync() {
+        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
     
     @Override
@@ -92,7 +92,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Wr
     
     @Override
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(other)));
     }
     
 

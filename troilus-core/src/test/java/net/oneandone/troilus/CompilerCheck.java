@@ -20,8 +20,8 @@ import java.time.Duration;
 import com.datastax.driver.core.querybuilder.Clause;
 
 import net.oneandone.troilus.Dao;
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.java7.Batchable;
 
 
 

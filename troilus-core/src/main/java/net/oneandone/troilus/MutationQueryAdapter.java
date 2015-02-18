@@ -26,8 +26,6 @@ import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
 
 import com.datastax.driver.core.Statement;
-import com.google.common.util.concurrent.ListenableFuture;
- 
 
 
 /**
@@ -58,9 +56,10 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
      * @return a cloned query instance with the modified behavior
      */
     public BatchMutation combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(other));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(other)));
     }
-
+    
+    
     /**
      * performs the query in a sync way 
      * @return the result
@@ -78,8 +77,8 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return query.getStatementAsync();
+    public CompletableFuture<Statement> getStatementAsync() {
+        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
     
     @Override

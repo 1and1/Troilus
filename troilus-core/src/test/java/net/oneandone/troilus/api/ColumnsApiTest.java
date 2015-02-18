@@ -25,15 +25,13 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
-import net.oneandone.troilus.CombinableMutation;
+import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.CounterMutation;
-import net.oneandone.troilus.Write;
 
 import org.junit.Assert;
 import org.junit.Test;

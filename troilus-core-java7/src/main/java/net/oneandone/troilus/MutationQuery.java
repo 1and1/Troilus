@@ -20,6 +20,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.CombinableMutation;
 
 import com.datastax.driver.core.BatchStatement;

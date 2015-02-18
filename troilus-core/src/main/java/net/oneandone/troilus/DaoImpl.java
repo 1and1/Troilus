@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
@@ -53,6 +54,7 @@ import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
+import net.oneandone.troilus.java7.Batchable;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -1256,7 +1258,9 @@ public class DaoImpl implements Dao {
 
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable>> onWriteAsync(net.oneandone.troilus.java7.interceptor.WriteQueryData queryData) {
-            return CompletableFutures.toListenableFuture(interceptor.onWrite(new WriteQueryDataAdapter(queryData)));
+            return CompletableFutures.toListenableFuture(interceptor.onWrite(new WriteQueryDataAdapter(queryData))
+                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
+                                                                    .thenApply(batchables -> ImmutableSet.copyOf(batchables)));
         }
         
         @Override
@@ -1276,7 +1280,9 @@ public class DaoImpl implements Dao {
         
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable>> onDeleteAsync(DeleteQueryData queryData) {
-            return CompletableFutures.toListenableFuture(interceptor.onDelete(queryData));
+            return CompletableFutures.toListenableFuture(interceptor.onDelete(queryData)
+                                                                    .thenApply(batchables -> batchables.stream().map(batchable -> Batchables.toJava7Batchable(batchable)).collect(Collectors.<net.oneandone.troilus.java7.Batchable>toSet()))
+                                                                    .thenApply(batchables -> ImmutableSet.copyOf(batchables)));
         }
         
         @Override

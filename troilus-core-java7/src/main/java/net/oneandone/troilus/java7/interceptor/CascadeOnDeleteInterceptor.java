@@ -19,9 +19,9 @@ package net.oneandone.troilus.java7.interceptor;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
+import net.oneandone.troilus.java7.Batchable;
 
 
 

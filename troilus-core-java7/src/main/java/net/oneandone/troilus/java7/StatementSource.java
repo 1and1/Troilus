@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
 
-
-
+import com.datastax.driver.core.Statement;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
- * Combinable mutation
+ * Statement soure
  */
-public interface CombinableMutation {
+public interface StatementSource {
 
     /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
+     * @return the statement future
      */
-    BatchMutation combinedWith(Batchable other);
+    ListenableFuture<Statement> getStatementAsync();
 }

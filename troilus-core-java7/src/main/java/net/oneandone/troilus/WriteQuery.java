@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;

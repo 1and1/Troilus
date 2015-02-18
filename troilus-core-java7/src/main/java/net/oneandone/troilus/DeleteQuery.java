@@ -20,6 +20,7 @@ package net.oneandone.troilus;
 import java.util.Set;
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;

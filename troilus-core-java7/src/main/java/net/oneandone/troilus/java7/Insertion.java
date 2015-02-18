@@ -15,7 +15,6 @@
  */
 package net.oneandone.troilus.java7;
 
-import net.oneandone.troilus.Batchable;
 
 
 

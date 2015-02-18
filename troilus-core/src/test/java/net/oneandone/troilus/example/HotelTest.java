@@ -21,15 +21,17 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Batchable;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+
 
 
 
