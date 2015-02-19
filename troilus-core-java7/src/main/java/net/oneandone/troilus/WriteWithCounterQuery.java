@@ -101,7 +101,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQuery removeSetValue(ColumnName<Set<T>> name, T value) {
         return removeSetValue(name.getName(), value);
     }
 
@@ -114,7 +114,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQuery addSetValue(ColumnName<Set<T>> name, T value) {
         return addSetValue(name.getName(), value);
     }
    
@@ -127,7 +127,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     } 
     
     @Override
-    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery prependListValue(ColumnName<List<T>> name, T value) {
         return prependListValue(name.getName(), value);
     }
     
@@ -140,7 +140,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery appendListValue(ColumnName<List<T>> name, T value) {
         return appendListValue(name.getName(), value);
     }
     
@@ -153,7 +153,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery removeListValue(ColumnName<List<T>> name, T value) {
         return removeListValue(name.getName(), value);
     }
    
@@ -166,7 +166,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+    public <T, V> WriteWithCounterQuery putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
         return putMapValue(name.getName(), key, value);
     }
     

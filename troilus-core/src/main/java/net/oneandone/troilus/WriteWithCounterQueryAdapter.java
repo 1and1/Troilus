@@ -134,57 +134,57 @@ class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAd
     }
     
     @Override
-    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQueryAdapter removeSetValue(ColumnName<Set<T>> name, T value) {
         return removeSetValue(name.getName(), value);
     }
 
     @Override
-    public Write addSetValue(String name, Object value) {
+    public WriteWithCounterQueryAdapter addSetValue(String name, Object value) {
         return newQuery(getQuery().addSetValue(name, value));
     }
     
     @Override
-    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQueryAdapter addSetValue(ColumnName<Set<T>> name, T value) {
         return addSetValue(name.getName(), value);
     }
    
     @Override
-    public Write prependListValue(String name, Object value) {
+    public WriteWithCounterQueryAdapter prependListValue(String name, Object value) {
         return newQuery(getQuery().prependListValue(name, value));
     } 
     
     @Override
-    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQueryAdapter prependListValue(ColumnName<List<T>> name, T value) {
         return prependListValue(name.getName(), value);
     }
     
     @Override
-    public Write appendListValue(String name, Object value) {
+    public WriteWithCounterQueryAdapter appendListValue(String name, Object value) {
         return newQuery(getQuery().appendListValue(name, value));
     }
     
     @Override
-    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQueryAdapter appendListValue(ColumnName<List<T>> name, T value) {
         return appendListValue(name.getName(), value);
     }
     
     @Override
-    public Write removeListValue(String name, Object value) {
+    public WriteWithCounterQueryAdapter removeListValue(String name, Object value) {
         return newQuery(getQuery().removeListValue(name, value));
     }
     
     @Override
-    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQueryAdapter removeListValue(ColumnName<List<T>> name, T value) {
         return removeListValue(name.getName(), value);
     }
     
     @Override
-    public Write putMapValue(String name, Object key, Object value) {
+    public WriteWithCounterQueryAdapter putMapValue(String name, Object key, Object value) {
         return newQuery(getQuery().putMapValue(name, key, value));
     }
     
     @Override
-    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+    public <T, V> WriteWithCounterQueryAdapter putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
         return putMapValue(name.getName(), key, value);
     }
         
