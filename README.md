@@ -1,6 +1,9 @@
 
 Troilus
 ======
+
+[![Build Status](https://travis-ci.org/1and1/Troilus.svg)](https://travis-ci.org/1and1/Troilus)
+
 **Troilus** is a high level Cassandra Java client on the top of the [DataStax Java Driver for Apache Cassandra](https://github.com/datastax/java-driver). 
 It supports synchronous programming and asynchronous programming.
 
