@@ -20,6 +20,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -369,10 +370,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          public void subscribe(Subscriber<? super Record> subscriber) {
              synchronized (this) {
                  if (subscribed == true) {
-                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
+                     synchronized(subscriber) {
+                         subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
+                     }
                  } else {
                      subscribed = true;
-                     subscriber.onSubscribe(new DatabaseSubscription(subscriber));
+                     synchronized(subscriber) {
+                         subscriber.onSubscribe(new DatabaseSubscription(subscriber));
+                     }
                  }
              }
          }
@@ -383,10 +388,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private final Object subscriberCallbackLock = new Object();
              private final Object dbQueryLock = new Object();
              
-             private final Subscriber<? super Record> subscriber;
+             private final Subscriber<? super Record> _subscriber; // see subscriber()
              private final Iterator<? extends Record> it;
              
-             private final AtomicLong numPendingReads = new AtomicLong();
+             private final AtomicLong numRequestedReads = new AtomicLong();
              
              private Runnable runningDatabaseQuery = null;
              private boolean isOpen = true;
@@ -396,18 +401,21 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
-                 this.subscriber = subscriber;
+                 this._subscriber = subscriber;
                  this.it = RecordListImpl.this.iterator();
              }
              
              @Override
              public void request(long n) {                
-                 if (n > 0) {
-                     numPendingReads.addAndGet(n);
-                     
-                     // Subscription: MUST NOT allow unbounded recursion such as Subscriber.onNext -> Subscription.request -> Subscriber.onNext
-                     ctx.getTaskExecutor().execute(requestTask);
+                 if(n <= 0) {
+                     // https://github.com/reactive-streams/reactive-streams#3.9
+                     subscriber().onError(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9"));
+                     return;
                  }
+                 numRequestedReads.addAndGet(n);
+                 
+                 // Subscription: MUST NOT allow unbounded recursion such as Subscriber.onNext -> Subscription.request -> Subscriber.onNext
+                 ctx.getTaskExecutor().execute(requestTask);
              }
              
              private final class ProcessingTask implements Runnable {
@@ -423,21 +431,22 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  processAvailableDatabaseRecords();
 
                  // more db records required? 
-                 if (numPendingReads.get() > 0) {
+                 if (numRequestedReads.get() > 0) {
                      // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
                      // will be executed without the need of more records. However, it does not matter
                      requestDatabaseForMoreRecords();
                  }
+                 
              }
              
              
              private void processAvailableDatabaseRecords() {
                  synchronized (subscriberCallbackLock) {
                      if (isOpen) {
-                         while (it.hasNext() && numPendingReads.get() > 0) {
+                         while (it.hasNext() && numRequestedReads.get() > 0) {
                              try {
-                                 numPendingReads.decrementAndGet();
-                                 subscriber.onNext(it.next());
+                                 numRequestedReads.decrementAndGet();
+                                 subscriber().onNext(it.next());
                              } catch (RuntimeException rt) {
                                  LOG.warn("processing error occured", rt);
                                  teminateWithError(rt);
@@ -481,7 +490,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  terminateRegularly(false);
              }
 
-             
 
              ////////////
              // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
@@ -490,7 +498,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
-                         if(signalOnComplete) subscriber.onComplete();
+                         if(signalOnComplete) {
+                             subscriber().onComplete();
+                         }
                      }
                  }
              }
@@ -499,10 +509,18 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
-                         subscriber.onError(t);
+                         subscriber().onError(t);
                      }
                  }
              }
+             
+             /** Synchronizes access to subscriber to make sure that we never send concurrent notifications to the subscriber. */
+             private Subscriber<? super Record> subscriber() {
+                 synchronized(_subscriber) {
+                     return _subscriber;
+                 }
+             }
+             
          }
      } 
     
