@@ -363,6 +363,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  public Record next() {
                      return new RecordImpl(ctx, RecordListImpl.this, iterator.next());
                  }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
              };
          }
          
@@ -552,6 +557,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 @Override
                 public F next() {
                     return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDbSession().getColumnNames());
+                }
+                
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
                 }
             };
         }
