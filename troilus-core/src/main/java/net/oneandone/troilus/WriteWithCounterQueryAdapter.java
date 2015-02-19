@@ -19,7 +19,6 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,6 @@ import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.UpdateQuery;
 
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -40,15 +38,15 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements UpdateWithUnitAndCounter  {
+class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAdapter> implements WriteWithCounter {
     
-    private final UpdateQuery query;
+    private final WriteWithCounterQuery query;
     
     /**
      * @param ctx     the context 
      * @param query   the underlying query
      */
-    UpdateQueryAdapter(Context ctx, UpdateQuery query) {
+    WriteWithCounterQueryAdapter(Context ctx, WriteWithCounterQuery query) {
         super(ctx);
         this.query = query;
     }
@@ -58,19 +56,19 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     // factory methods
      
     @Override
-    protected UpdateQueryAdapter newQuery(Context newContext) {
-        return new UpdateQueryAdapter(newContext, getQuery().newQuery(newContext));
+    protected WriteWithCounterQueryAdapter newQuery(Context newContext) {
+        return new WriteWithCounterQueryAdapter(newContext, getQuery().newQuery(newContext));
     }
 
-    private UpdateQueryAdapter newQuery(UpdateQuery query) {
-        return new UpdateQueryAdapter(getContext(), query.newQuery(getContext()));
+    private WriteWithCounterQueryAdapter newQuery(WriteWithCounterQuery query) {
+        return new WriteWithCounterQueryAdapter(getContext(), query.newQuery(getContext()));
     }
     
     //
     ////////////////////
 
     
-    private UpdateQuery getQuery() {
+    private WriteWithCounterQuery getQuery() {
         return query;
     }
     
@@ -96,92 +94,97 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     
 
     @Override
-    public UpdateQueryAdapter withTtl(Duration ttl) {
+    public WriteWithCounterQueryAdapter withTtl(Duration ttl) {
         return newQuery(getQuery().withTtl((int) ttl.getSeconds()));
     }
 
     @Override
-    public Modification<UpdateWithUnitAndCounter> onlyIf(Clause... conditions) {
+    public Update<Write> onlyIf(Clause... conditions) {
         return newQuery(getQuery().onlyIf(conditions));
     }
 
     @Override
-    public UpdateQueryAdapter entity(Object entity) {
+    public Insertion ifNotExists() {
+        return new InsertQueryAdapter(getContext(), getQuery().ifNotExists());
+    }
+
+    @Override
+    public WriteWithCounterQueryAdapter entity(Object entity) {
         return newQuery(getQuery().entity(entity));
     }
     
     @Override
-    public UpdateQueryAdapter value(String name, Object value) {
+    public WriteWithCounterQueryAdapter value(String name, Object value) {
         return newQuery(getQuery().value(name, value));
     }
-
+    
     @Override
-    public <T> UpdateWithUnitAndCounter value(ColumnName<T> name, T value) {
+    public <T> Write value(ColumnName<T> name, T value) {
         return newQuery(getQuery().value(name.getName(), value));
     }
     
     @Override
-    public UpdateQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
+    public WriteWithCounterQueryAdapter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return newQuery(getQuery().values(nameValuePairsToAdd));
     }
 
     @Override
-    public UpdateQueryAdapter removeSetValue(String name, Object value) {
+    public WriteWithCounterQueryAdapter removeSetValue(String name, Object value) {
         return newQuery(getQuery().removeSetValue(name, value));
     }
-
+    
     @Override
-    public <T> UpdateWithUnitAndCounter removeSetValue(ColumnName<Set<T>> name,T value) {
+    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
         return removeSetValue(name.getName(), value);
     }
 
     @Override
-    public UpdateWithUnitAndCounter addSetValue(String name, Object value) {
+    public Write addSetValue(String name, Object value) {
         return newQuery(getQuery().addSetValue(name, value));
     }
-
+    
     @Override
-    public <T> UpdateWithUnitAndCounter addSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
         return addSetValue(name.getName(), value);
     }
-
+   
     @Override
-    public UpdateWithUnitAndCounter prependListValue(String name, Object value) {
+    public Write prependListValue(String name, Object value) {
         return newQuery(getQuery().prependListValue(name, value));
     } 
-
+    
     @Override
-    public <T> UpdateWithUnitAndCounter prependListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
         return prependListValue(name.getName(), value);
     }
-
+    
     @Override
-    public UpdateWithUnitAndCounter appendListValue(String name, Object value) {
+    public Write appendListValue(String name, Object value) {
         return newQuery(getQuery().appendListValue(name, value));
     }
     
     @Override
-    public <T> UpdateWithUnitAndCounter appendListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
         return appendListValue(name.getName(), value);
     }
     
     @Override
-    public UpdateWithUnitAndCounter removeListValue(String name, Object value) {
+    public Write removeListValue(String name, Object value) {
         return newQuery(getQuery().removeListValue(name, value));
     }
-
+    
     @Override
-    public <T> UpdateWithUnitAndCounter removeListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
         return removeListValue(name.getName(), value);
     }
-
+    
     @Override
-    public UpdateWithUnitAndCounter putMapValue(String name, Object key, Object value) {
+    public Write putMapValue(String name, Object key, Object value) {
         return newQuery(getQuery().putMapValue(name, key, value));
     }
-
+    
     @Override
-    public <T, V> UpdateWithUnitAndCounter putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
         return putMapValue(name.getName(), key, value);
     }
         

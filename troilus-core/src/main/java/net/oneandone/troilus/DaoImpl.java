@@ -174,7 +174,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts)));
+        return new WriteWithCounterQueryAdapter(ctx, new WriteWithCounterQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts)));
     }
     
     @Override

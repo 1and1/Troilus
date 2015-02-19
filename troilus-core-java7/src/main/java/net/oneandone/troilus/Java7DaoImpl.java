@@ -102,7 +102,7 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new UpdateQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts));
+        return new WriteWithCounterQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts));
     }
   
     

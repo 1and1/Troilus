@@ -16,32 +16,39 @@
 package net.oneandone.troilus;
 
 import java.util.List;
+
 import java.util.Map;
 import java.util.Set;
 
-import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
+import net.oneandone.troilus.java7.CounterMutation;
+import net.oneandone.troilus.java7.Write;
+import net.oneandone.troilus.java7.WriteWithCounter;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
 /**
  * update query implementation
  */
-class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements UpdateWithUnitAndCounter  {
+class WriteQueryWithCounter extends WriteQuery<WriteWithCounter> implements WriteWithCounter  {
      
     
     /**
      * @param ctx   the context 
      * @param data  the query data
      */
-    UpdateQuery(Context ctx, WriteQueryData data) {
+    WriteQueryWithCounter(Context ctx, WriteQueryData data) {
         super(ctx, data);
     }
 
@@ -50,12 +57,12 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     // factory methods
     
     @Override
-    protected UpdateQuery newQuery(Context newContext) {
-        return new UpdateQuery(newContext, getData());
+    protected WriteQueryWithCounter newQuery(Context newContext) {
+        return new WriteQueryWithCounter(newContext, getData());
     }
     
-    private UpdateQuery newQuery(WriteQueryData data) {
-        return new UpdateQuery(getContext(), data);
+    private WriteQueryWithCounter newQuery(WriteQueryData data) {
+        return new WriteQueryWithCounter(getContext(), data);
     }
 
     // 
@@ -66,60 +73,59 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
      * @param entity   the entity to insert
      * @return the new insert query
      */@Override
-     public UpdateQuery entity(Object entity) {
+     public WriteQueryWithCounter entity(Object entity) {
         ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames());
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     
     @Override
-    public UpdateQuery withTtl(int ttlSec) {
+    public WriteQueryWithCounter withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
     @Override
-    public UpdateQuery value(String name, Object value) {
+    public WriteQueryWithCounter value(String name, Object value) {
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
     }
     
     @Override
-    public <T> UpdateQuery value(ColumnName<T> name, T value) {
+    public <T> WriteQueryWithCounter value(ColumnName<T> name, T value) {
         return value(name.getName(), value);
     }
     
     @Override
-    public UpdateQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
+    public WriteQueryWithCounter values(ImmutableMap<String, Object> nameValuePairsToAdd) {
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
     }
 
     @Override
-    public UpdateQuery removeSetValue(String name, Object value) {
+    public WriteQueryWithCounter removeSetValue(String name, Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToRemove().get(name);
         values = (values == null) ? ImmutableSet.of(value) : Immutables.join(values, value);
 
         return newQuery(getData().setValuesToRemove(Immutables.join(getData().getSetValuesToRemove(), name, values)));
     }
-  
+    
     @Override
-    public <T> UpdateWithUnitAndCounter removeSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> Write removeSetValue(ColumnName<Set<T>> name, T value) {
         return removeSetValue(name.getName(), value);
     }
 
     @Override
-    public UpdateQuery addSetValue(String name, Object value) {
+    public WriteQueryWithCounter addSetValue(String name, Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToAdd().get(name);
         values = (values == null) ? ImmutableSet.of(value): Immutables.join(values, value);
 
         return newQuery(getData().setValuesToAdd(Immutables.join(getData().getSetValuesToAdd(), name, values)));
     }
     
-
     @Override
-    public <T> UpdateWithUnitAndCounter addSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> Write addSetValue(ColumnName<Set<T>> name, T value) {
         return addSetValue(name.getName(), value);
     }
    
     @Override
-    public UpdateQuery prependListValue(String name, Object value) {
+    public WriteQueryWithCounter prependListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToPrepend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
@@ -127,12 +133,12 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     } 
     
     @Override
-    public <T> UpdateWithUnitAndCounter prependListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write prependListValue(ColumnName<List<T>> name, T value) {
         return prependListValue(name.getName(), value);
     }
     
     @Override
-    public UpdateQuery appendListValue(String name, Object value) {
+    public WriteQueryWithCounter appendListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
@@ -140,26 +146,25 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     }
     
     @Override
-    public <T> UpdateWithUnitAndCounter appendListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write appendListValue(ColumnName<List<T>> name, T value) {
         return appendListValue(name.getName(), value);
     }
     
     @Override
-    public UpdateQuery removeListValue(String name, Object value) {
+    public WriteQueryWithCounter removeListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToRemove().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
         return newQuery(getData().listValuesToRemove(Immutables.join(getData().getListValuesToRemove(), name, values)));
     }
     
-    
     @Override
-    public <T> UpdateWithUnitAndCounter removeListValue(ColumnName<List<T>> name, T value) {
+    public <T> Write removeListValue(ColumnName<List<T>> name, T value) {
         return removeListValue(name.getName(), value);
     }
    
     @Override
-    public UpdateQuery putMapValue(String name, Object key, Object value) {
+    public WriteQueryWithCounter putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
         values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
 
@@ -167,17 +172,22 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     }
     
     @Override
-    public <T, V> UpdateWithUnitAndCounter putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
-       return putMapValue(name.getName(), key, value);
+    public <T, V> Write putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+        return putMapValue(name.getName(), key, value);
     }
     
     @Override
-    public UpdateQuery onlyIf(Clause... conditions) {
+    public WriteQueryWithCounter onlyIf(Clause... conditions) {
         return newQuery(getData().onlyIfConditions(ImmutableList.<Clause>builder().addAll(getData().getOnlyIfConditions())
                                                                                   .addAll(ImmutableList.copyOf(conditions))
                                                                                   .build()));
     }
 
+    @Override
+    public InsertQuery ifNotExists() {
+        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
+                                                                     .ifNotExists(true));
+    }
         
     @Override
     public CounterMutationQuery incr(String name) {
@@ -206,5 +216,65 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
                                                                       .name(name)
                                                                       .diff(0 - value));  
     }
- }
+    
+  
+    
+ 
+    /**
+     * Counter mutation query implementation 
+     *
+     */
+    static final class CounterMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
+        
+        private final CounterMutationQueryData data;
+
+        /**
+         * @param ctx    the context
+         * @param data   the query data
+         */
+        CounterMutationQuery(Context ctx, CounterMutationQueryData data) {
+            super(ctx);
+            this.data = data;
+        }
+        
+        @Override
+        protected CounterMutationQuery newQuery(Context newContext) {
+            return new CounterMutationQuery(newContext, data);
+        }
+   
+        @Override
+        public CounterMutationQuery withTtl(int ttlSec) {
+            return newQuery(getContext().withTtl(ttlSec));
+        }
+        
+        @Override
+        public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
+            return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
+        }
+   
+        @Override
+        public Result execute() {
+            return ListenableFutures.getUninterruptibly(executeAsync());
+        }
+        
+        @Override
+        public ListenableFuture<Result> executeAsync() {
+            ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+            
+            Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+                @Override
+                public Result apply(ResultSet resultSet) {
+                    return newResult(resultSet);
+                }
+            };
+            
+            return Futures.transform(future, mapEntity);
+        }
+        
+        @Override
+        public ListenableFuture<Statement> getStatementAsync() {
+            return data.toStatementAsync(getContext());
+        }
+    }
+}
 

@@ -19,6 +19,6 @@ package net.oneandone.troilus;
 /**
  * values and counter aware update query
  */
-public interface UpdateWithUnitAndCounter extends UpdateWithUnit<Write>, WithCounter {
+public interface UpdateWithUnitAndCounter extends UpdateWithUnit<UpdateWithUnitAndCounter>, WithCounter {
 
 }
