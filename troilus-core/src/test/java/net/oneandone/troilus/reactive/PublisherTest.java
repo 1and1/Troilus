@@ -29,7 +29,9 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.google.common.collect.ImmutableSet;
 
@@ -57,7 +59,11 @@ public class PublisherTest extends PublisherVerification<Record> {
         session = cluster.connect(KEYYSPACENAME);
         session.execute(CREATE_STMT);
         
-        
+        PreparedStatement pstmt = session.prepare("INSERT INTO publisher_test (table_id) VALUES (?)");
+        BoundStatement boundStatement = new BoundStatement(pstmt);
+        for(int i = 0; i < maxElementsFromPublisher(); i++) {
+            session.execute(boundStatement.bind(i));
+        }
     }
 
     @AfterTest
@@ -67,17 +73,14 @@ public class PublisherTest extends PublisherVerification<Record> {
     }    
     
     public PublisherTest() {
-        super(new TestEnvironment(1000), 1000);
+        super(new TestEnvironment(2000), 250);
     }
 
     @Override
     public Publisher<Record> createPublisher(long elements) {
         try {
             Dao dao = new DaoImpl(session, "publisher_test");
-            for(int i = 0; i < elements; i++) {
-                dao.writeWithKey("table_id", i).execute();
-            }
-            return dao.readAll().columns("table_id").execute();
+            return dao.readAll().columns("table_id").withLimit((int)elements).execute();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
