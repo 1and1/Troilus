@@ -55,7 +55,6 @@ class InsertQuery extends WriteQuery<Insertion> implements Insertion {
 
 
     
-    
     @Override
     public InsertQuery withTtl(int ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));

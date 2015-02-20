@@ -54,6 +54,11 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     
     @Override
+    public Batch combinedWith(Batchable other) {
+        return new BatchMutationQueryAdapter(getContext(), getQuery().combinedWith(Batchables.toJava7Batchable(getContext(), other)));
+    }
+    
+    @Override
     public InsertQueryAdapter withTtl(Duration ttl) {
         return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }

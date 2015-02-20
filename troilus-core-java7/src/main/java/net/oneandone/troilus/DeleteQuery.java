@@ -70,6 +70,10 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     ////////////////////
 
     
+    @Override
+    public BatchMutationQuery combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), ImmutableList.of(this, other));
+    }
     
     @Override
     public DeleteQuery onlyIf(Clause... onlyIfConditions) {

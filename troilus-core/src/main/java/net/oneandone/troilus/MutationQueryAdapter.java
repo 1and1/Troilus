@@ -52,15 +52,6 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
     }
 
     /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
-     */
-    public Batch combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(getContext(), other)));
-    }
-    
-    
-    /**
      * performs the query in a sync way 
      * @return the result
      */

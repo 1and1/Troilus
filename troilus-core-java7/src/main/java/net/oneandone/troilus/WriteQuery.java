@@ -26,6 +26,7 @@ import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
@@ -48,6 +49,11 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
     WriteQuery(Context ctx, WriteQueryData data) {
         super(ctx);
         this.data = data;
+    }
+    
+    @Override
+    public BatchMutationQuery combinedWith(Batchable other) {
+        return new BatchMutationQuery(getContext(), ImmutableList.of(this, other));
     }
     
     protected WriteQueryData getData() {
