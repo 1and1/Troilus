@@ -101,7 +101,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     }
 
     @Override
-    public Modification<UpdateWithUnitAndCounter> onlyIf(Clause... conditions) {
+    public MutationWithTime<UpdateWithUnitAndCounter> onlyIf(Clause... conditions) {
         return newQuery(getQuery().onlyIf(conditions));
     }
 

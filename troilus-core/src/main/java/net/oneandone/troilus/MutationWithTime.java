@@ -21,21 +21,21 @@ import java.time.Duration;
 
 
 /**
- * Modification query (insert or update)
+ * Btachable mutation query (insert or update)
  * 
  * @param <Q> the query type
  */
-public interface Modification<Q extends Modification<Q>> extends ConfiguredQuery<Q, Result> {
+public interface MutationWithTime<Q extends Mutation<Q>> extends Mutation<Q> {
 
     /**
      * @param ttl  the time-to-live set
      * @return a cloned query instance with the modified behavior
      */
-    Modification<Q> withTtl(Duration ttl);
+    MutationWithTime<Q> withTtl(Duration ttl);
 
     /**
      * @param microsSinceEpoch  the writetime in since epoch to set
      * @return a cloned query instance with the modified behavior
      */
-    Modification<Q> withWritetime(long microsSinceEpoch);
+    MutationWithTime<Q> withWritetime(long microsSinceEpoch);
 }

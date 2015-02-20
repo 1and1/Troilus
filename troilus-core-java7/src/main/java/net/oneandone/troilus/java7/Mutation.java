@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
-
-import com.datastax.driver.core.querybuilder.Clause;
+import net.oneandone.troilus.Result;
 
 
 
 /**
- * delete query
+ * Modification query (insert or update)
+ * @param <Q> the query type
  */
-public interface Deletion extends Mutation<Deletion>, Batchable {
+public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
 
-    /**
-     * @param conditions  the conditions
-     * @return a cloned query instance with lwt (only-if)
-     */
-    ConfiguredQuery<Deletion, Result> onlyIf(Clause... conditions);
-    
-    /**
-     * @return a cloned query instance with lwt (if-exits)
-     */
-    ConfiguredQuery<Deletion, Result> ifExists();
+  
 }

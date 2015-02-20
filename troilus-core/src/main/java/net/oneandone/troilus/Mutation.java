@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
-import net.oneandone.troilus.Result;
 
 
 
 /**
  * Modification query (insert or update)
+ * 
  * @param <Q> the query type
  */
-public interface Modification<Q extends Modification<Q>> extends ConfiguredQuery<Q, Result> {
+public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
 
-    /**
-     * @param ttlSec  the time-to-live in sec to set
-     * @return a cloned query instance with the modified behavior
-     */
-    Modification<Q> withTtl(int ttlSec);
-
-    /**
-     * @param microsSinceEpoch  the writetime in since epoch to set
-     * @return a cloned query instance with the modified behavior
-     */
-    Modification<Q> withWritetime(long microsSinceEpoch);
 }

@@ -23,9 +23,9 @@ import com.datastax.driver.core.querybuilder.Clause;
 /**
  * delete query
  */
-public interface Deletion extends ConfiguredQuery<Deletion, Result>, Batchable {
+public interface Deletion extends Mutation<Deletion>, Batchable {
 
-    /**
+    /** 
      * @param conditions  the conditions
      * @return a cloned query instance with lwt (only-if)
      */
