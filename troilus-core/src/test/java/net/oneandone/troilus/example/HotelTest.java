@@ -27,7 +27,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Mutation;
+import net.oneandone.troilus.Deletion;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -334,7 +334,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
         
         
         
-        Mutation<?> deletion = hotelsDao.deleteWithKey("id", "BUP45544");
+        Deletion deletion = hotelsDao.deleteWithKey("id", "BUP45544");
         hotelsDao.deleteWithKey("id", "BUP14334")
                  .combinedWith(deletion)
                  .withWriteAheadLog()
