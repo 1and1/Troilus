@@ -16,10 +16,10 @@
 package net.oneandone.troilus;
 
 import java.util.List;
-
 import java.util.Map;
 import java.util.Set;
 
+import net.oneandone.troilus.java7.Mutation;
 import net.oneandone.troilus.java7.WriteWithCounter;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
@@ -62,6 +62,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     // 
     ////////////////////
 
+    
+
+    @Override
+    public BatchMutationQuery combinedWith(Mutation<?> other) {
+        return new BatchMutationQuery(getContext(), this, other);
+    }
     
     /**
      * @param entity   the entity to insert

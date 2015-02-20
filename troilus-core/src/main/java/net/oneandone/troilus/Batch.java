@@ -18,10 +18,11 @@ package net.oneandone.troilus;
 
 
 
+
 /**
  * BatchMutation
  */
-public interface Batch extends ConfiguredQuery<Batch, Result>, Batchable {
+public interface Batch extends Mutation<Batch> {
 
     /**
      * @return a cloned query instance with write ahead log

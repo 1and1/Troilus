@@ -25,10 +25,10 @@ import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.Deletion;
+import net.oneandone.troilus.Mutation;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Schema;
 import net.oneandone.troilus.Write;
@@ -61,7 +61,7 @@ public interface KeyByAccountColumns  {
         }
 
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onWrite(WriteQueryData queryData) {
             
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
@@ -85,7 +85,7 @@ public interface KeyByAccountColumns  {
         
         
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onDelete(DeleteQueryData queryData) {
 
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {

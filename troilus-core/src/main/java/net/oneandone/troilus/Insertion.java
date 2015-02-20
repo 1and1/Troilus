@@ -21,7 +21,7 @@ package net.oneandone.troilus;
 /**
  * insertion query
  */
-public interface Insertion extends MutationWithTime<Insertion>, Batchable {
+public interface Insertion extends MutationWithTime<Insertion> {
 
     /**
      * @return a cloned query instance with lwt (if-not-exits)

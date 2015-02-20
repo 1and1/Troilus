@@ -22,7 +22,7 @@ import com.datastax.driver.core.querybuilder.Clause;
  * Update query
  * @param <U> the query type 
  */
-public interface Update<U extends MutationWithTime<U>> extends MutationWithTime<U>, Batchable {
+public interface Update<U extends MutationWithTime<U>> extends MutationWithTime<U> {
 
     /**
      * @param conditions the conditions 

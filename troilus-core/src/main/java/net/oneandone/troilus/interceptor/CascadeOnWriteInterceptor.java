@@ -17,7 +17,8 @@ package net.oneandone.troilus.interceptor;
 
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.Batchable;
+
+import net.oneandone.troilus.Mutation;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -34,5 +35,5 @@ public interface CascadeOnWriteInterceptor extends QueryInterceptor {
      * @param queryData  the write query data
      * @return the additional, cascading statements to execute
      */
-    CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData); 
+    CompletableFuture<ImmutableSet<? extends Mutation<?>>> onWrite(WriteQueryData queryData); 
 }

@@ -23,7 +23,7 @@ import com.datastax.driver.core.querybuilder.Clause;
 /**
  * delete query
  */
-public interface Deletion extends Mutation<Deletion>, Batchable {
+public interface Deletion extends Mutation<Deletion> {
 
     /**
      * @param conditions  the conditions

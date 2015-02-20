@@ -17,11 +17,12 @@ package net.oneandone.troilus.java7.interceptor;
 
 
 import com.google.common.collect.ImmutableSet;
+
 import com.google.common.util.concurrent.ListenableFuture;
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.java7.Batchable;
+import net.oneandone.troilus.java7.Mutation;
 
 
 
@@ -36,6 +37,6 @@ public interface CascadeOnDeleteInterceptor extends QueryInterceptor {
      * @param queryData  the delete query data
      * @return the additional, cascading statements to execute
      */
-    ListenableFuture<ImmutableSet<? extends Batchable>> onDeleteAsync(DeleteQueryData queryData);
+    ListenableFuture<ImmutableSet<? extends Mutation<?>>> onDeleteAsync(DeleteQueryData queryData);
 }
 

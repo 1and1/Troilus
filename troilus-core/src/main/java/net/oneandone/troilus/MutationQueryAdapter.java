@@ -20,18 +20,21 @@ import java.util.concurrent.CompletableFuture;
 
 
 
-
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
+import net.oneandone.troilus.java7.Batch;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.policies.RetryPolicy;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
  * Java8 adapter base for mutation operations
  */
-abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements Batchable { 
+abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource { 
     
     private final T query;
   
@@ -75,5 +78,69 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
     @Override
     public String toString() {
         return query.toString();
+    }
+    
+    
+    /**
+     * @param batchable the batchable to map
+     * @return the mapped batchable
+     */
+    public static net.oneandone.troilus.java7.Mutation<?> toJava7Mutation(Mutation<?> mutation) {
+        return new MutationToJava7MutationAdapter(mutation);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private static class MutationToJava7MutationAdapter implements net.oneandone.troilus.java7.Mutation {
+        private final Mutation<?> mutation;
+        
+        public MutationToJava7MutationAdapter(Mutation<?> mutation) {
+            this.mutation = mutation;
+        }
+
+        @Override
+        public Object withConsistency(ConsistencyLevel consistencyLevel) {
+            return mutation.withConsistency(consistencyLevel);
+        }
+        
+        @Override
+        public Object withoutTracking() {
+            return mutation.withoutTracking();
+        }
+        
+        @Override
+        public Object withRetryPolicy(RetryPolicy policy) {
+            return mutation.withRetryPolicy(policy);
+        }
+        
+        @Override
+        public Object withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return mutation.withSerialConsistency(consistencyLevel);
+        }
+        
+        @Override
+        public Object withTracking() {
+            return mutation.withTracking();
+        }
+        
+        @Override
+        public Batch combinedWith(net.oneandone.troilus.java7.Mutation other) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
+        @Override
+        public Object execute() {
+            return mutation.execute();
+        }
+        
+        @Override
+        public ListenableFuture executeAsync() {
+            return CompletableFutures.toListenableFuture(mutation.executeAsync());
+        }
+        
+        @Override
+        public ListenableFuture<Statement> getStatementAsync() {
+            return CompletableFutures.toListenableFuture(mutation.getStatementAsync());
+        }
     }
 }

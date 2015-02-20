@@ -20,7 +20,8 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
-import net.oneandone.troilus.java7.Batchable;
+import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.StatementSource;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
@@ -36,7 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * abstract mutation query implementation
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
+abstract class MutationQuery<Q> extends AbstractQuery<Q> implements StatementSource {
     
     
     /**
@@ -70,13 +71,13 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements Batchable {
     }
     
     
-    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Batchable>> batchablesFutureSet) {
+    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Mutation<?>>> batchablesFutureSet) {
                     
-        Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable>, ImmutableSet<ListenableFuture<Statement>>>() {                
+        Function<ImmutableSet<? extends Mutation<?>>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Mutation<?>>, ImmutableSet<ListenableFuture<Statement>>>() {                
             @Override
-            public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable> batchables) {
+            public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Mutation<?>> batchables) {
                 Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
-                for(Batchable batchable : batchables) {
+                for(Mutation<?> batchable : batchables) {
                     statementFutureSet.add(batchable.getStatementAsync());
                 }
                 return ImmutableSet.copyOf(statementFutureSet);                    

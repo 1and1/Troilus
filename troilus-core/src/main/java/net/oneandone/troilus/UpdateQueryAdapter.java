@@ -90,8 +90,8 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     }
     
     @Override
-    public Batch combinedWith(Batchable other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Batchables.toJava7Batchable(getContext(), other)));
+    public Batch combinedWith(Mutation<?> other) {
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
     }
     
 

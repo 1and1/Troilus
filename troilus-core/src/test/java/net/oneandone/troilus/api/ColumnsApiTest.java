@@ -19,20 +19,20 @@ package net.oneandone.troilus.api;
 
 
 import java.nio.ByteBuffer;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
-import net.oneandone.troilus.Batch;
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.CounterMutation;
+import net.oneandone.troilus.Mutation;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -187,13 +187,13 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         //////////////// 
         // batch inserts
-        Batchable insert1 = usersDao.writeWithKey(UsersTable.USER_ID, "14323425")
+        Mutation<?> insert1 = usersDao.writeWithKey(UsersTable.USER_ID, "14323425")
                                     .value(UsersTable.IS_CUSTOMER, true)
                                     .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                     .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
         
-        Batchable insert2 = usersDao.writeWithKey(UsersTable.USER_ID, "2222")
+        Mutation<?> insert2 = usersDao.writeWithKey(UsersTable.USER_ID, "2222")
                                     .value(UsersTable.IS_CUSTOMER, true)
                                     .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                     .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
@@ -712,7 +712,7 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
    
-        Batchable insert5 = usersDao.writeWithKey(UsersTable.USER_ID, "234234234424")
+        Mutation<?> insert5 = usersDao.writeWithKey(UsersTable.USER_ID, "234234234424")
                                     .value(UsersTable.IS_CUSTOMER, true)
                                     .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                     .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
@@ -729,24 +729,26 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         
 
-        Batchable w1 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
+        Mutation<?> w1 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
                                .value(UsersTable.IS_CUSTOMER, true)
                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        Batchable w2 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
+        Mutation<?> w2 = usersDao.writeWithKey(UsersTable.USER_ID, "456456645243245")
                                .value(UsersTable.IS_CUSTOMER, true)
                                .value(UsersTable.ADDRESSES, ImmutableList.of("berlin", "budapest"))
                                .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("12313241243", "232323"));
         
-        Batch batch = w1.combinedWith(w2);
+        Mutation<?> batch = w1.combinedWith(w2)
+                              .withTracking();
         batch.execute();
-
-     //   Batchable batchable = w1.combinedWith(w2);
-     //   batchable.execute();
-
+        
+        
+        record = usersDao.readWithKey(UsersTableFields.USER_ID, "456456645243245")
+                .execute()
+                .get();
+        Assert.assertEquals(true, record.getValue(UsersTableFields.IS_CUSTOMER));
     }        
 }
-
 
 

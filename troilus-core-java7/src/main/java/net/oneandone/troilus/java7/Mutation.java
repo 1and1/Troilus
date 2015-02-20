@@ -25,5 +25,10 @@ import net.oneandone.troilus.Result;
  */
 public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result>, StatementSource {
 
-  
+
+    /**
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
+     */
+    Batch combinedWith(Mutation<?> other);
 }

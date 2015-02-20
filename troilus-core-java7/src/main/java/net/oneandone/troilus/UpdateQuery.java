@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.oneandone.troilus.java7.Mutation;
 import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
@@ -62,6 +63,12 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     ////////////////////
 
     
+    
+    @Override
+    public BatchMutationQuery combinedWith(Mutation<?> other) {
+        return new BatchMutationQuery(getContext(), this, other);
+    }
+
     /**
      * @param entity   the entity to insert
      * @return the new insert query

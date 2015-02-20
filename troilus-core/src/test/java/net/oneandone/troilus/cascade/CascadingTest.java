@@ -21,12 +21,13 @@ import java.util.Optional;
 
 
 
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
-import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.Mutation;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
@@ -481,7 +482,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     private static final class ErroneousCascadeOnWriteInterceptor implements CascadeOnWriteInterceptor {
         
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onWrite(WriteQueryData queryData) {
             return CompletableFuture.supplyAsync(() -> { sleep(220); throw new ClassCastException("class cast error"); } );
         }
     }
@@ -495,7 +496,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     private static final class ErroneousCascadeOnDeleteInterceptor implements CascadeOnDeleteInterceptor {
     
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onDelete(DeleteQueryData queryData) {
             return CompletableFuture.supplyAsync(() -> { sleep(220); throw new ClassCastException("class cast error"); } );
         }
     }

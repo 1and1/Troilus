@@ -17,7 +17,7 @@ package net.oneandone.troilus.java7.interceptor;
 
 
 import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.java7.Batchable;
+import net.oneandone.troilus.java7.Mutation;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -35,6 +35,6 @@ public interface CascadeOnWriteInterceptor extends QueryInterceptor {
      * @param queryData  the write query data
      * @return the additional, cascading statements to execute
      */
-    ListenableFuture<ImmutableSet<? extends Batchable>> onWriteAsync(WriteQueryData queryData); 
+    ListenableFuture<ImmutableSet<? extends Mutation<?>>> onWriteAsync(WriteQueryData queryData); 
 }
 
