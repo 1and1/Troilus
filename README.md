@@ -249,7 +249,7 @@ try {
 ##Batching        
 Non if-conditional mutate operations (insert, update, delete) can be executed in a batched manner by combining it with another mutate operation. This is provided by the `combinedWith(...)` method. 
 ``` java
-Batchable deletion = hotelsDao.deleteWithKey("id", "BUP932432");
+Mutation<?> deletion = hotelsDao.deleteWithKey("id", "BUP932432");
 
 hotelsDao.deleteWithKey("id", "BUP14334")
          .combinedWith(deletion)
@@ -688,6 +688,7 @@ keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.Cascad
 
 
 public interface KeyByAccountColumns  {
+    
     public static final String TABLE = "key_by_accountid";
 
     public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
@@ -706,7 +707,7 @@ public interface KeyByAccountColumns  {
         }
 
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onWrite(WriteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onWrite(WriteQueryData queryData) {
             
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
@@ -730,7 +731,7 @@ public interface KeyByAccountColumns  {
         
         
         @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable>> onDelete(DeleteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onDelete(DeleteQueryData queryData) {
 
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
