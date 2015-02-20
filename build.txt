@@ -1,12 +1,12 @@
 
 VERIFY 
-mvn -P foss-parent-verification clean verify -Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true 
+mvn -P foss-parent-verification clean verify -Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true -Dcpd.skip=true -Dmaven.test.skip=true
 
 PREPARE
 mvn release:prepare -DpushChanges=false
 
 RELEASE
-mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true -Dlicense.skip=true"
+mvn release:perform -DpushChanges=false -DlocalCheckout=true -Darguments="-Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true -Dlicense.skip=true -Dcpd.skip=true -Dmaven.test.skip=true"
 // -Dadditionalparam=-Xdoclint:none
 
 STAGING REPO

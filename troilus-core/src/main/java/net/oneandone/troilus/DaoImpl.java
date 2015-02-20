@@ -1249,7 +1249,7 @@ public class DaoImpl implements Dao {
     }
     
     
-    private final class CascadeOnWriteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor {
+    private static final class CascadeOnWriteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor {
         private CascadeOnWriteInterceptor interceptor;
         
         public CascadeOnWriteInterceptorAdapter(CascadeOnWriteInterceptor interceptor) {
@@ -1270,7 +1270,7 @@ public class DaoImpl implements Dao {
     }
 
     
-    private final class CascadeOnDeleteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor {
+    private static final class CascadeOnDeleteInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor {
         private CascadeOnDeleteInterceptor interceptor;
         
         public CascadeOnDeleteInterceptorAdapter(CascadeOnDeleteInterceptor interceptor) {
