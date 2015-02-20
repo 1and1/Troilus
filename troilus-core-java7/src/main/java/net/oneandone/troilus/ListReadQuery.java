@@ -375,14 +375,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
          public void subscribe(Subscriber<? super Record> subscriber) {
              synchronized (this) {
                  if (subscribed == true) {
-                     synchronized(subscriber) {
-                         subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
-                     }
+                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
                  } else {
                      subscribed = true;
-                     synchronized(subscriber) {
-                         subscriber.onSubscribe(new DatabaseSubscription(subscriber));
-                     }
+                     new DatabaseSubscription(subscriber).ready();
                  }
              }
          }
@@ -393,7 +389,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              private final Object subscriberCallbackLock = new Object();
              private final Object dbQueryLock = new Object();
              
-             private final Subscriber<? super Record> _subscriber; // see subscriber()
+             private final Subscriber<? super Record> subscriber;
              private final Iterator<? extends Record> it;
              
              private final AtomicLong numRequestedReads = new AtomicLong();
@@ -406,15 +402,24 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
              
              
              public DatabaseSubscription(Subscriber<? super Record> subscriber) {
-                 this._subscriber = subscriber;
+                 this.subscriber = subscriber;
                  this.it = RecordListImpl.this.iterator();
+             }
+             
+             public DatabaseSubscription ready() {
+                 synchronized (subscriberCallbackLock) {
+                     subscriber.onSubscribe(this);
+                 }
+                 return this;
              }
              
              @Override
              public void request(long n) {                
                  if(n <= 0) {
                      // https://github.com/reactive-streams/reactive-streams#3.9
-                     subscriber().onError(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9"));
+                     synchronized (subscriberCallbackLock) {
+                         subscriber.onError(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9"));
+                     }
                      return;
                  }
                  numRequestedReads.addAndGet(n);
@@ -451,7 +456,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                          while (it.hasNext() && numRequestedReads.get() > 0) {
                              try {
                                  numRequestedReads.decrementAndGet();
-                                 subscriber().onNext(it.next());
+                                 subscriber.onNext(it.next());
                              } catch (RuntimeException rt) {
                                  LOG.warn("processing error occured", rt);
                                  teminateWithError(rt);
@@ -504,7 +509,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                      if (isOpen) {
                          isOpen = false;
                          if(signalOnComplete) {
-                             subscriber().onComplete();
+                             subscriber.onComplete();
                          }
                      }
                  }
@@ -514,15 +519,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  synchronized (subscriberCallbackLock) {
                      if (isOpen) {
                          isOpen = false;
-                         subscriber().onError(t);
+                         subscriber.onError(t);
                      }
-                 }
-             }
-             
-             /** Synchronizes access to subscriber to make sure that we never send concurrent notifications to the subscriber. */
-             private Subscriber<? super Record> subscriber() {
-                 synchronized(_subscriber) {
-                     return _subscriber;
                  }
              }
              
