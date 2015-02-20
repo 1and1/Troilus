@@ -23,6 +23,6 @@ package net.oneandone.troilus;
  * 
  * @param <Q> the query type
  */
-public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result> {
+public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Result>, StatementSource {
 
 }
