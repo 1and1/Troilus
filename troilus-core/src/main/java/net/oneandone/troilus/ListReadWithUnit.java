@@ -36,6 +36,7 @@ public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
 
     /**
      * @param objectClass  the entity type
+     * @param <E> the type
      * @return  a cloned query instance with the modified behavior 
      */
     <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);

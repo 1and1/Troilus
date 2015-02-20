@@ -168,8 +168,8 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
     @Override
     public UpdateQuery putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
-        values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
-
+        values = addToMap(name, key, value, values);
+        
         return newQuery(getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
     }
     
@@ -183,35 +183,6 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
         return newQuery(getData().onlyIfConditions(ImmutableList.<Clause>builder().addAll(getData().getOnlyIfConditions())
                                                                                   .addAll(ImmutableList.copyOf(conditions))
                                                                                   .build()));
-    }
-
-        
-    @Override
-    public CounterMutationQuery incr(String name) {
-        return incr(name, 1);
-    }
-    
-    @Override
-    public CounterMutationQuery incr(String name, long value) {
-        return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(getData().getKeys())
-                                                                      .whereConditions(getData().getWhereConditions())
-                                                                      .name(name)
-                                                                      .diff(value));  
-    }
-    
-    @Override
-    public CounterMutationQuery decr(String name) {
-        return decr(name, 1);
-    }
-    
-    @Override
-    public CounterMutationQuery decr(String name, long value) {
-        return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(getData().getKeys())
-                                                                      .whereConditions(getData().getWhereConditions())
-                                                                      .name(name)
-                                                                      .diff(0 - value));  
     }
  }
 

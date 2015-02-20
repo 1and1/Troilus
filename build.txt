@@ -1,6 +1,6 @@
 
 VERIFY 
-mvn -P foss-parent-verification clean verify -Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true
+mvn -P foss-parent-verification clean verify -Denforcer.fail=false -Dcheckstyle.skip=true -Dpmd.skip=true -Djacoco.skip=true 
 
 PREPARE
 mvn release:prepare -DpushChanges=false

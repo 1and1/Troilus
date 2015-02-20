@@ -138,6 +138,7 @@ public interface WriteQueryData {
 
     /**
      * @param name  the key name
+     * @param <T> the type
      * @return the key value or NULL
      */
     <T> T getKey(ColumnName<T> name);
@@ -398,7 +399,8 @@ public interface WriteQueryData {
 
     /**
      * @param name the column name
-     * @param <T>  the type
+     * @param <T>  the key type
+     * @param <V>  the value type
      * @return true, if contained
      */
     <T, V> boolean hasMapValuesToMutate(ColumnName<Map<T, V>> name);
@@ -411,7 +413,8 @@ public interface WriteQueryData {
 
     /**
      * @param name the column name
-     * @param <T>  the type
+     * @param <T>  the key type
+     * @param <V>  the value type
      * @return the value or empty map
      */
     <T, V> ImmutableMap<T, Optional<V>> getMapValuesToMutate(ColumnName<Map<T, V>> name);

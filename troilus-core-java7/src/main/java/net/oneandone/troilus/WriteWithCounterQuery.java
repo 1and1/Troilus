@@ -166,10 +166,11 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     @Override
     public WriteWithCounterQuery putMapValue(String name, Object key, Object value) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
-        values = (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
+        values = addToMap(name, key, value, values);
 
         return newQuery(getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), name, values)));
     }
+
     
     @Override
     public <T, V> WriteWithCounterQuery putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
@@ -187,34 +188,6 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     public InsertQuery ifNotExists() {
         return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
                                                                      .ifNotExists(true));
-    }
-        
-    @Override
-    public CounterMutationQuery incr(String name) {
-        return incr(name, 1);
-    }
-    
-    @Override
-    public CounterMutationQuery incr(String name, long value) {
-        return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(getData().getKeys())
-                                                                      .whereConditions(getData().getWhereConditions())
-                                                                      .name(name)
-                                                                      .diff(value));  
-    }
-    
-    @Override
-    public CounterMutationQuery decr(String name) {
-        return decr(name, 1);
-    }
-    
-    @Override
-    public CounterMutationQuery decr(String name, long value) {
-        return new CounterMutationQuery(getContext(), 
-                                        new CounterMutationQueryData().keys(getData().getKeys())
-                                                                      .whereConditions(getData().getWhereConditions())
-                                                                      .name(name)
-                                                                      .diff(0 - value));  
     }
 }
 

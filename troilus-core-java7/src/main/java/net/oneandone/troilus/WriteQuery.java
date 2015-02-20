@@ -26,6 +26,8 @@ import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
@@ -52,6 +54,35 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
     
     protected WriteQueryData getData() {
         return data;
+    }
+    
+    
+    public CounterMutationQuery incr(String name) {
+        return incr(name, 1);
+    }
+    
+    public CounterMutationQuery incr(String name, long value) {
+        return new CounterMutationQuery(getContext(), 
+                                        new CounterMutationQueryData().keys(getData().getKeys())
+                                                                      .whereConditions(getData().getWhereConditions())
+                                                                      .name(name)
+                                                                      .diff(value));  
+    }
+    
+    public CounterMutationQuery decr(String name) {
+        return decr(name, 1);
+    }
+    
+    public CounterMutationQuery decr(String name, long value) {
+        return new CounterMutationQuery(getContext(), 
+                                        new CounterMutationQueryData().keys(getData().getKeys())
+                                                                      .whereConditions(getData().getWhereConditions())
+                                                                      .name(name)
+                                                                      .diff(0 - value));  
+    }
+    
+    protected ImmutableMap<Object, Optional<Object>> addToMap(String name, Object key, Object value, ImmutableMap<Object, Optional<Object>> values) {
+        return (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
     }
     
     public ListenableFuture<Result> executeAsync() {
