@@ -89,7 +89,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     }
     
     @Override
-    public BatchMutation combinedWith(Mutation<?> other) {
+    public BatchMutation combinedWith(Batchable<?> other) {
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
     }
     
@@ -100,7 +100,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
     }
 
     @Override
-    public MutationWithTime<UpdateWithUnitAndCounter> onlyIf(Clause... conditions) {
+    public BatchableWithTime<UpdateWithUnitAndCounter> onlyIf(Clause... conditions) {
         return newQuery(getQuery().onlyIf(conditions));
     }
 

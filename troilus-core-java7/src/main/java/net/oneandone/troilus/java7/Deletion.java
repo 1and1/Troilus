@@ -23,16 +23,16 @@ import com.datastax.driver.core.querybuilder.Clause;
 /**
  * delete query
  */
-public interface Deletion extends Mutation<Deletion> {
+public interface Deletion extends Batchable<Deletion> {
 
     /** 
      * @param conditions  the conditions
      * @return a cloned query instance with lwt (only-if)
      */
-    AbstractMutation<Deletion, Result> onlyIf(Clause... conditions);
+    Mutation<Deletion, Result> onlyIf(Clause... conditions);
     
     /**
      * @return a cloned query instance with lwt (if-exits)
      */
-    AbstractMutation<Deletion, Result> ifExists();
+    Mutation<Deletion, Result> ifExists();
 }

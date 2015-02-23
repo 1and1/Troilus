@@ -20,7 +20,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
-import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
@@ -73,13 +73,13 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     
-    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Mutation<?>>> batchablesFutureSet) {
+    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet) {
                     
-        Function<ImmutableSet<? extends Mutation<?>>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Mutation<?>>, ImmutableSet<ListenableFuture<Statement>>>() {                
+        Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>>() {                
             @Override
-            public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Mutation<?>> batchables) {
+            public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable<?>> batchables) {
                 Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
-                for(Mutation<?> batchable : batchables) {
+                for(Batchable<?> batchable : batchables) {
                     statementFutureSet.add(batchable.getStatementAsync());
                 }
                 return ImmutableSet.copyOf(statementFutureSet);                    

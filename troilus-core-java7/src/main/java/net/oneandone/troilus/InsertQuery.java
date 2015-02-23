@@ -16,7 +16,7 @@
 package net.oneandone.troilus;
 
 import net.oneandone.troilus.java7.Insertion;
-import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
 
@@ -56,7 +56,7 @@ class InsertQuery extends WriteQuery<Insertion> implements Insertion {
 
 
     @Override
-    public BatchMutationQuery combinedWith(Mutation<?> other) {
+    public BatchMutationQuery combinedWith(Batchable<?> other) {
         return new BatchMutationQuery(getContext(), this, other);
     }
     

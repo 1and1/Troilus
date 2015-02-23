@@ -54,7 +54,7 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     
     @Override
-    public BatchMutation combinedWith(Mutation<?> other) {
+    public BatchMutation combinedWith(Batchable<?> other) {
         return new BatchMutationQueryAdapter(getContext(), getQuery().combinedWith(toJava7Mutation(other)));
     }
     
@@ -64,7 +64,7 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     }
     
     @Override
-    public MutationWithTime<Insertion> ifNotExists() {
+    public BatchableWithTime<Insertion> ifNotExists() {
         return newQuery(getQuery().ifNotExists());
     }
 }

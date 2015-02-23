@@ -26,11 +26,11 @@ import com.datastax.driver.core.querybuilder.Clause;
  * update query
  * @param <U> the query type 
  */
-public interface Update<U extends MutationWithTime<U>> extends MutationWithTime<U> {
+public interface Update<U extends BatchableWithTime<U>> extends BatchableWithTime<U> {
 
     /**
      * @param conditions  the conditions
      * @return a cloned query instance with lwt (only-if)
      */
-    MutationWithTime<U> onlyIf(Clause... conditions);
+    BatchableWithTime<U> onlyIf(Clause... conditions);
 }

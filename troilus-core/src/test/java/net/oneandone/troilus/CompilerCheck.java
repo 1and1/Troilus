@@ -37,7 +37,7 @@ public class CompilerCheck {
     /*
     private void checkDeleteWithOnlyIfIsNotBatchable() {
         Deletion deletion = dao.deleteWhere((Clause) null);
-        Batchable batchable = deletion.onlyIf(null);
+        Mutation<?> batchable = deletion.onlyIf(null);
     }
     
     private void checkDeleteDoesNotSupportTTL() {
@@ -67,8 +67,8 @@ public class CompilerCheck {
     }
     
     private void checkWriteEntityWithIfNotExistsIsNotBatchable() {
-        Batchable batchable = dao.writeEntity(null)
-                                 .ifNotExits();
+        Mutation<?> batchable = dao.writeEntity(null)
+                                   .ifNotExits();
     }
 
     private void checkWriteEntityWithIfDoesNotSupportCombinWith() {
@@ -78,8 +78,8 @@ public class CompilerCheck {
     }
 
     private void checkWriteWithKeyWithIfNotExistsIsNotBatchable() {
-        Batchable batchable = dao.writeWithKey("keyName", "keyValue")
-                                 .ifNotExits();
+        Mutation<?> batchable = dao.writeWithKey("keyName", "keyValue")
+                                   .ifNotExits();
     }
     
     private void checkWriteWithKeyWithIfDoesNotSupportCombinWith() {

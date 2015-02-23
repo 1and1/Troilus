@@ -15,20 +15,51 @@
  */
 package net.oneandone.troilus.java7;
 
-import net.oneandone.troilus.Result;
 
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.policies.RetryPolicy;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
- * Modification query (insert or update)
- * @param <Q> the query type
+ * Mutation query
+ * 
+ * @param <Q> the response type
+ * @param <R> the query type
  */
-public interface Mutation<Q extends Mutation<Q>> extends AbstractMutation<Q, Result> {
-
+public interface Mutation<Q, R> extends Query<R> {
 
     /**
-     * @param other  the other query to combine with
+     * @param consistencyLevel  the consistency level to use
      * @return a cloned query instance with the modified behavior
      */
-    BatchMutation combinedWith(Mutation<?> other);
+    Q withConsistency(ConsistencyLevel consistencyLevel);
+
+    /**
+      * @param consistencyLevel  the consistency level to use
+      * @return a cloned query instance with the modified behavior
+     */
+    Q withSerialConsistency(ConsistencyLevel consistencyLevel);
+    
+    /**
+     * @return a cloned query instance with activated tracking
+     */
+    Q withTracking();
+
+    /**
+     * @return a cloned query instance with deactivated tracking 
+     */
+    Q withoutTracking();
+    
+    /**
+     * @param policy  the retry policy
+     * @return a cloned query instance with the modified behavior
+     */
+    Q withRetryPolicy(RetryPolicy policy);
+    
+    /**
+     * @return the statement future
+     */
+    ListenableFuture<Statement> getStatementAsync();
 }

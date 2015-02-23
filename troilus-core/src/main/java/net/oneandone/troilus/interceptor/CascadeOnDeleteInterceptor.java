@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.common.collect.ImmutableSet;
 
-import net.oneandone.troilus.Mutation;
+import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 
@@ -40,5 +40,5 @@ public interface CascadeOnDeleteInterceptor extends QueryInterceptor {
      * @param queryData  the delete query data
      * @return the additional, cascading statements to execute
      */
-    CompletableFuture<ImmutableSet<? extends Mutation<?>>> onDelete(DeleteQueryData queryData);
+    CompletableFuture<ImmutableSet<? extends Batchable<?>>> onDelete(DeleteQueryData queryData);
 }

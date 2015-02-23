@@ -20,7 +20,7 @@ package net.oneandone.troilus;
 import java.util.concurrent.ExecutionException;
 
 import net.oneandone.troilus.java7.BatchMutation;
-import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
@@ -40,17 +40,17 @@ import com.google.common.util.concurrent.MoreExecutors;
  * Batch mutation query
  */
 class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
-    private final ImmutableList<Mutation<?>> batchables;
+    private final ImmutableList<Batchable<?>> batchables;
     private final Type type;  
     
     
 
-    BatchMutationQuery(Context ctx, Mutation<?> mutation1, Mutation<?> mutation2) {
-        this(ctx, Type.LOGGED, ImmutableList.<Mutation<?>>of(mutation1, mutation2));
+    BatchMutationQuery(Context ctx, Batchable<?> mutation1, Batchable<?> mutation2) {
+        this(ctx, Type.LOGGED, ImmutableList.<Batchable<?>>of(mutation1, mutation2));
     }
     
     
-    private BatchMutationQuery(Context ctx, Type type, ImmutableList<Mutation<?>> batchables) {
+    private BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable<?>> batchables) {
         super(ctx);
         this.type = type;
         this.batchables = batchables;
@@ -65,7 +65,7 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return new BatchMutationQuery(newContext, type, batchables);
     }
     
-    private BatchMutationQuery newQuery(Type type, ImmutableList<Mutation<?>> batchables) {
+    private BatchMutationQuery newQuery(Type type, ImmutableList<Batchable<?>> batchables) {
         return new BatchMutationQuery(getContext(), type, batchables);
     }
     
@@ -84,7 +84,7 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return newQuery(Type.UNLOGGED, batchables);
     }
 
-    public BatchMutationQuery combinedWith(Mutation<?> other) {
+    public BatchMutationQuery combinedWith(Batchable<?> other) {
         return newQuery(type, Immutables.join(batchables, other));
     }
 
@@ -114,12 +114,12 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
     
     private static final class BatchQueryFutureAdapter extends AbstractFuture<Statement> {
         
-        BatchQueryFutureAdapter(BatchStatement batchStmt, UnmodifiableIterator<Mutation<?>> batchablesIt) {
+        BatchQueryFutureAdapter(BatchStatement batchStmt, UnmodifiableIterator<Batchable<?>> batchablesIt) {
             handle(batchStmt, batchablesIt);
         }
         
         
-        private void handle(final BatchStatement batchStmt, final UnmodifiableIterator<Mutation<?>> batchablesIt) {
+        private void handle(final BatchStatement batchStmt, final UnmodifiableIterator<Batchable<?>> batchablesIt) {
             
             if (batchablesIt.hasNext()) {
                 final ListenableFuture<Statement> statementFuture = batchablesIt.next().getStatementAsync();

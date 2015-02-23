@@ -18,7 +18,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
-import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
@@ -162,13 +162,13 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
         for (CascadeOnWriteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).reverse()) {
             final CascadeOnWriteInterceptor icptor = interceptor;
 
-            Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Mutation<?>>>> querydataToBatchables = new Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Mutation<?>>>>() {
+            Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>> querydataToBatchables = new Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>>() {
                 @Override
-                public ListenableFuture<ImmutableSet<? extends Mutation<?>>> apply(WriteQueryData queryData) {
+                public ListenableFuture<ImmutableSet<? extends Batchable<?>>> apply(WriteQueryData queryData) {
                     return icptor.onWriteAsync(queryData);                    
                 }
             };
-            ListenableFuture<ImmutableSet<? extends Mutation<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
+            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
             ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);

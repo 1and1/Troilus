@@ -26,6 +26,6 @@ public interface Write extends UpdateWithUnit<Write> {
     /**
      * @return a cloned query instance with lwt (if-not-exits)
      */
-    MutationWithTime<?> ifNotExists();
+    BatchableWithTime<?> ifNotExists();
 }
 

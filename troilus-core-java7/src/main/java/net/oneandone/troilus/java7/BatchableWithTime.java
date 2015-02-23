@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
-
-
-import com.datastax.driver.core.querybuilder.Clause;
+package net.oneandone.troilus.java7;
 
 
 
 /**
- * delete query
+ * Batchable mutation  query (insert or update)
+ * @param <Q> the query type
  */
-public interface Deletion extends Batchable<Deletion> {
+public interface BatchableWithTime<Q extends BatchableWithTime<Q>> extends Batchable<Q> {
 
     /**
-     * @param conditions  the conditions
-     * @return a cloned query instance with lwt (only-if)
+     * @param ttlSec  the time-to-live in sec to set
+     * @return a cloned query instance with the modified behavior
      */
-    Mutation<Deletion, Result> onlyIf(Clause... conditions);
-    
+    BatchableWithTime<Q> withTtl(int ttlSec);
+
     /**
-     * @return a cloned query instance with lwt (if-exits)
+     * @param microsSinceEpoch  the writetime in since epoch to set
+     * @return a cloned query instance with the modified behavior
      */
-    Mutation<Deletion, Result> ifExists();
+    BatchableWithTime<Q> withWritetime(long microsSinceEpoch);
 }

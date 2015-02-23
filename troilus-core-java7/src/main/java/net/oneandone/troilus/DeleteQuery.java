@@ -21,7 +21,7 @@ import java.util.Set;
 
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
-import net.oneandone.troilus.java7.Mutation;
+import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
@@ -71,7 +71,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
     
     @Override
-    public BatchMutationQuery combinedWith(Mutation<?> other) {
+    public BatchMutationQuery combinedWith(Batchable<?> other) {
         return new BatchMutationQuery(getContext(), this, other);
     }
     
@@ -166,13 +166,13 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         for (CascadeOnDeleteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).reverse()) {
             final CascadeOnDeleteInterceptor icptor = interceptor;
 
-            Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Mutation<?>>>> querydataToBatchables = new Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Mutation<?>>>>() {
+            Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>> querydataToBatchables = new Function<DeleteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>>() {
                 @Override
-                public ListenableFuture<ImmutableSet<? extends Mutation<?>>> apply(DeleteQueryData queryData) {
+                public ListenableFuture<ImmutableSet<? extends Batchable<?>>> apply(DeleteQueryData queryData) {
                     return icptor.onDeleteAsync(queryData);                    
                 }
             };
-            ListenableFuture<ImmutableSet<? extends Mutation<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
+            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
             ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);

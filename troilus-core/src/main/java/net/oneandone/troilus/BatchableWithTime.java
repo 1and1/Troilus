@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
+
+import java.time.Duration;
+
 
 
 
 /**
- * Batchable mutation  query (insert or update)
+ * Btachable mutation query (insert or update)
+ * 
  * @param <Q> the query type
  */
-public interface MutationWithTime<Q extends MutationWithTime<Q>> extends Mutation<Q> {
+public interface BatchableWithTime<Q extends Batchable<Q>> extends Batchable<Q> {
 
     /**
-     * @param ttlSec  the time-to-live in sec to set
+     * @param ttl  the time-to-live set
      * @return a cloned query instance with the modified behavior
      */
-    MutationWithTime<Q> withTtl(int ttlSec);
+    BatchableWithTime<Q> withTtl(Duration ttl);
 
     /**
      * @param microsSinceEpoch  the writetime in since epoch to set
      * @return a cloned query instance with the modified behavior
      */
-    MutationWithTime<Q> withWritetime(long microsSinceEpoch);
+    BatchableWithTime<Q> withWritetime(long microsSinceEpoch);
 }

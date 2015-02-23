@@ -16,23 +16,18 @@
 package net.oneandone.troilus;
 
 
-import com.datastax.driver.core.querybuilder.Clause;
-
 
 
 /**
- * delete query
+ * Batchable Mutation query
+ * 
+ * @param <Q> the query type
  */
-public interface Deletion extends Batchable<Deletion> {
+public interface Batchable<Q extends Batchable<Q>> extends Mutation<Q, Result> {
 
     /**
-     * @param conditions  the conditions
-     * @return a cloned query instance with lwt (only-if)
+     * @param other  the other query to combine with
+     * @return a cloned query instance with the modified behavior
      */
-    Mutation<Deletion, Result> onlyIf(Clause... conditions);
-    
-    /**
-     * @return a cloned query instance with lwt (if-exits)
-     */
-    Mutation<Deletion, Result> ifExists();
+    BatchMutation combinedWith(Batchable<?> other);
 }

@@ -21,15 +21,15 @@ import net.oneandone.troilus.Result;
 /**
  * BatchMutation
  */
-public interface BatchMutation extends Mutation<BatchMutation> {
+public interface BatchMutation extends Batchable<BatchMutation> {
 
     /**
      * @return a cloned query instance with write ahead log
      */
-    AbstractMutation<BatchMutation, Result> withWriteAheadLog();
+    Mutation<BatchMutation, Result> withWriteAheadLog();
 
     /**
      * @return a cloned query instance without write ahead log
      */
-    AbstractMutation<BatchMutation, Result> withoutWriteAheadLog();
+    Mutation<BatchMutation, Result> withoutWriteAheadLog();
 }

@@ -83,15 +83,15 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
      * @param batchable the batchable to map
      * @return the mapped batchable
      */
-    public static net.oneandone.troilus.java7.Mutation<?> toJava7Mutation(Mutation<?> mutation) {
+    public static net.oneandone.troilus.java7.Batchable<?> toJava7Mutation(Batchable<?> mutation) {
         return new MutationToJava7MutationAdapter(mutation);
     }
     
     @SuppressWarnings("rawtypes")
-    private static class MutationToJava7MutationAdapter implements net.oneandone.troilus.java7.Mutation {
-        private final Mutation<?> mutation;
+    private static class MutationToJava7MutationAdapter implements net.oneandone.troilus.java7.Batchable {
+        private final Batchable<?> mutation;
         
-        public MutationToJava7MutationAdapter(Mutation<?> mutation) {
+        public MutationToJava7MutationAdapter(Batchable<?> mutation) {
             this.mutation = mutation;
         }
 
@@ -121,7 +121,7 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
         }
         
         @Override
-        public BatchMutation combinedWith(net.oneandone.troilus.java7.Mutation other) {
+        public BatchMutation combinedWith(net.oneandone.troilus.java7.Batchable other) {
             // TODO Auto-generated method stub
             return null;
         }

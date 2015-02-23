@@ -22,10 +22,10 @@ package net.oneandone.troilus.java7;
 /**
  * Insertion query
  */
-public interface Insertion extends MutationWithTime<Insertion> {
+public interface Insertion extends BatchableWithTime<Insertion> {
 
     /**
      * @return a cloned query instance with lwt (if-not-exits)
      */
-    MutationWithTime<Insertion> ifNotExists();
+    BatchableWithTime<Insertion> ifNotExists();
 }
