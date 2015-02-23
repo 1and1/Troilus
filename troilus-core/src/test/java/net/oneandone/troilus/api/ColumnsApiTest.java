@@ -111,7 +111,8 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
                     .value(UsersTable.PICTURE, ByteBuffer.wrap(new byte[] { 4, 5, 5}))
                     .value(UsersTable.ADDRESSES, ImmutableList.of("münchen", "karlsruhe"))
                     .value(UsersTable.PHONE_NUMBERS, ImmutableSet.of("94665", "34324543"))
-                    .ifNotExists()       
+                    .ifNotExists()
+                    .withTtl(Duration.ofHours(1))
                     .execute();
             
             Assert.fail("DuplicateEntryException expected"); 
@@ -264,7 +265,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         loginsDao.writeWithKey(LoginsTable.USER_ID, "8345345")
                  .decr(LoginsTable.LOGINS)
                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                 .withWritetime(Instant.now().toEpochMilli() * 1000)
                  .execute();
 
         record = loginsDao.readWithKey(LoginsTable.USER_ID, "8345345")
@@ -277,7 +277,6 @@ public class ColumnsApiTest extends AbstractCassandraBasedTest {
         
         loginsDao.writeWhere(QueryBuilder.eq(LoginsTable.USER_ID, "8345345"))
                  .incr(LoginsTable.LOGINS)
-                 .withWritetime(Instant.now().toEpochMilli() * 1000)
                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
                  .execute();
 

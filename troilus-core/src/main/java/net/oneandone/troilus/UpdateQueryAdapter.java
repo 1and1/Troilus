@@ -74,7 +74,6 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
         return query;
     }
     
-    @Override
     public CompletableFuture<Statement> getStatementAsync() {
         return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }

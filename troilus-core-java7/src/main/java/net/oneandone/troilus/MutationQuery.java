@@ -21,7 +21,6 @@ package net.oneandone.troilus;
 import java.util.Set;
 
 import net.oneandone.troilus.java7.Mutation;
-import net.oneandone.troilus.java7.StatementSource;
 
 import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
@@ -37,7 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * abstract mutation query implementation
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> implements StatementSource {
+abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     
     
     /**
@@ -52,6 +51,9 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> implements StatementSou
     }
     
     public abstract ListenableFuture<Result> executeAsync();
+    
+    
+    public abstract ListenableFuture<Statement> getStatementAsync();
     
     
     protected ListenableFuture<Statement> mergeStatements(ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {

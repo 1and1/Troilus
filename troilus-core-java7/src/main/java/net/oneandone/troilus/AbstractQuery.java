@@ -111,7 +111,15 @@ abstract class AbstractQuery<Q> {
     public Q withWritetime(long writetimeMicrosSinceEpoch) {
         return newQuery(getContext().withWritetime(writetimeMicrosSinceEpoch));
     }
-       
+   
+    /**
+     * @param ttlSec  the time to live in sec
+     * @return a cloned query instance with the modified behavior
+     */
+    public Q withTtl(int ttlSec) {
+        return newQuery(getContext().withTtl(ttlSec));
+    }
+    
     /**
      * @param consistencyLevel  the consistency level to use
      * @return a cloned query instance with the modified behavior

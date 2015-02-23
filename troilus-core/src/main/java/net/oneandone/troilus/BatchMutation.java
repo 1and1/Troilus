@@ -27,10 +27,10 @@ public interface BatchMutation extends Mutation<BatchMutation> {
     /**
      * @return a cloned query instance with write ahead log
      */
-    ConfiguredQuery<BatchMutation, Result> withWriteAheadLog();
+    ModifyingQuery<BatchMutation, Result> withWriteAheadLog();
 
     /** 
      * @return a cloned query instance without write ahead log
      */
-    ConfiguredQuery<BatchMutation, Result> withoutWriteAheadLog();
+    ModifyingQuery<BatchMutation, Result> withoutWriteAheadLog();
 }

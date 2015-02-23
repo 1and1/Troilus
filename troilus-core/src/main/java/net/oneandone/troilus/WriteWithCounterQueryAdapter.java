@@ -72,7 +72,6 @@ class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAd
         return query;
     }
     
-    @Override
     public CompletableFuture<Statement> getStatementAsync() {
         return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }

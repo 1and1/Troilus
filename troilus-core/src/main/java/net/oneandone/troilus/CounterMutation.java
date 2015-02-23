@@ -17,36 +17,29 @@ package net.oneandone.troilus;
 
 import java.time.Duration;
 
-import com.datastax.driver.core.ConsistencyLevel;
 
 
 /**
  * counter mutation
  */
-public interface CounterMutation extends ConfiguredQuery<CounterMutation, Result>, CounterBatchable  {
+public interface CounterMutation extends ModifyingQuery<CounterMutation, Result> {
 
     /**
-     * @param consistencyLevel the consistency level to use
-     * @return a cloned query instance with the modified behavior
-     */
-    CounterMutation withSerialConsistency(ConsistencyLevel consistencyLevel);
-
-    /**
-     * @param ttl  the time-to-live in sec to set
+     * @param ttl  the time-to-live set
      * @return a cloned query instance with the modified behavior
      */
     CounterMutation withTtl(Duration ttl);
 
     /**
-     * @param microsSinceEpoch the writetime in since epoch to set
+     * @param microsSinceEpoch  the writetime in since epoch to set
      * @return a cloned query instance with the modified behavior
      */
     CounterMutation withWritetime(long microsSinceEpoch);
-
+    
     /**
      * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    CounterBatchMutation combinedWith(CounterBatchable other);
+    CounterBatchMutation combinedWith(CounterMutation other);
 }
 

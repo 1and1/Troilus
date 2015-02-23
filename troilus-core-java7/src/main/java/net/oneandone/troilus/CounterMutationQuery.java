@@ -15,6 +15,7 @@
  */
 package net.oneandone.troilus;
 
+import net.oneandone.troilus.java7.CounterBatchMutation;
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.ResultSet;
@@ -46,14 +47,10 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
     protected CounterMutationQuery newQuery(Context newContext) {
         return new CounterMutationQuery(newContext, data);
     }
-
-    @Override
-    public CounterMutationQuery withTtl(int ttlSec) {
-        return newQuery(getContext().withTtl(ttlSec));
-    }
+    
     
     @Override
-    public CounterBatchMutationQuery combinedWith(CounterBatchable other) {
+    public CounterBatchMutationQuery combinedWith(CounterMutation other) {
         return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
     }
 

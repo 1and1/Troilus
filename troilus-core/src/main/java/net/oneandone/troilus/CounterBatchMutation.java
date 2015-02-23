@@ -19,11 +19,11 @@ package net.oneandone.troilus;
 /**
  * counter-aware batch mutation query  
  */
-public interface CounterBatchMutation extends ConfiguredQuery<CounterBatchMutation, Result> {
+public interface CounterBatchMutation extends ModifyingQuery<CounterBatchMutation, Result> {
 
     /**
      * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    CounterBatchMutation combinedWith(CounterBatchable other);
+    CounterBatchMutation combinedWith(CounterMutation other);
 }

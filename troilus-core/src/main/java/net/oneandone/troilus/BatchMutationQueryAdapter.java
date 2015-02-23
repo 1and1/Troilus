@@ -89,7 +89,6 @@ class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements 
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }  
     
-    @Override
     public CompletableFuture<Statement> getStatementAsync() {
        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }

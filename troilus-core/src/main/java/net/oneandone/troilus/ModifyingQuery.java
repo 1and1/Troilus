@@ -15,7 +15,10 @@
  */
 package net.oneandone.troilus;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 
 
@@ -23,7 +26,7 @@ import com.datastax.driver.core.policies.RetryPolicy;
  * @param <Q> the response type
  * @param <R> the query type
  */
-public interface ConfiguredQuery<Q, R> extends Query<R> {
+public interface ModifyingQuery<Q, R> extends Query<R> {
 
     /**
      * @param consistencyLevel  the consistency level to use
@@ -53,5 +56,10 @@ public interface ConfiguredQuery<Q, R> extends Query<R> {
      * @return a cloned query instance with the modified behavior
      */
     Q withRetryPolicy(RetryPolicy policy);
+    
+    /**
+     * @return the statement future
+     */
+    CompletableFuture<Statement> getStatementAsync();
 }
 

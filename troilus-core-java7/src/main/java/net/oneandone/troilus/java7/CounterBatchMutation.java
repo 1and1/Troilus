@@ -15,18 +15,14 @@
  */
 package net.oneandone.troilus.java7;
 
-import net.oneandone.troilus.CounterBatchable;
-import net.oneandone.troilus.Result;
+
+
 
 /**
  * counter-aware batch mutation query  
  */
 @Deprecated
-public interface CounterBatchMutation extends ModifyingQuery<CounterBatchMutation, Result> {
+public interface CounterBatchMutation extends CounterMutation {
 
-    /**
-     * @param other  the other query to combine with
-     * @return a cloned query instance with the modified behavior
-     */
-    CounterBatchMutation combinedWith(CounterBatchable other);
+
 }

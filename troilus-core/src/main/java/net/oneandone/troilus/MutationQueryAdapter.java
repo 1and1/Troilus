@@ -19,7 +19,6 @@ package net.oneandone.troilus;
 import java.util.concurrent.CompletableFuture;
 
 
-
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
@@ -34,7 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter base for mutation operations
  */
-abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> implements StatementSource { 
+abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends AbstractQuery<Q> { 
     
     private final T query;
   
@@ -70,7 +69,6 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }
     
-    @Override
     public CompletableFuture<Statement> getStatementAsync() {
         return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
