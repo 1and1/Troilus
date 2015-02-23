@@ -40,6 +40,6 @@ public interface CounterMutation extends ModifyingQuery<CounterMutation, Result>
      * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    CounterBatchMutation combinedWith(CounterMutation other);
+    CounterMutation combinedWith(CounterMutation other);
 }
 

@@ -17,6 +17,8 @@ package net.oneandone.troilus;
 
 
 
+import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.Statement;
@@ -32,7 +34,7 @@ import net.oneandone.troilus.Result;
 /**
  * Java8 adapter of a CounterBatchMutationQuery
  */
-class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutation> implements CounterBatchMutation {
+class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
     
     private final CounterBatchMutationQuery query;
     
@@ -51,11 +53,11 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     // factory methods
     
     @Override
-    protected CounterBatchMutation newQuery(Context newContext) {
+    protected CounterMutation newQuery(Context newContext) {
         return new CounterBatchMutationQueryAdapter(newContext, query.newQuery(newContext));
     }
 
-    private CounterBatchMutation newQuery(CounterBatchMutationQuery query) {
+    private CounterMutation newQuery(CounterBatchMutationQuery query) {
         return new CounterBatchMutationQueryAdapter(getContext(), query.newQuery(getContext()));
     }
     
@@ -63,9 +65,13 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterBatchMutatio
     ////////////////////
 
     
+    @Override
+    public CounterMutation withTtl(Duration ttl) {
+        return withTtl((int) ttl.getSeconds());
+    }
     
     @Override
-    public CounterBatchMutation combinedWith(CounterMutation other) {
+    public CounterMutation combinedWith(CounterMutation other) {
         return newQuery(query.combinedWith(CounterMutationQueryAdapter.toJava7CounterMutation(other)));
     }
     

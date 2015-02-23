@@ -20,7 +20,6 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.ExecutionException;
 
-import net.oneandone.troilus.java7.CounterBatchMutation;
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.BatchStatement;
@@ -40,7 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * Counter batch mutation query 
  * 
  */
-class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> implements CounterBatchMutation {
+class CounterBatchMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
     private final ImmutableList<CounterMutation> batchables;
     
     /**
