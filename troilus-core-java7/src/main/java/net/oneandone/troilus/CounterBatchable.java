@@ -23,5 +23,6 @@ import net.oneandone.troilus.java7.StatementSource;
 /**
  * counter batchable query
  */
+@Deprecated
 public interface CounterBatchable extends StatementSource {
 }

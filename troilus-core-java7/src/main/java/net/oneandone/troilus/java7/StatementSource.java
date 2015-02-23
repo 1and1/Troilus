@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Statement soure
  */
+@Deprecated
 public interface StatementSource {
 
     /**

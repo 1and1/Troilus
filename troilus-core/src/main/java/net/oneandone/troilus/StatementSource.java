@@ -24,6 +24,7 @@ import com.datastax.driver.core.Statement;
 /**
  * Statement soure
  */
+@Deprecated
 public interface StatementSource {
 
     /**
