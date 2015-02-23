@@ -70,7 +70,7 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterBatchMutation> impl
     }
 
         
-    private ListenableFuture<Statement> getStatementAsync() {
+    public ListenableFuture<Statement> getStatementAsync() {
         return new BatchQueryFutureAdapter<CounterBatchable>(new BatchStatement(Type.COUNTER), batchables.iterator());
     }
   

@@ -21,7 +21,8 @@ import net.oneandone.troilus.Result;
 /**
  * counter-aware batch mutation query  
  */
-public interface CounterBatchMutation extends ConfiguredQuery<CounterBatchMutation, Result> {
+@Deprecated
+public interface CounterBatchMutation extends ModifyingQuery<CounterBatchMutation, Result> {
 
     /**
      * @param other  the other query to combine with

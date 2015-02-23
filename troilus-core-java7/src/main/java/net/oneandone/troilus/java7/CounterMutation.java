@@ -25,7 +25,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 /**
  * counter mutation
  */
-public interface CounterMutation extends ConfiguredQuery<CounterMutation, Result>, CounterBatchable  {
+public interface CounterMutation extends ModifyingQuery<CounterMutation, Result>, CounterBatchable  {
 
     /**
      * @param consistencyLevel the consistency level to use

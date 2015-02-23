@@ -17,14 +17,16 @@ package net.oneandone.troilus.java7;
 
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
  * @param <Q> the response type
  * @param <R> the query type
  */
-public interface ConfiguredQuery<Q, R> extends Query<R> {
+public interface ModifyingQuery<Q, R> extends Query<R> {
 
     /**
      * @param consistencyLevel  the consistency level to use
@@ -53,4 +55,9 @@ public interface ConfiguredQuery<Q, R> extends Query<R> {
      * @return a cloned query instance with the modified behavior
      */
     Q withRetryPolicy(RetryPolicy policy);
+    
+    /**
+     * @return the statement future
+     */
+    ListenableFuture<Statement> getStatementAsync();
 }
