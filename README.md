@@ -688,9 +688,9 @@ keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.Cascad
 
 
 public interface KeyByAccountColumns  {
-    
+   
     public static final String TABLE = "key_by_accountid";
-
+    
     public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
     public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
     public static final ColumnName<Set<TupleValue>> EMAIL_IDX = ColumnName.defineSet("email_idx", TupleValue.class);
@@ -707,7 +707,7 @@ public interface KeyByAccountColumns  {
         }
 
         @Override
-        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onWrite(WriteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Batchable<?>>> onWrite(WriteQueryData queryData) {
             
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
@@ -731,7 +731,7 @@ public interface KeyByAccountColumns  {
         
         
         @Override
-        public CompletableFuture<ImmutableSet<? extends Mutation<?>>> onDelete(DeleteQueryData queryData) {
+        public CompletableFuture<ImmutableSet<? extends Batchable<?>>> onDelete(DeleteQueryData queryData) {
 
             // this interceptor does not support where condition based queries
             if (!queryData.getWhereConditions().isEmpty()) {
