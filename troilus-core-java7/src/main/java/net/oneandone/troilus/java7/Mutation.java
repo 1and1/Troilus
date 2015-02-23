@@ -30,5 +30,5 @@ public interface Mutation<Q extends Mutation<Q>> extends ConfiguredQuery<Q, Resu
      * @param other  the other query to combine with
      * @return a cloned query instance with the modified behavior
      */
-    Batch combinedWith(Mutation<?> other);
+    BatchMutation combinedWith(Mutation<?> other);
 }

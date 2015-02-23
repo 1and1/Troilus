@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.java7.Batch;
+import net.oneandone.troilus.java7.BatchMutation;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
@@ -123,7 +123,7 @@ abstract class MutationQueryAdapter<Q, T extends MutationQuery<?>> extends Abstr
         }
         
         @Override
-        public Batch combinedWith(net.oneandone.troilus.java7.Mutation other) {
+        public BatchMutation combinedWith(net.oneandone.troilus.java7.Mutation other) {
             // TODO Auto-generated method stub
             return null;
         }

@@ -17,7 +17,7 @@ package net.oneandone.troilus;
 
 
 
-import net.oneandone.troilus.java7.Batch;
+import net.oneandone.troilus.java7.BatchMutation;
 import net.oneandone.troilus.java7.Mutation;
 
 import com.datastax.driver.core.BatchStatement;
@@ -34,7 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Batch mutation query
  */
-class BatchMutationQuery extends AbstractQuery<Batch> implements Batch {
+class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
     private final ImmutableList<Mutation<?>> batchables;
     private final Type type;  
     

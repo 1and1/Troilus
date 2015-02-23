@@ -32,7 +32,7 @@ import net.oneandone.troilus.Result;
 /**
  * Java8 adapter of a BatchMutationQuery
  */
-class BatchMutationQueryAdapter extends AbstractQuery<Batch> implements Batch {
+class BatchMutationQueryAdapter extends AbstractQuery<BatchMutation> implements BatchMutation {
     
     private final BatchMutationQuery query;  
     
@@ -66,16 +66,16 @@ class BatchMutationQueryAdapter extends AbstractQuery<Batch> implements Batch {
     
     
     @Override
-    public Batch withWriteAheadLog() {
+    public BatchMutation withWriteAheadLog() {
         return newQuery(query.withWriteAheadLog());
     }
     
     @Override
-    public Batch withoutWriteAheadLog() {
+    public BatchMutation withoutWriteAheadLog() {
         return newQuery(query.withoutWriteAheadLog());
     }
 
-    public Batch combinedWith(Mutation<?> other) {
+    public BatchMutation combinedWith(Mutation<?> other) {
         return newQuery(query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
     }
     

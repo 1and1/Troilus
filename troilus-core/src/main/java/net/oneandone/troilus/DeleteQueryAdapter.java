@@ -58,7 +58,7 @@ class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> imp
 
     
     @Override
-    public Batch combinedWith(Mutation<?> other) {
+    public BatchMutation combinedWith(Mutation<?> other) {
         return new BatchMutationQueryAdapter(getContext(), getQuery().combinedWith(toJava7Mutation(other)));
     }
     
