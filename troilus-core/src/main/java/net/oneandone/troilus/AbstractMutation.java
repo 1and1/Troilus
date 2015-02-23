@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.java7;
+package net.oneandone.troilus;
 
+import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
  * @param <Q> the response type
  * @param <R> the query type
  */
-public interface ModifyingQuery<Q, R> extends Query<R> {
+public interface AbstractMutation<Q, R> extends Query<R> {
 
     /**
      * @param consistencyLevel  the consistency level to use
@@ -35,18 +35,19 @@ public interface ModifyingQuery<Q, R> extends Query<R> {
     Q withConsistency(ConsistencyLevel consistencyLevel);
 
     /**
-      * @param consistencyLevel  the consistency level to use
-      * @return a cloned query instance with the modified behavior
+     * @param consistencyLevel  the consistency level to use
+     * @return a cloned query instance with the modified behavior
      */
     Q withSerialConsistency(ConsistencyLevel consistencyLevel);
-    
+
+
     /**
      * @return a cloned query instance with activated tracking
-     */
+     */ 
     Q withTracking();
 
     /**
-     * @return a cloned query instance with deactivated tracking 
+     * @return a cloned query instance with deactivated tracking
      */
     Q withoutTracking();
     
@@ -59,5 +60,6 @@ public interface ModifyingQuery<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    ListenableFuture<Statement> getStatementAsync();
+    CompletableFuture<Statement> getStatementAsync();
 }
+

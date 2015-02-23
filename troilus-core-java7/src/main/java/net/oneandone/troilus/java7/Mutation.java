@@ -23,7 +23,7 @@ import net.oneandone.troilus.Result;
  * Modification query (insert or update)
  * @param <Q> the query type
  */
-public interface Mutation<Q extends Mutation<Q>> extends ModifyingQuery<Q, Result> {
+public interface Mutation<Q extends Mutation<Q>> extends AbstractMutation<Q, Result> {
 
 
     /**

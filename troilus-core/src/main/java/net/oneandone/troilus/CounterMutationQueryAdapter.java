@@ -79,11 +79,6 @@ import com.google.common.util.concurrent.ListenableFuture;
          return query.toString();
      }
      
-     
-     /**
-      * @param batchable the batchable to map
-      * @return the mapped batchable
-      */
      static net.oneandone.troilus.java7.CounterMutation toJava7CounterMutation(CounterMutation mutation) {
          return new CounterMutationToJava7CounterMutationAdapter(mutation);
      }
@@ -149,77 +144,77 @@ import com.google.common.util.concurrent.ListenableFuture;
          public ListenableFuture<Statement> getStatementAsync() {
              return CompletableFutures.toListenableFuture(mutation.getStatementAsync());
          }
-     }
-     
-     
-     /**
-      * @param batchable the batchable to map
-      * @return the mapped batchable
-      */
-     static CounterMutation fromJava7CounterMutation(net.oneandone.troilus.java7.CounterMutation mutation) {
-         return new Java7CounterMutationToCounterMutationAdapter(mutation);
-     }
-     
-     private static class Java7CounterMutationToCounterMutationAdapter implements CounterMutation {
-         private final net.oneandone.troilus.java7.CounterMutation mutation;
          
-         public Java7CounterMutationToCounterMutationAdapter(net.oneandone.troilus.java7.CounterMutation mutation) {
-             this.mutation = mutation;
+         
+         /**
+          * @param batchable the batchable to map
+          * @return the mapped batchable
+          */
+         private static CounterMutation fromJava7CounterMutation(net.oneandone.troilus.java7.CounterMutation mutation) {
+             return new Java7CounterMutationToCounterMutationAdapter(mutation);
          }
+         
+         private static class Java7CounterMutationToCounterMutationAdapter implements CounterMutation {
+             private final net.oneandone.troilus.java7.CounterMutation mutation;
+             
+             public Java7CounterMutationToCounterMutationAdapter(net.oneandone.troilus.java7.CounterMutation mutation) {
+                 this.mutation = mutation;
+             }
 
-         @Override
-         public CounterMutation withConsistency(ConsistencyLevel consistencyLevel) {
-             return (CounterMutation) mutation.withConsistency(consistencyLevel);
-         }
-         
-         @Override
-         public CounterMutation withoutTracking() {
-             return (CounterMutation) mutation.withoutTracking();
-         }
-         
-         @Override
-         public CounterMutation withRetryPolicy(RetryPolicy policy) {
-             return (CounterMutation) mutation.withRetryPolicy(policy);
-         }
-         
-         @Override
-         public CounterMutation withSerialConsistency(ConsistencyLevel consistencyLevel) {
-             return (CounterMutation) mutation.withSerialConsistency(consistencyLevel);
-         }
-         
-         @Override
-         public CounterMutation withTracking() {
-             return (CounterMutation) mutation.withTracking();
-         }
+             @Override
+             public CounterMutation withConsistency(ConsistencyLevel consistencyLevel) {
+                 return (CounterMutation) mutation.withConsistency(consistencyLevel);
+             }
+             
+             @Override
+             public CounterMutation withoutTracking() {
+                 return (CounterMutation) mutation.withoutTracking();
+             }
+             
+             @Override
+             public CounterMutation withRetryPolicy(RetryPolicy policy) {
+                 return (CounterMutation) mutation.withRetryPolicy(policy);
+             }
+             
+             @Override
+             public CounterMutation withSerialConsistency(ConsistencyLevel consistencyLevel) {
+                 return (CounterMutation) mutation.withSerialConsistency(consistencyLevel);
+             }
+             
+             @Override
+             public CounterMutation withTracking() {
+                 return (CounterMutation) mutation.withTracking();
+             }
 
-         @Override
-         public CounterMutation withWritetime(long microsSinceEpoch) {
-             return (CounterMutation) mutation.withWritetime(microsSinceEpoch);
-         }
+             @Override
+             public CounterMutation withWritetime(long microsSinceEpoch) {
+                 return (CounterMutation) mutation.withWritetime(microsSinceEpoch);
+             }
 
-         @Override
-         public CounterMutation withTtl(Duration ttl) {
-             return (CounterMutation) mutation.withTtl((int) ttl.getSeconds());
-        }
-         
-         @Override
-         public CounterMutation combinedWith(CounterMutation other) {
-             return fromJava7CounterMutation(mutation.combinedWith(toJava7CounterMutation(other)));
-         }
+             @Override
+             public CounterMutation withTtl(Duration ttl) {
+                 return (CounterMutation) mutation.withTtl((int) ttl.getSeconds());
+            }
+             
+             @Override
+             public CounterMutation combinedWith(CounterMutation other) {
+                 return fromJava7CounterMutation(mutation.combinedWith(toJava7CounterMutation(other)));
+             }
 
-         @Override
-         public Result execute() {
-             return mutation.execute();
-         }
-         
-         @Override
-         public CompletableFuture<Result> executeAsync() {
-             return CompletableFutures.toCompletableFuture(mutation.executeAsync());
-         }
+             @Override
+             public Result execute() {
+                 return mutation.execute();
+             }
+             
+             @Override
+             public CompletableFuture<Result> executeAsync() {
+                 return CompletableFutures.toCompletableFuture(mutation.executeAsync());
+             }
 
-         @Override
-         public CompletableFuture<Statement> getStatementAsync() {
-             return CompletableFutures.toCompletableFuture(mutation.getStatementAsync());
+             @Override
+             public CompletableFuture<Statement> getStatementAsync() {
+                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync());
+             }
          }
      }
  }

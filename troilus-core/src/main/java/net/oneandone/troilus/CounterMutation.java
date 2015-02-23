@@ -22,7 +22,7 @@ import java.time.Duration;
 /**
  * counter mutation
  */
-public interface CounterMutation extends ModifyingQuery<CounterMutation, Result> {
+public interface CounterMutation extends AbstractMutation<CounterMutation, Result> {
 
     /**
      * @param ttl  the time-to-live set

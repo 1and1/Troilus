@@ -21,7 +21,7 @@ import net.oneandone.troilus.Result;
 /**
  * counter mutation
  */
-public interface CounterMutation extends ModifyingQuery<CounterMutation, Result> {
+public interface CounterMutation extends AbstractMutation<CounterMutation, Result> {
 
     /**
      * @param ttlSec  the time-to-live in sec to set

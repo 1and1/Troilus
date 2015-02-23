@@ -29,10 +29,10 @@ public interface Deletion extends Mutation<Deletion> {
      * @param conditions  the conditions
      * @return a cloned query instance with lwt (only-if)
      */
-    ModifyingQuery<Deletion, Result> onlyIf(Clause... conditions);
+    AbstractMutation<Deletion, Result> onlyIf(Clause... conditions);
     
     /**
      * @return a cloned query instance with lwt (if-exits)
      */
-    ModifyingQuery<Deletion, Result> ifExists();
+    AbstractMutation<Deletion, Result> ifExists();
 }
