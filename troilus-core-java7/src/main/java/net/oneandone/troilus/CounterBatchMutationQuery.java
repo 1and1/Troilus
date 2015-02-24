@@ -17,20 +17,14 @@ package net.oneandone.troilus;
 
 
 
-
-import java.util.concurrent.ExecutionException;
-
-
 import net.oneandone.troilus.java7.CounterMutation;
 
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.UnmodifiableIterator;
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+
 
  
 /**
@@ -73,39 +67,12 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
     
     @Override
     public ListenableFuture<Statement> getStatementAsync() {
-        return new BatchQueryFutureAdapter(new BatchStatement(Type.COUNTER), batchables.iterator());
+        
+        Function<CounterMutation, ListenableFuture<Statement>> statementFetcher = new Function<CounterMutation, ListenableFuture<Statement>>() {
+            public ListenableFuture<Statement> apply(CounterMutation batchable) {
+                return batchable.getStatementAsync();
+            };
+        };
+        return mergeToBatch(Type.COUNTER, batchables.iterator(), statementFetcher);
     }
-  
-    
-    private static final class BatchQueryFutureAdapter extends AbstractFuture<Statement> {
-        
-        BatchQueryFutureAdapter(BatchStatement batchStmt, UnmodifiableIterator<CounterMutation> batchablesIt) {
-            handle(batchStmt, batchablesIt);
-        }
-        
-        
-        private void handle(final BatchStatement batchStmt, final UnmodifiableIterator<CounterMutation> batchablesIt) {
-            
-            if (batchablesIt.hasNext()) {
-                final ListenableFuture<Statement> statementFuture = batchablesIt.next().getStatementAsync();
-                
-                Runnable resultHandler = new Runnable() {
-                    
-                    @Override
-                    public void run() {
-                        try {
-                            batchStmt.add(statementFuture.get());
-                            handle(batchStmt, batchablesIt);
-                        } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                            setException(ListenableFutures.unwrapIfNecessary(e));
-                        }
-                    }
-                };
-                statementFuture.addListener(resultHandler, MoreExecutors.directExecutor());
-                
-            } else {
-                set(batchStmt);
-            }
-        }
-    }        
 }
