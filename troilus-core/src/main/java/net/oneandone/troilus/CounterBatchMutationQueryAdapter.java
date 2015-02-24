@@ -15,14 +15,9 @@
  */
 package net.oneandone.troilus;
 
-import java.util.concurrent.CompletableFuture;
 
-import com.datastax.driver.core.Statement;
-
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.CounterBatchMutationQuery;
-import net.oneandone.troilus.Result;
 
 
  
@@ -30,7 +25,7 @@ import net.oneandone.troilus.Result;
 /**
  * Java8 adapter of a CounterBatchMutationQuery
  */
-class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
+class CounterBatchMutationQueryAdapter extends BatchQueryAdapter<CounterMutation> implements CounterMutation {
     
     private final CounterBatchMutationQuery query;
     
@@ -40,7 +35,7 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterMutation> im
      * @param query   the underlying query
      */
     CounterBatchMutationQueryAdapter(Context ctx, CounterBatchMutationQuery query) {
-        super(ctx);
+        super(ctx, query);
         this.query = query;
     }
 
@@ -64,20 +59,5 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterMutation> im
     @Override
     public CounterMutation combinedWith(CounterMutation other) {
         return newQuery(query.combinedWith(CounterMutationQueryAdapter.toJava7CounterMutation(other)));
-    }
-    
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
 }

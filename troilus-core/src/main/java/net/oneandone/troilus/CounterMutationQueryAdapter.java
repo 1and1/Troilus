@@ -19,7 +19,6 @@ package net.oneandone.troilus;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
 
@@ -32,7 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter of a CounterMutationQuery
  */
- class CounterMutationQueryAdapter extends AbstractQuery<CounterMutation> implements CounterMutation {
+ class CounterMutationQueryAdapter extends BatchQueryAdapter<CounterMutation> implements CounterMutation {
         
      private final CounterMutationQuery query;
      
@@ -41,7 +40,7 @@ import com.google.common.util.concurrent.ListenableFuture;
       * @param query   the underlying query
       */
      CounterMutationQueryAdapter(Context ctx, CounterMutationQuery query) {
-         super(ctx);
+         super(ctx, query);
          this.query = query;
      }
      
@@ -55,24 +54,6 @@ import com.google.common.util.concurrent.ListenableFuture;
          return new CounterBatchMutationQueryAdapter(getContext(), query.combinedWith(toJava7CounterMutation(other)));
      }
 
-     public CompletableFuture<Statement> getStatementAsync() {
-         return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-     }
-
-     @Override
-     public Result execute() {
-         return CompletableFutures.getUninterruptibly(executeAsync());
-     }
-     
-     @Override
-     public CompletableFuture<Result> executeAsync() {
-         return CompletableFutures.toCompletableFuture(query.executeAsync());
-     }
-     
-     @Override
-     public String toString() {
-         return query.toString();
-     }
      
      static net.oneandone.troilus.java7.CounterMutation toJava7CounterMutation(CounterMutation mutation) {
          return new CounterMutationToJava7CounterMutationAdapter(mutation);
@@ -116,8 +97,8 @@ import com.google.common.util.concurrent.ListenableFuture;
          }
          
          @Override
-        public net.oneandone.troilus.java7.CounterMutation withTtl(Duration ttl) {
-             return (net.oneandone.troilus.java7.CounterMutation) mutation.withTtl(ttl);
+        public net.oneandone.troilus.java7.CounterMutation withTtl(int ttlSec) {
+             return (net.oneandone.troilus.java7.CounterMutation) mutation.withTtl(Duration.ofSeconds(ttlSec));
         }
          
          @Override
@@ -188,7 +169,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
              @Override
              public CounterMutation withTtl(Duration ttl) {
-                 return (CounterMutation) mutation.withTtl(ttl);
+                 return (CounterMutation) mutation.withTtl((int) ttl.getSeconds());
             }
              
              @Override
