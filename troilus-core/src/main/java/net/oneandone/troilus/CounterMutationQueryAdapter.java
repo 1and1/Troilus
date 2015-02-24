@@ -31,7 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Java8 adapter of a CounterMutationQuery
  */
- class CounterMutationQueryAdapter extends BatchQueryAdapter<CounterMutation> implements CounterMutation {
+ class CounterMutationQueryAdapter extends AbstractQueryAdapter<CounterMutation> implements CounterMutation {
         
      private final CounterMutationQuery query;
      

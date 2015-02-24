@@ -15,31 +15,35 @@
  */
 package net.oneandone.troilus;
 
+
+
+
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
+
+
 import com.datastax.driver.core.Statement;
 
+import net.oneandone.troilus.AbstractQuery;
+import net.oneandone.troilus.Context;
+import net.oneandone.troilus.Result;
 
 
-
-abstract class BatchQueryAdapter<Q> extends AbstractQuery<Q> {
+ 
+abstract class AbstractQueryAdapter<Q> extends AbstractQuery<Q> {
     
     private final net.oneandone.troilus.java7.Mutation<?, Result> query;
     
-    public BatchQueryAdapter(Context ctx, net.oneandone.troilus.java7.Mutation<?, Result> query) {
+   
+    public AbstractQueryAdapter(Context ctx, net.oneandone.troilus.java7.Mutation<?, Result> query) {
         super(ctx);
         this.query = query;
     }
-    
+
     public Q withTtl(Duration ttl) {
         return super.withTtl((int) ttl.getSeconds());
     }
-     
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-    
     
     public Result execute() {
         return CompletableFutures.getUninterruptibly(executeAsync());
@@ -47,5 +51,9 @@ abstract class BatchQueryAdapter<Q> extends AbstractQuery<Q> {
     
     public CompletableFuture<Result> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
+    }  
+    
+    public CompletableFuture<Statement> getStatementAsync() {
+       return CompletableFutures.toCompletableFuture(query.getStatementAsync());
     }
 }

@@ -25,7 +25,7 @@ import net.oneandone.troilus.CounterBatchMutationQuery;
 /**
  * Java8 adapter of a CounterBatchMutationQuery
  */
-class CounterBatchMutationQueryAdapter extends BatchQueryAdapter<CounterMutation> implements CounterMutation {
+class CounterBatchMutationQueryAdapter extends AbstractQueryAdapter<CounterMutation> implements CounterMutation {
     
     private final CounterBatchMutationQuery query;
     

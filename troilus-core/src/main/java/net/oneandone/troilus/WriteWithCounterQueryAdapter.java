@@ -18,18 +18,13 @@ package net.oneandone.troilus;
 
 
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.Result;
 
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
 
@@ -38,7 +33,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAdapter> implements WriteWithCounter {
+class WriteWithCounterQueryAdapter extends AbstractQueryAdapter<WriteWithCounterQueryAdapter> implements WriteWithCounter {
     
     private final WriteWithCounterQuery query;
     
@@ -47,7 +42,7 @@ class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAd
      * @param query   the underlying query
      */
     WriteWithCounterQueryAdapter(Context ctx, WriteWithCounterQuery query) {
-        super(ctx);
+        super(ctx, query);
         this.query = query;
     }
 
@@ -72,30 +67,12 @@ class WriteWithCounterQueryAdapter extends AbstractQuery<WriteWithCounterQueryAd
         return query;
     }
     
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-    
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
     
     @Override
     public BatchMutation combinedWith(Batchable<?> other) {
         return new BatchMutationQueryAdapter(getContext(), query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
     }
     
-
-    @Override
-    public WriteWithCounterQueryAdapter withTtl(Duration ttl) {
-        return newQuery(getQuery().withTtl((int) ttl.getSeconds()));
-    }
 
     @Override
     public Update<Write> onlyIf(Clause... conditions) {
