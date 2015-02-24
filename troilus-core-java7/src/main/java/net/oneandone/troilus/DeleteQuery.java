@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
+
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.Batchable;
@@ -26,7 +27,6 @@ import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -84,27 +84,21 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     public DeleteQuery ifExists() {
         return newQuery(data.ifExists(true));
     }
-    
+        
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+        ListenableFuture<Result> future = super.executeAsync();
         
-        Function<ResultSet, Result> mapResult = new Function<ResultSet, Result>() {
+        Function<Result, Result> validateOnlyIfFunction = new Function<Result, Result>() {
             @Override
-            public Result apply(ResultSet resultSet) {
-                if (resultSet == null) {
-                    throw new NullPointerException();
-                }
-
-                Result result = newResult(resultSet);
+            public Result apply(Result result) {
                 if (!data.getOnlyIfConditions().isEmpty() && !result.wasApplied()) {
                     throw new IfConditionException(result, "if condition does not match");
                 }
                 return result;
             }
         };
-        
-        return Futures.transform(future, mapResult);
+        return Futures.transform(future, validateOnlyIfFunction);
     }
     
     @Override

@@ -23,7 +23,6 @@ import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 import net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor;
 
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -85,22 +84,23 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
         return (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
     }
     
+    @Override
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+        ListenableFuture<Result> future = super.executeAsync();
         
-        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+        Function<Result, Result> validateLwtIfFunction = new Function<Result, Result>() {
             @Override
-            public Result apply(ResultSet resultSet) {
-                Result result = newResult(resultSet);
+            public Result apply(Result result) {
                 if (isLwt() && !result.wasApplied()) {
                     throw new IfConditionException(result, "duplicated entry");
                 }
                 return result;
             }
         };
-        
-        return Futures.transform(future, mapEntity);
+        return Futures.transform(future, validateLwtIfFunction);
     }
+
+    
     
     private boolean isLwt() {
         return ((data.getIfNotExits() != null) && (data.getIfNotExits()) || !data.getOnlyIfConditions().isEmpty());                

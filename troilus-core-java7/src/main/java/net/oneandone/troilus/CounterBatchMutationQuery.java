@@ -20,17 +20,15 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.ExecutionException;
 
+
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -39,7 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * Counter batch mutation query 
  * 
  */
-class CounterBatchMutationQuery extends AbstractQuery<CounterMutation> implements CounterMutation {
+class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implements CounterMutation {
     private final ImmutableList<CounterMutation> batchables;
     
     /**
@@ -67,33 +65,13 @@ class CounterBatchMutationQuery extends AbstractQuery<CounterMutation> implement
     //
     ////////////////////
 
-
     
     @Override
     public CounterBatchMutationQuery combinedWith(CounterMutation other) {
         return newQuery(Immutables.join(batchables, other));
     }
-
-    @Override
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
     
     @Override
-    public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
-        
-        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
-            @Override
-            public Result apply(ResultSet resultSet) {
-                return newResult(resultSet);
-            }
-        };
-        
-        return Futures.transform(future, mapEntity);
-    }
-    
-    
     public ListenableFuture<Statement> getStatementAsync() {
         return new BatchQueryFutureAdapter(new BatchStatement(Type.COUNTER), batchables.iterator());
     }

@@ -19,18 +19,16 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.ExecutionException;
 
+
 import net.oneandone.troilus.java7.BatchMutation;
 import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -39,7 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 /**
  * Batch mutation query
  */
-class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMutation {
+class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMutation {
     private final ImmutableList<Batchable<?>> batchables;
     private final Type type;  
     
@@ -84,29 +82,12 @@ class BatchMutationQuery extends AbstractQuery<BatchMutation> implements BatchMu
         return newQuery(Type.UNLOGGED, batchables);
     }
 
+    @Override
     public BatchMutationQuery combinedWith(Batchable<?> other) {
         return newQuery(type, Immutables.join(batchables, other));
     }
 
-    @Override
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
-        
-        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
-            @Override
-            public Result apply(ResultSet resultSet) {
-                return newResult(resultSet);
-            }
-        };
-        
-        return Futures.transform(future, mapEntity);
-    }
-    
+    @Override    
     public ListenableFuture<Statement> getStatementAsync() {
         return new BatchQueryFutureAdapter(new BatchStatement(type), batchables.iterator());
     }

@@ -23,6 +23,7 @@ import java.util.Set;
 import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.google.common.base.Function;
@@ -50,7 +51,18 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
         return ListenableFutures.getUninterruptibly(executeAsync());
     }
     
-    public abstract ListenableFuture<Result> executeAsync();
+    public ListenableFuture<Result> executeAsync() {
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+        
+        Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
+            @Override
+            public Result apply(ResultSet resultSet) {
+                return newResult(resultSet);
+            }
+        };
+        
+        return Futures.transform(future, mapEntity);
+    }
     
     
     public abstract ListenableFuture<Statement> getStatementAsync();
