@@ -20,18 +20,15 @@ package net.oneandone.troilus;
 
 import java.time.Duration;
 
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.Result;
 import net.oneandone.troilus.UpdateQuery;
 
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableMap;
 
@@ -40,7 +37,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Java8 adapter of a UpdateQuery
  */
-class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements UpdateWithUnitAndCounter  {
+class UpdateQueryAdapter extends AbstractQueryAdapter<UpdateQueryAdapter> implements UpdateWithUnitAndCounter  {
     
     private final UpdateQuery query;
     
@@ -49,7 +46,7 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
      * @param query   the underlying query
      */
     UpdateQueryAdapter(Context ctx, UpdateQuery query) {
-        super(ctx);
+        super(ctx, query);
         this.query = query;
     }
 
@@ -74,23 +71,9 @@ class UpdateQueryAdapter extends AbstractQuery<UpdateQueryAdapter> implements Up
         return query;
     }
     
-    public CompletableFuture<Statement> getStatementAsync() {
-        return CompletableFutures.toCompletableFuture(query.getStatementAsync());
-    }
-    
-    @Override
-    public Result execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Result> executeAsync() {
-        return CompletableFutures.toCompletableFuture(query.executeAsync());
-    }
-    
     @Override
     public BatchMutation combinedWith(Batchable<?> other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Mutations.toJava7Mutation(other)));
     }
     
 

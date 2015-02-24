@@ -1259,7 +1259,7 @@ public class DaoImpl implements Dao {
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable<?>>> onWriteAsync(net.oneandone.troilus.java7.interceptor.WriteQueryData queryData) {
             return CompletableFutures.toListenableFuture(interceptor.onWrite(new WriteQueryDataAdapter(queryData))
-                                                                    .thenApply(mutations -> mutations.stream().map(mutation -> MutationQueryAdapter.toJava7Mutation(mutation)).collect(Collectors.<net.oneandone.troilus.java7.Batchable<?>>toSet()))
+                                                                    .thenApply(mutations -> mutations.stream().map(mutation -> Mutations.toJava7Mutation(mutation)).collect(Collectors.<net.oneandone.troilus.java7.Batchable<?>>toSet()))
                                                                     .thenApply(mutations -> ImmutableSet.copyOf(mutations)));
         }
         
@@ -1280,7 +1280,7 @@ public class DaoImpl implements Dao {
         @Override
         public ListenableFuture<ImmutableSet<? extends Batchable<?>>> onDeleteAsync(DeleteQueryData queryData) {
             return CompletableFutures.toListenableFuture(interceptor.onDelete(queryData)
-                                                                    .thenApply(mutations -> mutations.stream().map(mutation -> MutationQueryAdapter.toJava7Mutation(mutation)).collect(Collectors.<net.oneandone.troilus.java7.Batchable<?>>toSet()))
+                                                                    .thenApply(mutations -> mutations.stream().map(mutation -> Mutations.toJava7Mutation(mutation)).collect(Collectors.<net.oneandone.troilus.java7.Batchable<?>>toSet()))
                                                                     .thenApply(mutations -> ImmutableSet.copyOf(mutations)));
         }
         

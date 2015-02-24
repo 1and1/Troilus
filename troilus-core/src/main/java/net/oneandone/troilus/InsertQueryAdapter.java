@@ -26,14 +26,17 @@ import net.oneandone.troilus.InsertQuery;
 /**
  * Java8 adapter of a InsertQuery
  */
-class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> implements Insertion {
+class InsertQueryAdapter extends AbstractQueryAdapter<Insertion> implements Insertion {
   
+    private final InsertQuery query;
+    
     /**
      * @param ctx    the context
      * @param query  the query
      */
     InsertQueryAdapter(Context ctx, InsertQuery query) {
         super(ctx, query);
+        this.query = query;
     }
     
     
@@ -42,7 +45,7 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     @Override
     protected InsertQueryAdapter newQuery(Context newContext) {
-        return new InsertQueryAdapter(newContext, getQuery().newQuery(newContext));
+        return new InsertQueryAdapter(newContext, query.newQuery(newContext));
     }
     
     private InsertQueryAdapter newQuery(InsertQuery query) {
@@ -55,7 +58,7 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     @Override
     public BatchMutation combinedWith(Batchable<?> other) {
-        return new BatchMutationQueryAdapter(getContext(), getQuery().combinedWith(toJava7Mutation(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Mutations.toJava7Mutation(other)));
     }
     
     @Override
@@ -65,6 +68,6 @@ class InsertQueryAdapter extends MutationQueryAdapter<Insertion, InsertQuery> im
     
     @Override
     public BatchableWithTime<Insertion> ifNotExists() {
-        return newQuery(getQuery().ifNotExists());
+        return newQuery(query.ifNotExists());
     }
 }

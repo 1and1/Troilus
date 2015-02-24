@@ -30,14 +30,18 @@ import com.datastax.driver.core.querybuilder.Clause;
 /**
  * Java8 adapter of a DeleteQuery
  */
-class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> implements Deletion {
+class DeleteQueryAdapter extends AbstractQueryAdapter<Deletion> implements Deletion {
 
+    private final DeleteQuery query;
+    
+    
     /**
      * @param ctx     the context
      * @param query   the query
      */
     DeleteQueryAdapter(Context ctx, DeleteQuery query) {
         super(ctx, query);
+        this.query = query;
     }
     
     
@@ -46,7 +50,7 @@ class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> imp
     
     @Override
     protected Deletion newQuery(Context newContext) {
-        return new DeleteQueryAdapter(newContext, getQuery().newQuery(newContext));
+        return new DeleteQueryAdapter(newContext, query.newQuery(newContext));
     }
 
     private Deletion newQuery(DeleteQuery query) {
@@ -59,16 +63,16 @@ class DeleteQueryAdapter extends MutationQueryAdapter<Deletion, DeleteQuery> imp
     
     @Override
     public BatchMutation combinedWith(Batchable<?> other) {
-        return new BatchMutationQueryAdapter(getContext(), getQuery().combinedWith(toJava7Mutation(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Mutations.toJava7Mutation(other)));
     }
     
     @Override
     public Deletion onlyIf(Clause... onlyIfConditions) {
-        return newQuery(getQuery().onlyIf(onlyIfConditions));
+        return newQuery(query.onlyIf(onlyIfConditions));
     }
     
     @Override
     public Deletion ifExists() {
-        return newQuery(getQuery().ifExists());
+        return newQuery(query.ifExists());
     }
 }

@@ -67,6 +67,6 @@ class BatchMutationQueryAdapter extends AbstractQueryAdapter<BatchMutation> impl
     }
 
     public BatchMutation combinedWith(Batchable<?> other) {
-        return newQuery(query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
+        return newQuery(query.combinedWith(Mutations.toJava7Mutation(other)));
     }
 }

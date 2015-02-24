@@ -70,7 +70,7 @@ class WriteWithCounterQueryAdapter extends AbstractQueryAdapter<WriteWithCounter
     
     @Override
     public BatchMutation combinedWith(Batchable<?> other) {
-        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(MutationQueryAdapter.toJava7Mutation(other)));
+        return new BatchMutationQueryAdapter(getContext(), query.combinedWith(Mutations.toJava7Mutation(other)));
     }
     
 
