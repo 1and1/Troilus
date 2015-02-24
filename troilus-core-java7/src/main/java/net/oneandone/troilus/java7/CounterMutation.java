@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.java7;
 
+import java.time.Duration;
+
 import net.oneandone.troilus.Result;
 
 
@@ -24,10 +26,10 @@ import net.oneandone.troilus.Result;
 public interface CounterMutation extends Mutation<CounterMutation, Result> {
 
     /**
-     * @param ttlSec  the time-to-live in sec to set
+     * @param ttl  the time-to-live to set
      * @return a cloned query instance with the modified behavior
      */
-    CounterMutation withTtl(int ttlSec);
+    CounterMutation withTtl(Duration ttl);
 
     /**
      * @param microsSinceEpoch  the writetime in since epoch to set

@@ -15,10 +15,6 @@
  */
 package net.oneandone.troilus;
 
-
-
-import java.time.Duration;
-
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.Statement;
@@ -64,11 +60,6 @@ class CounterBatchMutationQueryAdapter extends AbstractQuery<CounterMutation> im
     //
     ////////////////////
 
-    
-    @Override
-    public CounterMutation withTtl(Duration ttl) {
-        return withTtl((int) ttl.getSeconds());
-    }
     
     @Override
     public CounterMutation combinedWith(CounterMutation other) {

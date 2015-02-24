@@ -19,6 +19,8 @@ package net.oneandone.troilus;
 
 
 
+import java.time.Duration;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
@@ -112,12 +114,13 @@ abstract class AbstractQuery<Q> {
         return newQuery(getContext().withWritetime(writetimeMicrosSinceEpoch));
     }
    
+    
     /**
      * @param ttlSec  the time to live in sec
      * @return a cloned query instance with the modified behavior
      */
-    public Q withTtl(int ttlSec) {
-        return newQuery(getContext().withTtl(ttlSec));
+    public Q withTtl(Duration ttl) {
+        return newQuery(getContext().withTtl((int) ttl.getSeconds()));
     }
     
     /**
