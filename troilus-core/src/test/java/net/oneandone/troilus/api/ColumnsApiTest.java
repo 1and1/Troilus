@@ -18,6 +18,7 @@ package net.oneandone.troilus.api;
 
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,6 +35,7 @@ import net.oneandone.troilus.Record;
 import net.oneandone.troilus.CounterMutation;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -47,7 +49,13 @@ import com.google.common.collect.ImmutableSet;
 public class ColumnsApiTest extends AbstractCassandraBasedTest {
     
 
-        
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(UsersTable.DDL);
+        tryExecuteCqlFile(LoginsTable.DDL);
+        tryExecuteCqlFile(PlusLoginsTable.DDL);
+    }
+
     
     @Test
     public void testSimpleTable() throws Exception {

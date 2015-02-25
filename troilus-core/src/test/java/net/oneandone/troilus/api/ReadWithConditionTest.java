@@ -16,6 +16,7 @@
 package net.oneandone.troilus.api;
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,6 +28,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -38,6 +40,12 @@ import com.google.common.collect.ImmutableSet;
 
 public class ReadWithConditionTest extends AbstractCassandraBasedTest {
     
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(UsersTable.DDL);
+    }
+
  
     
     @Test
@@ -95,10 +103,6 @@ public class ReadWithConditionTest extends AbstractCassandraBasedTest {
         Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER));
         Assert.assertEquals(true, records.next().getBool(UsersTable.IS_CUSTOMER));
         Assert.assertFalse(records.hasNext());
-        
-
-
-        
     }        
 }
 

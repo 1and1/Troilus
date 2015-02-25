@@ -16,8 +16,8 @@
 package net.oneandone.troilus.example;
 
 
+import java.io.IOException;
 import java.time.Duration;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,24 +30,8 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Deletion;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -57,6 +41,12 @@ import static net.oneandone.troilus.example.HotelTableFields.*;
 
 
 public class HotelTest extends AbstractCassandraBasedTest {
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(AddressType.DDL);
+        tryExecuteCqlFile(HotelsTable.DDL);
+    }
     
     
     @Test

@@ -16,8 +16,10 @@
 package net.oneandone.troilus.api;
 
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
+
 
 
 
@@ -34,6 +36,7 @@ import net.oneandone.troilus.Record;
 import net.oneandone.troilus.TooManyResultsException;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -43,6 +46,11 @@ import com.google.common.collect.ImmutableList;
 
 public class PartialReadTest extends AbstractCassandraBasedTest {
     
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(FeesTable.DDL);
+    }
+
  
     
     @Test

@@ -16,6 +16,7 @@
 package net.oneandone.troilus.persistence;
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Optional;
@@ -26,6 +27,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.api.UsersTable;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -34,6 +36,13 @@ import com.google.common.collect.ImmutableSet;
 
 
 public class JPAEntityMappingTest extends AbstractCassandraBasedTest {
+    
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(UsersTable.DDL);
+    }
+    
     
     
     @Test

@@ -18,6 +18,7 @@ package net.oneandone.troilus.api;
 
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 import net.oneandone.troilus.persistence.User;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -48,6 +50,11 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 public class InterceptorTest extends AbstractCassandraBasedTest {
     
+
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(UsersTable.DDL);
+    }
 
         
     

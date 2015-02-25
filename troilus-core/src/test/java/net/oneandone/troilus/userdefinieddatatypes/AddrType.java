@@ -15,8 +15,6 @@
  */
 package net.oneandone.troilus.userdefinieddatatypes;
 
-import net.oneandone.troilus.Schema;
-
 
 
 public interface AddrType  {
@@ -25,5 +23,5 @@ public interface AddrType  {
     public static final String ZIP_CODE = "zip_code";
    
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/addr.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/addr.ddl";
 }

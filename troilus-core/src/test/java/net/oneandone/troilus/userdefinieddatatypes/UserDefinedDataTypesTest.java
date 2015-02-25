@@ -18,6 +18,8 @@ package net.oneandone.troilus.userdefinieddatatypes;
 
 
 
+import java.io.IOException;
+
 import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
@@ -25,6 +27,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -35,6 +38,16 @@ import com.google.common.collect.ImmutableSet;
 
 
 public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
+    
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(ScoreType.DDL);
+        tryExecuteCqlFile(ClassifierType.DDL);
+        tryExecuteCqlFile(AddresslineType.DDL);
+        tryExecuteCqlFile(AddrType.DDL);
+        tryExecuteCqlFile(CustomersTable.DDL);
+    }
     
 
         

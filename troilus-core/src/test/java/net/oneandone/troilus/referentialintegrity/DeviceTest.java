@@ -17,6 +17,8 @@ package net.oneandone.troilus.referentialintegrity;
 
 
 
+import java.io.IOException;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,12 +32,21 @@ import net.oneandone.troilus.interceptor.SingleReadQueryData;
 import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 
 
 public class DeviceTest extends AbstractCassandraBasedTest {
     
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(PhonenumbersTable.DDL);
+        tryExecuteCqlFile(DeviceTable.DDL);
+    }
+    
+
 
     
     @Test

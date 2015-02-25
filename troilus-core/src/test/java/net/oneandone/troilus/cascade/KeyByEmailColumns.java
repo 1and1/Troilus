@@ -17,7 +17,6 @@ package net.oneandone.troilus.cascade;
 
 
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.Schema;
 
 
 
@@ -30,5 +29,5 @@ public interface KeyByEmailColumns  {
     public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
     public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
         
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/key_by_email.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/key_by_email.ddl";
 }

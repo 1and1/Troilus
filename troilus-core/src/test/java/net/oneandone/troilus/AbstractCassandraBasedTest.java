@@ -17,110 +17,99 @@ package net.oneandone.troilus;
 
 
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
-import net.oneandone.troilus.api.FeesTable;
-import net.oneandone.troilus.api.HistoryTable;
-import net.oneandone.troilus.api.IdsTable;
-import net.oneandone.troilus.api.LoginsTable;
-import net.oneandone.troilus.api.PlusLoginsTable;
-import net.oneandone.troilus.api.UsersTable;
-import net.oneandone.troilus.cascade.KeyByAccountColumns;
-import net.oneandone.troilus.cascade.KeyByEmailColumns;
-import net.oneandone.troilus.example.AddressType;
-import net.oneandone.troilus.example.HotelsTable;
-import net.oneandone.troilus.example.RoomsTable;
-import net.oneandone.troilus.referentialintegrity.DeviceTable;
-import net.oneandone.troilus.referentialintegrity.PhonenumbersTable;
-import net.oneandone.troilus.userdefinieddatatypes.AddrType;
-import net.oneandone.troilus.userdefinieddatatypes.AddresslineType;
-import net.oneandone.troilus.userdefinieddatatypes.ClassifierType;
-import net.oneandone.troilus.userdefinieddatatypes.CustomersTable;
-import net.oneandone.troilus.userdefinieddatatypes.ScoreType;
+
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 
 
 
 public abstract class AbstractCassandraBasedTest {
-    
-    private static final String KEYYSPACENAME = "testks";
+
     private static Cluster cluster;
-    private static Session session;
-    
-    
+    private final Session session;
+
+
     
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void beforeClass() throws IOException {
         EmbeddedCassandra.start();
         
         cluster = Cluster.builder()
                          .addContactPointsWithPorts(ImmutableSet.of(EmbeddedCassandra.getNodeaddress()))
                          .build();
-        
-        
-        
-        dropKeyspace(cluster);
-        createKeyspace(cluster);
-        
-        session = cluster.connect(KEYYSPACENAME);
-        createTables(session);
     }
-
-    
-
-    private static final void dropKeyspace(Cluster cluster) {
-        try (Session session = cluster.connect("system")) {
-            session.execute("drop keyspace " + KEYYSPACENAME);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    
-    private static void createKeyspace(Cluster cluster) {
-        try (Session session = cluster.connect("system")) {
-            session.execute("create keyspace " + KEYYSPACENAME + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
-        }
-    }
-    
-    
-    private static void createTables(Session session)  {
-        session.execute(ClassifierType.CREATE_STMT);
-        session.execute(ScoreType.CREATE_STMT);
-        session.execute(AddresslineType.CREATE_STMT);
-        session.execute(AddrType.CREATE_STMT);
-        session.execute(UsersTable.CREATE_STMT);
-        session.execute(LoginsTable.CREATE_STMT);
-        session.execute(PlusLoginsTable.CREATE_STMT);
-        session.execute(FeesTable.CREATE_STMT);
-        session.execute(IdsTable.CREATE_STMT);
-        session.execute(AddressType.CREATE_STMT);
-        session.execute(HotelsTable.CREATE_STMT);
-        session.execute(RoomsTable.CREATE_STMT);
-        session.execute(CustomersTable.CREATE_STMT);
-        session.execute(DeviceTable.CREATE_STMT);
-        session.execute(PhonenumbersTable.CREATE_STMT);
-        session.execute(HistoryTable.CREATE_STMT);
-        session.execute(KeyByAccountColumns.CREATE_STMT);
-        session.execute(KeyByEmailColumns.CREATE_STMT);
-    }
-    
     
     @AfterClass
-    public static void teardown() {
-        session.close();
+    public static void afterClass() {
         cluster.close();
-    }    
+    }   
     
     
-    protected static Session getSession() {
+    public AbstractCassandraBasedTest() {
+        String keyspacename = "ks_" + new Random().nextInt(999999999);
+        createKeyspace(keyspacename);
+        
+        session = cluster.connect(keyspacename);
+    }
+
+    private void createKeyspace(String keyspacename) {
+        try (Session session = cluster.connect("system")) {
+            session.execute("create keyspace " + keyspacename + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
+        }
+    }
+    
+
+    
+    
+    protected Session getSession() {
         return  session;
+    }
+
+  
+    protected void executeCqlFile(String cqlFile) throws IOException {
+        File file = new File(cqlFile);
+        if (file.exists()) {
+            executeCql(Files.toString(new File(cqlFile), Charsets.UTF_8));
+        } else {
+            executeCql(Resources.toString(Resources.getResource(cqlFile), Charsets.UTF_8));
+        }
+    }
+    
+    protected void tryExecuteCqlFile(String cqlFile) {
+        try {
+            File file = new File(cqlFile);
+            if (file.exists()) {
+                tryExecuteCql(Files.toString(new File(cqlFile), Charsets.UTF_8));
+            } else {
+                tryExecuteCql(Resources.toString(Resources.getResource(cqlFile), Charsets.UTF_8));
+            }
+        } catch (IOException ioe) {
+            throw new RuntimeException(cqlFile + " not found");
+        }
+    }
+
+    protected void executeCql(String cql) {
+        session.execute(cql);
+    }
+    
+    protected void tryExecuteCql(String cql) {
+        try {
+            session.execute(cql);
+        } catch (RuntimeException e) { 
+            e.printStackTrace();
+        }
     }
 }
 

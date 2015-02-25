@@ -15,7 +15,6 @@
  */
 package net.oneandone.troilus.example;
 
-import net.oneandone.troilus.Schema;
 
 
 public interface RoomsTable  {
@@ -27,5 +26,5 @@ public interface RoomsTable  {
     public static final String NUMBER_OF_BEDS = "number_of_beds";
     
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/rooms.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/rooms.ddl";
 }

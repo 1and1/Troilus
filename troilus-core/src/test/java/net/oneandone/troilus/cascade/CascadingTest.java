@@ -17,6 +17,7 @@ package net.oneandone.troilus.cascade;
 
 
 
+import java.io.IOException;
 import java.util.Optional;
 
 
@@ -35,6 +36,7 @@ import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -47,6 +49,12 @@ import com.google.common.collect.ImmutableSet;
 
 
 public class CascadingTest extends AbstractCassandraBasedTest {
+
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(KeyByAccountColumns.DDL);
+        tryExecuteCqlFile(KeyByEmailColumns.DDL);
+    }
     
 
     @Test

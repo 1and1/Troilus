@@ -17,6 +17,7 @@ package net.oneandone.troilus.async;
 
 
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -29,6 +30,7 @@ import net.oneandone.troilus.TooManyResultsException;
 import net.oneandone.troilus.api.FeesTable;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -37,6 +39,11 @@ import com.google.common.collect.ImmutableList;
 
 public class AsyncTest extends AbstractCassandraBasedTest {
     
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(FeesTable.DDL);
+    }
     
     
     @Test

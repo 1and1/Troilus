@@ -17,6 +17,7 @@ package net.oneandone.troilus.api;
 
 
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -34,6 +36,11 @@ import com.google.common.collect.ImmutableMap;
 
 public class WideRowTest extends AbstractCassandraBasedTest {
     
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(IdsTable.DDL);
+    }
+
      
     
     @Test

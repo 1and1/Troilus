@@ -15,9 +15,6 @@
  */
 package net.oneandone.troilus.api;
 
-import net.oneandone.troilus.Schema;
-
-
 
 public interface UsersTable  {
    
@@ -33,6 +30,6 @@ public interface UsersTable  {
     public static final String PHONE_NUMBERS = "phone_numbers";
     public static final String ROLES = "roles";    
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/users.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/users.ddl";
  }
 

@@ -15,7 +15,6 @@
  */
 package net.oneandone.troilus.userdefinieddatatypes;
 
-import net.oneandone.troilus.Schema;
 
 
 
@@ -34,5 +33,5 @@ public interface CustomersTable  {
     
     
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/customers.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/customers.ddl";
  }

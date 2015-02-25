@@ -17,10 +17,13 @@ package net.oneandone.troilus.api;
 
 
 
+import java.io.IOException;
+
 import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -29,8 +32,13 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 public class HistroyTableTest extends AbstractCassandraBasedTest {
     
+
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(HistoryTable.DDL);
+    }
+
      
-    
     @Test
     public void testHistoryTable() throws Exception {
         Dao history = new DaoImpl(getSession(), HistoryTable.TABLE)

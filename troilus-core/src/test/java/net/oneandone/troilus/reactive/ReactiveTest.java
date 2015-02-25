@@ -17,6 +17,8 @@ package net.oneandone.troilus.reactive;
 
 
 
+import java.io.IOException;
+
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.AbstractCassandraBasedTest;
@@ -27,6 +29,7 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.api.FeesTable;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -36,6 +39,13 @@ import com.google.common.collect.ImmutableList;
 
 public class ReactiveTest extends AbstractCassandraBasedTest {
     
+    
+    @Before
+    public void before() throws IOException {
+        tryExecuteCqlFile(FeesTable.DDL);
+    }
+    
+
     
     @Test
     public void testAsync() throws Exception {

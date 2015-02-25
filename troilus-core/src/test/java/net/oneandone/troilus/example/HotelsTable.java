@@ -15,7 +15,7 @@
  */
 package net.oneandone.troilus.example;
 
-import net.oneandone.troilus.Schema;
+
 import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
 
 
@@ -31,7 +31,7 @@ public interface HotelsTable  {
     public static final String CLASSIFICATION = "classification";
     
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/hotels.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/hotels.ddl";
     
     public static ConstraintsInterceptor CONSTRAINTS = ConstraintsInterceptor.newConstraints()
                                                                              .withNotNullColumn(NAME);

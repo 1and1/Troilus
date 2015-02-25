@@ -30,7 +30,6 @@ import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.Deletion;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.Schema;
 import net.oneandone.troilus.Write;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryData;
@@ -41,7 +40,7 @@ import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 
 public interface KeyByAccountColumns  {
    
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/key_by_accountid.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/key_by_accountid.ddl";
     
     public static final String TABLE = "key_by_accountid";
 

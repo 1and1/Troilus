@@ -16,7 +16,6 @@
 package net.oneandone.troilus.api;
 
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.Schema;
 
 
 
@@ -27,6 +26,6 @@ public interface HistoryTable  {
     public static final ColumnName<String> SENDER_EMAIL = ColumnName.defineString("sender_email");
     public static final ColumnName<String> RECEIVER_EMAIL = ColumnName.defineString("receiver_email");
     
-    public static final String CREATE_STMT = Schema.load("com/unitedinternet/troilus/example/history.ddl");
+    public static final String DDL = "com/unitedinternet/troilus/example/history.ddl";
  }
 
