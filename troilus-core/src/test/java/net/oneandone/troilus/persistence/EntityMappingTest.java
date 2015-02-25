@@ -22,14 +22,16 @@ import java.time.Duration;
 import java.util.Iterator;
 import java.util.Optional;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.api.UsersTable;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -38,12 +40,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 
-public class EntityMappingTest extends AbstractCassandraBasedTest {
+public class EntityMappingTest  {
     
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(UsersTable.DDL);
+        cassandra.tryExecuteCqlFile(UsersTable.DDL);
     }
     
     
@@ -52,7 +67,7 @@ public class EntityMappingTest extends AbstractCassandraBasedTest {
     @Test
     public void testUserObject() throws Exception {
 
-        Dao userDao = new DaoImpl(getSession(), UsersTable.TABLE)
+        Dao userDao = new DaoImpl(cassandra.getSession(), UsersTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
 
         

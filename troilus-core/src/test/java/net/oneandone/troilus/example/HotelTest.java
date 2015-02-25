@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.IfConditionException;
@@ -29,8 +29,10 @@ import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.Deletion;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -40,12 +42,27 @@ import com.google.common.collect.ImmutableSet;
 import static net.oneandone.troilus.example.HotelTableFields.*;
 
 
-public class HotelTest extends AbstractCassandraBasedTest {
+public class HotelTest {
+    
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+
+
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(AddressType.DDL);
-        tryExecuteCqlFile(HotelsTable.DDL);
+        cassandra.tryExecuteCqlFile(AddressType.DDL);
+        cassandra.tryExecuteCqlFile(HotelsTable.DDL);
     }
     
     
@@ -53,7 +70,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
     public void testExample() throws Exception {
                 
         // create dao
-        Dao hotelsDao = new DaoImpl(getSession(), HotelsTable.TABLE)
+        Dao hotelsDao = new DaoImpl(cassandra.getSession(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
                                   .withInterceptor(HotelsTable.CONSTRAINTS);
         
@@ -338,7 +355,7 @@ public class HotelTest extends AbstractCassandraBasedTest {
     @Test
     public void testWithName() throws Exception {
         
-        Dao hotelsDao = new DaoImpl(getSession(), HotelsTable.TABLE);
+        Dao hotelsDao = new DaoImpl(cassandra.getSession(), HotelsTable.TABLE);
 
 
         hotelsDao.writeWithKey("id", "BUP3443")

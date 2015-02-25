@@ -19,29 +19,44 @@ package net.oneandone.troilus.api;
 
 import java.io.IOException;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 
 
 
-public class HistroyTableTest extends AbstractCassandraBasedTest {
+public class HistroyTableTest {
+    
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
     
 
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(HistoryTable.DDL);
+        cassandra.tryExecuteCqlFile(HistoryTable.DDL);
     }
 
      
     @Test
     public void testHistoryTable() throws Exception {
-        Dao history = new DaoImpl(getSession(), HistoryTable.TABLE)
+        Dao history = new DaoImpl(cassandra.getSession(), HistoryTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
         
         // insert

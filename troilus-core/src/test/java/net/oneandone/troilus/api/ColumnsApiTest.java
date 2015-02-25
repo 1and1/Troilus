@@ -25,8 +25,8 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.Optional;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.Batchable;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -34,8 +34,10 @@ import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.CounterMutation;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -46,26 +48,40 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 
-public class ColumnsApiTest extends AbstractCassandraBasedTest {
+public class ColumnsApiTest{
+    
+    
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
     
 
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(UsersTable.DDL);
-        tryExecuteCqlFile(LoginsTable.DDL);
-        tryExecuteCqlFile(PlusLoginsTable.DDL);
+        cassandra.tryExecuteCqlFile(UsersTable.DDL);
+        cassandra.tryExecuteCqlFile(LoginsTable.DDL);
+        cassandra.tryExecuteCqlFile(PlusLoginsTable.DDL);
     }
 
     
     @Test
     public void testSimpleTable() throws Exception {
-        Dao usersDao = new DaoImpl(getSession(), UsersTable.TABLE)
+        Dao usersDao = new DaoImpl(cassandra.getSession(), UsersTable.TABLE)
                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
-        Dao loginsDao = new DaoImpl(getSession(), LoginsTable.TABLE)
+        Dao loginsDao = new DaoImpl(cassandra.getSession(), LoginsTable.TABLE)
                                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
    
-        Dao plusLoginsDao = new DaoImpl(getSession(), PlusLoginsTable.TABLE)
+        Dao plusLoginsDao = new DaoImpl(cassandra.getSession(), PlusLoginsTable.TABLE)
                                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         

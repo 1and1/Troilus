@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -41,19 +41,34 @@ import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 import net.oneandone.troilus.persistence.User;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 
-public class InterceptorTest extends AbstractCassandraBasedTest {
+public class InterceptorTest  {
+
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
     
 
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(UsersTable.DDL);
+        cassandra.tryExecuteCqlFile(UsersTable.DDL);
     }
 
         
@@ -67,7 +82,7 @@ public class InterceptorTest extends AbstractCassandraBasedTest {
         MyListReadQueryResponseInterceptor listReadResponseInterceptor = new MyListReadQueryResponseInterceptor();
         MyDeleteQueryRequestInterceptor deleteRequestInterceptor = new MyDeleteQueryRequestInterceptor(); 
         
-        Dao usersDao = new DaoImpl(getSession(), UsersTable.TABLE)
+        Dao usersDao = new DaoImpl(cassandra.getSession(), UsersTable.TABLE)
                                  .withInterceptor(writeRequestInterceptor)
                                  .withInterceptor(deleteRequestInterceptor)
                                  .withInterceptor(singleReadRequestInterceptor)

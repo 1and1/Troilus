@@ -20,14 +20,20 @@ package net.oneandone.troilus.userdefinieddatatypes;
 
 import java.io.IOException;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+
+
+
+
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -37,24 +43,35 @@ import com.google.common.collect.ImmutableSet;
 
 
 
-public class UserDefinedDataTypesTest extends AbstractCassandraBasedTest {
+public class UserDefinedDataTypesTest {
     
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+        
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(ScoreType.DDL);
-        tryExecuteCqlFile(ClassifierType.DDL);
-        tryExecuteCqlFile(AddresslineType.DDL);
-        tryExecuteCqlFile(AddrType.DDL);
-        tryExecuteCqlFile(CustomersTable.DDL);
+        cassandra.tryExecuteCqlFile(ScoreType.DDL);
+        cassandra.tryExecuteCqlFile(ClassifierType.DDL);
+        cassandra.tryExecuteCqlFile(AddresslineType.DDL);
+        cassandra.tryExecuteCqlFile(AddrType.DDL);
+        cassandra.tryExecuteCqlFile(CustomersTable.DDL);
     }
     
-
-        
     
     @Test
     public void testSimpleTable() throws Exception {
-        Dao customersDao = new DaoImpl(getSession(), CustomersTable.TABLE)
+        Dao customersDao = new DaoImpl(cassandra.getSession(), CustomersTable.TABLE)
                                      .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 
         

@@ -18,34 +18,51 @@ package net.oneandone.troilus.api;
 
 
 import java.io.IOException;
+
 import java.util.Map;
 import java.util.Optional;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableMap;
 
 
-public class WideRowTest extends AbstractCassandraBasedTest {
+public class WideRowTest {
+    
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(IdsTable.DDL);
+        cassandra.tryExecuteCqlFile(IdsTable.DDL);
     }
 
      
     
     @Test
     public void testIdsTable() throws Exception {
-        Dao userDao = new DaoImpl(getSession(), IdsTable.TABLE)
+        Dao userDao = new DaoImpl(cassandra.getSession(), IdsTable.TABLE)
                                 .withConsistency(ConsistencyLevel.ONE);
         
         // insert

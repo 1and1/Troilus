@@ -21,22 +21,16 @@ import java.util.Iterator;
 import java.util.Optional;
 
 
-
-
-
-
-
-
-
-
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.TooManyResultsException;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -44,18 +38,31 @@ import com.google.common.collect.ImmutableList;
 
 
 
-public class PartialReadTest extends AbstractCassandraBasedTest {
+public class PartialReadTest {
+    
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(FeesTable.DDL);
+        cassandra.tryExecuteCqlFile(FeesTable.DDL);
     }
 
  
     
     @Test
     public void testPartialKey() throws Exception {
-        Dao feeDao = new DaoImpl(getSession(), FeesTable.TABLE);
+        Dao feeDao = new DaoImpl(cassandra.getSession(), FeesTable.TABLE);
 
 
         

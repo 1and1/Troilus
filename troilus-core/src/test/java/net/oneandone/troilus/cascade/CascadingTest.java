@@ -18,6 +18,7 @@ package net.oneandone.troilus.cascade;
 
 
 import java.io.IOException;
+
 import java.util.Optional;
 
 
@@ -25,8 +26,8 @@ import java.util.Optional;
 
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
 import net.oneandone.troilus.Batchable;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -35,8 +36,10 @@ import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -48,19 +51,32 @@ import com.google.common.collect.ImmutableSet;
 
 
 
-public class CascadingTest extends AbstractCassandraBasedTest {
+public class CascadingTest {
+
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
 
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(KeyByAccountColumns.DDL);
-        tryExecuteCqlFile(KeyByEmailColumns.DDL);
+        cassandra.tryExecuteCqlFile(KeyByAccountColumns.DDL);
+        cassandra.tryExecuteCqlFile(KeyByEmailColumns.DDL);
     }
     
 
     @Test
     public void testCasscading() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
         Dao keyByEmailDao = daoManager.getKeyByEmailDao();
@@ -129,7 +145,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscading2() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
         Dao keyByEmailDao = daoManager.getKeyByEmailDao();
@@ -198,7 +214,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingNoIndex() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
         Dao keyByEmailDao = daoManager.getKeyByEmailDao();
@@ -254,7 +270,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingUnssuportedInsert() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
 
@@ -285,7 +301,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingLwtDelete() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
         Dao keyByEmailDao = daoManager.getKeyByEmailDao();
@@ -349,7 +365,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingUnsupportedDeleteQuery() throws Exception {   
         
-        DaoManager daoManager = new DaoManager(getSession());
+        DaoManager daoManager = new DaoManager(cassandra.getSession());
        
         Dao keyByAccountDao = daoManager.getKeyByAccountDao();
         Dao keyByEmailDao = daoManager.getKeyByEmailDao();
@@ -412,7 +428,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingInsertError() throws Exception {   
        
-        Dao keyByAccountDao = new DaoImpl(getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnWriteInterceptor());
+        Dao keyByAccountDao = new DaoImpl(cassandra.getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnWriteInterceptor());
        
         
         String id = "act3354455445544";
@@ -440,7 +456,7 @@ public class CascadingTest extends AbstractCassandraBasedTest {
     @Test
     public void testCasscadingDeleteError() throws Exception {   
        
-        Dao keyByAccountDao = new DaoImpl(getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnDeleteInterceptor());
+        Dao keyByAccountDao = new DaoImpl(cassandra.getSession(), KeyByAccountColumns.TABLE).withInterceptor(new ErroneousCascadeOnDeleteInterceptor());
 
         
         String id = "act3343343454544";

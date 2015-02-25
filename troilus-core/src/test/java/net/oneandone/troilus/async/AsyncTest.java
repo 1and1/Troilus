@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -29,26 +29,41 @@ import net.oneandone.troilus.Result;
 import net.oneandone.troilus.TooManyResultsException;
 import net.oneandone.troilus.api.FeesTable;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 
 
-public class AsyncTest extends AbstractCassandraBasedTest {
+public class AsyncTest {
     
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(FeesTable.DDL);
+        cassandra.tryExecuteCqlFile(FeesTable.DDL);
     }
     
     
     @Test
     public void testAsync() throws Exception {
-        Dao feeDao = new DaoImpl(getSession(), FeesTable.TABLE);
+        Dao feeDao = new DaoImpl(cassandra.getSession(), FeesTable.TABLE);
 
         
         // delete records of previous tests

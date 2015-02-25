@@ -23,9 +23,6 @@ import java.util.Random;
 
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.base.Charsets;
@@ -35,33 +32,32 @@ import com.google.common.io.Resources;
 
 
 
-public abstract class AbstractCassandraBasedTest {
+public class Cassandra {
 
-    private static Cluster cluster;
+    private Cluster cluster;
     private final Session session;
 
 
-    
-    @BeforeClass
-    public static void beforeClass() throws IOException {
-        EmbeddedCassandra.start();
-        
-        cluster = Cluster.builder()
-                         .addContactPointsWithPorts(ImmutableSet.of(EmbeddedCassandra.getNodeaddress()))
-                         .build();
+    public static Cassandra create() {
+        return new Cassandra();
     }
-    
-    @AfterClass
-    public static void afterClass() {
-        cluster.close();
-    }   
-    
-    
-    public AbstractCassandraBasedTest() {
-        String keyspacename = "ks_" + new Random().nextInt(999999999);
-        createKeyspace(keyspacename);
-        
-        session = cluster.connect(keyspacename);
+
+    private Cassandra() {
+        try {
+            EmbeddedCassandra.start();
+            
+            cluster = Cluster.builder()
+                             .addContactPointsWithPorts(ImmutableSet.of(EmbeddedCassandra.getNodeaddress()))
+                             .build();
+            
+            
+            String keyspacename = "ks_" + new Random().nextInt(999999999);
+            createKeyspace(keyspacename);
+            
+            session = cluster.connect(keyspacename);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 
     private void createKeyspace(String keyspacename) {
@@ -69,16 +65,18 @@ public abstract class AbstractCassandraBasedTest {
             session.execute("create keyspace " + keyspacename + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
         }
     }
+        
+    public void close() {
+        cluster.close();
+    }   
     
-
     
-    
-    protected Session getSession() {
+    public Session getSession() {
         return  session;
     }
 
   
-    protected void executeCqlFile(String cqlFile) throws IOException {
+    public void executeCqlFile(String cqlFile) throws IOException {
         File file = new File(cqlFile);
         if (file.exists()) {
             executeCql(Files.toString(new File(cqlFile), Charsets.UTF_8));
@@ -87,7 +85,7 @@ public abstract class AbstractCassandraBasedTest {
         }
     }
     
-    protected void tryExecuteCqlFile(String cqlFile) {
+    public void tryExecuteCqlFile(String cqlFile) {
         try {
             File file = new File(cqlFile);
             if (file.exists()) {
@@ -100,11 +98,11 @@ public abstract class AbstractCassandraBasedTest {
         }
     }
 
-    protected void executeCql(String cql) {
+    public void executeCql(String cql) {
         session.execute(cql);
     }
     
-    protected void tryExecuteCql(String cql) {
+    public void tryExecuteCql(String cql) {
         try {
             session.execute(cql);
         } catch (RuntimeException e) { 
@@ -112,5 +110,3 @@ public abstract class AbstractCassandraBasedTest {
         }
     }
 }
-
-

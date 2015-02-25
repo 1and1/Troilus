@@ -18,11 +18,10 @@ package net.oneandone.troilus.referentialintegrity;
 
 
 import java.io.IOException;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.AbstractCassandraBasedTest;
+import net.oneandone.troilus.Cassandra;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -31,19 +30,34 @@ import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
 import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 
 
-public class DeviceTest extends AbstractCassandraBasedTest {
+public class DeviceTest {
     
+    private static Cassandra cassandra;
+    
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        cassandra = Cassandra.create();
+    }
+        
+    @AfterClass
+    public static void afterClass() throws IOException {
+        cassandra.close();
+    }
+
     
     @Before
     public void before() throws IOException {
-        tryExecuteCqlFile(PhonenumbersTable.DDL);
-        tryExecuteCqlFile(DeviceTable.DDL);
+        cassandra.tryExecuteCqlFile(PhonenumbersTable.DDL);
+        cassandra.tryExecuteCqlFile(DeviceTable.DDL);
     }
     
 
@@ -60,8 +74,8 @@ public class DeviceTest extends AbstractCassandraBasedTest {
             4, by accessing the table entries the back relation should be check with cl one 
          */
                 
-        Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
-        Dao deviceDao = new DaoImpl(getSession(), "device");
+        Dao phoneNumbersDao = new DaoImpl(cassandra.getSession(), "phone_numbers");
+        Dao deviceDao = new DaoImpl(cassandra.getSession(), "device");
         
         
         
