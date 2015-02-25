@@ -32,17 +32,17 @@ import com.google.common.io.Resources;
 
 
 
-public class Cassandra {
+public class CassandraDB {
 
     private Cluster cluster;
     private final Session session;
 
 
-    public static Cassandra create() {
-        return new Cassandra();
+    public static CassandraDB create() {
+        return new CassandraDB();
     }
 
-    private Cassandra() {
+    private CassandraDB() {
         try {
             EmbeddedCassandra.start();
             

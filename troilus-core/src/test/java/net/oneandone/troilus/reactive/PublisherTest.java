@@ -17,7 +17,7 @@ package net.oneandone.troilus.reactive;
 
 import java.io.IOException;
 
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -34,12 +34,12 @@ import org.testng.annotations.Test;
 @Test
 public class PublisherTest extends PublisherVerification<Record> {
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
 
     
     @BeforeTest
     public void setup() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
         
         cassandra.executeCql("CREATE TABLE publisher_test (table_id int  PRIMARY KEY)");
         for(int i = 0; i < maxElementsFromPublisher(); i++) {

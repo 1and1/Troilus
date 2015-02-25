@@ -24,7 +24,7 @@ import java.io.IOException;
 
 
 
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -45,12 +45,12 @@ import com.google.common.collect.ImmutableSet;
 
 public class UserDefinedDataTypesTest {
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
     
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
     }
         
     @AfterClass

@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -40,12 +40,12 @@ import org.junit.Test;
 
 public class DeviceTest {
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
     
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
     }
         
     @AfterClass

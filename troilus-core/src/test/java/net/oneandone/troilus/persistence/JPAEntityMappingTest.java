@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Optional;
 
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.api.UsersTable;
@@ -39,12 +39,12 @@ import com.google.common.collect.ImmutableSet;
 
 public class JPAEntityMappingTest  {
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
     
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
     }
         
     @AfterClass

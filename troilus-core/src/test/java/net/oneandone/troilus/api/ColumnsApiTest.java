@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.Batchable;
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -51,12 +51,12 @@ import com.google.common.collect.ImmutableSet;
 public class ColumnsApiTest{
     
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
     
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
     }
         
     @AfterClass

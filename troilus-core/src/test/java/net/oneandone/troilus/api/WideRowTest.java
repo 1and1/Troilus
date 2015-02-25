@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
-import net.oneandone.troilus.Cassandra;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
@@ -39,12 +39,12 @@ import com.google.common.collect.ImmutableMap;
 
 public class WideRowTest {
     
-    private static Cassandra cassandra;
+    private static CassandraDB cassandra;
     
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = Cassandra.create();
+        cassandra = CassandraDB.create();
     }
         
     @AfterClass
