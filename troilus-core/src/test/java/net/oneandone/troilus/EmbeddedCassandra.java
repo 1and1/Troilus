@@ -35,7 +35,7 @@ import com.google.common.io.Closeables;
 
 
 
-public class EmbeddedCassandra {
+class EmbeddedCassandra {
 
     private static final String CASSANDRA_YAML_FILE = "cassandra.yaml";
 
