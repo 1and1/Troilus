@@ -50,7 +50,7 @@ public class UserDefinedDataTypesTest {
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        cassandra = CassandraDB.create();
+        cassandra = CassandraDB.newInstance();
     }
         
     @AfterClass

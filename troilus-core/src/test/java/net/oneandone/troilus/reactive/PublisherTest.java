@@ -39,7 +39,7 @@ public class PublisherTest extends PublisherVerification<Record> {
     
     @BeforeTest
     public void setup() throws IOException {
-        cassandra = CassandraDB.create();
+        cassandra = CassandraDB.newInstance();
         
         cassandra.executeCql("CREATE TABLE publisher_test (table_id int  PRIMARY KEY)");
         for(int i = 0; i < maxElementsFromPublisher(); i++) {

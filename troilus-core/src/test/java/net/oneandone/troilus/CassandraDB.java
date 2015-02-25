@@ -19,9 +19,10 @@ package net.oneandone.troilus;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 
+
+import java.util.UUID;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -38,11 +39,22 @@ public class CassandraDB {
     private final Session session;
 
 
-    public static CassandraDB create() {
-        return new CassandraDB();
+    /**
+     * @return a new cassandra database instance (SimpleStrategy with RF=1) with random keyspacename
+     */
+    public static CassandraDB newInstance() {
+        return newInstance("ks_" + UUID.randomUUID().toString().replace("-", ""));
+    }
+    
+    /**
+     * @param keyspacename  the keyspacename to use 
+     * @return  new cassandra database instance (SimpleStrategy with RF=1) with requested keyspacename
+     */
+    public static CassandraDB newInstance(String keyspacename) {
+        return new CassandraDB(keyspacename);
     }
 
-    private CassandraDB() {
+    private CassandraDB(String keyspacename) {
         try {
             EmbeddedCassandra.start();
             
@@ -51,7 +63,6 @@ public class CassandraDB {
                              .build();
             
             
-            String keyspacename = "ks_" + new Random().nextInt(999999999);
             createKeyspace(keyspacename);
             
             session = cluster.connect(keyspacename);
