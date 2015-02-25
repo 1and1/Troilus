@@ -87,6 +87,12 @@ public class CassandraDB {
     }
 
   
+    /**
+     * executes a CQL file 
+     * 
+     * @param cqlFile    the CQL file name 
+     * @throws IOException  if the file could not be found
+     */
     public void executeCqlFile(String cqlFile) throws IOException {
         File file = new File(cqlFile);
         if (file.exists()) {
@@ -96,6 +102,13 @@ public class CassandraDB {
         }
     }
     
+    
+    /**
+     * executes a CQL file. CQL processing errors will be ignored 
+     * 
+     * @param cqlFile    the CQL file name 
+     * @throws IOException  if the file could not be found
+     */
     public void tryExecuteCqlFile(String cqlFile) {
         try {
             File file = new File(cqlFile);
@@ -109,10 +122,22 @@ public class CassandraDB {
         }
     }
 
+    
+    /**
+     * executes CQL 
+     * 
+     * @param cql    the CQL to execute  
+     */
     public void executeCql(String cql) {
         session.execute(cql);
     }
+ 
     
+    /**
+     * executes CQL. CQL processing errors will be ignored 
+     * 
+     * @param cql  the CQL to execute
+     */
     public void tryExecuteCql(String cql) {
         try {
             session.execute(cql);
