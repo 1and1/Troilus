@@ -39,7 +39,7 @@ import com.datastax.driver.core.Session;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-@Path("/classic")
+@Path("/classic/hotels")
 public class ClassicHotelService {
 
     private final RxClient restClient = new RxClient(ClientBuilder.newClient());
@@ -55,7 +55,7 @@ public class ClassicHotelService {
         preparedSelectStmt.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
     
-    @Path("hotels/{id}/thumbnail")
+    @Path("/{id}/thumbnail")
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
@@ -125,7 +125,7 @@ public class ClassicHotelService {
     
     
 
-    @Path("hotels/{id}/thumbnail")
+    @Path("/{id}/thumbnail")
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync2(@PathParam("id") String hotelId, 

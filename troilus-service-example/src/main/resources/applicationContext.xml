@@ -41,4 +41,6 @@
 		<constructor-arg ref="cassandraSession" />
 	</bean>
 	
+	<bean id="pictureService" class="net.oneandone.troilus.example.service.PictureService"/>
+	
 </beans>

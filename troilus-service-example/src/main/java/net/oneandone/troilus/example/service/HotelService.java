@@ -45,7 +45,7 @@ import static net.oneandone.reactive.rest.container.ResultConsumer.writeTo;
 import com.datastax.driver.core.ConsistencyLevel;
 
 
-@Path("/")
+@Path("/hotels")
 public class HotelService implements Closeable {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
@@ -67,7 +67,7 @@ public class HotelService implements Closeable {
     }
     
     
-    @Path("hotels/{id}")
+    @Path("/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public void getHotelsAsync(@PathParam("id") String hotelId, @Suspended AsyncResponse resp) {
@@ -83,7 +83,7 @@ public class HotelService implements Closeable {
     
     
     
-    @Path("hotels/{id}/thumbnail")
+    @Path("/{id}/thumbnail")
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
@@ -111,7 +111,7 @@ public class HotelService implements Closeable {
     
      
     
-    @Path("hotels")
+    @Path("/")
     @GET
     @Produces("text/event-stream")
     public void getHotelsStreamAsync(@Context HttpServletResponse servletResponse, @Suspended AsyncResponse resp) throws IOException {
