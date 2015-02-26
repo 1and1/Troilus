@@ -18,10 +18,8 @@ package net.oneandone.troilus.example.service;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.BiConsumer;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +40,7 @@ import net.oneandone.reactive.rest.client.RxClient;
 import net.oneandone.reactive.sse.ServerSentEvent;
 import net.oneandone.reactive.sse.servlet.ServletSseSubscriber;
 import net.oneandone.troilus.Dao;
+import static net.oneandone.reactive.rest.container.ResultConsumer.writeTo;
 
 import com.datastax.driver.core.ConsistencyLevel;
 
@@ -51,7 +50,9 @@ public class HotelService implements Closeable {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private final RxClient restClient = new RxClient(ClientBuilder.newClient());
-    private final byte[] defaultPicture = new byte[] { 45, 56, 45, 45, 45};
+    private final byte[] defaultPicture = new byte[] { 98, 105, 108, 100 };
+    
+    
     
     private final Dao hotelsDao;
     
@@ -77,7 +78,7 @@ public class HotelService implements Closeable {
                  .executeAsync()
                  .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
                  .thenApply(hotel -> new HotelRepresentation(hotel.getId(), hotel.getName(), hotel.getRoomIds()))
-                 .whenComplete(ResultConsumer.writeTo(resp));
+                 .whenComplete(writeTo(resp));
     }
     
     
@@ -85,15 +86,14 @@ public class HotelService implements Closeable {
     @Path("hotels/{id}/thumbnail")
     @GET
     @Produces("image/png")
-    public void getHotelExternalViewAsync(@PathParam("id") String hotelId, 
-                                          @PathParam("height") @DefaultValue("480") int height,  
-                                          @PathParam("width") @DefaultValue("640") int width,
-                                          @Suspended AsyncResponse resp) {
+    public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
+                                       @PathParam("height") @DefaultValue("480") int height,  
+                                       @PathParam("width") @DefaultValue("640") int width,
+                                       @Suspended AsyncResponse resp) {
 
 
         hotelsDao.readWithKey("id", hotelId)
                  .asEntity(Hotel.class)
-                 .withConsistency(ConsistencyLevel.QUORUM)
                  .executeAsync()
                  .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
                  .thenCompose(hotel -> hotel.getPictureUri().map(uri -> restClient.target(uri)
@@ -106,31 +106,10 @@ public class HotelService implements Closeable {
                                                    .size(height, width)
                                                    .outputFormat("image/png")
                                                    .computeAsync())    
-                 .whenComplete(ResultConsumer.writeTo(resp));
-        
-        
-         
+                 .whenComplete(writeTo(resp));
     }
     
-    /*
-
-         
-                  restClient.target(uri).request().rx().get(byte[].class)
-                  .exceptionally(error -> defaultPicture
-        .thenCompose(hotel -> restClient.target(hotel.getPictureUri())
-                .request()
-                .rx()
-                .get(byte[].class)
-                .exceptionally(error -> defaultPicture))
-.thenCompose(picture -> Thumbnails.of(picture)
-                   .size(height, width)
-                   .outputFormat("image/png")
-                   .computeAsync())                    
-
-
-     */
-    
-    
+     
     
     @Path("hotels")
     @GET
@@ -149,68 +128,4 @@ public class HotelService implements Closeable {
                                                .map(hotel -> ServerSentEvent.newEvent().data(hotel.getName()))
                                                .consume(new ServletSseSubscriber(out, executor)));
     }   
-    
-    
-    
-
-
-/**
- * ResultConsumer
- *
- */
-private static  class ResultConsumer implements BiConsumer<Object, Throwable> {
-    
-    private final AsyncResponse asyncResponse;
-    
-    private ResultConsumer(AsyncResponse asyncResponse) {
-        this.asyncResponse = asyncResponse;
-    }
-
-    
-    @Override
-    public void accept(Object result, Throwable error) {
-        try {
-            if (error == null) {
-                asyncResponse.resume(result);
-            } else {
-                asyncResponse.resume(unwrapIfNecessary(error, 10));
-            }
-        } catch (RuntimeException rt) {
-            System.out.println(rt);
-        }
-    }
-    
-    
-    private static Throwable unwrapIfNecessary(Throwable ex, int maxDepth)  {
-
-        if (isCompletionException(ex)) {
-            Throwable e = ex.getCause();
-            if (e != null) {
-                if (maxDepth > 1) {
-                    return unwrapIfNecessary(e, maxDepth - 1);
-                } else {
-                    return e;
-                }
-            }
-        }
-            
-        return ex;
-    }
-    
-    
-    private static boolean isCompletionException(Throwable t) {
-        return CompletionException.class.isAssignableFrom(t.getClass());
-    }
-    
-    
-    
-    /**
-     * forwards the response to the REST response object. Includes error handling also 
-     * @param asyncResponse the REST response
-     * @return the BiConsumer consuming the response/error pair
-     */
-    public static final BiConsumer<Object, Throwable> writeTo(AsyncResponse asyncResponse) {
-        return new ResultConsumer(asyncResponse);
-    }
-}
 }

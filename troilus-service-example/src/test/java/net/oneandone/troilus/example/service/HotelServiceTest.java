@@ -87,24 +87,37 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                   .request()
                   .get(byte[].class);
             Assert.fail("NotFoundException expected");
-        } catch (NotFoundException expected) { } catch (InternalServerErrorException t) {
-            Response respone = t.getResponse();
-            System.out.println(respone.readEntity(String.class));
-        }
+        } catch (NotFoundException expected) { } 
 
         
         // hotel entry without URI
         byte[] picture = client.target("http://localhost:9080/service/hotels/BUP45544/thumbnail")
                                .request()
                                .get(byte[].class);
-        Assert.assertArrayEquals(new byte[] { 45, 56, 45, 45, 45 }, picture);
+        
+
+        System.out.println(new String(picture));
+        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
         
 
         // hotel entry with broken URI
         picture = client.target("http://localhost:9080/service/hotels/BUP14334/thumbnail")
                         .request()
                         .get(byte[].class);
-        Assert.assertArrayEquals(new byte[] { 45, 56, 45, 45, 45 }, picture);
+        
+        System.out.println(new String(picture));
+        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
+        
+        
+        
+        // hotel entry with broken URI
+        picture = client.target("http://localhost:9080/service/classic/hotels/BUP14334/thumbnail")
+                        .request()
+                        .get(byte[].class);
+        
+        System.out.println(new String(picture));
+        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
+
     }        
     
     
