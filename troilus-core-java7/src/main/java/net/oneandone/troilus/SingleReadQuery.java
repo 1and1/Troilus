@@ -156,7 +156,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     private ListenableFuture<Record> executeAsync(SingleReadQueryData queryData) {
         // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(SingleReadQueryDataImpl.toStatement(queryData, getContext()));        
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(SingleReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
         
         // result set to record mapper
         Function<ResultSet, Record> resultSetToRecord = new Function<ResultSet, Record>() {

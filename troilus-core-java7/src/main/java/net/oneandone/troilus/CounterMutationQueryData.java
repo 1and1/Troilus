@@ -23,6 +23,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -133,9 +134,10 @@ class CounterMutationQueryData {
                 update.using(QueryBuilder.ttl(bindMarker())); 
                 values.add((Integer) ctx.getTtlSec());
             }
-            
-            return Futures.<Statement>immediateFuture(ctx.getDbSession().prepare(update).bind(values.toArray()));
 
+            
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(update);
+            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
             
         // where condition-based update
         } else {

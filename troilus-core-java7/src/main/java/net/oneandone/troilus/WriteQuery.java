@@ -113,15 +113,15 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
         ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));        
         
         // query data to statement
-        Function<WriteQueryData, Statement> queryDataToStatement = new Function<WriteQueryData, Statement>() {
+        Function<WriteQueryData, ListenableFuture<Statement>> queryDataToStatement = new Function<WriteQueryData, ListenableFuture<Statement>>() {
             @Override
-            public Statement apply(WriteQueryData queryData) {
-                return WriteQueryDataImpl.toStatement(queryData, getContext());
+            public ListenableFuture<Statement> apply(WriteQueryData queryData) {
+                return WriteQueryDataImpl.toStatementAsync(queryData, getContext());
             }
         };
         
         
-        ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
+        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, getContext().getTaskExecutor());
         if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
             return statementFuture;
             

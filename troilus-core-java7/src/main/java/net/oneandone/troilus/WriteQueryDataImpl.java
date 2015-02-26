@@ -41,12 +41,15 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -610,7 +613,7 @@ class WriteQueryDataImpl implements WriteQueryData {
      * @param ctx    the context
      * @return the query data as statement
      */
-    static Statement toStatement(WriteQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(WriteQueryData data, Context ctx) {
         
         if (isKeyOnlyStatement(data)) {
             Map<String, Optional<Object>> valuesToMUtate = Maps.newHashMap();
@@ -623,14 +626,14 @@ class WriteQueryDataImpl implements WriteQueryData {
         
         
         if ((data.getIfNotExits() != null) || (data.getKeys().isEmpty() && data.getWhereConditions().isEmpty())) {
-            return toInsertStatement(data, ctx);
+            return toInsertStatementAsync(data, ctx);
         } else {
-            return toUpdateStatement(data, ctx);
+            return toUpdateStatementAsync(data, ctx);
         }
     }
     
     
-    private static Statement toInsertStatement(WriteQueryData data,Context ctx) {
+    private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data,Context ctx) {
         Insert insert = insertInto(ctx.getDbSession().getTablename());
         
         List<Object> values = Lists.newArrayList();
@@ -652,14 +655,15 @@ class WriteQueryDataImpl implements WriteQueryData {
             values.add((Integer) ctx.getTtlSec());
         }
 
-        PreparedStatement stmt = ctx.getDbSession().prepare(insert);
-        return stmt.bind(values.toArray());
+        
+        ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(insert);
+        return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
     }
     
     
     
     
-    private static Statement toUpdateStatement(WriteQueryData data, Context ctx) {
+    private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, Context ctx) {
         com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
         
         
@@ -718,8 +722,16 @@ class WriteQueryDataImpl implements WriteQueryData {
             
    
             
-            return ctx.getDbSession().prepare(update).bind(values.toArray());
-
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(update);
+            
+            final Object[] valueArray = values.toArray();
+            Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
+                @Override
+                public Statement apply(PreparedStatement preparedStatement) {
+                    return preparedStatement.bind(valueArray);
+                }
+            };
+            return Futures.transform(preparedStatementFuture, bindStatementFunction);
             
         // where condition-based update
         } else {
@@ -756,7 +768,7 @@ class WriteQueryDataImpl implements WriteQueryData {
                 update.where(whereCondition);
             }
                         
-            return update;
+            return Futures.<Statement>immediateFuture(update);
         }
     }
     

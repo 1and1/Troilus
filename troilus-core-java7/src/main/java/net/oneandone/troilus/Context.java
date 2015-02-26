@@ -36,10 +36,12 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.UserType;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
@@ -50,6 +52,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 
@@ -477,16 +481,36 @@ class Context {
             return metadata;
         }
         
-        PreparedStatement prepare(BuiltStatement statement) {
+        ListenableFuture<PreparedStatement> prepare(final BuiltStatement statement) {
             PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
             if (preparedStatment == null) {
-//                preparedStatment = session.prepareAsync(statement);
-                preparedStatment = session.prepare(statement);
-                preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
+                ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
+                
+                Function<PreparedStatement, PreparedStatement> addToCacheFunction = new Function<PreparedStatement, PreparedStatement>() {
+                    
+                    public PreparedStatement apply(PreparedStatement preparedStatment) {
+                        preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
+                        return preparedStatment;
+                    }
+                };
+                return Futures.transform(future, addToCacheFunction);
+                
+            } else {
+                return Futures.immediateFuture(preparedStatment);
             }
-
-            return preparedStatment;
         }
+        
+        
+        public ListenableFuture<Statement> bind(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
+            Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
+                @Override
+                public Statement apply(PreparedStatement preparedStatement) {
+                    return preparedStatement.bind(values);
+                }
+            };
+            return Futures.transform(preparedStatementFuture, bindStatementFunction);
+        }
+        
         
         @Override
         public String toString() {

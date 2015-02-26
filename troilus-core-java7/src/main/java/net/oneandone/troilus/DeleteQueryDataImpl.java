@@ -30,10 +30,13 @@ import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Delete;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
@@ -125,7 +128,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @param ctx   the context
      * @return the query data statement
      */
-    static Statement toStatement(DeleteQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, Context ctx) {
         Delete delete = delete().from(ctx.getDbSession().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
@@ -147,8 +150,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
             }
             
-            return ctx.getDbSession().prepare(delete).bind(values.toArray());
-
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(delete);
+            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
             
         // where condition-based delete    
         } else {
@@ -156,7 +159,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 delete.where(whereCondition);
             }
            
-            return delete;
+            return Futures.<Statement>immediateFuture(delete);
         }        
     }
 }

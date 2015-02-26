@@ -110,18 +110,18 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data));
         
         // query data to statement
-        Function<DeleteQueryData, Statement> queryDataToStatement = new Function<DeleteQueryData, Statement>() {
+        Function<DeleteQueryData, ListenableFuture<Statement>> queryDataToStatement = new Function<DeleteQueryData, ListenableFuture<Statement>>() {
             @Override
-            public Statement apply(DeleteQueryData queryData) {
+            public ListenableFuture<Statement> apply(DeleteQueryData queryData) {
                 if (queryData == null) {
                     throw new NullPointerException();
                 }
-                return DeleteQueryDataImpl.toStatement(queryData, getContext());
+                return DeleteQueryDataImpl.toStatementAsync(queryData, getContext());
             }
         };
         
         
-        ListenableFuture<Statement> statementFuture = Futures.transform(queryDataFuture, queryDataToStatement);
+        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, getContext().getTaskExecutor());
         if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).isEmpty()) {
             return statementFuture;
         

@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 
 
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
@@ -28,6 +29,7 @@ import java.util.Map.Entry;
 
 import net.oneandone.troilus.java7.interceptor.ListReadQueryData;
 
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
@@ -35,6 +37,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -201,7 +205,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
      * @param ctx    the context
      * @return  the query as statement
      */
-    static Statement toStatement(ListReadQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(ListReadQueryData data, Context ctx) {
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -245,7 +249,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
                 select.where(whereClause);
             }
             
-            return select;
+            return Futures.<Statement>immediateFuture(select);
 
             
         // key-based selection    
@@ -263,7 +267,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
                 
             }
 
-            return ctx.getDbSession().prepare(select).bind(values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(select);
+            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
         }
     }
     

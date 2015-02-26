@@ -26,11 +26,13 @@ import java.util.Map.Entry;
 
 import net.oneandone.troilus.interceptor.SingleReadQueryData;
 
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.Selection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
@@ -85,7 +87,7 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
      * @param ctx    the context 
      * @return the query as statement 
      */
-    static Statement toStatement(SingleReadQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(SingleReadQueryData data, Context ctx) {
         Selection selection = select();
         
         // set the columns to fetch 
@@ -120,8 +122,8 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
         }
         
-        Statement stmt = ctx.getDbSession().prepare(select).bind(values.toArray());
-        return stmt;
+        
+        ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(select);
+        return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
     }
-
 }
