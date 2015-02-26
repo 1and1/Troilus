@@ -15,28 +15,16 @@
  */
 package net.oneandone.troilus;
 
-import java.nio.ByteBuffer;
-
+import java.util.Iterator;
 import java.util.List;
 
 
-
-
-import java.util.Map.Entry;
-
-import net.oneandone.troilus.interceptor.SingleReadQueryData;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.RecordList;
 import net.oneandone.troilus.java7.SingleRead;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
-import net.oneandone.troilus.java7.interceptor.SingleReadQueryRequestInterceptor;
-import net.oneandone.troilus.java7.interceptor.SingleReadQueryResponseInterceptor;
+import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -49,15 +37,14 @@ import com.google.common.util.concurrent.ListenableFuture;
  * Read query implementation
  */
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record> {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(SingleReadQuery.class);
-    private final SingleReadQueryData data;
+
+    private final ReadQueryData data;
     
     /**
      * @param ctx   the context 
      * @param data  the data
      */
-    SingleReadQuery(Context ctx, SingleReadQueryData data) {
+    SingleReadQuery(Context ctx, ReadQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -71,7 +58,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return new SingleReadQuery(newContext, data);
     }
 
-    private SingleReadQuery newQuery(SingleReadQueryData data) {
+    private SingleReadQuery newQuery(ReadQueryData data) {
         return new SingleReadQuery(getContext(), data);
     }
 
@@ -141,104 +128,29 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public ListenableFuture<Record> executeAsync() {
-        // perform request executors
-        ListenableFuture<SingleReadQueryData> queryDataFuture =  executeRequestInterceptorsAsync(Futures.<SingleReadQueryData>immediateFuture(data)); 
-
-        // execute query asnyc
-        Function<SingleReadQueryData, ListenableFuture<Record>> queryExecutor = new Function<SingleReadQueryData, ListenableFuture<Record>>() {
-            @Override
-            public ListenableFuture<Record> apply(SingleReadQueryData querData) {
-                return executeAsync(querData);
-            }
-        };
-        return ListenableFutures.transform(queryDataFuture, queryExecutor);
-    }
-    
-    private ListenableFuture<Record> executeAsync(SingleReadQueryData queryData) {
-        // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(SingleReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
+        ListenableFuture<RecordList> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
         
-        // result set to record mapper
-        Function<ResultSet, Record> resultSetToRecord = new Function<ResultSet, Record>() {
+        Function<RecordList, Record> fetchRecordFunction = new Function<RecordList, Record>() {
             
             @Override
-            public Record apply(ResultSet resultSet) {
-                Row row = resultSet.one();
-                
-                if (row == null) {
-                    return null; 
-                } else {
-                    if (!resultSet.isExhausted()) {
-                        throw new TooManyResultsException(newResult(resultSet), "more than one record exists");
+            public Record apply(RecordList records) {
+                Iterator<Record> it = records.iterator();
+                if (it.hasNext()) {
+                    Record record = it.next();
+                    
+                    if (it.hasNext()) {
+                        throw new TooManyResultsException(records, "more than one record exists");
                     }
-                    Record record = new RecordImpl(getContext(), newResult(resultSet), row);
-                    paranoiaCheck(record);
+                    
                     return record;
+                } else {
+                    return null;
                 }
             }
         };
-        ListenableFuture<Record> recordFuture = Futures.transform(resultSetFuture, resultSetToRecord);
         
-        // perform response interceptor
-        return executeResponseInterceptorsAsync(queryData, recordFuture);
+        return Futures.transform(recordsFuture, fetchRecordFunction);
     }
-
-    
-    private ListenableFuture<SingleReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<SingleReadQueryData> queryDataFuture) {
-
-        for (SingleReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryRequestInterceptor.class).reverse()) {
-            final SingleReadQueryRequestInterceptor icptor = interceptor;
-
-            Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>> mapperFunction = new Function<SingleReadQueryData, ListenableFuture<SingleReadQueryData>>() {
-                @Override
-                public ListenableFuture<SingleReadQueryData> apply(SingleReadQueryData queryData) {
-                    return icptor.onSingleReadRequestAsync(queryData);
-                }
-            };
-
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
-        }
-
-        return queryDataFuture;        
-    }
-    
-    
-    private ListenableFuture<Record> executeResponseInterceptorsAsync(final SingleReadQueryData queryData, ListenableFuture<Record> recordFuture) {
-        
-        for (SingleReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(SingleReadQueryResponseInterceptor.class).reverse()) {
-            final SingleReadQueryResponseInterceptor icptor = interceptor;
-            
-            Function<Record, ListenableFuture<Record>> mapperFunction = new Function<Record, ListenableFuture<Record>>() {
-                @Override
-                public ListenableFuture<Record> apply(Record record) {
-                    return icptor.onSingleReadResponseAsync(queryData, record);
-                }
-            };
-            
-            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction);
-        }
-
-        return recordFuture;
-    }
-
-    
-    
-    private Record paranoiaCheck(Record record) {
-        
-        for (Entry<String, Object> entry : data.getKey().entrySet()) {
-            ByteBuffer in = DataType.serializeValue(entry.getValue(), getContext().getDbSession().getProtocolVersion());
-            ByteBuffer out = record.getBytesUnsafe(entry.getKey());
-
-            if (in.compareTo(out) != 0) {
-                 LOG.warn("Dataswap error for " + entry.getKey());
-                 throw new ProtocolErrorException("Dataswap error for " + entry.getKey()); 
-            }
-        }
-        
-        return record; 
-    }
-    
-    
     
     /**
      * Entity read query 

@@ -15,8 +15,10 @@
  */
 package net.oneandone.troilus.java7;
 
+
 import org.reactivestreams.Publisher;
 
+import net.oneandone.troilus.FetchControl;
 import net.oneandone.troilus.Result;
 
 
@@ -24,6 +26,6 @@ import net.oneandone.troilus.Result;
 /**
  * Record list
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
-    
+public interface RecordList extends Result, Iterable<Record>, FetchControl, Publisher<Record> {   
+   
 }

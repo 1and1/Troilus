@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus.java7.interceptor;
 
-import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.RecordList;
+
+import com.google.common.util.concurrent.ListenableFuture;
+
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
-
-
-
+ 
 
 
 
 /**
- * Interceptor which will be executed after performing a list read query   
- */ 
-public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
+ * Interceptor which will be executed before performing a list read query  
+ */  
+public interface ReadQueryRequestInterceptor extends QueryInterceptor {
     
     /**
-     * @param queryData    the request data
-     * @param recordList   the response
-     * @return the (modified) response
+     * @param queryData  the request data
+     * @return the (modified) request data
      */
-    CompletableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
+    ListenableFuture<ReadQueryData> onReadRequestAsync(ReadQueryData queryData);
 }
  

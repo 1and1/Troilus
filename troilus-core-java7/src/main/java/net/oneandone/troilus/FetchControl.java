@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus;
 
-import java.util.concurrent.CompletableFuture;
-
-import net.oneandone.troilus.interceptor.QueryInterceptor;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
+public interface FetchControl {
 
-
-
-
-
-
-
-/**
- * Interceptor which will be executed before performing a read query  
- */  
-public interface SingleReadQueryRequestInterceptor extends QueryInterceptor {
+    boolean isFullyFetched();
     
-    /**
-     * @param queryData the request data
-     * @return the (modified) request data
-     */
-    CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync(SingleReadQueryData queryData);
+    ListenableFuture<Void> fetchMoreResults();
 }
- 

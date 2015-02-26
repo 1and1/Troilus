@@ -21,6 +21,6 @@ import org.reactivestreams.Publisher;
 /**
  * Record list
  */
-public interface RecordList extends Result, Iterable<Record>, Publisher<Record> {   
+public interface RecordList extends Result, Iterable<Record>, FetchControl, Publisher<Record> {   
     
 }

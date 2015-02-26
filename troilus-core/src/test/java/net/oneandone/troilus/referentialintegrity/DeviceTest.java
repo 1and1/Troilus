@@ -18,17 +18,16 @@ package net.oneandone.troilus.referentialintegrity;
 
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.Record;
+import net.oneandone.troilus.RecordList;
 import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryData;
-import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
+import net.oneandone.troilus.interceptor.ReadQueryData;
+import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -233,7 +232,7 @@ public class DeviceTest {
 
     
 
-    private static final class DeviceConstraints implements SingleReadQueryResponseInterceptor {
+    private static final class DeviceConstraints implements ReadQueryResponseInterceptor {
         private final Dao phoneNumbersDao;
                     
         public DeviceConstraints(Dao phoneNumbersDao) {
@@ -242,10 +241,10 @@ public class DeviceTest {
         
 
         @Override
-        public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> record) {
+        public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
 
             // check is related phone numbers points to this device
-            return CompletableFuture.completedFuture(record);
+            return CompletableFuture.completedFuture(recordList);
         }
     }
 

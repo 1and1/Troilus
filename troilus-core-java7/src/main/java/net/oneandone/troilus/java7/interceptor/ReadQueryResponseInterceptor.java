@@ -28,13 +28,13 @@ import net.oneandone.troilus.java7.RecordList;
 /**
  * Interceptor which will be executed after performing a list read query  
  */  
-public interface ListReadQueryResponseInterceptor extends QueryInterceptor {
+public interface ReadQueryResponseInterceptor extends QueryInterceptor {
     
     /**
      * @param queryData   the request data
      * @param recordList  the requested record list
      * @return the (modified) requested record list
      */
-    ListenableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList);
+    ListenableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList);
 }
  

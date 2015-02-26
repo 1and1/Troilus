@@ -17,6 +17,9 @@ package net.oneandone.troilus;
 
 
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.java7.Dao;
 import net.oneandone.troilus.java7.Deletion;
@@ -36,6 +39,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
  
 /**
@@ -204,7 +208,12 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new SingleReadQuery(ctx, new SingleReadQueryDataImpl().key(composedkey));
+        Map<String, ImmutableList<Object>> keys = Maps.newHashMap();
+        for (Entry<String, Object> entry : composedkey.entrySet()) {
+            keys.put(entry.getKey(), ImmutableList.of(entry.getValue()));
+        }
+        
+        return new SingleReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.copyOf(keys)));
     }
     
     @Override
@@ -251,13 +260,13 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String name, ImmutableList<Object> values) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, composedKeyValuesPart2)));        
     }
     
@@ -265,20 +274,20 @@ public class Java7DaoImpl implements Dao {
     public ListReadWithUnit<RecordList> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
                                                                                        composedKeyNamePart3, composedKeyValuesPart3)));        
     }
 
     @Override
     public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1))));
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1))));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                         String composedKeyNamePart2, Object composedKeyValuePart2) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2))));        
     }
 
@@ -321,11 +330,11 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public ListReadQuery readWhere(Clause... clauses) {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
     }
      
     @Override
     public ListReadQuery readAll() {
-        return new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
+        return new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
 }

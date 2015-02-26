@@ -20,23 +20,18 @@ package net.oneandone.troilus.api;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.Record;
 import net.oneandone.troilus.RecordList;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.ListReadQueryData;
-import net.oneandone.troilus.interceptor.ListReadQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.ListReadQueryResponseInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryData;
-import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
+import net.oneandone.troilus.interceptor.ReadQueryData;
+import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
+import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 import net.oneandone.troilus.persistence.User;
@@ -76,8 +71,6 @@ public class InterceptorTest  {
     @Test
     public void testInterceptor() throws Exception {
         MyWriteQueryRequestInterceptor writeRequestInterceptor = new MyWriteQueryRequestInterceptor(); 
-        MySingleReadQueryRequestInterceptor singleReadRequestInterceptor = new MySingleReadQueryRequestInterceptor();
-        MySingleReadQueryResponseInterceptor singleReadResponseInterceptor = new MySingleReadQueryResponseInterceptor();
         MyListReadQueryRequestInterceptor listReadRequestInterceptor = new MyListReadQueryRequestInterceptor();
         MyListReadQueryResponseInterceptor listReadResponseInterceptor = new MyListReadQueryResponseInterceptor();
         MyDeleteQueryRequestInterceptor deleteRequestInterceptor = new MyDeleteQueryRequestInterceptor(); 
@@ -85,8 +78,6 @@ public class InterceptorTest  {
         Dao usersDao = new DaoImpl(cassandra.getSession(), UsersTable.TABLE)
                                  .withInterceptor(writeRequestInterceptor)
                                  .withInterceptor(deleteRequestInterceptor)
-                                 .withInterceptor(singleReadRequestInterceptor)
-                                 .withInterceptor(singleReadResponseInterceptor)
                                  .withInterceptor(listReadRequestInterceptor)
                                  .withInterceptor(listReadResponseInterceptor);
         
@@ -100,11 +91,6 @@ public class InterceptorTest  {
 
 
         
-        usersDao.readWithKey("user_id", "34334234234")
-                .execute();
-        Assert.assertEquals("34334234234", singleReadRequestInterceptor.getQueryData().getKey().get("user_id"));
-        Assert.assertEquals("tom", singleReadResponseInterceptor.getRecord().get().getString("name"));
-
         usersDao.readWhere(QueryBuilder.in("user_id", "34334234234"))
                 .execute();
         Assert.assertTrue(listReadRequestInterceptor.getQueryData().getWhereConditions().size() > 0);
@@ -161,51 +147,14 @@ public class InterceptorTest  {
         }
     }
     
-    
-    private static final class MySingleReadQueryRequestInterceptor implements SingleReadQueryRequestInterceptor {
         
-        private AtomicReference<SingleReadQueryData> queryDataRef = new AtomicReference<>();
+    
+    private static final class MyListReadQueryRequestInterceptor implements ReadQueryRequestInterceptor {
+        
+        private AtomicReference<ReadQueryData> queryDataRef = new AtomicReference<>();
 
         @Override
-        public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync(SingleReadQueryData queryData) {
-            this.queryDataRef.set(queryData);
-            return CompletableFuture.completedFuture(queryData);
-        }
-        
-        public SingleReadQueryData getQueryData() {
-            return queryDataRef.get();
-        }
-    }
-    
-    
-    private static final class MySingleReadQueryResponseInterceptor implements SingleReadQueryResponseInterceptor {
-        
-        private AtomicReference<Optional<Record>> recordRef = new AtomicReference<>();
-
-        
-        @Override
-        public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> record) {
-            this.recordRef.set(record);
-            
-            queryData = queryData.key(queryData.getKey())
-                                 .columnsToFetch(queryData.getColumnsToFetch());
-            
-            return CompletableFuture.completedFuture(record);
-        }
-        
-        public Optional<Record> getRecord() {
-            return recordRef.get();
-        }
-    }
-    
-    
-    
-    private static final class MyListReadQueryRequestInterceptor implements ListReadQueryRequestInterceptor {
-        
-        private AtomicReference<ListReadQueryData> queryDataRef = new AtomicReference<>();
-
-        @Override
-        public CompletableFuture<ListReadQueryData> onListReadRequestAsync(ListReadQueryData queryData) {
+        public CompletableFuture<ReadQueryData> onReadRequestAsync(ReadQueryData queryData) {
             this.queryDataRef.set(queryData);
             
             queryData = queryData.keys(queryData.getKeys())
@@ -218,18 +167,18 @@ public class InterceptorTest  {
             return CompletableFuture.completedFuture(queryData);
         }
         
-        public ListReadQueryData getQueryData() {
+        public ReadQueryData getQueryData() {
             return queryDataRef.get();
         }
     }
     
     
-    private static final class MyListReadQueryResponseInterceptor implements ListReadQueryResponseInterceptor {
+    private static final class MyListReadQueryResponseInterceptor implements ReadQueryResponseInterceptor {
         
         private AtomicReference<RecordList> recordListRef = new AtomicReference<>();
 
         @Override
-        public CompletableFuture<RecordList> onListReadResponseAsync(ListReadQueryData queryData, RecordList recordList) {
+        public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
             this.recordListRef.set(recordList);
             return CompletableFuture.completedFuture(recordList);
         }

@@ -149,7 +149,8 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 }
             };
             
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
+            // running interceptors within dedicated threads!
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
 
         return queryDataFuture; 
@@ -174,6 +175,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             statmentFutures.add(flattenStatementFutureSet);
         }
 
+        // running interceptors within dedicated threads!
         return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());
     }
 }

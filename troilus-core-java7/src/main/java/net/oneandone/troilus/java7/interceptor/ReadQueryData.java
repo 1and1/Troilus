@@ -27,49 +27,51 @@ import com.google.common.collect.ImmutableSet;
 /**
  * list read query data 
  */
-public interface ListReadQueryData {
+public interface ReadQueryData {
 
     /**
      * @param keys  the keys
      * @return the new read query data
      */
-    ListReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys);
+    ReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys);
 
+
+    
     /**
      * @param whereConditions the where conditions
      * @return the new read query data
      */
-    ListReadQueryData whereConditions(ImmutableSet<Clause> whereConditions);
+    ReadQueryData whereConditions(ImmutableSet<Clause> whereConditions);
 
     /**
      * @param columnsToFetch  the columns to fetch 
      * @return the new read query data
      */
-    ListReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch);
+    ReadQueryData columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch);
 
     /**
      * @param limit   the lmit
      * @return the new read query data
      */
-    ListReadQueryData limit(Integer limit);
+    ReadQueryData limit(Integer limit);
 
     /**
      * @param allowFiltering  the allow filtering flag
      * @return the new read query data
      */
-    ListReadQueryData allowFiltering(Boolean allowFiltering);
+    ReadQueryData allowFiltering(Boolean allowFiltering);
 
     /**
      * @param fetchSize  the fetch size
      * @return the new read query data
      */
-    ListReadQueryData fetchSize(Integer fetchSize);
+    ReadQueryData fetchSize(Integer fetchSize);
 
     /**
      * @param distinct    the distinct flag
      * @return the new read query data
      */
-    ListReadQueryData distinct(Boolean distinct);
+    ReadQueryData distinct(Boolean distinct);
 
     /**
      * @return  the keys

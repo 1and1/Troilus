@@ -148,7 +148,8 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                 }
             };
 
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
+            // running interceptors within dedicated threads!
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
 
         return queryDataFuture; 
@@ -168,7 +169,9 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                     return icptor.onWriteAsync(queryData);                    
                 }
             };
-            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables);
+            
+            // running interceptors within dedicated threads!
+            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
             
             ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);

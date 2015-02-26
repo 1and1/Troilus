@@ -27,7 +27,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.java7.interceptor.ListReadQueryData;
+import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
@@ -45,7 +45,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * List query data implementation
  */
-class ListReadQueryDataImpl implements ListReadQueryData {
+class ReadQueryDataImpl implements ReadQueryData {
     
     private final ImmutableMap<String, ImmutableList<Object>> keys;
     private final ImmutableSet<Clause> whereClauses;
@@ -59,7 +59,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     /**
      * Constructor
      */
-    ListReadQueryDataImpl() {
+    ReadQueryDataImpl() {
         this(ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
              ImmutableMap.<String, Boolean>of(),
@@ -70,7 +70,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     
-    private ListReadQueryDataImpl(ImmutableMap<String, ImmutableList<Object>> keys,
+    private ReadQueryDataImpl(ImmutableMap<String, ImmutableList<Object>> keys,
                                   ImmutableSet<Clause> whereClauses, 
                                   ImmutableMap<String, Boolean> columnsToFetch, 
                                   Integer limit, 
@@ -88,8 +88,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     
 
     @Override
-    public ListReadQueryDataImpl keys(ImmutableMap<String, ImmutableList<Object>> keys) {
-        return new ListReadQueryDataImpl(keys,
+    public ReadQueryDataImpl keys(ImmutableMap<String, ImmutableList<Object>> keys) {
+        return new ReadQueryDataImpl(keys,
                                          this.whereClauses,
                                          this.columnsToFetch,
                                          this.limit,
@@ -99,8 +99,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl whereConditions(ImmutableSet<Clause> whereClauses) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl whereConditions(ImmutableSet<Clause> whereClauses) {
+        return new ReadQueryDataImpl(this.keys,
                                          whereClauses,
                                          this.columnsToFetch,
                                          this.limit,
@@ -110,8 +110,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
+        return new ReadQueryDataImpl(this.keys,
                                          this.whereClauses,
                                          columnsToFetch,
                                          this.limit,
@@ -121,8 +121,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl limit(Integer limit) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl limit(Integer limit) {
+        return new ReadQueryDataImpl(this.keys,
                                          this.whereClauses,
                                          this.columnsToFetch,
                                          limit,
@@ -132,8 +132,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl allowFiltering(Boolean allowFiltering) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl allowFiltering(Boolean allowFiltering) {
+        return new ReadQueryDataImpl(this.keys,
                                          this.whereClauses,
                                          this.columnsToFetch,
                                          this.limit,
@@ -143,8 +143,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl fetchSize(Integer fetchSize) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl fetchSize(Integer fetchSize) {
+        return new ReadQueryDataImpl(this.keys,
                                          this.whereClauses,
                                          this.columnsToFetch,
                                          this.limit,
@@ -154,8 +154,8 @@ class ListReadQueryDataImpl implements ListReadQueryData {
     }
 
     @Override
-    public ListReadQueryDataImpl distinct(Boolean distinct) {
-        return new ListReadQueryDataImpl(this.keys,
+    public ReadQueryDataImpl distinct(Boolean distinct) {
+        return new ReadQueryDataImpl(this.keys,
                                          this.whereClauses,
                                          this.columnsToFetch,
                                          this.limit,
@@ -205,7 +205,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
      * @param ctx    the context
      * @return  the query as statement
      */
-    static ListenableFuture<Statement> toStatementAsync(ListReadQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, Context ctx) {
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -223,6 +223,16 @@ class ListReadQueryDataImpl implements ListReadQueryData {
                 if (entry.getValue()) {
                     selection.ttl(entry.getKey()); 
                     selection.writeTime(entry.getKey());
+                }
+            }
+
+            // key-based selection    
+            if (!data.getKeys().isEmpty()) {
+                // add key columns to requested columns (for paranoia checks)
+                for (String keyname : data.getKeys().keySet()) {
+                    if (data.getColumnsToFetch().get(keyname) == null) {
+                        selection.column(keyname);
+                    }
                 }
             }
         }
@@ -255,7 +265,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
         // key-based selection    
         } else {
             List<Object> values = Lists.newArrayList();
-
+            
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 if (entry.getValue().size() == 1) {
                     select.where(eq(entry.getKey(), bindMarker()));
@@ -266,6 +276,7 @@ class ListReadQueryDataImpl implements ListReadQueryData {
                 }
                 
             }
+            
 
             ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(select);
             return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());

@@ -41,7 +41,6 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -723,15 +722,7 @@ class WriteQueryDataImpl implements WriteQueryData {
    
             
             ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(update);
-            
-            final Object[] valueArray = values.toArray();
-            Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
-                @Override
-                public Statement apply(PreparedStatement preparedStatement) {
-                    return preparedStatement.bind(valueArray);
-                }
-            };
-            return Futures.transform(preparedStatementFuture, bindStatementFunction);
+            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
             
         // where condition-based update
         } else {

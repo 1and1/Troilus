@@ -19,15 +19,9 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 
 
-
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-
-
-
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -36,23 +30,19 @@ import net.oneandone.troilus.Context;
 import net.oneandone.troilus.DeleteQuery;
 import net.oneandone.troilus.DeleteQueryDataImpl;
 import net.oneandone.troilus.ListReadQuery;
-import net.oneandone.troilus.ListReadQueryDataImpl;
+import net.oneandone.troilus.ReadQueryDataImpl;
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.SingleReadQuery;
-import net.oneandone.troilus.SingleReadQueryDataImpl;
 import net.oneandone.troilus.UpdateQuery;
 import net.oneandone.troilus.WriteQueryDataImpl;
 import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.ListReadQueryData;
-import net.oneandone.troilus.interceptor.ListReadQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.ListReadQueryResponseInterceptor;
+import net.oneandone.troilus.interceptor.ReadQueryData;
+import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
+import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryData;
-import net.oneandone.troilus.interceptor.SingleReadQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.SingleReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 import net.oneandone.troilus.java7.Batchable;
@@ -126,22 +116,14 @@ public class DaoImpl implements Dao {
          
         Context context = ctx.withInterceptor(queryInterceptor);
         
-        if (ListReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryRequestInterceptorAdapter((ListReadQueryRequestInterceptor) queryInterceptor));
+        if (ReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryRequestInterceptorAdapter((ReadQueryRequestInterceptor) queryInterceptor));
         }
 
-        if (ListReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new ListReadQueryResponseInterceptorAdapter((ListReadQueryResponseInterceptor) queryInterceptor));
+        if (ReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
+            context = context.withInterceptor(new ListReadQueryResponseInterceptorAdapter((ReadQueryResponseInterceptor) queryInterceptor));
         } 
 
-        if (SingleReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new SingleReadQueryRequestInterceptorAdapter((SingleReadQueryRequestInterceptor) queryInterceptor));
-        } 
-        
-        if (SingleReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(new SingleReadQueryResponseInterceptorAdapter((SingleReadQueryResponseInterceptor) queryInterceptor));
-        } 
-        
         if (WriteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
             context = context.withInterceptor(new WriteQueryRequestInterceptorAdapter((WriteQueryRequestInterceptor) queryInterceptor));
         } 
@@ -280,7 +262,12 @@ public class DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedkey) {
-        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new SingleReadQueryDataImpl().key(composedkey)));
+        Map<String, ImmutableList<Object>> keys = Maps.newHashMap();
+        for (Entry<String, Object> entry : composedkey.entrySet()) {
+            keys.put(entry.getKey(), ImmutableList.of(entry.getValue()));
+        }
+        
+        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.copyOf(keys))));
     }
     
     @Override
@@ -328,13 +315,13 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readListWithKeys(String name, ImmutableList<Object> values) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
     }
     
     @Override
     public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
@@ -342,20 +329,20 @@ public class DaoImpl implements Dao {
     public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
                                                                                                                      composedKeyNamePart3, composedKeyValuesPart3))));        
     }
 
     @Override
     public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
     }
 
     @Override
     public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                            String composedKeyNamePart2, Object composedKeyValuePart2) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
     }
     
@@ -397,12 +384,12 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
     @Override
     public ListReadWithUnit<RecordList> readAll() {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ListReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
     }
 
     
@@ -419,16 +406,16 @@ public class DaoImpl implements Dao {
     /**
      * Java8 adapter of a ListReadQueryData
      */
-    static class ListReadQueryDataAdapter implements ListReadQueryData {
+    static class ListReadQueryDataAdapter implements ReadQueryData {
 
-        private final net.oneandone.troilus.java7.interceptor.ListReadQueryData data;
+        private final net.oneandone.troilus.java7.interceptor.ReadQueryData data;
 
         
         ListReadQueryDataAdapter() {
-            this(new ListReadQueryDataImpl());
+            this(new ReadQueryDataImpl());
         }
 
-        private ListReadQueryDataAdapter(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
+        private ListReadQueryDataAdapter(net.oneandone.troilus.java7.interceptor.ReadQueryData data) {
             this.data = data;
         }
         
@@ -503,8 +490,8 @@ public class DaoImpl implements Dao {
             return Optional.ofNullable(data.getDistinct());
         }
         
-        static net.oneandone.troilus.java7.interceptor.ListReadQueryData convert(ListReadQueryData data) {
-            return new ListReadQueryDataImpl().keys(data.getKeys())
+        static net.oneandone.troilus.java7.interceptor.ReadQueryData convert(ReadQueryData data) {
+            return new ReadQueryDataImpl().keys(data.getKeys())
                                               .whereConditions(data.getWhereConditions())
                                               .columnsToFetch(data.getColumnsToFetch())
                                               .limit(data.getLimit().orElse(null))
@@ -543,6 +530,16 @@ public class DaoImpl implements Dao {
         @Override
         public boolean wasApplied() {
             return recordList.wasApplied();
+        }
+        
+        @Override
+        public ListenableFuture<Void> fetchMoreResults() {
+            return recordList.fetchMoreResults();
+        }
+        
+        @Override
+        public boolean isFullyFetched() {
+            return recordList.isFullyFetched();
         }
         
         @Override
@@ -608,6 +605,16 @@ public class DaoImpl implements Dao {
                 @Override
                 public boolean wasApplied() {
                     return recordList.wasApplied();
+                }
+                
+                @Override
+                public ListenableFuture<Void> fetchMoreResults() {
+                    return recordList.fetchMoreResults();
+                }
+                
+                @Override
+                public boolean isFullyFetched() {
+                    return recordList.isFullyFetched();
                 }
                 
                 @Override
@@ -1122,17 +1129,17 @@ public class DaoImpl implements Dao {
     
 
     
-    private static final class ListReadQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor {
+    private static final class ListReadQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ReadQueryRequestInterceptor {
         
-        private ListReadQueryRequestInterceptor interceptor;
+        private ReadQueryRequestInterceptor interceptor;
         
-        public ListReadQueryRequestInterceptorAdapter(ListReadQueryRequestInterceptor interceptor) {
+        public ListReadQueryRequestInterceptorAdapter(ReadQueryRequestInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.interceptor.ListReadQueryData> onListReadRequestAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data) {
-            return CompletableFutures.toListenableFuture(interceptor.onListReadRequestAsync(new ListReadQueryDataAdapter(data))
+        public ListenableFuture<net.oneandone.troilus.java7.interceptor.ReadQueryData> onReadRequestAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data) {
+            return CompletableFutures.toListenableFuture(interceptor.onReadRequestAsync(new ListReadQueryDataAdapter(data))
                                                                     .thenApply((queryData -> ListReadQueryDataAdapter.convert(queryData))));
         }
         
@@ -1143,17 +1150,17 @@ public class DaoImpl implements Dao {
     }
    
     
-    private static final class ListReadQueryResponseInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor {
+    private static final class ListReadQueryResponseInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor {
         
-        private ListReadQueryResponseInterceptor interceptor;
+        private ReadQueryResponseInterceptor interceptor;
         
-        public ListReadQueryResponseInterceptorAdapter(ListReadQueryResponseInterceptor interceptor) {
+        public ListReadQueryResponseInterceptorAdapter(ReadQueryResponseInterceptor interceptor) {
             this.interceptor = interceptor;
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.RecordList> onListReadResponseAsync(net.oneandone.troilus.java7.interceptor.ListReadQueryData data, net.oneandone.troilus.java7.RecordList recordList) {
-            return CompletableFutures.toListenableFuture(interceptor.onListReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
+        public ListenableFuture<net.oneandone.troilus.java7.RecordList> onReadResponseAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data, net.oneandone.troilus.java7.RecordList recordList) {
+            return CompletableFutures.toListenableFuture(interceptor.onReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
                                                                     .thenApply(list -> RecordListAdapter.convertToJava7(list)));
         }
         
@@ -1162,48 +1169,6 @@ public class DaoImpl implements Dao {
             return "ListReadQueryPostInterceptor (with " + interceptor + ")";
         }
     }
-    
-    
-    private static final class SingleReadQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.SingleReadQueryRequestInterceptor {
-        
-        private SingleReadQueryRequestInterceptor interceptor;
-        
-        public SingleReadQueryRequestInterceptorAdapter(SingleReadQueryRequestInterceptor interceptor) {
-            this.interceptor = interceptor;
-        }
-        
-        @Override
-        public ListenableFuture<SingleReadQueryData> onSingleReadRequestAsync(SingleReadQueryData data) {
-            return CompletableFutures.toListenableFuture(interceptor.onSingleReadRequestAsync(data));
-        }
-        
-        @Override
-        public String toString() {
-            return "ListReadQueryPreInterceptor (with " + interceptor + ")";
-        }
-    }
-   
-
-    private static final class SingleReadQueryResponseInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.SingleReadQueryResponseInterceptor {
-        
-        private SingleReadQueryResponseInterceptor interceptor;
-        
-        public SingleReadQueryResponseInterceptorAdapter(SingleReadQueryResponseInterceptor interceptor) {
-            this.interceptor = interceptor;
-        }
-        
-        @Override
-        public ListenableFuture<net.oneandone.troilus.java7.Record> onSingleReadResponseAsync(SingleReadQueryData data, net.oneandone.troilus.java7.Record record) {
-            return CompletableFutures.toListenableFuture(interceptor.onSingleReadResponseAsync(data, (record == null) ? Optional.empty() : Optional.of(RecordAdapter.convertFromJava7(record)))
-                                                                    .thenApply(optionalRecord -> RecordAdapter.convertToJava7(optionalRecord.orElse((null)))));
-        }
-        
-        @Override
-        public String toString() {
-            return "SingleReadQueryPostInterceptorAdapter (with " + interceptor + ")";
-        }
-    }
-    
     
     
     private static final class WriteQueryRequestInterceptorAdapter implements net.oneandone.troilus.java7.interceptor.WriteQueryRequestInterceptor {

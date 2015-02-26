@@ -18,29 +18,21 @@ package net.oneandone.troilus;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
-
-
-
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.RecordList;
-import net.oneandone.troilus.java7.interceptor.ListReadQueryData;
-import net.oneandone.troilus.java7.interceptor.ListReadQueryRequestInterceptor;
-import net.oneandone.troilus.java7.interceptor.ListReadQueryResponseInterceptor;
+import net.oneandone.troilus.java7.interceptor.ReadQueryData;
+import net.oneandone.troilus.java7.interceptor.ReadQueryRequestInterceptor;
+import net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
@@ -63,14 +55,14 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<RecordList> {
     
-    private final ListReadQueryData data;
+    private final ReadQueryData data;
 
     
     /**
      * @param ctx   the context 
      * @param data  the data
      */
-    ListReadQuery(Context ctx, ListReadQueryData data) {
+    ListReadQuery(Context ctx, ReadQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -84,7 +76,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new ListReadQuery(newContext, data);
     }
     
-    private ListReadQuery newQuery(ListReadQueryData data) {
+    private ListReadQuery newQuery(ReadQueryData data) {
         return new ListReadQuery(getContext(), data);
     }
 
@@ -182,12 +174,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public ListenableFuture<RecordList> executeAsync() {
         // perform request executors
-        ListenableFuture<ListReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ListReadQueryData>immediateFuture(data));  
+        ListenableFuture<ReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ReadQueryData>immediateFuture(data));  
 
         // execute query asnyc
-        Function<ListReadQueryData, ListenableFuture<RecordList>> queryExecutor = new Function<ListReadQueryData, ListenableFuture<RecordList>>() {
+        Function<ReadQueryData, ListenableFuture<RecordList>> queryExecutor = new Function<ReadQueryData, ListenableFuture<RecordList>>() {
             @Override
-            public ListenableFuture<RecordList> apply(ListReadQueryData querData) {
+            public ListenableFuture<RecordList> apply(ReadQueryData querData) {
                 return executeAsync(querData);
             }
         };
@@ -195,9 +187,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
 
     
-    private ListenableFuture<RecordList> executeAsync(ListReadQueryData queryData) {
+    private ListenableFuture<RecordList> executeAsync(ReadQueryData queryData) {
         // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(ListReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(ReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
         
         // result set to record list mapper
         Function<ResultSet, RecordList> resultSetToRecordList = new Function<ResultSet, RecordList>() {
@@ -209,43 +201,45 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         };
         ListenableFuture<RecordList> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
         
-        // perform response interceptor
+        // running interceptors within dedicated threads!
         return executeResponseInterceptorsAsync(queryData, recordListFuture);
     }
 
     
-    private ListenableFuture<ListReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ListReadQueryData> queryDataFuture) {
+    private ListenableFuture<ReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ReadQueryData> queryDataFuture) {
 
-        for (ListReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryRequestInterceptor.class).reverse()) {
-            final ListReadQueryRequestInterceptor icptor = interceptor;
+        for (ReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ReadQueryRequestInterceptor.class).reverse()) {
+            final ReadQueryRequestInterceptor icptor = interceptor;
             
-            Function<ListReadQueryData, ListenableFuture<ListReadQueryData>> mapperFunction = new Function<ListReadQueryData, ListenableFuture<ListReadQueryData>>() {
+            Function<ReadQueryData, ListenableFuture<ReadQueryData>> mapperFunction = new Function<ReadQueryData, ListenableFuture<ReadQueryData>>() {
                 @Override
-                public ListenableFuture<ListReadQueryData> apply(ListReadQueryData queryData) {
-                    return icptor.onListReadRequestAsync(queryData);
+                public ListenableFuture<ReadQueryData> apply(ReadQueryData queryData) {
+                    return icptor.onReadRequestAsync(queryData);
                 }
             };
             
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
+            // running interceptors within dedicated threads!
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
         }
 
         return queryDataFuture;
     }
     
     
-    private ListenableFuture<RecordList> executeResponseInterceptorsAsync(final ListReadQueryData queryData, ListenableFuture<RecordList> recordFuture) {
+    private ListenableFuture<RecordList> executeResponseInterceptorsAsync(final ReadQueryData queryData, ListenableFuture<RecordList> recordFuture) {
     
-        for (ListReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ListReadQueryResponseInterceptor.class).reverse()) {
-            final ListReadQueryResponseInterceptor icptor = interceptor;
+        for (ReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ReadQueryResponseInterceptor.class).reverse()) {
+            final ReadQueryResponseInterceptor icptor = interceptor;
             
             Function<RecordList, ListenableFuture<RecordList>> mapperFunction = new Function<RecordList, ListenableFuture<RecordList>>() {
                 @Override
                 public ListenableFuture<RecordList> apply(RecordList recordList) {
-                    return icptor.onListReadResponseAsync(queryData, recordList);
+                    return icptor.onReadResponseAsync(queryData, recordList);
                 }
             };
             
-            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction);
+            // running interceptors within dedicagted threads!
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
         }
 
         return recordFuture;
@@ -316,215 +310,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
     }
     
-    
-     
-    private static class RecordListImpl implements RecordList {
-         private static final Logger LOG = LoggerFactory.getLogger(RecordListImpl.class);
-        
-         private final Context ctx;
-         private final ResultSet rs;
-
-         private final Iterator<Row> iterator;
-         private boolean subscribed = false; // true after first subscribe
-         
-         RecordListImpl(Context ctx, ResultSet rs) {
-             this.ctx = ctx;
-             this.rs = rs;
-             this.iterator = rs.iterator();
-         }
-         
-         @Override
-         public ExecutionInfo getExecutionInfo() {
-             return rs.getExecutionInfo();
-         }
-         
-         @Override
-         public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-             return ImmutableList.copyOf(rs.getAllExecutionInfo());
-         }
-
-         @Override
-         public boolean wasApplied() {
-             return rs.wasApplied();
-         }
-         
-         @Override
-         public Iterator<Record> iterator() {
-             
-             return new Iterator<Record>() {
-
-                 @Override
-                 public boolean hasNext() {
-                     return iterator.hasNext();
-                 }
-                 
-                 @Override
-                 public Record next() {
-                     return new RecordImpl(ctx, RecordListImpl.this, iterator.next());
-                 }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-             };
-         }
-         
-         @Override
-         public void subscribe(Subscriber<? super Record> subscriber) {
-             synchronized (this) {
-                 if (subscribed == true) {
-                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
-                 } else {
-                     subscribed = true;
-                     new DatabaseSubscription(subscriber).ready();
-                 }
-             }
-         }
-         
-         
-         private final class DatabaseSubscription implements Subscription {
-             
-             private final Object subscriberCallbackLock = new Object();
-             private final Object dbQueryLock = new Object();
-             
-             private final Subscriber<? super Record> subscriber;
-             private final Iterator<? extends Record> it;
-             
-             private final AtomicLong numRequestedReads = new AtomicLong();
-             
-             private Runnable runningDatabaseQuery = null;
-             private boolean isOpen = true;
-
-             private final Runnable requestTask = new ProcessingTask();
-
-             
-             
-             public DatabaseSubscription(Subscriber<? super Record> subscriber) {
-                 this.subscriber = subscriber;
-                 this.it = RecordListImpl.this.iterator();
-             }
-             
-             public DatabaseSubscription ready() {
-                 synchronized (subscriberCallbackLock) {
-                     subscriber.onSubscribe(this);
-                 }
-                 return this;
-             }
-             
-             @Override
-             public void request(long n) {                
-                 if(n <= 0) {
-                     // https://github.com/reactive-streams/reactive-streams#3.9
-                     synchronized (subscriberCallbackLock) {
-                         subscriber.onError(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9"));
-                     }
-                     return;
-                 }
-                 numRequestedReads.addAndGet(n);
-                 
-                 // Subscription: MUST NOT allow unbounded recursion such as Subscriber.onNext -> Subscription.request -> Subscriber.onNext
-                 ctx.getTaskExecutor().execute(requestTask);
-             }
-             
-             private final class ProcessingTask implements Runnable {
-             
-                 @Override
-                 public void run() {
-                     processReadRequests();
-                        
-                 }
-             }
-             
-             private void processReadRequests() {
-                 processAvailableDatabaseRecords();
-
-                 // more db records required? 
-                 if (numRequestedReads.get() > 0) {
-                     // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
-                     // will be executed without the need of more records. However, it does not matter
-                     requestDatabaseForMoreRecords();
-                 }
-                 
-             }
-             
-             
-             private void processAvailableDatabaseRecords() {
-                 synchronized (subscriberCallbackLock) {
-                     if (isOpen) {
-                         while (it.hasNext() && numRequestedReads.get() > 0) {
-                             try {
-                                 numRequestedReads.decrementAndGet();
-                                 subscriber.onNext(it.next());
-                             } catch (RuntimeException rt) {
-                                 LOG.warn("processing error occured", rt);
-                                 teminateWithError(rt);
-                             }
-                         }
-
-                     }
-                 }
-             }
-             
-             
-             private void requestDatabaseForMoreRecords() {
-                 // no more data to fetch?
-                 if (rs.isFullyFetched()) {
-                     terminateRegularly(true);
-                     return;
-                 } 
-                 
-                 synchronized (dbQueryLock) {
-                     if (runningDatabaseQuery == null) {
-                         Runnable databaseRequest = new Runnable() {
-                                                             @Override
-                                                             public void run() {
-                                                                 synchronized (dbQueryLock) {
-                                                                     runningDatabaseQuery = null; 
-                                                                 }
-                                                                 processReadRequests();
-                                                             }                                                                           
-                                                    };
-                         runningDatabaseQuery = databaseRequest;
-                         
-                         ListenableFuture<Void> future = rs.fetchMoreResults();
-                         future.addListener(databaseRequest, ctx.getTaskExecutor());
-                     }
-                 }
-             }
-        
-             
-             @Override
-             public void cancel() {
-                 terminateRegularly(false);
-             }
-
-
-             ////////////
-             // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
-             
-             private void terminateRegularly(boolean signalOnComplete) {
-                 synchronized (subscriberCallbackLock) {
-                     if (isOpen) {
-                         isOpen = false;
-                         if(signalOnComplete) {
-                             subscriber.onComplete();
-                         }
-                     }
-                 }
-             }
-             
-             private void teminateWithError(Throwable t) {
-                 synchronized (subscriberCallbackLock) {
-                     if (isOpen) {
-                         isOpen = false;
-                         subscriber.onError(t);
-                     }
-                 }
-             }
-             
-         }
-     } 
     
     
     private static class EntityListImpl<F> extends ResultAdapter implements EntityList<F> {
