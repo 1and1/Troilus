@@ -480,6 +480,7 @@ class Context {
         PreparedStatement prepare(BuiltStatement statement) {
             PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
             if (preparedStatment == null) {
+//                preparedStatment = session.prepareAsync(statement);
                 preparedStatment = session.prepare(statement);
                 preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
             }

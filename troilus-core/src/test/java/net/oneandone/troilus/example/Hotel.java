@@ -42,7 +42,6 @@ public class Hotel  {
 
     @Field(name = "address")
     private Address address = null;
-
         
     
     @SuppressWarnings("unused")

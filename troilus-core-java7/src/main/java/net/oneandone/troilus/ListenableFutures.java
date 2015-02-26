@@ -254,6 +254,10 @@ class ListenableFutures {
   
     
     
+    public static <T, E> ListenableFuture<E> transform(ListenableFuture<T> future, Function<T, ListenableFuture<E>> mapperFunction) {
+        return transform(future, mapperFunction, MoreExecutors.directExecutor());
+    }
+    
     public static <T, E> ListenableFuture<E> transform(ListenableFuture<T> future, Function<T, ListenableFuture<E>> mapperFunction, Executor executor) {
         return new MappingFuture<>(future, mapperFunction, executor);
     }

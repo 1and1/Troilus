@@ -16,6 +16,7 @@
 package net.oneandone.troilus;
 
 import java.nio.ByteBuffer;
+
 import java.util.List;
 
 
@@ -42,7 +43,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 
 /**
@@ -151,7 +151,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                 return executeAsync(querData);
             }
         };
-        return ListenableFutures.transform(queryDataFuture, queryExecutor, MoreExecutors.directExecutor());
+        return ListenableFutures.transform(queryDataFuture, queryExecutor);
     }
     
     private ListenableFuture<Record> executeAsync(SingleReadQueryData queryData) {
@@ -196,7 +196,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                 }
             };
 
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
         }
 
         return queryDataFuture;        
@@ -215,7 +215,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                 }
             };
             
-            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction);
         }
 
         return recordFuture;

@@ -59,12 +59,16 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
     @Override
     public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> optionalRecord) {
 
+
         if (optionalRecord.isPresent() && (optionalRecord.get().getString("device_id") != null)) {
+System.out.println("cross check dao call");
+            
             return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id"))
                             .column("phone_numbers")
                             .withConsistency(ConsistencyLevel.ONE)
                             .executeAsync()
                             .thenApply(optionalRec -> {
+                                System.out.println("cross check dao call done");
                                                         optionalRec.ifPresent(rec -> {
                                                             ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
                                                             if (!set.isEmpty() && !set.contains(queryData.getKey().get("number"))) {

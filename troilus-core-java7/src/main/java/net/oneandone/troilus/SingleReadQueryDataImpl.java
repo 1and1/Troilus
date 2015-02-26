@@ -18,10 +18,10 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -121,8 +121,8 @@ class SingleReadQueryDataImpl implements SingleReadQueryData {
             values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
         }
         
-
-        return ctx.getDbSession().prepare(select).bind(values.toArray());
+        Statement stmt = ctx.getDbSession().prepare(select).bind(values.toArray());
+        return stmt;
     }
 
 }

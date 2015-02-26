@@ -40,7 +40,8 @@ public class Hotel  {
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
 
-        
+    @Field(name = "picture_uri")
+    private String pictureUri;
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -48,11 +49,13 @@ public class Hotel  {
     public Hotel(String id, 
                  String name, 
                  ImmutableSet<String> roomIds,  
+                 String pictureUri,
                  Optional<Integer> classification, 
                  Optional<String> description) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
+        this.pictureUri = pictureUri;
         this.classification = classification;
         this.description = description;
     }
@@ -67,6 +70,10 @@ public class Hotel  {
     
     public ImmutableSet<String> getRoomIds() {
         return roomIds;
+    }
+    
+    public String getPictureUri() {
+        return pictureUri;
     }
 
     public Optional<Integer> getClassification() {

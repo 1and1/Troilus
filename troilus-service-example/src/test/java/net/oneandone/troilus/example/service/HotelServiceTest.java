@@ -60,6 +60,25 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("Corinthia Budapest", hotel.getName());
     }        
 
+    @Ignore  
+    @Test
+    public void testPictureExample() throws Exception {
+        filldb();
+        
+        Tomcat server = new Tomcat();
+        server.setPort(9080);
+        server.addWebapp("/service", new File("src/main/resources/webapp").getAbsolutePath());
+        server.start();
+        
+        Client client =  ResteasyClientBuilder.newClient();
+
+        
+        System.out.println("requesting");
+        byte[] picture = client.target("http://localhost:9080/service/hotels/BUP45544/thumbnail")
+                               .request()
+                               .get(byte[].class);
+        Assert.assertArrayEquals(new byte[] { 45, 56, 45, 45, 45 }, picture);
+    }        
     
     
     
@@ -69,6 +88,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP45544", 
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
+                                        "http://notexits",
                                         Optional.of(5), 
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm")
                                        ))
@@ -87,6 +107,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP14334", 
                                         "Richter Panzio",
                                         ImmutableSet.of("1", "2", "3"),
+                                        "http://notexits",
                                         Optional.of(2), 
                                         Optional.empty())
                                         )

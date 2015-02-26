@@ -20,6 +20,8 @@ package net.oneandone.troilus;
 import java.util.Set;
 
 
+
+
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.Batchable;
@@ -147,7 +149,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 }
             };
             
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
         }
 
         return queryDataFuture; 
@@ -166,7 +168,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                     return icptor.onDeleteAsync(queryData);                    
                 }
             };
-            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getContext().getTaskExecutor());
+            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables);
             
             ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);

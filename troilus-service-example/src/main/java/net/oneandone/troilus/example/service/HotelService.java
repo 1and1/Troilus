@@ -22,17 +22,20 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import net.oneandone.reactive.pipe.Pipes;
+import net.oneandone.reactive.rest.client.RxClient;
 import net.oneandone.reactive.sse.ServerSentEvent;
 import net.oneandone.reactive.sse.servlet.ServletSseSubscriber;
 import net.oneandone.troilus.Dao;
@@ -45,7 +48,11 @@ import com.datastax.driver.core.ConsistencyLevel;
 public class HotelService implements Closeable {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private final RxClient restClient = new RxClient(ClientBuilder.newClient());
+    private final byte[] defaultPicture = new byte[] { 45, 56, 45, 45, 45};
+    
     private final Dao hotelsDao;
+    
  
     public HotelService(Dao hotelsDao) {
         this.hotelsDao = hotelsDao;
@@ -68,6 +75,33 @@ public class HotelService implements Closeable {
                  .executeAsync()
                  .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
                  .thenApply(hotel -> new HotelRepresentation(hotel.getId(), hotel.getName(), hotel.getRoomIds()))
+                 .whenComplete(writeTo(resp));
+    }
+    
+    
+    
+    @Path("hotels/{id}/thumbnail")
+    @GET
+    @Produces("image/png")
+    public void getHotelExternalViewAsync(@PathParam("id") String hotelId, 
+                                          @PathParam("height") @DefaultValue("480") int height,  
+                                          @PathParam("width") @DefaultValue("640") int width,
+                                          @Suspended AsyncResponse resp) {
+        
+        hotelsDao.readWithKey("id", hotelId)
+                 .asEntity(Hotel.class)
+                 .withConsistency(ConsistencyLevel.QUORUM)
+                 .executeAsync()
+                 .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
+                 .thenCompose(hotel -> restClient.target(hotel.getPictureUri())
+                                                 .request()
+                                                 .rx()
+                                                 .get(byte[].class)
+                                                 .exceptionally(error -> defaultPicture))
+                 .thenCompose(picture -> Thumbnails.of(picture)
+                                                   .size(height, width)
+                                                   .outputFormat("image/png")
+                                                   .computeAsync())                    
                  .whenComplete(writeTo(resp));
     }
     

@@ -26,7 +26,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 
 /**
@@ -158,7 +157,8 @@ abstract class AbstractQuery<Q> {
             }
         };
         
-        return ListenableFutures.transform(statementFuture, statementToResultSetFuture, MoreExecutors.directExecutor());
+        // use executor to avoid handling with database I/O thread, which could lead to blocking behavior
+        return ListenableFutures.transform(statementFuture, statementToResultSetFuture);  
     }
         
     

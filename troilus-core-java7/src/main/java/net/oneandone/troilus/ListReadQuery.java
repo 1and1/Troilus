@@ -52,7 +52,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 
 
@@ -192,7 +191,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 return executeAsync(querData);
             }
         };
-        return ListenableFutures.transform(queryDataFuture, queryExecutor, MoreExecutors.directExecutor());
+        return ListenableFutures.transform(queryDataFuture, queryExecutor);
     }
 
     
@@ -227,7 +226,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction);
         }
 
         return queryDataFuture;
@@ -246,7 +245,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction);
         }
 
         return recordFuture;
