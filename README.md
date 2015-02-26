@@ -627,10 +627,9 @@ Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(Constraints
 ##More Complexe Interceptor Examples
 The interceptor below implements a back relation check regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. 
 ``` java
-class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
-                                         SingleReadQueryResponseInterceptor {
+class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
+                                         ReadQueryResponseInterceptor {
     
-
     private final Dao deviceDao;
     
     public PhonenumbersConstraints(Dao deviceDao) {
@@ -639,38 +638,71 @@ class PhonenumbersConstraints implements SingleReadQueryRequestInterceptor,
         
     
     @Override
-    public CompletableFuture<SingleReadQueryData> onSingleReadRequestAsync( SingleReadQueryData queryData) {
+    public CompletableFuture<ReadQueryData> onReadRequestAsync(ReadQueryData queryData) {
         // force that device_id will be fetched 
-        if (!queryData.getColumnsToFetch().isEmpty() && !queryData.getColumnsToFetch().containsKey("device_id")) {
+        if (!queryData.getColumnsToFetch().containsKey("device_id")) {
             queryData = queryData.columnsToFetch(Immutables.merge(queryData.getColumnsToFetch(), "device_id", false));
         }
         return CompletableFuture.completedFuture(queryData);
     }
     
-    
-    @Override
-    public CompletableFuture<Optional<Record>> onSingleReadResponseAsync(SingleReadQueryData queryData, Optional<Record> optionalRecord) {
 
-        if (optionalRecord.isPresent() && (optionalRecord.get().getString("device_id") != null)) {
-            return deviceDao.readWithKey("device_id", optionalRecord.get().getString("device_id"))
-                            .column("phone_numbers")
-                            .withConsistency(ConsistencyLevel.ONE)
-                            .executeAsync()
-                            .thenApply(optionalRec -> {
-                                                        optionalRec.ifPresent(rec -> {
-                                                            ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
-                                                            if (!set.isEmpty() && !set.get().contains(queryData.getKey().get("number"))) {
-                                                                throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
-                                                            }
-                                                        });
-                                                        
-                                                        return optionalRecord;
-                                                      });
-            
-        } else {
-            return CompletableFuture.completedFuture(optionalRecord);
+    @Override
+    public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
+        return CompletableFuture.completedFuture(new VaildatingRecordList(recordList, deviceDao));
+    }
+    
+    
+    private static final class VaildatingRecordList extends RecordListAdapter {
+     
+        private final Dao deviceDao;
+
+        
+        public VaildatingRecordList(RecordList recordList, Dao deviceDao) {
+            super(recordList);
+            this.deviceDao = deviceDao;
         }
-    }    
+        
+        @Override
+        public Iterator<Record> iterator() {
+            return new ValidatingIterator(super.iterator());
+        }
+
+        
+        private final class ValidatingIterator implements Iterator<Record> {
+            private Iterator<Record> it;
+            
+            public ValidatingIterator(Iterator<Record> it) {
+                this.it = it;
+            }
+            
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+            
+            
+            @Override
+            public Record next() {
+                
+                Record record = it.next();
+                
+                Optional<Record> deviceRecord = deviceDao.readWithKey("device_id", record.getString("device_id"))
+                                                         .column("phone_numbers")
+                                                         .withConsistency(ConsistencyLevel.ONE)
+                                                         .execute();
+                
+                deviceRecord.ifPresent(rec -> {
+                                                ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
+                                                if (!set.isEmpty() && !set.contains(record.getString("number"))) {
+                                                    throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
+                                                }
+                                              });
+                
+                return record;
+            }
+        }
+    }
 }
 ```
 
