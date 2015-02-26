@@ -24,9 +24,14 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
@@ -48,6 +53,10 @@ import com.google.common.collect.ImmutableSet;
  * The record implementation
  */
 class RecordImpl implements Record {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseSubscription.class);
+
+    
     private final Context ctx;
     private final Result result;
     private final Row row;
@@ -57,12 +66,47 @@ class RecordImpl implements Record {
      * @param result  the result
      * @param row     the underlying row
      */
-    RecordImpl(Context ctx, Result result, Row row) {
+    RecordImpl(Context ctx, ReadQueryData queryData, Result result, Row row) {
         this.ctx = ctx;
         this.result = result;
         this.row = row;
+       
+        paranoiaCheck(ctx, this, queryData);
     }
 
+    
+    private static void paranoiaCheck(Context ctx, Record record, ReadQueryData data) {
+        
+        
+        for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
+           
+            if (record.isNull(entry.getKey())) {
+                // response does not include key
+                return;
+            }
+
+            
+            ByteBuffer responseKeyValue = record.getBytesUnsafe(entry.getKey());
+
+            
+            // check if response key matches with any of the request keys
+            for (Object value : entry.getValue()) {
+                ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDbSession().getProtocolVersion());
+                
+                if (requestKeyValue.compareTo(responseKeyValue) == 0) {
+                    return;
+                }
+            }
+            
+            LOG.warn("Dataswap error for " + entry.getKey());
+            throw new ProtocolErrorException("Dataswap error for " + entry.getKey()); 
+        }
+    }
+    
+    
+    
+    
+    
     /**
      * @return the underlying row
      */

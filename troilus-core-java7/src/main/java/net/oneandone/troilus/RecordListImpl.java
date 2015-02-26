@@ -19,6 +19,7 @@ import java.util.Iterator;
 
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.RecordList;
+import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import org.reactivestreams.Subscriber;
 
@@ -35,12 +36,15 @@ class RecordListImpl implements RecordList {
     private boolean subscribed = false; // true after first subscribe
     
     private final Context ctx;
+    private final ReadQueryData queryData;
     private final ResultSet rs;
 
+    
     private final Iterator<Row> iterator;
     
-    RecordListImpl(Context ctx, ResultSet rs) {
+    RecordListImpl(Context ctx, ReadQueryData queryData, ResultSet rs) {
         this.ctx = ctx;
+        this.queryData = queryData;
         this.rs = rs;
         this.iterator = rs.iterator();
     }
@@ -82,7 +86,7 @@ class RecordListImpl implements RecordList {
             
             @Override
             public Record next() {
-                return new RecordImpl(ctx, RecordListImpl.this, iterator.next());
+                return new RecordImpl(ctx, queryData, RecordListImpl.this, iterator.next());
             }
 
            @Override

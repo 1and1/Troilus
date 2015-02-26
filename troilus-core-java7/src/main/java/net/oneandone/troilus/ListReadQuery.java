@@ -187,7 +187,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
 
     
-    private ListenableFuture<RecordList> executeAsync(ReadQueryData queryData) {
+    private ListenableFuture<RecordList> executeAsync(final ReadQueryData queryData) {
         // perform query
         ListenableFuture<ResultSet> resultSetFuture = performAsync(ReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
         
@@ -196,7 +196,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             
             @Override
             public RecordList apply(ResultSet resultSet) {
-                return new RecordListImpl(getContext(), resultSet);
+                return new RecordListImpl(getContext(), queryData, resultSet);
             }
         };
         ListenableFuture<RecordList> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
