@@ -21,7 +21,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 

@@ -38,6 +38,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Uninterruptibles;
 
 
 public class EntityMappingTest  {
@@ -138,6 +139,20 @@ public class EntityMappingTest  {
         
         
         
+        optionalUser =  Uninterruptibles.getUninterruptibly(userDao.readWithKey("user_id", "non_existing")
+                                                                   .asEntity(User.class)   
+                                                                   .executeAsync());
+        Assert.assertFalse(optionalUser.isPresent());
+
+
+        
+        optionalUser = userDao.readWithKey("user_id", "non_existing")
+                              .asEntity(User.class)  
+                              .execute();
+        Assert.assertFalse(optionalUser.isPresent());
+
+        
+        
         ////////////////
         // update
         userDao.writeWithKey(UsersTable.USER_ID, "4454")
@@ -150,7 +165,6 @@ public class EntityMappingTest  {
                              .get();
         Assert.assertEquals("eric", user.getString(UsersTable.NAME));
         Assert.assertEquals(1345553, user.getLong(UsersTable.MODIFIED));
-        Assert.assertTrue(optionalUser.get().getAddresses().contains("berlin"));
         
         
         

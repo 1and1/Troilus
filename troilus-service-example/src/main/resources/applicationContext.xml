@@ -36,5 +36,4 @@
 	<bean id="hotelService" class="net.oneandone.troilus.example.service.HotelService">
 		<constructor-arg ref="hotelsDao" />
 	</bean>
-
 </beans>

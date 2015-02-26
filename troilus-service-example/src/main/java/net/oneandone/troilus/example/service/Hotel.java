@@ -41,7 +41,7 @@ public class Hotel  {
     private Optional<String> description = Optional.empty();
 
     @Field(name = "picture_uri")
-    private String pictureUri;
+    private Optional<String> pictureUri;
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -49,7 +49,7 @@ public class Hotel  {
     public Hotel(String id, 
                  String name, 
                  ImmutableSet<String> roomIds,  
-                 String pictureUri,
+                 Optional<String> pictureUri,
                  Optional<Integer> classification, 
                  Optional<String> description) {
         this.id = id;
@@ -72,7 +72,7 @@ public class Hotel  {
         return roomIds;
     }
     
-    public String getPictureUri() {
+    public Optional<String> getPictureUri() {
         return pictureUri;
     }
 

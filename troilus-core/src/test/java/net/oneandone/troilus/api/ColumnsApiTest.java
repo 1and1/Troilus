@@ -46,6 +46,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Uninterruptibles;
 
 
 public class ColumnsApiTest{
@@ -190,6 +191,24 @@ public class ColumnsApiTest{
                       .execute();
         Assert.assertEquals(4,  num.getCount());
         
+        
+        
+        optionalRecord =  Uninterruptibles.getUninterruptibly(usersDao.readWithKey(UsersTable.USER_ID, "non_existing")
+                                                                      .column(UsersTable.PICTURE)
+                                                                      .column(UsersTable.ADDRESSES)
+                                                                      .column(UsersTable.PHONE_NUMBERS)
+                                                                      .executeAsync());
+        Assert.assertFalse(optionalRecord.isPresent());
+
+
+        
+        optionalRecord = usersDao.readWithKey(UsersTable.USER_ID, "non_existing")
+                                 .column(UsersTable.PICTURE)
+                                 .column(UsersTable.ADDRESSES)
+                                 .column(UsersTable.PHONE_NUMBERS)
+                                 .execute();
+        Assert.assertFalse(optionalRecord.isPresent());
+
         
 
         ////////////////

@@ -277,7 +277,11 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             Function<Record, E> mapEntity = new Function<Record, E>() {
                 @Override
                 public E apply(Record record) {
-                    return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getContext().getDbSession().getColumnNames());
+                    if (record == null) {
+                        return null;
+                    } else {
+                        return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getContext().getDbSession().getColumnNames());
+                    }
                 }
             };
             

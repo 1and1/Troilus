@@ -18,11 +18,17 @@ package net.oneandone.troilus.example.service;
 import java.io.File;
 import java.util.Optional;
 
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 
 
 
 
+
+
+
+import javax.ws.rs.core.Response;
 
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -60,7 +66,8 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         Assert.assertEquals("Corinthia Budapest", hotel.getName());
     }        
 
-    @Ignore  
+    
+    @Ignore
     @Test
     public void testPictureExample() throws Exception {
         filldb();
@@ -73,10 +80,30 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         Client client =  ResteasyClientBuilder.newClient();
 
         
-        System.out.println("requesting");
+        
+        // hotel entry does not exits
+        try {
+            client.target("http://localhost:9080/service/hotels/BUPnotexits/thumbnail")
+                  .request()
+                  .get(byte[].class);
+            Assert.fail("NotFoundException expected");
+        } catch (NotFoundException expected) { } catch (InternalServerErrorException t) {
+            Response respone = t.getResponse();
+            System.out.println(respone.readEntity(String.class));
+        }
+
+        
+        // hotel entry without URI
         byte[] picture = client.target("http://localhost:9080/service/hotels/BUP45544/thumbnail")
                                .request()
                                .get(byte[].class);
+        Assert.assertArrayEquals(new byte[] { 45, 56, 45, 45, 45 }, picture);
+        
+
+        // hotel entry with broken URI
+        picture = client.target("http://localhost:9080/service/hotels/BUP14334/thumbnail")
+                        .request()
+                        .get(byte[].class);
         Assert.assertArrayEquals(new byte[] { 45, 56, 45, 45, 45 }, picture);
     }        
     
@@ -88,7 +115,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP45544", 
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
-                                        "http://notexits",
+                                        Optional.empty(),
                                         Optional.of(5), 
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm")
                                        ))
@@ -107,7 +134,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP14334", 
                                         "Richter Panzio",
                                         ImmutableSet.of("1", "2", "3"),
-                                        "http://notexits",
+                                        Optional.of("http://broken"),
                                         Optional.of(2), 
                                         Optional.empty())
                                         )
