@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus.example.service;
 
+import java.io.IOException;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -27,7 +29,7 @@ public class PictureService {
     @Path("/{id}")
     @GET
     @Produces("image/png")
-    public byte[] getHotelThumbnail() {
-        return "MyPIcture".getBytes();
+    public byte[] getHotelThumbnail() throws IOException {
+        return "MyPIcture".getBytes("UTF-8");
     }   
 }

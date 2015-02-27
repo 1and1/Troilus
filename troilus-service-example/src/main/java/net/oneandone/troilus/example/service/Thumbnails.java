@@ -17,7 +17,6 @@ package net.oneandone.troilus.example.service;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -36,7 +35,10 @@ public class Thumbnails {
         private final byte[] picture;
         
         public Thumbnail(byte[] picture) {
-            this.picture = picture;
+            byte[] bytes = new byte[picture.length];
+            System.arraycopy(picture, 0, bytes, 0, bytes.length);
+
+            this.picture = bytes;
         }
         
         Thumbnail size(int length, int height) {
