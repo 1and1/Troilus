@@ -17,7 +17,6 @@ package net.oneandone.troilus.example.service;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -92,20 +91,19 @@ public class HotelService implements Closeable {
                                        @Suspended AsyncResponse resp) {
 
 
-        hotelsDao.readWithKey("id", hotelId)
+        hotelsDao.readWithKey("id", hotelId)  
                  .asEntity(Hotel.class)
-                 .executeAsync()
-                 .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
-                 .thenCompose(hotel -> hotel.getPictureUri().map(uri -> restClient.target(uri)
-                                                                                  .request()
-                                                                                  .rx()
-                                                                                  .get(byte[].class)
-                                                                                  .exceptionally(error -> defaultPicture))
-                                                            .orElse(CompletableFuture.completedFuture(defaultPicture)))
-                 .thenCompose(picture -> Thumbnails.of(picture)
+                 .executeAsync()                                                                 
+                 .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))  
+                 .thenCompose(hotel -> restClient.target(hotel.getPictureUri())                  
+                                                 .request()                 
+                                                 .rx()
+                                                 .get(byte[].class)                              
+                                                 .exceptionally(error -> defaultPicture))
+                 .thenCompose(picture -> Thumbnails.of(picture)                                  
                                                    .size(height, width)
                                                    .outputFormat("image/png")
-                                                   .computeAsync())    
+                                                   .computeAsync())                              
                  .whenComplete(writeTo(resp));
     }
     
@@ -120,12 +118,13 @@ public class HotelService implements Closeable {
         servletResponse.setHeader("Content-Type", "text/event-stream");
         ServletOutputStream out = servletResponse.getOutputStream();
         
-        hotelsDao.readAll()
+        hotelsDao.readSequence()
                  .asEntity(Hotel.class)
                  .withConsistency(ConsistencyLevel.QUORUM)
                  .executeAsync()
                  .thenAccept(publisher -> Pipes.newPipe(publisher)
                                                .map(hotel -> ServerSentEvent.newEvent().data(hotel.getName()))
                                                .consume(new ServletSseSubscriber(out, executor)));
-    }   
+    }
+    
 }

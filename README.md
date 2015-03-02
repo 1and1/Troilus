@@ -325,7 +325,7 @@ System.out.println("ttl=" + record.getTtl("description")));
 
 Read all of the table
 ``` java  
-Iterable<Hotel> hotelIterator = hotelsDao.readAll()
+Iterable<Hotel> hotelIterator = hotelsDao.readSequence()
                                          .asEntity(Hotel.class)
                                          .withLimit(5000)
                                          .execute();
@@ -335,7 +335,7 @@ hotelIterator.forEach(hotel -> System.out.println(hotel));
 
 Read specific ones by using conditions
 ``` java  
-Iterable<Hotel> hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+Iterable<Hotel> hotelIterator = hotelsDao.readSequenceWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
                                          .asEntity(Hotel.class)
                                          .withAllowFiltering()
                                          .execute();
@@ -347,7 +347,7 @@ hotelIterator.forEach(hotel -> System.out.println(hotel));
 #User-defined types support
 -------
 
-to use the user-defined types support a Java class which represents the user-definied type has to be implemented. The fields to be mapped have to be annotated with `@Field`
+to use the user-defined types support a Java class which represents the user-defined type has to be implemented. The fields to be mapped have to be annotated with `@Field`
 
 
 ``` java
@@ -549,7 +549,7 @@ hotelsDao.readWithKey("id", "BUP45544")
 
 read a list of rows. Please consider that the Iterator has a blocking behavior which means the streaming of the result could block
 ``` java
-hotelsDao.readAll()
+hotelsDao.readSequence()
          .asEntity(Hotel.class)
          .withLimit(5000)
          .executeAsync()
@@ -560,7 +560,7 @@ For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) 
 ``` java
 Subscriber<Hotel> mySubscriber = new MySubscriber();  
 
-hotelsDao.readAll()
+hotelsDao.readSequence()
          .asEntity(Hotel.class)
          .withLimit(5000)
          .executeAsync()

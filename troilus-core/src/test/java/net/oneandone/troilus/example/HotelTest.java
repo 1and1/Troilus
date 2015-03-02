@@ -146,7 +146,7 @@ public class HotelTest {
         
         ////////////////
         // reads
-        hotelsDao.readAll()
+        hotelsDao.readSequence()
                  .asEntity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
@@ -156,7 +156,7 @@ public class HotelTest {
         
         
         HotelSubscriber mySubscriber = new HotelSubscriber();
-        hotelsDao.readWhere()
+        hotelsDao.readSequenceWhere()
                  .asEntity(Hotel.class)
                  .withLimit(100)
                  .executeAsync()
@@ -168,7 +168,7 @@ public class HotelTest {
         }
         
         
-        Iterable<Hotel> hotelIterator = hotelsDao.readAll()
+        Iterable<Hotel> hotelIterator = hotelsDao.readSequence()
                                                  .asEntity(Hotel.class)
                                                  .withLimit(100)
                                                  .execute();
@@ -177,7 +177,7 @@ public class HotelTest {
         
         
         
-        hotelIterator = hotelsDao.readWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
+        hotelIterator = hotelsDao.readSequenceWhere(QueryBuilder.in("ID", "BUP45544", "BUP14334"))
                                  .asEntity(Hotel.class)
                                  .withAllowFiltering()
                                  .execute();

@@ -111,7 +111,7 @@ public class ReadWithConditionTest {
 
 
 
-        Iterator<Record> records = userDao.readWhere(QueryBuilder.in(UsersTable.USER_ID, "2323", "935434"))
+        Iterator<Record> records = userDao.readSequenceWhere(QueryBuilder.in(UsersTable.USER_ID, "2323", "935434"))
                                           .withAllowFiltering()
                                           .execute()
                                           .iterator();

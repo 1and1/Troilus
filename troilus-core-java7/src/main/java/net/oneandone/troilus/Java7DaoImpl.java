@@ -280,13 +280,13 @@ public class Java7DaoImpl implements Dao {
     }
 
     @Override
-    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                                        String composedKeyNamePart2, Object composedKeyValuePart2) {
+    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                            String composedKeyNamePart2, Object composedKeyValuePart2) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2))));        
     }
@@ -317,24 +317,24 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public <T> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> name, T value) {
-        return readListWithKey(name.getName(), (Object) value);
+    public <T> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> name, T value) {
+        return readSequenceWithKey(name.getName(), (Object) value);
     }
 
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2) {
-        return readListWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
-                               composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
+        return readSequenceWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                   composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
     }    
     
     @Override
-    public ListReadQuery readWhere(Clause... clauses) {
+    public ListReadQuery readSequenceWhere(Clause... clauses) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses)));
     }
      
     @Override
-    public ListReadQuery readAll() {
+    public ListReadQuery readSequence() {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
 }

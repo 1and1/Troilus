@@ -93,7 +93,7 @@ public class JPAEntityMappingTest  {
     
         
         
-        Iterator<JPAUser> list = userDao.readWhere()
+        Iterator<JPAUser> list = userDao.readSequenceWhere()
                                         .asEntity(JPAUser.class)
                                         .withLimit(3)        
                                         .execute()

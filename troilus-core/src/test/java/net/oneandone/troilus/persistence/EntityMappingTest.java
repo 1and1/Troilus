@@ -102,7 +102,7 @@ public class EntityMappingTest  {
     
         
         
-        Iterator<User> list = userDao.readWhere()
+        Iterator<User> list = userDao.readSequenceWhere()
                                      .asEntity(User.class)
                                      .withLimit(3)        
                                      .execute()
@@ -113,7 +113,7 @@ public class EntityMappingTest  {
         
         
             
-        Iterator<Record> records = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
+        Iterator<Record> records = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "4454"))
                                           .execute()
                                           .iterator();
         
@@ -128,7 +128,7 @@ public class EntityMappingTest  {
         
         
         
-        list = userDao.readWhere(QueryBuilder.eq("user_id", "4454"))
+        list = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "4454"))
                       .asEntity(User.class)   
                       .execute()
                       .iterator();

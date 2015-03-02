@@ -87,7 +87,7 @@ public class ColumnsApiTest{
 
         
 
-        Count num = usersDao.readAll()
+        Count num = usersDao.readSequence()
                             .count()
                             .execute();
         Assert.assertEquals(0, num.getCount());
@@ -186,7 +186,7 @@ public class ColumnsApiTest{
 
  
 
-        num = usersDao.readAll()
+        num = usersDao.readSequence()
                       .count()
                       .execute();
         Assert.assertEquals(4,  num.getCount());

@@ -67,7 +67,7 @@ public class AsyncTest {
 
         
         // delete records of previous tests
-        for (Record record : feeDao.readAll().execute()) {
+        for (Record record : feeDao.readSequence().execute()) {
             feeDao.deleteWithKey(FeesTable.CUSTOMER_ID, record.getString(FeesTable.CUSTOMER_ID),
                                  FeesTable.YEAR, record.getInt(FeesTable.YEAR));
         }
@@ -108,7 +108,7 @@ public class AsyncTest {
         
         ////////////////
         // reads
-        ImmutableList<Record> recs = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "233132"))
+        ImmutableList<Record> recs = feeDao.readSequenceWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "233132"))
                                            .column(FeesTable.CUSTOMER_ID)
                                            .executeAsync()
                                            .thenApply(iterable -> iterable.iterator())

@@ -91,7 +91,7 @@ public class InterceptorTest  {
 
 
         
-        usersDao.readWhere(QueryBuilder.in("user_id", "34334234234"))
+        usersDao.readSequenceWhere(QueryBuilder.in("user_id", "34334234234"))
                 .execute();
         Assert.assertTrue(listReadRequestInterceptor.getQueryData().getWhereConditions().size() > 0);
         Assert.assertEquals("tom", listReadResponseInterceptor.getRecord().iterator().next().getString("name"));

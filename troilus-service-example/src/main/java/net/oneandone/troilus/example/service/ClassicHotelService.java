@@ -55,6 +55,7 @@ public class ClassicHotelService {
         preparedSelectStmt.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
     
+
     @Path("/{id}/thumbnail")
     @GET
     @Produces("image/png")
@@ -64,133 +65,52 @@ public class ClassicHotelService {
                                        @Suspended AsyncResponse resp) {
         
         // (1) call the database
-        final ResultSetFuture databaseResponseFuture = session.executeAsync(preparedSelectStmt.bind(hotelId));
-        
-        Runnable databaseResponseListener = new Runnable() {
-
+        ResultSetFuture databaseResponseFuture = session.executeAsync(preparedSelectStmt.bind(hotelId));
+        databaseResponseFuture.addListener(new Runnable() {
+            
             public void run() {
-
-                // handling the database response
                 try {
                     Row row = databaseResponseFuture.get().one();
                     if (row == null) {
                         resp.resume(new NotFoundException());
                         
                     } else {
-                        InvocationCallback<byte[]> restResponseListener = new InvocationCallback<byte[]>() {
-                                
-                            public void failed(Throwable error) {
-                                completed(defaultPicture);
-                            }
-                            
-                            public void completed(byte[] picture) {
-
-                                ListenableFuture<byte[]> thumbnailResponseFuture = Thumbnails.of(picture)
-                                                                                             .size(height, width)
-                                                                                             .outputFormat("image/png")
-                                                                                             .compute();
-                                
-                                Runnable thumbnailResponseListener = new Runnable() {
-                                    
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            resp.resume(thumbnailResponseFuture.get());
-                                        } catch (ExecutionException | InterruptedException | RuntimeException e) {
-                                            resp.resume(e);
-                                        }
-                                    }
-                                };
-                                
-                                // (3) calling the thumbnail library to reduce the  size
-                                thumbnailResponseFuture.addListener(thumbnailResponseListener, ForkJoinPool.commonPool());
-                            }
-                        };
-
-                        // (2) calling the rest service to get the hotel picture
-                        restClient.target(row.getString("picture_uri"))
-                                  .request()
-                                  .async()
-                                  .get(restResponseListener);
-                    }
-
-                } catch (ExecutionException | InterruptedException | RuntimeException e) {
-                    resp.resume(e);
-                }
-            }
-        };
-        
-        databaseResponseFuture.addListener(databaseResponseListener, ForkJoinPool.commonPool());
-    }
-    
-    
-
-    @Path("/{id}/thumbnail")
-    @GET
-    @Produces("image/png")
-    public void getHotelThumbnailAsync2(@PathParam("id") String hotelId, 
-                                       @PathParam("height") @DefaultValue("480") int height,  
-                                       @PathParam("width") @DefaultValue("640") int width,
-                                       @Suspended AsyncResponse resp) {
-        
-        // (1) call the database
-        final ResultSetFuture databaseResponseFuture = session.executeAsync(preparedSelectStmt.bind(hotelId));
-        
-        Runnable databaseResponseListener = new Runnable() {
-
-            public void run() {
-
-                // handling the database response
-                try {
-                    Row row = databaseResponseFuture.get().one();
-                    if (row == null) {
-                        resp.resume(new NotFoundException());
                         
-                    } else {
-                        InvocationCallback<byte[]> restResponseListener = new InvocationCallback<byte[]>() {
-                                
-                            public void failed(Throwable error) {
-                                completed(defaultPicture);
-                            }
-                            
-                            public void completed(byte[] picture) {
-
-                                ListenableFuture<byte[]> thumbnailResponseFuture = Thumbnails.of(picture)
-                                                                                             .size(height, width)
-                                                                                             .outputFormat("image/png")
-                                                                                             .compute();
-                                
-                                Runnable thumbnailResponseListener = new Runnable() {
-                                    
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            resp.resume(thumbnailResponseFuture.get());
-                                        } catch (ExecutionException | InterruptedException | RuntimeException e) {
-                                            resp.resume(e);
-                                        }
-                                    }
-                                };
-                                
-                                // (3) calling the thumbnail library to reduce the  size
-                                thumbnailResponseFuture.addListener(thumbnailResponseListener, ForkJoinPool.commonPool());
-                            }
-                        };
-
-                        // (2) calling the rest service to get the hotel picture
+                        // (2) call the rest service to get the hotel picture
                         restClient.target(row.getString("picture_uri"))
                                   .request()
                                   .async()
-                                  .get(restResponseListener);
+                                  .get(new InvocationCallback<byte[]>() {
+    
+                                      public void failed(Throwable throwable) {
+                                          completed(defaultPicture);
+                                      }
+                                      
+                                      public void completed(byte[] picture) {
+    
+                                          // (3) call the thumbnail library to reduce the  size
+                                          ListenableFuture<byte[]> thumbnailResponseFuture = Thumbnails.of(picture)
+                                                                                                       .size(height, width)
+                                                                                                       .outputFormat("image/png")
+                                                                                                       .compute();
+                                          thumbnailResponseFuture.addListener(new Runnable() {
+                                            
+                                            public void run() {
+                                                try {
+                                                    resp.resume(thumbnailResponseFuture.get());
+                                                } catch (ExecutionException | InterruptedException | RuntimeException e) {
+                                                    resp.resume(e);
+                                                }
+                                            }
+                                        }, ForkJoinPool.commonPool());
+                                      }
+                                });
+    
                     }
-
                 } catch (ExecutionException | InterruptedException | RuntimeException e) {
                     resp.resume(e);
                 }
             }
-        };
-        
-        databaseResponseFuture.addListener(databaseResponseListener, ForkJoinPool.commonPool());
+        }, ForkJoinPool.commonPool());
     }
-
 }

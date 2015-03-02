@@ -314,81 +314,81 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListReadWithUnit<RecordList> readListWithKeys(String name, ImmutableList<Object> values) {
+    public ListReadWithUnit<RecordList> readSequenceWithKeys(String name, ImmutableList<Object> values) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                                     String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
+    public ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                             String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                                                     composedKeyNamePart2, composedKeyValuesPart2))));
+                                                                                                                 composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readListWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2,
-                                                     String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
+    public ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                             String composedKeyNamePart2, Object composedKeyValuePart2,
+                                                             String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
                                                                                                                      composedKeyNamePart3, composedKeyValuesPart3))));        
     }
 
     @Override
-    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
     }
 
     @Override
-    public ListReadWithUnit<RecordList> readListWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                                           String composedKeyNamePart2, Object composedKeyValuePart2) {
+    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+                                                            String composedKeyNamePart2, Object composedKeyValuePart2) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> name, ImmutableList<T> values) {
-        return readListWithKeys(name.getName(), (ImmutableList<Object>) values);
+    public <T> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values) {
+        return readSequenceWithKeys(name.getName(), (ImmutableList<Object>) values);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readListWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                            ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
-        return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
-                            composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
+    public <T, E> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                    ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
+        return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                    composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
     }
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<RecordList> readListWithKeys( ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                                ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
-        return readListWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
-                            composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
-                            composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
+    public <T, E, F> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+                                                                       ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
+                                                                       ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
+        return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                    composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
+                                    composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
     }
 
     @Override
-    public <T> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> name, T value) {
-        return readListWithKey(name.getName(), (Object) value);
+    public <T> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> name, T value) {
+        return readSequenceWithKey(name.getName(), (Object) value);
     }
     
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readListWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                   ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2) {
-        return readListWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
-                               composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
+        return readSequenceWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                   composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readWhere(Clause... clauses) {
+    public ListReadWithUnit<RecordList> readSequenceWhere(Clause... clauses) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
     @Override
-    public ListReadWithUnit<RecordList> readAll() {
+    public ListReadWithUnit<RecordList> readSequence() {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
     }
 

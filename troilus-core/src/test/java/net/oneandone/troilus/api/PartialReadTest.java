@@ -90,7 +90,7 @@ public class PartialReadTest {
         
         
         
-        Iterator<Record> list = feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
+        Iterator<Record> list = feeDao.readSequenceWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "132"))
                                       .column(FeesTable.CUSTOMER_ID)
                                       .execute()
                                       .iterator();
@@ -101,7 +101,7 @@ public class PartialReadTest {
 
 
 
-        list = feeDao.readListWithKey(FeesTable.CUSTOMER_ID, "132")
+        list = feeDao.readSequenceWithKey(FeesTable.CUSTOMER_ID, "132")
                      .column(FeesTable.CUSTOMER_ID)
                      .execute()
                      .iterator();
@@ -128,7 +128,7 @@ public class PartialReadTest {
        
 
         
-        list = feeDao.readWhere()
+        list = feeDao.readSequenceWhere()
                      .column(FeesTable.CUSTOMER_ID)
                      .withLimit(2)
                      .execute()
@@ -139,7 +139,7 @@ public class PartialReadTest {
 
         
         
-        list = feeDao.readWhere()
+        list = feeDao.readSequenceWhere()
                      .column(FeesTable.CUSTOMER_ID)
                      .withLimit(3)
                      .execute()
@@ -151,7 +151,7 @@ public class PartialReadTest {
         
         
 
-        list = feeDao.readListWithKeys(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, ImmutableList.of(3, 4, 6876767))
+        list = feeDao.readSequenceWithKeys(FeesTable.CUSTOMER_ID, "132", FeesTable.YEAR, ImmutableList.of(3, 4, 6876767))
                      .column(FeesTable.CUSTOMER_ID)
                      .execute()
                      .iterator();

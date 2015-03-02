@@ -90,7 +90,7 @@ public class ReactiveTest {
         // reads
         MySubscriber testSubscriber = new MySubscriber();
         
-        feeDao.readWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
+        feeDao.readSequenceWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
               .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
               .executeAsync()
               .thenAccept(result -> result.subscribe(testSubscriber));

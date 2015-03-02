@@ -39,7 +39,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
 
 
-@Ignore
+//@Ignore
 public class HotelServiceTest extends AbstractCassandraBasedTest {
 
     private static WebContainer server;
@@ -84,21 +84,11 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
             Assert.fail("NotFoundException expected");
         } catch (NotFoundException expected) { } 
 
-        
-        // hotel entry without URI
-        byte[] picture = client.target(server.getBaseUrl() + "/hotels/BUP45544/thumbnail")
-                               .request()
-                               .get(byte[].class);
-        
-
-        System.out.println(new String(picture));
-        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
-        
 
         // hotel entry with broken URI
-        picture = client.target(server.getBaseUrl() + "/hotels/BUP14334/thumbnail")
-                        .request()
-                        .get(byte[].class);
+        byte[] picture = client.target(server.getBaseUrl() + "/hotels/BUP14334/thumbnail")
+                               .request()
+                               .get(byte[].class);
         
         System.out.println(new String(picture));
         Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
@@ -119,17 +109,6 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
             Assert.fail("NotFoundException expected");
         } catch (NotFoundException expected) { } 
 
-        
-        // hotel entry without URI is not supported by the implementation
-/*        byte[] picture = client.target(server.getBaseUrl() + "/classic/hotels/BUP45544/thumbnail")
-                               .request()
-                               .get(byte[].class);
-        
-
-        System.out.println(new String(picture));
-        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
-  */      
-
         // hotel entry with broken URI
         byte[] picture = client.target(server.getBaseUrl() + "/classic/hotels/BUP14334/thumbnail")
                                .request()
@@ -149,7 +128,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP45544", 
                                         "Corinthia Budapest",
                                         ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
-                                        Optional.empty(),
+                                        null,
                                         Optional.of(5), 
                                         Optional.of("Superb hotel housed in a heritage building - exudes old world charm")
                                        ))
@@ -169,7 +148,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         hotelsDao.writeEntity(new Hotel("BUP14334", 
                                         "Richter Panzio",
                                         ImmutableSet.of("1", "2", "3"),
-                                        Optional.of("http://localhost:" + server.getLocalPort() + "/doesnotexits"),
+                                        "http://localhost:" + server.getLocalPort() + "/doesnotexits",
                                         Optional.of(2), 
                                         Optional.empty())
                                         )
