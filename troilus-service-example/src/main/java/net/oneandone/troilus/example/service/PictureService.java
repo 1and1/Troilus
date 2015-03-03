@@ -21,6 +21,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import com.google.common.io.Resources;
+
 
 @Path("/pictures")
 public class PictureService {
@@ -30,6 +32,6 @@ public class PictureService {
     @GET
     @Produces("image/png")
     public byte[] getHotelThumbnail() throws IOException {
-        return "MyPIcture".getBytes("UTF-8");
+        return Resources.toByteArray(Resources.getResource("hotel2.png"));
     }   
 }

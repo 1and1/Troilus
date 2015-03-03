@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -19,7 +20,7 @@
 		<dependency>
 			<groupId>net.oneandone.reactive</groupId>
 			<artifactId>reactive-http</artifactId>
-			<version>0.3</version>
+			<version>0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
@@ -32,11 +33,35 @@
 			<version>4.0.3.RELEASE</version>
 		</dependency>
 		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-java8</artifactId>
+			<version>2.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.ext.rx</groupId>
+			<artifactId>jersey-rx-client-rxjava</artifactId>
+			<version>2.16</version>
+		</dependency>
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava-reactive-streams</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.imgscalr</groupId>
+			<artifactId>imgscalr-lib</artifactId>
+			<version>4.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 			<scope>provided</scope>
 		</dependency>
+
 
 		<!-- TEST -->
 		<dependency>

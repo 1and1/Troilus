@@ -15,11 +15,15 @@
  */
 package net.oneandone.troilus.example.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
@@ -28,36 +32,43 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.glassfish.jersey.client.rx.Rx;
+import org.glassfish.jersey.client.rx.RxClient;
+import org.glassfish.jersey.client.rx.java8.RxCompletionStageInvoker;
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Mode;
+
 import net.oneandone.reactive.pipe.Pipes;
-import net.oneandone.reactive.rest.client.RxClient;
+import net.oneandone.reactive.rest.container.ResultConsumer;
 import net.oneandone.reactive.sse.ServerSentEvent;
 import net.oneandone.reactive.sse.servlet.ServletSseSubscriber;
 import net.oneandone.troilus.Dao;
-import static net.oneandone.reactive.rest.container.ResultConsumer.writeTo;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.google.common.io.Resources;
 
 
 @Path("/hotels")
 public class HotelService implements Closeable {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    private final RxClient restClient = new RxClient(ClientBuilder.newClient());
-    private final byte[] defaultPicture = new byte[] { 98, 105, 108, 100 };
+    private final RxClient<RxCompletionStageInvoker> restClient = Rx.newClient(RxCompletionStageInvoker.class);
+    
+    private final byte[] defaultPicture;
     
     
     
     private final Dao hotelsDao;
     
  
-    public HotelService(Dao hotelsDao) {
+    public HotelService(Dao hotelsDao) throws IOException {
         this.hotelsDao = hotelsDao;
+        defaultPicture = Resources.toByteArray(Resources.getResource("hotel.png"));
     }
 
     @Override
@@ -77,7 +88,7 @@ public class HotelService implements Closeable {
                  .executeAsync()
                  .thenApply(optionalHotel -> optionalHotel.<NotFoundException>orElseThrow(NotFoundException::new))
                  .thenApply(hotel -> new HotelRepresentation(hotel.getId(), hotel.getName(), hotel.getRoomIds()))
-                 .whenComplete(writeTo(resp));
+                 .whenComplete(ResultConsumer.writeTo(resp));
     }
     
     
@@ -86,10 +97,9 @@ public class HotelService implements Closeable {
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
-                                       @PathParam("height") @DefaultValue("480") int height,  
-                                       @PathParam("width") @DefaultValue("640") int width,
+                                       @PathParam("height") @DefaultValue("160") int height,  
+                                       @PathParam("width") @DefaultValue("160") int width,
                                        @Suspended AsyncResponse resp) {
-
 
         hotelsDao.readWithKey("id", hotelId)  
                  .asEntity(Hotel.class)
@@ -100,14 +110,28 @@ public class HotelService implements Closeable {
                                                  .rx()
                                                  .get(byte[].class)                              
                                                  .exceptionally(error -> defaultPicture))
-                 .thenCompose(picture -> Thumbnails.of(picture)                                  
-                                                   .size(height, width)
-                                                   .outputFormat("image/png")
-                                                   .computeAsync())                              
-                 .whenComplete(writeTo(resp));
+                 .thenApply(picture -> resize(picture, height, width, "png"))
+                 .whenComplete(ResultConsumer.writeTo(resp));
     }
     
-     
+
+    private byte[] resize(byte[] picture, int height, int width, String format) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(picture));
+            BufferedImage scaledImg = Scalr.resize(img, Mode.AUTOMATIC, height, width);
+               
+            ImageIO.write(scaledImg, format, bos);
+            return bos.toByteArray();
+        } catch (IOException | RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+
+    
+    
     
     @Path("/")
     @GET
@@ -126,5 +150,4 @@ public class HotelService implements Closeable {
                                                .map(hotel -> ServerSentEvent.newEvent().data(hotel.getName()))
                                                .consume(new ServletSseSubscriber(out, executor)));
     }
-    
 }

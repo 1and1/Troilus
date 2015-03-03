@@ -15,3 +15,6 @@
 /target
 /troilus-core/test-output
 /troilus-core/src/test/java/net/oneandone/troilus/DeleteMe.java
+/troilus-service-example/test-output
+/troilus-service-example/tomcat.0
+/troilus-service-example/bin

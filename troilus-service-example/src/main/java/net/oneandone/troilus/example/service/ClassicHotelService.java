@@ -15,9 +15,14 @@
  */
 package net.oneandone.troilus.example.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -29,6 +34,9 @@ import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Mode;
+
 import net.oneandone.reactive.rest.client.RxClient;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -36,21 +44,22 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.io.Resources;
 
 
 @Path("/classic/hotels")
 public class ClassicHotelService {
 
     private final RxClient restClient = new RxClient(ClientBuilder.newClient());
-    private final byte[] defaultPicture = new byte[] { 98, 105, 108, 100 };
+    private final byte[] defaultPicture;
     
     private final Session session;
     private final PreparedStatement preparedSelectStmt;
  
     
-    public ClassicHotelService(Session session) {
+    public ClassicHotelService(Session session) throws IOException {
         this.session = session;
+        defaultPicture = Resources.toByteArray(Resources.getResource("hotel.png"));
         preparedSelectStmt = session.prepare("select id, name, description, classification, picture_uri, room_ids from hotels where id = ?");
         preparedSelectStmt.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
@@ -89,20 +98,12 @@ public class ClassicHotelService {
                                       public void completed(byte[] picture) {
     
                                           // (3) call the thumbnail library to reduce the  size
-                                          ListenableFuture<byte[]> thumbnailResponseFuture = Thumbnails.of(picture)
-                                                                                                       .size(height, width)
-                                                                                                       .outputFormat("image/png")
-                                                                                                       .compute();
-                                          thumbnailResponseFuture.addListener(new Runnable() {
-                                            
-                                            public void run() {
-                                                try {
-                                                    resp.resume(thumbnailResponseFuture.get());
-                                                } catch (ExecutionException | InterruptedException | RuntimeException e) {
-                                                    resp.resume(e);
-                                                }
-                                            }
-                                        }, ForkJoinPool.commonPool());
+                                          try {
+                                              byte[] thumbnail = resize(picture, height, width, "png"); 
+                                              resp.resume(thumbnail);
+                                          } catch (RuntimeException e) {
+                                              resp.resume(e);
+                                          }                              
                                       }
                                 });
     
@@ -113,4 +114,20 @@ public class ClassicHotelService {
             }
         }, ForkJoinPool.commonPool());
     }
+    
+    
+    private byte[] resize(byte[] picture, int height, int width, String format) {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(picture));
+            BufferedImage scaledImg = Scalr.resize(img, Mode.AUTOMATIC, height, width);
+               
+            ImageIO.write(scaledImg, format, bos);
+            return bos.toByteArray();
+        } catch (IOException | RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+   
 }

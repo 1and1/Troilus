@@ -32,7 +32,6 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -47,7 +46,10 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         server = new WebContainer("/service");
+        server.setPort(8343);
         server.start();
+        
+        System.out.println(server.getBaseUrl());
         
         filldb();
     }
@@ -75,6 +77,15 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
     public void testPictureExample() throws Exception {
         Client client =  ResteasyClientBuilder.newClient();
         
+
+        // hotel entry with valid URI
+        byte[] picture = client.target(server.getBaseUrl() + "/hotels/BUP932432/thumbnail")
+                               .request()
+                               .get(byte[].class);
+        
+        Assert.assertEquals((byte) 60, picture[342]);
+        
+        
         
         // hotel entry does not exits
         try {
@@ -86,20 +97,61 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
 
 
         // hotel entry with broken URI
-        byte[] picture = client.target(server.getBaseUrl() + "/hotels/BUP14334/thumbnail")
+        picture = client.target(server.getBaseUrl() + "/hotels/BUP14334/thumbnail")
+                        .request()
+                        .get(byte[].class);
+        
+        Assert.assertEquals((byte) -21, picture[342]);
+    }        
+
+    
+    @Test
+    public void testPictureExampleObservable() throws Exception {
+        Client client =  ResteasyClientBuilder.newClient();
+        
+        // hotel entry with valid URI
+        byte[] picture = client.target(server.getBaseUrl() + "/observable/hotels/BUP932432/thumbnail")
                                .request()
                                .get(byte[].class);
         
-        System.out.println(new String(picture));
-        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
+        Assert.assertEquals((byte) 60, picture[342]);
+        
+        
+        
+        // hotel entry does not exits
+        try {
+            client.target(server.getBaseUrl() + "/observable/hotels/BUPnotexits/thumbnail")
+                  .request()
+                  .get(byte[].class);
+            Assert.fail("NotFoundException expected");
+        } catch (NotFoundException expected) { } 
+
+        
+/* DOES NOT WORK :-(
+        // hotel entry with broken URI
+        picture = client.target(server.getBaseUrl() + "/observable/hotels/BUP14334/thumbnail")
+                        .request()
+                        .get(byte[].class);
+        
+        Assert.assertEquals((byte) -21, picture[342]);
+        */
     }        
 
+    
     
     
     @Test
     public void testPictureExampleClassic() throws Exception {
         Client client =  ResteasyClientBuilder.newClient();
         
+        
+        byte[] picture = client.target(server.getBaseUrl() + "/hotels/BUP932432/thumbnail")
+                .request()
+                .get(byte[].class);
+
+        Assert.assertEquals((byte) 60, picture[342]);
+
+
         
         // hotel entry does not exits
         try {
@@ -110,12 +162,11 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
         } catch (NotFoundException expected) { } 
 
         // hotel entry with broken URI
-        byte[] picture = client.target(server.getBaseUrl() + "/classic/hotels/BUP14334/thumbnail")
-                               .request()
-                               .get(byte[].class);
-        
-        System.out.println(new String(picture));
-        Assert.assertArrayEquals(new byte[] { 98, 105, 108, 100 }, picture);
+        picture = client.target(server.getBaseUrl() + "/classic/hotels/BUP14334/thumbnail")
+                        .request()
+                        .get(byte[].class);
+
+        Assert.assertEquals((byte) -20, picture[342]);
     }        
 
     

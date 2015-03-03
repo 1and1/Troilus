@@ -36,6 +36,10 @@
 	<bean id="hotelService" class="net.oneandone.troilus.example.service.HotelService">
 		<constructor-arg ref="hotelsDao" />
 	</bean>
+
+	<bean id="observableHotelService" class="net.oneandone.troilus.example.service.ObservableHotelService">
+		<constructor-arg ref="hotelsDao" />
+	</bean>
 	
 	<bean id="classicHotelService" class="net.oneandone.troilus.example.service.ClassicHotelService">
 		<constructor-arg ref="cassandraSession" />
