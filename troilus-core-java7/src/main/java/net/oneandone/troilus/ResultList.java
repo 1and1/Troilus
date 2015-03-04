@@ -17,13 +17,18 @@ package net.oneandone.troilus;
 
 import org.reactivestreams.Publisher;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 
 
 /**
  * The entity list
  * @param <E> the element type
  */
-public interface ResultList<E> extends Result, Iterable<E>, Publisher<E>, FetchControl {
+public interface ResultList<E> extends Result, Iterable<E>, Publisher<E> {
 
+    boolean isFullyFetched();
+    
+    ListenableFuture<Void> fetchMoreResults();
 }
 

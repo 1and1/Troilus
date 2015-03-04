@@ -40,7 +40,7 @@ public class DatabaseSubscription<R> implements Subscription {
     
     private final Subscriber<? super R> subscriber;
     private final Iterator<? extends R> it;
-    private final FetchControl fetchControl;
+    private final ResultList<? extends R> fetchControl;
     
     private final AtomicLong numRequestedReads = new AtomicLong();
     
@@ -51,10 +51,10 @@ public class DatabaseSubscription<R> implements Subscription {
 
     
     
-    public DatabaseSubscription(Subscriber<? super R> subscriber, Iterator<? extends R> it, FetchControl fetchControl) {
+    public DatabaseSubscription(Subscriber<? super R> subscriber, ResultList<? extends R> resultList) {
         this.subscriber = subscriber;
-        this.it = it;
-        this.fetchControl = fetchControl;
+        this.it = resultList.iterator();
+        this.fetchControl = resultList;
     }
     
     public DatabaseSubscription<R> ready() {

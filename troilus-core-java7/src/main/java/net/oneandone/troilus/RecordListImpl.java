@@ -102,7 +102,7 @@ class RecordListImpl implements ResultList<Record> {
                 subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
             } else {
                 subscribed = true;
-                new DatabaseSubscription<Record>(subscriber, iterator(), this).ready();
+                new DatabaseSubscription<Record>(subscriber, this).ready();
             }
         }
     }
