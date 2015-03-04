@@ -143,8 +143,8 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     
     @Override
     public Publisher<Record> executeRx() {
-        // TODO Auto-generated method stub
-        return null;
+        Publisher<net.oneandone.troilus.java7.Record> publisher = query.executeRx();
+        return new RecordMappingPublisher(publisher);
     }
     
     
@@ -204,8 +204,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         
         @Override
         public Publisher<E> executeRx() {
-            // TODO Auto-generated method stub
-            return null;
+            return query.executeRx();
         }
     }
     

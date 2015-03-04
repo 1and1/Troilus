@@ -54,7 +54,7 @@ import com.google.common.collect.ImmutableSet;
  */
 class RecordImpl implements Record {
     
-    private static final Logger LOG = LoggerFactory.getLogger(DatabaseSubscription.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RecordImpl.class);
 
     
     private final Context ctx;

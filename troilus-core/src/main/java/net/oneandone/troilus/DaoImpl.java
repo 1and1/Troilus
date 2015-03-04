@@ -559,41 +559,8 @@ public class DaoImpl implements Dao {
                 }
             };
         }
-        
-        @Override
-        public void subscribe(Subscriber<? super Record> subscriber) {
-            recordList.subscribe(new RecordSubscriberAdapter(subscriber));
-        }
-        
-        
-        private static final class RecordSubscriberAdapter implements Subscriber<net.oneandone.troilus.java7.Record> {
-            private final Subscriber<? super Record> subscriber;
-            
-            public RecordSubscriberAdapter(Subscriber<? super Record> subscriber) {
-                this.subscriber = subscriber;
-           }
-
-           @Override
-           public void onSubscribe(Subscription s) {
-               subscriber.onSubscribe(s);
-           }
-
-           @Override
-           public void onNext(net.oneandone.troilus.java7.Record record) {
-               subscriber.onNext(RecordAdapter.convertFromJava7(record));
-           }
-
-           @Override
-           public void onError(Throwable t) {
-               subscriber.onError(t);
-           }
-        
-           @Override
-           public void onComplete() {
-               subscriber.onComplete();
-           }
-        }
-
+  
+  
         
         
         
@@ -625,10 +592,6 @@ public class DaoImpl implements Dao {
                 @Override
                 public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
                     return recordList.getAllExecutionInfo();
-                }
-                
-                public void subscribe(Subscriber<? super net.oneandone.troilus.java7.Record> subscriber) {
-                    recordList.subscribe(new Java7RecordSubscriberAdapter(subscriber));
                 }
                 
                 public Iterator<net.oneandone.troilus.java7.Record> iterator() {
@@ -720,13 +683,6 @@ public class DaoImpl implements Dao {
                    return recordIt.next();
                }
            };
-       }
-       
-        
-       @SuppressWarnings({ "unchecked", "rawtypes" })
-       @Override
-       public void subscribe(Subscriber<? super F> subscriber) {
-           entityList.subscribe(new SubscriberAdapter(subscriber));
        }
    }
    

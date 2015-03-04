@@ -35,6 +35,7 @@ import org.glassfish.jersey.client.rx.RxClient;
 import org.glassfish.jersey.client.rx.rxjava.RxObservableInvoker;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Mode;
+import org.reactivestreams.Publisher;
 
 import rx.RxReactiveStreams;
 import net.oneandone.reactive.rest.container.PublisherConsumer;
@@ -58,7 +59,7 @@ public class ObservableHotelService {
     }
 
     
-    
+/*    
     @Path("/{id}/thumbnail")
     @GET
     @Produces("image/png")
@@ -68,21 +69,25 @@ public class ObservableHotelService {
                                        @Suspended AsyncResponse resp) {
 
         
-        hotelsDao.readSequenceWithKey("id", hotelId)  
-                 .asEntity(Hotel.class)
-                 .executeAsync()                                                                 
-                 .thenApply(publisher -> RxReactiveStreams.toObservable(publisher))
-                 .thenApply(observable -> observable.flatMap(hotel -> restClient.target(hotel.getPictureUri())                  
-                                                                                .request()                 
-                                                                                .rx()
-                                                                                .get(byte[].class)
-                                                                                .onErrorReturn(error -> defaultPicture))
-                                                    .map(picture -> resize(picture, height, width, "png")))
+        Publisher<Hotel> hotelPublisher = hotelsDao.readSequenceWithKey("id", hotelId)  
+                                                   .asEntity(Hotel.class)
+                                                   .executeRx();
+        
+        RxReactiveStreams.toObservable(hotelPublisher)
+                         .flatMap(hotel -> restClient.target(hotel.getPictureUri())                  
+                                                     .request()                 
+                                                     .rx()
+                                                     .get(byte[].class)
+                                                     .onErrorReturn(error -> defaultPicture))
+                          .map(picture -> resize(picture, height, width, "png"))
+                         ;
+
+        
                  .thenApply(observable -> RxReactiveStreams.toPublisher(observable))                                                  
                  .whenComplete(PublisherConsumer.writeSingleTo(resp));
     }
 
-    
+  */  
 
     
    

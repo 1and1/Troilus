@@ -62,7 +62,7 @@ public class PublisherTest extends PublisherVerification<Record> {
     public Publisher<Record> createPublisher(long elements) {
         try {
             Dao dao = new DaoImpl(cassandra.getSession(), "publisher_test");
-            return dao.readSequence().columns("table_id").withLimit((int)elements).execute();
+            return dao.readSequence().columns("table_id").withLimit((int)elements).executeRx();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

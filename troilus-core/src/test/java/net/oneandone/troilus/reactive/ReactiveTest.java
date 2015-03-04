@@ -18,7 +18,6 @@ package net.oneandone.troilus.reactive;
 
 
 import java.io.IOException;
-
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.CassandraDB;
@@ -33,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableList;
@@ -90,10 +90,10 @@ public class ReactiveTest {
         // reads
         MySubscriber testSubscriber = new MySubscriber();
         
-        feeDao.readSequenceWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
-              .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
-              .executeAsync()
-              .thenAccept(result -> result.subscribe(testSubscriber));
+        Publisher<Record> publisher = feeDao.readSequenceWhere(QueryBuilder.eq(FeesTable.CUSTOMER_ID, "9565464"))
+                                            .columns(FeesTable.CUSTOMER_ID, FeesTable.YEAR, FeesTable.AMOUNT)
+                                            .executeRx();
+        publisher.subscribe(testSubscriber);
         
         
         ImmutableList<Record> records = testSubscriber.getAll();

@@ -17,11 +17,8 @@ package net.oneandone.troilus.java7.interceptor;
 
 import java.util.Iterator;
 
-import net.oneandone.troilus.DatabaseSubscription;
 import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.java7.Record;
-
-import org.reactivestreams.Subscriber;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.google.common.collect.ImmutableList;
@@ -30,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
  
 public class RecordListAdapter implements ResultList<Record> {
-    private boolean subscribed = false; // true after first subscribe
     private final ResultList<Record> recordList;
     
     public RecordListAdapter(ResultList<Record> recordList) {
@@ -66,17 +62,5 @@ public class RecordListAdapter implements ResultList<Record> {
     @Override
     public Iterator<Record> iterator() {
         return recordList.iterator();
-    }
-    
-    @Override
-    public void subscribe(Subscriber<? super Record> subscriber) {
-        synchronized (this) {
-            if (subscribed == true) {
-                subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
-            } else {
-                subscribed = true;
-                new DatabaseSubscription<Record>(subscriber, this).ready();
-            }
-        } 
     }
 }     

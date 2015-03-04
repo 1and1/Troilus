@@ -21,31 +21,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -84,7 +59,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
     
     private final ReadQueryData data;
-
+  
     
     /**
      * @param ctx   the context 
@@ -197,8 +172,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public Publisher<Record> executeRx() {
-        // TODO Auto-generated method stub
-        return null;
+        ListenableFuture<ResultList<Record>> recordsFuture = executeAsync();
+        return new DatabasePublisher(recordsFuture);
     }
     
 
@@ -303,8 +278,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public Publisher<E> executeRx() {
-            // TODO Auto-generated method stub
-            return null;
+            Publisher<Record> publisher = query.executeRx();
+            return new RecordToEntityPublisher<E>(getContext(), publisher, clazz);
         }
 
         @Override
@@ -353,6 +328,59 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     
+    private static final class RecordToEntityPublisher<F> implements Publisher<F> {
+        private final Context ctx;
+        private final Publisher<Record> publisher;
+        private final Class<F> clazz;
+
+        
+        public RecordToEntityPublisher(Context ctx, Publisher<Record> publisher, Class<F> clazz) {
+            this.ctx = ctx;
+            this.publisher = publisher;
+            this.clazz = clazz;
+        }
+        
+        @Override
+        public void subscribe(Subscriber<? super F> subscriber) {
+            publisher.subscribe(new RecordToEntitySubscriber<>(ctx, subscriber, clazz));
+            
+        }
+        
+
+        private static class RecordToEntitySubscriber<F> implements Subscriber<Record> {
+            private final Context ctx;
+            private final Subscriber<? super F> subcriber;
+            private final Class<F> clazz;
+            
+            public RecordToEntitySubscriber(Context ctx, Subscriber<? super F> subcriber, Class<F> clazz) {
+                this.ctx = ctx;
+                this.subcriber = subcriber;
+                this.clazz = clazz;
+            }
+            
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subcriber.onSubscribe(subscription);
+            }
+            
+            @Override
+            public void onComplete() {
+                subcriber.onComplete();
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                subcriber.onError(t);
+            }
+            
+            @Override
+            public void onNext(Record record) {
+                F entity = ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), ctx.getDbSession().getColumnNames());
+                subcriber.onNext(entity);
+            }
+        }
+    }
+    
     
     private static class EntityListImpl<F> extends ResultAdapter implements ResultList<F> {
         private final Context ctx;
@@ -398,46 +426,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                     throw new UnsupportedOperationException();
                 }
             };
-        }
-        
-         
-        @Override
-        public void subscribe(Subscriber<? super F> subscriber) {
-            recordList.subscribe(new MappingSubscriber<F>(ctx, clazz, subscriber));
-        }
-        
-        private final class MappingSubscriber<G> implements Subscriber<Record> {
-            private final Context ctx;
-            private final Class<?> clazz;
-            
-            private Subscriber<? super G> subscriber;
-            
-            public MappingSubscriber(Context ctx, Class<?> clazz, Subscriber<? super G> subscriber) {
-                this.ctx = ctx;
-                this.clazz = clazz;
-                this.subscriber = subscriber;
-            }
-            
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                subscriber.onSubscribe(subscription);
-            }
-            
-            @SuppressWarnings("unchecked")
-            @Override
-            public void onNext(Record record) {
-                subscriber.onNext((G) ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), ctx.getDbSession().getColumnNames()));
-            }
-    
-            @Override
-            public void onError(Throwable t) {
-                subscriber.onError(t);
-            }
-            
-            @Override
-            public void onComplete() {
-                subscriber.onComplete();
-            }
         }
     }
     

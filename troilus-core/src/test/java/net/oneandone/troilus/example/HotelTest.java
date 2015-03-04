@@ -34,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -156,11 +157,11 @@ public class HotelTest {
         
         
         HotelSubscriber mySubscriber = new HotelSubscriber();
-        hotelsDao.readSequenceWhere()
-                 .asEntity(Hotel.class)
-                 .withLimit(100)
-                 .executeAsync()
-                 .thenAccept(hotels -> hotels.subscribe(mySubscriber));
+        Publisher<Hotel> hotelPublisher =  hotelsDao.readSequenceWhere()
+                                                    .asEntity(Hotel.class)
+                                                    .withLimit(100)
+                                                    .executeRx();
+        hotelPublisher.subscribe(mySubscriber);
         
         
         for (Hotel hotel : mySubscriber.getAll()) {

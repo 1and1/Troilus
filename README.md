@@ -556,15 +556,15 @@ hotelsDao.readSequence()
          .thenAccept(hotelIt -> hotelIt.forEach(hotel -> System.out.println(hotel)));
 ```
 
-For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) could be registered which will be executed in an asynchronous, reactive way
+For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) `executeRx()` cab be called which returns a Publisher
 ``` java
 Subscriber<Hotel> mySubscriber = new MySubscriber();  
 
-hotelsDao.readSequence()
-         .asEntity(Hotel.class)
-         .withLimit(5000)
-         .executeAsync()
-         .thenAccept(publisher -> publisher.subscribe(mySubscriber));
+Publisher<Hotel> hotelPublisher = hotelsDao.readSequence()
+                                           .asEntity(Hotel.class)
+                                           .withLimit(5000)
+                                           .executeRx();
+hotelPublisher.subscribe(mySubscriber));
 ```
 
 The Subscriber implements call back methods such as `onNext(...)` or `onError(...)` to process the result stream in a reactive way. By calling the hotels.subscribe(subscriber) above the `onSubscribe(...)` method of the subscriber below will be called.

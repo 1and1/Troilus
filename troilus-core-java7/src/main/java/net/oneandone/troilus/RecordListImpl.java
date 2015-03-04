@@ -20,8 +20,6 @@ import java.util.Iterator;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
-import org.reactivestreams.Subscriber;
-
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -30,10 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-
 class RecordListImpl implements ResultList<Record> {
-    private boolean subscribed = false; // true after first subscribe
-    
     private final Context ctx;
     private final ReadQueryData queryData;
     private final ResultSet rs;
@@ -93,17 +88,5 @@ class RecordListImpl implements ResultList<Record> {
                throw new UnsupportedOperationException();
            }
         };
-    }
-    
-    @Override
-    public void subscribe(Subscriber<? super Record> subscriber) {
-        synchronized (this) {
-            if (subscribed == true) {
-                subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
-            } else {
-                subscribed = true;
-                new DatabaseSubscription<Record>(subscriber, this).ready();
-            }
-        }
     }
 }     
