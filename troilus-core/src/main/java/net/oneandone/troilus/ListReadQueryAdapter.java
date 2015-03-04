@@ -32,7 +32,7 @@ import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 /**
  * Java8 adapter of a ListReadQuery
  */
-class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<RecordList> {
+class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>> {
     
     private final ListReadQuery query;
 
@@ -79,22 +79,22 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
     
     @Override
-    public ListReadWithUnit<RecordList> columns(String... names) {
+    public ListReadWithUnit<ResultList<Record>> columns(String... names) {
         return newQuery(query.columns(names));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> column(ColumnName<?> name) {
+    public ListReadWithUnit<ResultList<Record>> column(ColumnName<?> name) {
         return newQuery(query.column(name));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> columnWithMetadata(ColumnName<?> name) {
+    public ListReadWithUnit<ResultList<Record>> columnWithMetadata(ColumnName<?> name) {
         return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> columns(ColumnName<?>... names) {
+    public ListReadWithUnit<ResultList<Record>> columns(ColumnName<?>... names) {
         return newQuery(query.columns(names));
     }
 
@@ -129,12 +129,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
 
     @Override
-    public RecordList execute() {
+    public ResultList<Record> execute() {
         return CompletableFutures.getUninterruptibly(executeAsync());
     }
     
     @Override
-    public CompletableFuture<RecordList> executeAsync() {
+    public CompletableFuture<ResultList<Record>> executeAsync() {
         return CompletableFutures.toCompletableFuture(query.executeAsync())
                                  .thenApply(recordList -> DaoImpl.RecordListAdapter.convertFromJava7(recordList));
     }        
@@ -145,7 +145,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     /**
      * Java8 adapter of a ListEntityReadQuery
      */
-    private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<EntityList<E>> {
+    private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<ResultList<E>> {
          
         private final ListEntityReadQuery<E> query;
         
@@ -165,32 +165,32 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }
 
         @Override
-        public ListRead<EntityList<E>> withDistinct() {
+        public ListRead<ResultList<E>> withDistinct() {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withDistinct());
         }
         
         @Override
-        public ListRead<EntityList<E>> withFetchSize(int fetchSize) {
+        public ListRead<ResultList<E>> withFetchSize(int fetchSize) {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withFetchSize(fetchSize));
         }
         
         @Override
-        public ListRead<EntityList<E>> withAllowFiltering() {
+        public ListRead<ResultList<E>> withAllowFiltering() {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withAllowFiltering());
         }
         
         @Override
-        public ListRead<EntityList<E>> withLimit(int limit) {
+        public ListRead<ResultList<E>> withLimit(int limit) {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withLimit(limit));
         }
 
         @Override
-        public EntityList<E> execute() {
+        public ResultList<E> execute() {
             return CompletableFutures.getUninterruptibly(executeAsync());
         }
 
         @Override
-        public CompletableFuture<EntityList<E>> executeAsync() {
+        public CompletableFuture<ResultList<E>> executeAsync() {
             return CompletableFutures.toCompletableFuture(query.executeAsync())
                                      .thenApply(entityList -> new DaoImpl.EntityListAdapter<>(entityList));
         }

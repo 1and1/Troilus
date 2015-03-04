@@ -18,8 +18,8 @@ package net.oneandone.troilus.java7.interceptor;
 import java.util.Iterator;
 
 import net.oneandone.troilus.DatabaseSubscription;
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.java7.Record;
-import net.oneandone.troilus.java7.RecordList;
 
 import org.reactivestreams.Subscriber;
 
@@ -29,11 +29,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
  
-public class RecordListAdapter implements RecordList {
+public class RecordListAdapter implements ResultList<Record> {
     private boolean subscribed = false; // true after first subscribe
-    private final RecordList recordList;
+    private final ResultList<Record> recordList;
     
-    public RecordListAdapter(RecordList recordList) {
+    public RecordListAdapter(ResultList<Record> recordList) {
         this.recordList = recordList;
     }
     

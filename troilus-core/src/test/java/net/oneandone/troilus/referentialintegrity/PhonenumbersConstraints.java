@@ -25,8 +25,8 @@ import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.RecordList;
 import net.oneandone.troilus.ConstraintException;
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.ReadQueryData;
 import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
@@ -59,7 +59,7 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
     
 
     @Override
-    public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
+    public CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList) {
         return CompletableFuture.completedFuture(new VaildatingRecordList(recordList, deviceDao));
     }
     
@@ -69,7 +69,7 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
         private final Dao deviceDao;
 
         
-        public VaildatingRecordList(RecordList recordList, Dao deviceDao) {
+        public VaildatingRecordList(ResultList<Record> recordList, Dao deviceDao) {
             super(recordList);
             this.deviceDao = deviceDao;
         }

@@ -17,8 +17,9 @@ package net.oneandone.troilus.interceptor;
 
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.RecordList;
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
+import net.oneandone.troilus.Record;
 
 
 
@@ -36,6 +37,6 @@ public interface ReadQueryResponseInterceptor extends QueryInterceptor {
      * @param recordList   the response
      * @return the (modified) response
      */
-    CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList);
+    CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList);
 }
  

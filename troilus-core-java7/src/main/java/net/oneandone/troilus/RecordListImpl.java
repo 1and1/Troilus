@@ -18,7 +18,6 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 
 import net.oneandone.troilus.java7.Record;
-import net.oneandone.troilus.java7.RecordList;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import org.reactivestreams.Subscriber;
@@ -32,7 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-class RecordListImpl implements RecordList {
+class RecordListImpl implements ResultList<Record> {
     private boolean subscribed = false; // true after first subscribe
     
     private final Context ctx;

@@ -24,7 +24,8 @@ import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.RecordList;
+import net.oneandone.troilus.Record;
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
 import net.oneandone.troilus.interceptor.ReadQueryData;
 import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
@@ -241,7 +242,7 @@ public class DeviceTest {
         
 
         @Override
-        public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
+        public CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList) {
 
             // check is related phone numbers points to this device
             return CompletableFuture.completedFuture(recordList);

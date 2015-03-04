@@ -648,7 +648,7 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
     
 
     @Override
-    public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
+    public CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList) {
         return CompletableFuture.completedFuture(new VaildatingRecordList(recordList, deviceDao));
     }
     

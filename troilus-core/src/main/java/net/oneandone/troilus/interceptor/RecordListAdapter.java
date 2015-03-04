@@ -19,9 +19,10 @@ import java.util.Iterator;
 
 
 
+
 import net.oneandone.troilus.DatabaseSubscription;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.RecordList;
+import net.oneandone.troilus.ResultList;
 
 import org.reactivestreams.Subscriber;
 
@@ -31,11 +32,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
  
-public class RecordListAdapter implements RecordList {
+public class RecordListAdapter implements ResultList<Record> {
     private boolean subscribed = false; // true after first subscribe
-    private final RecordList recordList;
+    private final ResultList<Record> recordList;
     
-    public RecordListAdapter(RecordList recordList) {
+    public RecordListAdapter(ResultList<Record> recordList) {
         this.recordList = recordList;
     }
     

@@ -18,9 +18,12 @@ package net.oneandone.troilus;
 import org.reactivestreams.Publisher;
 
 
+
 /**
- * Record list
+ * The entity list
+ * @param <E> the element type
  */
-public interface RecordList extends Result, Iterable<Record>, FetchControl, Publisher<Record> {   
-    
+public interface ResultList<E> extends Result, Iterable<E>, Publisher<E>, FetchControl {
+
 }
+

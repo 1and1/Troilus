@@ -314,19 +314,19 @@ public class DaoImpl implements Dao {
     
     
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWithKeys(String name, ImmutableList<Object> values) {
+    public ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String name, ImmutableList<Object> values) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                              String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                  composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                              String composedKeyNamePart2, Object composedKeyValuePart2,
                                                              String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
@@ -335,12 +335,12 @@ public class DaoImpl implements Dao {
     }
 
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+    public ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
     }
 
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                             String composedKeyNamePart2, Object composedKeyValuePart2) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                                                      composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
@@ -348,13 +348,13 @@ public class DaoImpl implements Dao {
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values) {
+    public <T> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values) {
         return readSequenceWithKeys(name.getName(), (ImmutableList<Object>) values);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                     ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
         return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                                     composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
@@ -362,7 +362,7 @@ public class DaoImpl implements Dao {
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E, F> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                        ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
                                                                        ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
         return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
@@ -371,24 +371,24 @@ public class DaoImpl implements Dao {
     }
 
     @Override
-    public <T> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> name, T value) {
+    public <T> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> name, T value) {
         return readSequenceWithKey(name.getName(), (Object) value);
     }
     
     @Override
-    public <T, E> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                   ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2) {
         return readSequenceWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                                    composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
     }
     
     @Override
-    public ListReadWithUnit<RecordList> readSequenceWhere(Clause... clauses) {
+    public ListReadWithUnit<ResultList<Record>> readSequenceWhere(Clause... clauses) {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
     @Override
-    public ListReadWithUnit<RecordList> readSequence() {
+    public ListReadWithUnit<ResultList<Record>> readSequence() {
         return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
     }
 
@@ -506,14 +506,14 @@ public class DaoImpl implements Dao {
     /**
      * Java8 adapter of a RecordList
      */
-    static class RecordListAdapter implements RecordList {
-        private final net.oneandone.troilus.java7.RecordList recordList;
+    static class RecordListAdapter implements ResultList<Record> {
+        private final ResultList<net.oneandone.troilus.java7.Record> recordList;
         
-        private RecordListAdapter(net.oneandone.troilus.java7.RecordList recordList) {
+        private RecordListAdapter(ResultList<net.oneandone.troilus.java7.Record> recordList) {
             this.recordList = recordList;
         }
         
-        static RecordList convertFromJava7(net.oneandone.troilus.java7.RecordList recordList) {
+        static ResultList<Record> convertFromJava7(ResultList<net.oneandone.troilus.java7.Record> recordList) {
             return new RecordListAdapter(recordList);
         }
         
@@ -598,9 +598,9 @@ public class DaoImpl implements Dao {
         
         
         
-        static net.oneandone.troilus.java7.RecordList convertToJava7(RecordList recordList) {
+        static ResultList<net.oneandone.troilus.java7.Record> convertToJava7(ResultList<Record> recordList) {
             
-            return new net.oneandone.troilus.java7.RecordList() {
+            return new ResultList<net.oneandone.troilus.java7.Record>() {
                 
                 @Override
                 public boolean wasApplied() {
@@ -685,14 +685,25 @@ public class DaoImpl implements Dao {
 
    
         
-   static class EntityListAdapter<F> extends ResultAdapter implements EntityList<F> {
-       private final net.oneandone.troilus.EntityList<F> entityList;
+   static class EntityListAdapter<F> extends ResultAdapter implements ResultList<F> {
+       private final net.oneandone.troilus.ResultList<F> entityList;
    
-       EntityListAdapter(net.oneandone.troilus.EntityList<F> entityList) {
+       EntityListAdapter(net.oneandone.troilus.ResultList<F> entityList) {
            super(entityList);
            this.entityList = entityList;
        }
+       
+       @Override
+       public ListenableFuture<Void> fetchMoreResults() {
+           return entityList.fetchMoreResults();
+       }
    
+       @Override
+       public boolean isFullyFetched() {
+           return entityList.isFullyFetched();
+       }
+       
+       
        @Override
        public Iterator<F> iterator() {
    
@@ -1159,7 +1170,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<net.oneandone.troilus.java7.RecordList> onReadResponseAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data, net.oneandone.troilus.java7.RecordList recordList) {
+        public ListenableFuture<ResultList<net.oneandone.troilus.java7.Record>> onReadResponseAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data, ResultList<net.oneandone.troilus.java7.Record> recordList) {
             return CompletableFutures.toListenableFuture(interceptor.onReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
                                                                     .thenApply(list -> RecordListAdapter.convertToJava7(list)));
         }

@@ -19,8 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 
+
 import net.oneandone.troilus.java7.Record;
-import net.oneandone.troilus.java7.RecordList;
 import net.oneandone.troilus.java7.SingleRead;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
@@ -128,12 +128,12 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public ListenableFuture<Record> executeAsync() {
-        ListenableFuture<RecordList> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
+        ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
         
-        Function<RecordList, Record> fetchRecordFunction = new Function<RecordList, Record>() {
+        Function<ResultList<Record>, Record> fetchRecordFunction = new Function<ResultList<Record>, Record>() {
             
             @Override
-            public Record apply(RecordList records) {
+            public Record apply(ResultList<Record> records) {
                 Iterator<Record> it = records.iterator();
                 if (it.hasNext()) {
                     Record record = it.next();

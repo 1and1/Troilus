@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.RecordList;
+import net.oneandone.troilus.Record;
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ReadQueryData;
@@ -175,15 +176,15 @@ public class InterceptorTest  {
     
     private static final class MyListReadQueryResponseInterceptor implements ReadQueryResponseInterceptor {
         
-        private AtomicReference<RecordList> recordListRef = new AtomicReference<>();
+        private AtomicReference<ResultList<Record>> recordListRef = new AtomicReference<>();
 
         @Override
-        public CompletableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList) {
+        public CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList) {
             this.recordListRef.set(recordList);
             return CompletableFuture.completedFuture(recordList);
         }
         
-        public RecordList getRecord() {
+        public ResultList<Record> getRecord() {
             return recordListRef.get();
         }
     }

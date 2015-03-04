@@ -16,7 +16,7 @@
 package net.oneandone.troilus.java7;
 
 import net.oneandone.troilus.Count;
-import net.oneandone.troilus.EntityList;
+import net.oneandone.troilus.ResultList;
 
 
 /**
@@ -41,5 +41,5 @@ public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
      * @param <E> the entity type
      * @return  a cloned query instance with the modified behavior 
      */
-    <E> ListRead<EntityList<E>> asEntity(Class<E> objectClass);
+    <E> ListRead<ResultList<E>> asEntity(Class<E> objectClass);
 } 

@@ -18,8 +18,9 @@ package net.oneandone.troilus.java7.interceptor;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
+import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.java7.RecordList;
+import net.oneandone.troilus.java7.Record;
 
 
 
@@ -35,6 +36,6 @@ public interface ReadQueryResponseInterceptor extends QueryInterceptor {
      * @param recordList  the requested record list
      * @return the (modified) requested record list
      */
-    ListenableFuture<RecordList> onReadResponseAsync(ReadQueryData queryData, RecordList recordList);
+    ListenableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList);
 }
  

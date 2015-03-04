@@ -270,37 +270,37 @@ public interface Dao {
                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
                                                                ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
     
-    ListReadWithUnit<RecordList> readSequenceWithKeys(String name, ImmutableList<Object> values);
+    ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String name, ImmutableList<Object> values);
 
-    ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+    ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                                       String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2);
 
-    ListReadWithUnit<RecordList> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
+    ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                                       String composedKeyNamePart2, Object composedKeyValuePart2,
                                                       String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
 
     
-    <T> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values);
+    <T> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values);
 
-    <T, E> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+    <T, E> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                              ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
 
-    <T, E, F> ListReadWithUnit<RecordList> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+    <T, E, F> ListReadWithUnit<ResultList<Record>> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                                 ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
                                                                 ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
     
-    ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
+    ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
 
-    ListReadWithUnit<RecordList> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+    ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                                      String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    <T> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> name, T value);
+    <T> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> name, T value);
 
-    <T, E> ListReadWithUnit<RecordList> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+    <T, E> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                         ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
     
-    ListReadWithUnit<RecordList> readSequence();
+    ListReadWithUnit<ResultList<Record>> readSequence();
 
-    ListReadWithUnit<RecordList> readSequenceWhere(Clause... clauses);
+    ListReadWithUnit<ResultList<Record>> readSequenceWhere(Clause... clauses);
 }
