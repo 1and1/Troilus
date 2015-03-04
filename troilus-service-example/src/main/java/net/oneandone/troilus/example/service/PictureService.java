@@ -32,6 +32,6 @@ public class PictureService {
     @GET
     @Produces("image/png")
     public byte[] getHotelThumbnail() throws IOException {
-        return Resources.toByteArray(Resources.getResource("hotel2.png"));
+        return Resources.toByteArray(Resources.getResource("hotel.png"));
     }   
 }

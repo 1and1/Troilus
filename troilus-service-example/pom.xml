@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>net.oneandone.reactive</groupId>
 			<artifactId>reactive-http</artifactId>
-			<version>0.4</version>
+			<version>0.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
@@ -36,18 +36,36 @@
 			<groupId>org.glassfish.jersey.ext.rx</groupId>
 			<artifactId>jersey-rx-client-java8</artifactId>
 			<version>2.16</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.reactivex</groupId>
+					<artifactId>rxjava</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.ext.rx</groupId>
 			<artifactId>jersey-rx-client-rxjava</artifactId>
 			<version>2.16</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.reactivex</groupId>
+					<artifactId>rxjava</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.reactivex</groupId>
 			<artifactId>rxjava-reactive-streams</artifactId>
 			<version>0.3.0</version>
 		</dependency>
-	
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
+		<!--  <version>1.0.7</version>  -->
+		   <version>1.0.0-rc.8</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.imgscalr</groupId>
 			<artifactId>imgscalr-lib</artifactId>

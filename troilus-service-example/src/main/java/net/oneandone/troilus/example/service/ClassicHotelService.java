@@ -59,7 +59,7 @@ public class ClassicHotelService {
     
     public ClassicHotelService(Session session) throws IOException {
         this.session = session;
-        defaultPicture = Resources.toByteArray(Resources.getResource("hotel.png"));
+        defaultPicture = Resources.toByteArray(Resources.getResource("error.jpg"));
         preparedSelectStmt = session.prepare("select id, name, description, classification, picture_uri, room_ids from hotels where id = ?");
         preparedSelectStmt.setConsistencyLevel(ConsistencyLevel.QUORUM);
     }
@@ -69,8 +69,8 @@ public class ClassicHotelService {
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
-                                       @PathParam("height") @DefaultValue("480") int height,  
-                                       @PathParam("width") @DefaultValue("640") int width,
+                                       @PathParam("height") @DefaultValue("80") int height,  
+                                       @PathParam("width") @DefaultValue("80") int width,
                                        @Suspended AsyncResponse resp) {
         
         // (1) call the database

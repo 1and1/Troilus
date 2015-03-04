@@ -23,6 +23,8 @@ import javax.ws.rs.client.Client;
 
 
 
+
+
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.example.service.Hotel;
@@ -83,7 +85,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                                .request()
                                .get(byte[].class);
         
-        Assert.assertEquals((byte) 60, picture[342]);
+        Assert.assertEquals((byte) -46, picture[342]);   // hotel image thumbnail
         
         
         
@@ -101,20 +103,20 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                         .request()
                         .get(byte[].class);
         
-        Assert.assertEquals((byte) -21, picture[342]);
+        Assert.assertEquals((byte) 98, picture[342]);   // error image thumbnail
     }        
 
     
     @Test
     public void testPictureExampleObservable() throws Exception {
         Client client =  ResteasyClientBuilder.newClient();
-        
+
         // hotel entry with valid URI
         byte[] picture = client.target(server.getBaseUrl() + "/observable/hotels/BUP932432/thumbnail")
                                .request()
                                .get(byte[].class);
         
-        Assert.assertEquals((byte) 60, picture[342]);
+        Assert.assertEquals((byte) -46, picture[342]);   // hotel image thumbnail
         
         
         
@@ -126,22 +128,22 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
             Assert.fail("NotFoundException expected");
         } catch (NotFoundException expected) { } 
 
-        
-/* DOES NOT WORK :-(
+   
+ /* DOES NOT WORK refer https://java.net/jira/browse/JERSEY-2813
         // hotel entry with broken URI
-        picture = client.target(server.getBaseUrl() + "/observable/hotels/BUP14334/thumbnail")
+        byte[] picture = client.target(server.getBaseUrl() + "/observable/hotels/BUP14334/thumbnail")
                         .request()
                         .get(byte[].class);
         
-        Assert.assertEquals((byte) -21, picture[342]);
-        */
+        Assert.assertEquals((byte) 98, picture[342]);   // error image thumbnail
+  */
     }        
 
     
     
     
     @Test
-    public void testPictureExampleClassic() throws Exception {
+    public void testPictureExampleCallback() throws Exception {
         Client client =  ResteasyClientBuilder.newClient();
         
         
@@ -149,8 +151,8 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                 .request()
                 .get(byte[].class);
 
-        Assert.assertEquals((byte) 60, picture[342]);
-
+        Assert.assertEquals((byte) -46, picture[342]);   // hotel image thumbnail
+        
 
         
         // hotel entry does not exits
@@ -166,7 +168,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                         .request()
                         .get(byte[].class);
 
-        Assert.assertEquals((byte) -20, picture[342]);
+        Assert.assertEquals((byte) 98, picture[342]);   // error image thumbnail
     }        
 
     
@@ -195,6 +197,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
                  .value("picture_uri", server.getBaseUrl()+ "/pictures/4545")
                  .execute();
 
+   
     
         hotelsDao.writeEntity(new Hotel("BUP14334", 
                                         "Richter Panzio",

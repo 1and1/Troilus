@@ -68,7 +68,7 @@ public class HotelService implements Closeable {
  
     public HotelService(Dao hotelsDao) throws IOException {
         this.hotelsDao = hotelsDao;
-        defaultPicture = Resources.toByteArray(Resources.getResource("hotel.png"));
+        defaultPicture = Resources.toByteArray(Resources.getResource("error.jpg"));
     }
 
     @Override
@@ -97,8 +97,8 @@ public class HotelService implements Closeable {
     @GET
     @Produces("image/png")
     public void getHotelThumbnailAsync(@PathParam("id") String hotelId, 
-                                       @PathParam("height") @DefaultValue("160") int height,  
-                                       @PathParam("width") @DefaultValue("160") int width,
+                                       @PathParam("height") @DefaultValue("80") int height,  
+                                       @PathParam("width") @DefaultValue("80") int width,
                                        @Suspended AsyncResponse resp) {
 
         hotelsDao.readWithKey("id", hotelId)  

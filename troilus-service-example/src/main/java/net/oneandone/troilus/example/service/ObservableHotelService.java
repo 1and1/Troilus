@@ -37,7 +37,7 @@ import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Mode;
 
 import rx.RxReactiveStreams;
-import net.oneandone.reactive.rest.container.ObservableConsumer;
+import net.oneandone.reactive.rest.container.PublisherConsumer;
 import net.oneandone.troilus.Dao;
 
 import com.google.common.io.Resources;
@@ -54,7 +54,7 @@ public class ObservableHotelService {
  
     public ObservableHotelService(Dao hotelsDao) throws IOException {
         this.hotelsDao = hotelsDao;
-        defaultPicture = Resources.toByteArray(Resources.getResource("hotel.png"));
+        defaultPicture = Resources.toByteArray(Resources.getResource("error.jpg"));
     }
 
     
@@ -63,8 +63,8 @@ public class ObservableHotelService {
     @GET
     @Produces("image/png")
     public void getHotelThumbnailObservableAsync(@PathParam("id") String hotelId, 
-                                       @PathParam("height") @DefaultValue("160") int height,  
-                                       @PathParam("width") @DefaultValue("160") int width,
+                                       @PathParam("height") @DefaultValue("80") int height,  
+                                       @PathParam("width") @DefaultValue("80") int width,
                                        @Suspended AsyncResponse resp) {
 
         
@@ -78,8 +78,11 @@ public class ObservableHotelService {
                                                                                 .get(byte[].class)
                                                                                 .onErrorReturn(error -> defaultPicture))
                                                     .map(picture -> resize(picture, height, width, "png")))
-                 .whenComplete(ObservableConsumer.writeSingleTo(resp));  
+                 .thenApply(observable -> RxReactiveStreams.toPublisher(observable))                                                  
+                 .whenComplete(PublisherConsumer.writeSingleTo(resp));
     }
+
+    
 
     
    
