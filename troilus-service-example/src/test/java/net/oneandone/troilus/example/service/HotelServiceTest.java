@@ -16,9 +16,12 @@
 package net.oneandone.troilus.example.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
+
+
 
 
 
@@ -38,6 +41,7 @@ import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.BaseEncoding;
 
 
 //@Ignore
@@ -47,6 +51,7 @@ public class HotelServiceTest extends AbstractCassandraBasedTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        
         server = new WebContainer("/service");
         server.setPort(8343);
         server.start();

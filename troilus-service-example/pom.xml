@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>net.oneandone.reactive</groupId>
 			<artifactId>reactive-http</artifactId>
-			<version>0.5-SNAPSHOT</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
