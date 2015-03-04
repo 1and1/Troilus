@@ -44,6 +44,8 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
+
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -54,6 +56,7 @@ import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 import net.oneandone.troilus.java7.interceptor.ReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -78,7 +81,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * The list read query implementation
  *
  */
-class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>> {
+class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
     
     private final ReadQueryData data;
 
@@ -190,6 +193,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     public <E> ListEntityReadQuery<E> asEntity(Class<E> objectClass) {
         return new ListEntityReadQuery<>(getContext(), this, objectClass) ;
     }
+    
+    
+    @Override
+    public Publisher<Record> executeRx() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
 
     @Override
     public ResultList<Record> execute() {
@@ -275,7 +286,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      * The entity list read implementation
      * @param <E> the entity type
      */
-    static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<ResultList<E>> {
+    static class ListEntityReadQuery<E> extends AbstractQuery<ListEntityReadQuery<E>> implements ListRead<ResultList<E>, E> {
         private final ListReadQuery query;
         private final Class<E> clazz;
         
@@ -288,6 +299,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             super(ctx);
             this.query = query;
             this.clazz = clazz;
+        }
+        
+        @Override
+        public Publisher<E> executeRx() {
+            // TODO Auto-generated method stub
+            return null;
         }
 
         @Override
@@ -525,7 +542,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
 
     
-    static class CountReadQuery extends AbstractQuery<CountReadQuery> implements ListRead<Count> {
+    static class CountReadQuery extends AbstractQuery<CountReadQuery> implements ListRead<Count, Integer> {
         
         private final CountReadQueryData data;
     
@@ -535,6 +552,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             this.data = data;
         }
     
+        @Override
+        public Publisher<Integer> executeRx() {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
         @Override
         protected CountReadQuery newQuery(Context newContext) {

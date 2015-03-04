@@ -15,6 +15,8 @@
  */
 package net.oneandone.troilus;
 
+import org.reactivestreams.Publisher;
+
 
 
 
@@ -24,27 +26,30 @@ package net.oneandone.troilus;
  *
  * @param <T> the result type
  */
-public interface ListRead<T> extends SingleRead<T> {
+public interface ListRead<T, R> extends SingleRead<T> {
 
+    Publisher<R> executeRx();
+    
+    
     /**
      * @param limit the max number of records to read 
      * @return a cloned query instance with deactivated tracking
      */
-    ListRead<T> withLimit(int limit);
+    ListRead<T, R> withLimit(int limit);
 
     /**
      * @param fetchSize the fetch size 
      * @return a cloned query instance with deactivated tracking
      */
-    ListRead<T> withFetchSize(int fetchSize);
+    ListRead<T, R> withFetchSize(int fetchSize);
 
     /**
      * @return a cloned query instance with distinct
      */
-    ListRead<T> withDistinct();
+    ListRead<T, R> withDistinct();
 
     /**
      * @return a cloned query instance which allows filtering
      */
-    ListRead<T> withAllowFiltering();
+    ListRead<T, R> withAllowFiltering();
 }

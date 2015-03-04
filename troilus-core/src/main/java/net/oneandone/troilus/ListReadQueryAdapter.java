@@ -18,6 +18,8 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.reactivestreams.Publisher;
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Count;
@@ -32,7 +34,7 @@ import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 /**
  * Java8 adapter of a ListReadQuery
  */
-class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>> {
+class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>, Record> {
     
     private final ListReadQuery query;
 
@@ -79,22 +81,22 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> columns(String... names) {
+    public ListReadWithUnit<ResultList<Record>, Record> columns(String... names) {
         return newQuery(query.columns(names));
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> column(ColumnName<?> name) {
+    public ListReadWithUnit<ResultList<Record>, Record> column(ColumnName<?> name) {
         return newQuery(query.column(name));
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> columnWithMetadata(ColumnName<?> name) {
+    public ListReadWithUnit<ResultList<Record>, Record> columnWithMetadata(ColumnName<?> name) {
         return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> columns(ColumnName<?>... names) {
+    public ListReadWithUnit<ResultList<Record>, Record> columns(ColumnName<?>... names) {
         return newQuery(query.columns(names));
     }
 
@@ -119,7 +121,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
     
     @Override
-    public ListRead<Count> count() {
+    public ListRead<Count, Integer> count() {
         return new CountReadQueryAdapter(getContext(), query.count());
     }
     
@@ -139,13 +141,18 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
                                  .thenApply(recordList -> DaoImpl.RecordListAdapter.convertFromJava7(recordList));
     }        
     
+    @Override
+    public Publisher<Record> executeRx() {
+        // TODO Auto-generated method stub
+        return null;
+    }
     
     
 
     /**
      * Java8 adapter of a ListEntityReadQuery
      */
-    private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<ResultList<E>> {
+    private class ListEntityReadQueryAdapter<E> extends AbstractQuery<ListEntityReadQueryAdapter<E>> implements ListRead<ResultList<E>, E> {
          
         private final ListEntityReadQuery<E> query;
         
@@ -165,22 +172,22 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }
 
         @Override
-        public ListRead<ResultList<E>> withDistinct() {
+        public ListRead<ResultList<E>, E> withDistinct() {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withDistinct());
         }
         
         @Override
-        public ListRead<ResultList<E>> withFetchSize(int fetchSize) {
+        public ListRead<ResultList<E>, E> withFetchSize(int fetchSize) {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withFetchSize(fetchSize));
         }
         
         @Override
-        public ListRead<ResultList<E>> withAllowFiltering() {
+        public ListRead<ResultList<E>, E> withAllowFiltering() {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withAllowFiltering());
         }
         
         @Override
-        public ListRead<ResultList<E>> withLimit(int limit) {
+        public ListRead<ResultList<E>, E> withLimit(int limit) {
             return new ListEntityReadQueryAdapter<>(getContext(), query.withLimit(limit));
         }
 
@@ -194,6 +201,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
             return CompletableFutures.toCompletableFuture(query.executeAsync())
                                      .thenApply(entityList -> new DaoImpl.EntityListAdapter<>(entityList));
         }
+        
+        @Override
+        public Publisher<E> executeRx() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
     
     
@@ -202,7 +215,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     /**
      * Java8 adapter of a CountReadQuery
      */
-    private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count> {
+    private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count, Integer> {
 
         private final CountReadQuery query;
     
@@ -221,23 +234,23 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }
         
         @Override
-        public ListRead<Count> withLimit(int limit) {
+        public ListRead<Count, Integer> withLimit(int limit) {
             return new CountReadQueryAdapter(getContext(), query.withLimit(limit)); 
         }
         
         @Override
-        public ListRead<Count> withAllowFiltering() {
+        public ListRead<Count, Integer> withAllowFiltering() {
             return new CountReadQueryAdapter(getContext(), query.withAllowFiltering());
         }
     
         @Override
-        public ListRead<Count> withFetchSize(int fetchSize) {
+        public ListRead<Count, Integer> withFetchSize(int fetchSize) {
             return new CountReadQueryAdapter(getContext(), query.withFetchSize(fetchSize));
 
         }
     
         @Override
-        public ListRead<Count> withDistinct() {
+        public ListRead<Count, Integer> withDistinct() {
             return new CountReadQueryAdapter(getContext(), query.withDistinct());
         }
         
@@ -246,6 +259,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
             return CompletableFutures.getUninterruptibly(executeAsync());
         }
 
+        @Override
+        public Publisher<Integer> executeRx() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
         @Override
         public CompletableFuture<Count> executeAsync() {
             return CompletableFutures.toCompletableFuture(query.executeAsync());

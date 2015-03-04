@@ -23,41 +23,41 @@ import net.oneandone.troilus.ColumnName;
  *
  * @param <T>  the result type
  */
-public interface ListReadWithColumns<T> extends ListRead<T> {
+public interface ListReadWithColumns<T, R> extends ListRead<T, R> {
 
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> column(String name);
+    ListReadWithColumns<T, R> column(String name);
 
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> columnWithMetadata(String name);
+    ListReadWithColumns<T, R> columnWithMetadata(String name);
 
     /**
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> columns(String... names);
+    ListReadWithColumns<T, R> columns(String... names);
 
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> column(ColumnName<?> name);
+    ListReadWithColumns<T, R> column(ColumnName<?> name);
 
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> columnWithMetadata(ColumnName<?> name);
+    ListReadWithColumns<T, R> columnWithMetadata(ColumnName<?> name);
 
     /**
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T> columns(ColumnName<?>... names);
+    ListReadWithColumns<T, R> columns(ColumnName<?>... names);
 }

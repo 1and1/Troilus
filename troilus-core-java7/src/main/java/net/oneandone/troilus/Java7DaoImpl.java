@@ -258,19 +258,19 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> readWithKeys(String name, ImmutableList<Object> values) {
+    public ListReadWithUnit<ResultList<Record>, Record> readWithKeys(String name, ImmutableList<Object> values) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values)));
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>, Record> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, composedKeyValuesPart2)));        
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>, Record> readWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
@@ -279,12 +279,12 @@ public class Java7DaoImpl implements Dao {
     }
 
     @Override
-    public ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
+    public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1))));
     }
     
     @Override
-    public ListReadWithUnit<ResultList<Record>> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
+    public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                             String composedKeyNamePart2, Object composedKeyValuePart2) {
         return new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
                                                                                        composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2))));        
@@ -292,13 +292,13 @@ public class Java7DaoImpl implements Dao {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ListReadWithUnit<ResultList<Record>> readWithKeys(ColumnName<T> name, ImmutableList<T> values) {
+    public <T> ListReadWithUnit<ResultList<Record>, Record> readWithKeys(ColumnName<T> name, ImmutableList<T> values) {
         return readWithKeys(name.getName(), (ImmutableList<Object>) values);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E> ListReadWithUnit<ResultList<Record>> readWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<ResultList<Record>, Record> readWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                             ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2) {
         return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                             composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
@@ -306,7 +306,7 @@ public class Java7DaoImpl implements Dao {
     
     @SuppressWarnings("unchecked")
     @Override
-    public <T, E, F> ListReadWithUnit<ResultList<Record>> readWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E, F> ListReadWithUnit<ResultList<Record>, Record> readWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
                                                                ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3) {
         return readWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
@@ -316,12 +316,12 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public <T> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> name, T value) {
+    public <T> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(ColumnName<T> name, T value) {
         return readSequenceWithKey(name.getName(), (Object) value);
     }
 
     @Override
-    public <T, E> ListReadWithUnit<ResultList<Record>> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
+    public <T, E> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2) {
         return readSequenceWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
                                    composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);

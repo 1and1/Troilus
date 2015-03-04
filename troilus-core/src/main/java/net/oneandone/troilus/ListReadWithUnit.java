@@ -18,26 +18,26 @@ package net.oneandone.troilus;
 
 
 /**
- * list read query 
+ * list read query  
  * 
  * @param <T>  the result type
  */
-public interface ListReadWithUnit<T> extends ListReadWithColumns<T> {
+public interface ListReadWithUnit<T, R> extends ListReadWithColumns<T, R> {
 
     /**
      * @return  a cloned query instance which reads all columns
      */
-    ListRead<T> all();
+    ListRead<T, R> all();
 
     /**
      * @return a cloned query instance which returns the count
      */
-    ListRead<Count> count();
+    ListRead<Count, Integer> count();
 
     /**
      * @param objectClass  the entity type
      * @param <E> the type
      * @return  a cloned query instance with the modified behavior 
      */
-    <E> ListRead<ResultList<E>> asEntity(Class<E> objectClass);
+    <E> ListRead<ResultList<E>, E> asEntity(Class<E> objectClass);
 } 
