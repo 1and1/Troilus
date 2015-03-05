@@ -175,7 +175,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public Publisher<Record> executeRx() {
         ListenableFuture<ResultList<Record>> recordsFuture = executeAsync();
-        return new DatabasePublisher(recordsFuture);
+        return new FetchableListPublisher(recordsFuture);
     }
     
 
