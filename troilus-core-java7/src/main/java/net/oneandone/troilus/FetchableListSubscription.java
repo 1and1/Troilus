@@ -20,10 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-
-
-import java.util.concurrent.atomic.AtomicReference;
-
 import net.oneandone.troilus.java7.FetchingIterator;
 
 import org.reactivestreams.Subscriber;
@@ -45,6 +41,7 @@ class FetchableListSubscription<R> implements Subscription {
     private final Object dbQueryLock = new Object();
     
     private final Subscriber<? super R> subscriber;
+    private final FetchingIterator<R> iterator;
     
     private final AtomicLong numRequestedReads = new AtomicLong();
     
@@ -53,23 +50,17 @@ class FetchableListSubscription<R> implements Subscription {
 
     private final Runnable requestTask = new ProcessingTask();
 
-    private AtomicReference<FetchingIterator<R>> datasourceRef = new AtomicReference<>();
   
-    
-    
-    public FetchableListSubscription(Subscriber<? super R> subscriber) {
+   
+    public FetchableListSubscription(Subscriber<? super R> subscriber, FetchingIterator<R> iterator) {
         this.subscriber = subscriber;
-    }
-    
-    
-    public FetchableListSubscription<R> ready(FetchingIterator<R> datasource) {
-        this.datasourceRef.set(datasource);
+        this.iterator = iterator;
         
         synchronized (subscriberCallbackLock) {
             subscriber.onSubscribe(this);
         }
-        return this;
     }
+
     
     @Override
     public void request(long n) {                
@@ -111,10 +102,10 @@ class FetchableListSubscription<R> implements Subscription {
     private void processAvailableDatabaseRecords() {
         synchronized (subscriberCallbackLock) {
             if (isOpen) {
-                while (datasourceRef.get().hasNext() && numRequestedReads.get() > 0) {
+                while (iterator.hasNext() && numRequestedReads.get() > 0) {
                     try {
                         numRequestedReads.decrementAndGet();
-                        subscriber.onNext(datasourceRef.get().next());
+                        subscriber.onNext(iterator.next());
                     } catch (RuntimeException rt) {
                         LOG.warn("processing error occured", rt);
                         teminateWithError(rt);
@@ -127,7 +118,7 @@ class FetchableListSubscription<R> implements Subscription {
     
     private void requestDatabaseForMoreRecords() {
         // no more data to fetch?
-        if (datasourceRef.get().isFullyFetched()) {
+        if (iterator.isFullyFetched()) {
             terminateRegularly(true);
             return;
         } 
@@ -145,7 +136,7 @@ class FetchableListSubscription<R> implements Subscription {
                                            };
                 runningDatabaseQuery = databaseRequest;
                 
-                ListenableFuture<Void> future = datasourceRef.get().fetchMoreResults();
+                ListenableFuture<Void> future = iterator.fetchMoreResults();
                 future.addListener(databaseRequest, executor);
             }
         }

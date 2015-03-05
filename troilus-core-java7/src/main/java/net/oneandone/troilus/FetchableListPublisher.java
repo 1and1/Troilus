@@ -34,8 +34,8 @@ class FetchableListPublisher<R> implements Publisher<R> {
     
     private boolean subscribed = false; // true after first subscribe
     
-    private ErrorResultFetchingIterator<R> datasource = null;
-    private FetchableListSubscription<R> pendingSubscription = null;;
+    private ErrorResultFetchingIterator<R> errorIterator = null;
+    private Subscriber<? super R> pendingSubscriber = null;
 
     
     public FetchableListPublisher(final ListenableFuture<ResultList<R>> recordsFuture) {
@@ -55,10 +55,10 @@ class FetchableListPublisher<R> implements Publisher<R> {
     
     private void init(ListenableFuture<ResultList<R>> recordsFuture) {
         synchronized (this) {
-            this.datasource = new ErrorResultFetchingIterator<R>(recordsFuture);
+            this.errorIterator = new ErrorResultFetchingIterator<R>(recordsFuture);
             
-            if (pendingSubscription != null) {
-                pendingSubscription.ready(datasource);
+            if (pendingSubscriber != null) {
+                new FetchableListSubscription<>(pendingSubscriber, errorIterator);
             }
         }
     }
@@ -72,11 +72,10 @@ class FetchableListPublisher<R> implements Publisher<R> {
             } else {
                 subscribed = true;
                 
-                FetchableListSubscription<R> databaseSubscription = new FetchableListSubscription<>(subscriber);
-                if (datasource == null) {
-                    pendingSubscription = databaseSubscription;
+                if (errorIterator == null) {
+                    pendingSubscriber = subscriber;
                 } else {
-                    databaseSubscription.ready(datasource);
+                    new FetchableListSubscription<>(subscriber, errorIterator);
                 }
             }
         }
