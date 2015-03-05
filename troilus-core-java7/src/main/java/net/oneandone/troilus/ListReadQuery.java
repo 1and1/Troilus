@@ -34,8 +34,6 @@ import net.oneandone.troilus.java7.interceptor.ReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
@@ -178,7 +176,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return new FetchableListPublisher<>(recordsFuture);
     }
     
-
     @Override
     public ResultList<Record> execute() {
         return ListenableFutures.getUninterruptibly(executeAsync());
@@ -324,62 +321,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public Publisher<E> executeRx() {
-            Publisher<Record> publisher = query.executeRx();
-            return new RecordToEntityPublisher<E>(getContext(), publisher, clazz);
-        }
-    }
-    
-    
-    private static final class RecordToEntityPublisher<F> implements Publisher<F> {
-        private final Context ctx;
-        private final Publisher<Record> publisher;
-        private final Class<F> clazz;
-
-        
-        public RecordToEntityPublisher(Context ctx, Publisher<Record> publisher, Class<F> clazz) {
-            this.ctx = ctx;
-            this.publisher = publisher;
-            this.clazz = clazz;
-        }
-        
-        @Override
-        public void subscribe(Subscriber<? super F> subscriber) {
-            publisher.subscribe(new RecordToEntitySubscriber<>(ctx, subscriber, clazz));
-            
-        }
-        
-
-        private static class RecordToEntitySubscriber<F> implements Subscriber<Record> {
-            private final Context ctx;
-            private final Subscriber<? super F> subcriber;
-            private final Class<F> clazz;
-            
-            public RecordToEntitySubscriber(Context ctx, Subscriber<? super F> subcriber, Class<F> clazz) {
-                this.ctx = ctx;
-                this.subcriber = subcriber;
-                this.clazz = clazz;
-            }
-            
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                subcriber.onSubscribe(subscription);
-            }
-            
-            @Override
-            public void onComplete() {
-                subcriber.onComplete();
-            }
-            
-            @Override
-            public void onError(Throwable t) {
-                subcriber.onError(t);
-            }
-            
-            @Override
-            public void onNext(Record record) {
-                F entity = ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), ctx.getDbSession().getColumnNames());
-                subcriber.onNext(entity);
-            }
+            ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
+            return new FetchableListPublisher<>(recordsFuture);
         }
     }
     
