@@ -20,12 +20,15 @@ import java.util.List;
 
 
 
+import org.reactivestreams.Publisher;
 
+import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.SingleRead;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
+import net.oneandone.troilus.java7.interceptor.ResultListAdapter;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -35,10 +38,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
+
+
 /**
  * Read query implementation
  */
-class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record> {
+class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record, Record> {
 
     private final ReadQueryData data;
     
@@ -131,6 +136,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     @Override
     public ListenableFuture<Record> executeAsync() {
         ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
+        recordsFuture = toSingleEntryResultList(recordsFuture);
         
         Function<ResultList<Record>, Record> fetchRecordFunction = new Function<ResultList<Record>, Record>() {
             
@@ -154,11 +160,21 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         return Futures.transform(recordsFuture, fetchRecordFunction);
     }
     
+    
+    @Override
+    public Publisher<Record> executeRx() {
+        ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
+        recordsFuture = toSingleEntryResultList(recordsFuture);
+        
+        return new FetchableListPublisher<Record>(recordsFuture);
+    }
+    
+    
     /**
      * Entity read query 
      * @param <E> the entity type
      */
-    static class SingleEntityReadQuery<E> extends AbstractQuery<SingleEntityReadQuery<E>> implements SingleRead<E> {
+    static class SingleEntityReadQuery<E> extends AbstractQuery<SingleEntityReadQuery<E>> implements SingleRead<E, E> {
         private final Class<E> clazz;
         private final SingleReadQuery query;
         
@@ -200,6 +216,79 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             };
             
             return Futures.transform(future, mapEntity);
+        }
+        
+        @Override
+        public Publisher<E> executeRx() {
+            ListenableFuture<ResultList<E>> recordsFuture = new ListReadQuery(getContext(), query.data).asEntity(clazz).executeAsync();
+            recordsFuture = toSingleEntryResultList(recordsFuture);
+                
+            return new FetchableListPublisher<E>(recordsFuture);
+        }
+    }
+    
+    
+    
+    private static <T> ListenableFuture<ResultList<T>> toSingleEntryResultList(ListenableFuture<ResultList<T>> list) {
+        
+        Function<ResultList<T>, ResultList<T>> mapperFunction = new Function<ResultList<T>, ResultList<T>>() {
+            
+            @Override
+            public ResultList<T> apply(ResultList<T> list) {
+                return new SingleEntryResultList<>(list);
+            }
+        };
+        
+        return Futures.transform(list, mapperFunction);
+    }
+    
+    
+    
+    private static final class SingleEntryResultList<T> extends ResultListAdapter<T> {
+        
+        public SingleEntryResultList(ResultList<T> list) {
+           super(list);
+        }
+        
+        @Override
+        public FetchingIterator<T> iterator() {
+            return new SingleFetchingIterator<>(super.iterator());
+        }
+
+        
+        private final class SingleFetchingIterator<E> implements FetchingIterator<E> {
+            
+            private final FetchingIterator<E> iterator;
+            
+            public SingleFetchingIterator(FetchingIterator<E> iterator) {
+                this.iterator = iterator;
+            }
+            
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+            
+            @Override
+            public E next() {
+                E element = iterator.next();
+                    
+                if (iterator.hasNext()) {
+                    throw new TooManyResultsException(SingleEntryResultList.this, "more than one record exists");
+                }
+                    
+                return element;
+            }
+            
+            @Override
+            public ListenableFuture<Void> fetchMoreResults() {
+                return iterator.fetchMoreResults();
+            }
+            
+            @Override
+            public boolean isFullyFetched() {
+                return iterator.isFullyFetched();
+            }
         }
     }
 }

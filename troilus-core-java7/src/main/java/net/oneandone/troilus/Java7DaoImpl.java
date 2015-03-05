@@ -207,7 +207,7 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedkey) {
+    public SingleReadWithUnit<Record, Record> readWithKey(ImmutableMap<String, Object> composedkey) {
         Map<String, ImmutableList<Object>> keys = Maps.newHashMap();
         for (Entry<String, Object> entry : composedkey.entrySet()) {
             keys.put(entry.getKey(), ImmutableList.of(entry.getValue()));
@@ -217,19 +217,19 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public SingleReadWithUnit<Record> readWithKey(String keyName, Object keyValue) {
+    public SingleReadWithUnit<Record, Record> readWithKey(String keyName, Object keyValue) {
         return readWithKey(ImmutableMap.of(keyName, keyValue));
     }
      
     @Override
-    public SingleReadWithUnit<Record> readWithKey(String keyName1, Object keyValue1, 
+    public SingleReadWithUnit<Record, Record> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2) {
         return readWithKey(ImmutableMap.of(keyName1, keyValue1, 
                            keyName2, keyValue2));
     }
     
     @Override
-    public SingleReadWithUnit<Record> readWithKey(String keyName1, Object keyValue1, 
+    public SingleReadWithUnit<Record, Record> readWithKey(String keyName1, Object keyValue1, 
                                                             String keyName2, Object keyValue2,
                                                             String keyName3, Object keyValue3) {
         return readWithKey(ImmutableMap.of(keyName1, keyValue1, 
@@ -238,19 +238,19 @@ public class Java7DaoImpl implements Dao {
     }
     
     @Override
-    public <T> SingleReadWithUnit<Record> readWithKey(ColumnName<T> keyName, T keyValue) {
+    public <T> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> keyName, T keyValue) {
         return readWithKey(keyName.getName(), (Object) keyValue);
     }
     
     @Override
-    public <T, E> SingleReadWithUnit<Record> readWithKey(ColumnName<T> keyName1, T keyValue1,
+    public <T, E> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> keyName1, T keyValue1,
                                                                    ColumnName<E> keyName2, E keyValue2) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,
                            keyName2.getName(), (Object) keyValue2);
     }
     
     @Override
-    public <T, E, F> SingleReadWithUnit<Record> readWithKey(ColumnName<T> keyName1, T keyValue1, 
+    public <T, E, F> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> keyName1, T keyValue1, 
                                                                       ColumnName<E> keyName2, E keyValue2,
                                                                       ColumnName<F> keyName3, F keyValue3) {
         return readWithKey(keyName1.getName(), (Object) keyValue1,

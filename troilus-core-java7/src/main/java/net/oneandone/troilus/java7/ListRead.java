@@ -15,9 +15,6 @@
  */
 package net.oneandone.troilus.java7;
 
-import org.reactivestreams.Publisher;
-
-
 
 
 /**
@@ -25,9 +22,8 @@ import org.reactivestreams.Publisher;
  *
  * @param <T> the result type
  */
-public interface ListRead<T, R> extends SingleRead<T> {
+public interface ListRead<T, R> extends SingleRead<T, R> {
 
-    Publisher<R> executeRx();
     
     /**
      * @param limit the max num of records to read 

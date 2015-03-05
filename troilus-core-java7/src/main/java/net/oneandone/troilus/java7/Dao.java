@@ -285,24 +285,24 @@ public interface Dao {
     ////////////////////////////////
     // READ
 
-    SingleReadWithUnit<Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+    SingleReadWithUnit<Record, Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
     
-    SingleReadWithUnit<Record> readWithKey(String keyName, Object keyValue);
+    SingleReadWithUnit<Record, Record> readWithKey(String keyName, Object keyValue);
 
-    SingleReadWithUnit<Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+    SingleReadWithUnit<Record, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                            String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    SingleReadWithUnit<Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+    SingleReadWithUnit<Record, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
                                            String composedKeyNamePart2, Object composedKeyValuePart2,
                                            String composedKeyNamePart3, Object composedKeyValuePart3);
 
 
-    <T> SingleReadWithUnit<Record> readWithKey(ColumnName<T> keyName, T keyValue);
+    <T> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> keyName, T keyValue);
 
-    <T, E> SingleReadWithUnit<Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+    <T, E> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                   ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> SingleReadWithUnit<Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+    <T, E, F> SingleReadWithUnit<Record, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
                                                      ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
                                                      ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
 

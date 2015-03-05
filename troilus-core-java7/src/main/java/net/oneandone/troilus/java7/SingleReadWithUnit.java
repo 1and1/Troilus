@@ -21,17 +21,17 @@ package net.oneandone.troilus.java7;
  * 
  * @param <T>  the result type
  */
-public interface SingleReadWithUnit<T> extends SingleReadWithColumns<T> {
+public interface SingleReadWithUnit<T, R> extends SingleReadWithColumns<T, R> {
 
     /**
      * @return  a cloned query instance which reads all columns
      */
-    SingleRead<T> all();
+    SingleRead<T, R> all();
 
     /**
      * @param objectClass  the entity type
      * @param <E> the entity type
      * @return  a cloned query instance with the modified behavior 
      */
-    <E> SingleRead<E> asEntity(Class<E> objectClass);
+    <E> SingleRead<E, E> asEntity(Class<E> objectClass);
 }
