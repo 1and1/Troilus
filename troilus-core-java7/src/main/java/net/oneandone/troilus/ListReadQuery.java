@@ -175,7 +175,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public Publisher<Record> executeRx() {
         ListenableFuture<ResultList<Record>> recordsFuture = executeAsync();
-        return new FetchableListPublisher(recordsFuture);
+        return new FetchableListPublisher<>(recordsFuture);
     }
     
 
@@ -279,12 +279,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
         
         @Override
-        public Publisher<E> executeRx() {
-            Publisher<Record> publisher = query.executeRx();
-            return new RecordToEntityPublisher<E>(getContext(), publisher, clazz);
-        }
-
-        @Override
         protected ListEntityReadQuery<E> newQuery(Context newContext) {
             return new ListReadQuery(newContext, query.data).asEntity(clazz);
         }
@@ -326,6 +320,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             };
             
             return Futures.transform(future, mapEntity);
+        }
+        
+        @Override
+        public Publisher<E> executeRx() {
+            Publisher<Record> publisher = query.executeRx();
+            return new RecordToEntityPublisher<E>(getContext(), publisher, clazz);
         }
     }
     

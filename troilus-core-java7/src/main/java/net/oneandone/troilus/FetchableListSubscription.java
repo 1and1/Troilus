@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.oneandone.troilus.java7.FetchingIterator;
-import net.oneandone.troilus.java7.Record;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -37,7 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-class FetchableListSubscription implements Subscription {
+class FetchableListSubscription<R> implements Subscription {
     private static final Logger LOG = LoggerFactory.getLogger(FetchableListSubscription.class);
     
     private final Executor executor = Executors.newCachedThreadPool();
@@ -45,7 +44,7 @@ class FetchableListSubscription implements Subscription {
     private final Object subscriberCallbackLock = new Object();
     private final Object dbQueryLock = new Object();
     
-    private final Subscriber<? super Record> subscriber;
+    private final Subscriber<? super R> subscriber;
     
     private final AtomicLong numRequestedReads = new AtomicLong();
     
@@ -54,16 +53,16 @@ class FetchableListSubscription implements Subscription {
 
     private final Runnable requestTask = new ProcessingTask();
 
-    private AtomicReference<FetchingIterator<Record>> datasourceRef = new AtomicReference<>();
+    private AtomicReference<FetchingIterator<R>> datasourceRef = new AtomicReference<>();
   
     
     
-    public FetchableListSubscription(Subscriber<? super Record> subscriber) {
+    public FetchableListSubscription(Subscriber<? super R> subscriber) {
         this.subscriber = subscriber;
     }
     
     
-    public FetchableListSubscription ready(FetchingIterator<Record> datasource) {
+    public FetchableListSubscription<R> ready(FetchingIterator<R> datasource) {
         this.datasourceRef.set(datasource);
         
         synchronized (subscriberCallbackLock) {

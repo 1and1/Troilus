@@ -19,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 
 
 import net.oneandone.troilus.java7.FetchingIterator;
-import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.ResultList;
 
 import org.reactivestreams.Publisher;
@@ -31,15 +30,15 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 
 
-class FetchableListPublisher implements Publisher<Record> {
+class FetchableListPublisher<R> implements Publisher<R> {
     
     private boolean subscribed = false; // true after first subscribe
     
-    private ErrorResultFetchingIterator datasource = null;
-    private FetchableListSubscription pendingSubscription = null;;
+    private ErrorResultFetchingIterator<R> datasource = null;
+    private FetchableListSubscription<R> pendingSubscription = null;;
 
     
-    public FetchableListPublisher(final ListenableFuture<ResultList<Record>> recordsFuture) {
+    public FetchableListPublisher(final ListenableFuture<ResultList<R>> recordsFuture) {
 
         Runnable listener = new Runnable() {
             
@@ -54,9 +53,9 @@ class FetchableListPublisher implements Publisher<Record> {
     
     
     
-    private void init(ListenableFuture<ResultList<Record>> recordsFuture) {
+    private void init(ListenableFuture<ResultList<R>> recordsFuture) {
         synchronized (this) {
-            this.datasource = new ErrorResultFetchingIterator(recordsFuture);
+            this.datasource = new ErrorResultFetchingIterator<R>(recordsFuture);
             
             if (pendingSubscription != null) {
                 pendingSubscription.ready(datasource);
@@ -66,14 +65,14 @@ class FetchableListPublisher implements Publisher<Record> {
     
     
     @Override
-    public void subscribe(Subscriber<? super Record> subscriber) {
+    public void subscribe(Subscriber<? super R> subscriber) {
         synchronized (this) {
             if (subscribed == true) {
                 subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
             } else {
                 subscribed = true;
                 
-                FetchableListSubscription databaseSubscription = new FetchableListSubscription(subscriber);
+                FetchableListSubscription<R> databaseSubscription = new FetchableListSubscription<>(subscriber);
                 if (datasource == null) {
                     pendingSubscription = databaseSubscription;
                 } else {
@@ -84,16 +83,16 @@ class FetchableListPublisher implements Publisher<Record> {
     }
     
     
-    private static class ErrorResultFetchingIterator implements FetchingIterator<Record> {
-        private FetchingIterator<Record> it;
+    private static class ErrorResultFetchingIterator<R> implements FetchingIterator<R> {
+        private FetchingIterator<R> it;
         
-        public ErrorResultFetchingIterator(ListenableFuture<ResultList<Record>> recordsFuture) {
+        public ErrorResultFetchingIterator(ListenableFuture<ResultList<R>> recordsFuture) {
 
             try {
-                ResultList<Record> resultList =  recordsFuture.get();
+                ResultList<R> resultList =  recordsFuture.get();
                 it = resultList.iterator();
             } catch (InterruptedException | ExecutionException | RuntimeException e) {
-                it = new ErrorIterator(e);
+                it = new ErrorIterator<R>(e);
             }
         }
        
@@ -104,7 +103,7 @@ class FetchableListPublisher implements Publisher<Record> {
         }
         
         @Override
-        public Record next() {
+        public R next() {
             return it.next();
         }
         
@@ -117,7 +116,7 @@ class FetchableListPublisher implements Publisher<Record> {
         }
         
         
-        private static final class ErrorIterator implements FetchingIterator<Record> {
+        private static final class ErrorIterator<R> implements FetchingIterator<R> {
             private final Throwable error;
             
             public ErrorIterator(Throwable error) {
@@ -130,7 +129,7 @@ class FetchableListPublisher implements Publisher<Record> {
             }
             
             @Override
-            public Record next() {
+            public R next() {
                 throw new RuntimeException(error); 
             }
             
