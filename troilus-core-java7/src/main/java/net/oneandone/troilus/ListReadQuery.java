@@ -173,7 +173,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public Publisher<Record> executeRx() {
         ListenableFuture<ResultList<Record>> recordsFuture = executeAsync();
-        return new FetchableListPublisher<>(recordsFuture);
+        return new ResultListPublisher<>(recordsFuture);
     }
     
     @Override
@@ -322,7 +322,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         @Override
         public Publisher<E> executeRx() {
             ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
-            return new FetchableListPublisher<>(recordsFuture);
+            return new ResultListPublisher<>(recordsFuture);
         }
     }
     
@@ -582,7 +582,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            return new FetchableListPublisher<>(Futures.transform(countFuture, toListFunction));
+            return new ResultListPublisher<>(Futures.transform(countFuture, toListFunction));
         }
     }  
 }

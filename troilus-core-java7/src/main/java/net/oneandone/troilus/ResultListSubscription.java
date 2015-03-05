@@ -32,8 +32,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-class FetchableListSubscription<R> implements Subscription {
-    private static final Logger LOG = LoggerFactory.getLogger(FetchableListSubscription.class);
+class ResultListSubscription<R> implements Subscription {
+    private static final Logger LOG = LoggerFactory.getLogger(ResultListSubscription.class);
     
     private final Executor executor = Executors.newCachedThreadPool();
         
@@ -52,7 +52,7 @@ class FetchableListSubscription<R> implements Subscription {
 
   
    
-    public FetchableListSubscription(Subscriber<? super R> subscriber, FetchingIterator<R> iterator) {
+    public ResultListSubscription(Subscriber<? super R> subscriber, FetchingIterator<R> iterator) {
         this.subscriber = subscriber;
         this.iterator = iterator;
         

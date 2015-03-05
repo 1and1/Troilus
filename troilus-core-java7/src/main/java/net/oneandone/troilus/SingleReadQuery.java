@@ -166,7 +166,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
         recordsFuture = toSingleEntryResultList(recordsFuture);
         
-        return new FetchableListPublisher<Record>(recordsFuture);
+        return new ResultListPublisher<Record>(recordsFuture);
     }
     
     
@@ -223,7 +223,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             ListenableFuture<ResultList<E>> recordsFuture = new ListReadQuery(getContext(), query.data).asEntity(clazz).executeAsync();
             recordsFuture = toSingleEntryResultList(recordsFuture);
                 
-            return new FetchableListPublisher<E>(recordsFuture);
+            return new ResultListPublisher<E>(recordsFuture);
         }
     }
     
