@@ -16,7 +16,6 @@
 package net.oneandone.troilus.java7;
 
 import net.oneandone.troilus.Count;
-import net.oneandone.troilus.ResultList;
 
 
 /**

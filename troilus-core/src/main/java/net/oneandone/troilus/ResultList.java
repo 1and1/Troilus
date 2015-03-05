@@ -16,29 +16,16 @@
 package net.oneandone.troilus;
 
 
+import net.oneandone.troilus.Result;
+
 
 
 /**
- * list read query  
- * 
- * @param <T>  the result type
+ * The entity list
+ * @param <E> the element type
  */
-public interface ListReadWithUnit<T, R> extends ListReadWithColumns<T, R> {
+public interface ResultList<E> extends Result, FetchingIterable<E> {
 
-    /**
-     * @return  a cloned query instance which reads all columns
-     */
-    ListRead<T, R> all();
+   
+}
 
-    /**
-     * @return a cloned query instance which returns the count
-     */
-    ListRead<Count, Integer> count();
-
-    /**
-     * @param objectClass  the entity type
-     * @param <E> the type
-     * @return  a cloned query instance with the modified behavior 
-     */
-    <E> ListRead<ResultList<E>, E> asEntity(Class<E> objectClass);
-} 

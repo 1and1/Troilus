@@ -21,12 +21,14 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
-import java.util.Iterator;
+
 import java.util.List;
 
+import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 import net.oneandone.troilus.java7.interceptor.ReadQueryRequestInterceptor;
 import net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor;
@@ -394,27 +396,15 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             this.clazz = clazz;
         }
         
-        @Override
-        public ListenableFuture<Void> fetchMoreResults() {
-            return recordList.fetchMoreResults();
-        }
-        
-        @Override
-        public boolean isFullyFetched() {
-            return recordList.isFullyFetched();
-        }
-        
-        @Override
-        public Iterator<F> iterator() {
-    
-            return new Iterator<F>() {
-                private final Iterator<Record> recordIt = recordList.iterator();
+        public FetchingIterator<F> iterator() {
+            
+            return new FetchingIterator<F>() {
+                private final FetchingIterator<Record> recordIt = recordList.iterator();
                 
                 @Override
                 public boolean hasNext() {
                     return recordIt.hasNext();
                 }
-            
                 
                 @Override
                 public F next() {
@@ -424,6 +414,16 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 @Override
                 public void remove() {
                     throw new UnsupportedOperationException();
+                }
+                
+                @Override
+                public boolean isFullyFetched() {
+                    return recordIt.isFullyFetched();
+                }
+                
+                @Override
+                public ListenableFuture<Void> fetchMoreResults() {
+                    return recordIt.fetchMoreResults();
                 }
             };
         }

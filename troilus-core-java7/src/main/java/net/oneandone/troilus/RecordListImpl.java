@@ -17,7 +17,9 @@ package net.oneandone.troilus;
 
 import java.util.Iterator;
 
+import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import com.datastax.driver.core.ExecutionInfo;
@@ -57,21 +59,10 @@ class RecordListImpl implements ResultList<Record> {
     public boolean wasApplied() {
         return rs.wasApplied();
     }
-    
-    @Override
-    public ListenableFuture<Void> fetchMoreResults() {
-        return rs.fetchMoreResults();
-    }
-    
-    @Override
-    public boolean isFullyFetched() {
-        return rs.isFullyFetched();
-    }
-    
-    @Override
-    public Iterator<Record> iterator() {
+
+    public FetchingIterator<Record> iterator() {
         
-        return new Iterator<Record>() {
+        return new FetchingIterator<Record>() {
 
             @Override
             public boolean hasNext() {
@@ -86,6 +77,16 @@ class RecordListImpl implements ResultList<Record> {
            @Override
            public void remove() {
                throw new UnsupportedOperationException();
+           }
+           
+           @Override
+           public ListenableFuture<Void> fetchMoreResults() {
+               return rs.fetchMoreResults();
+           }
+           
+           @Override
+           public boolean isFullyFetched() {
+               return rs.isFullyFetched();
            }
         };
     }

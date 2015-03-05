@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.java7;
 
-import com.google.common.util.concurrent.ListenableFuture;
+
+import net.oneandone.troilus.Result;
 
 
 
@@ -23,10 +24,8 @@ import com.google.common.util.concurrent.ListenableFuture;
  * The entity list
  * @param <E> the element type
  */
-public interface ResultList<E> extends Result, Iterable<E> {
+public interface ResultList<E> extends Result, FetchingIterable<E> {
 
-    boolean isFullyFetched();
-    
-    ListenableFuture<Void> fetchMoreResults();
+   
 }
 

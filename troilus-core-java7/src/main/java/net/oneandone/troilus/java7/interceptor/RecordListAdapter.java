@@ -15,14 +15,12 @@
  */
 package net.oneandone.troilus.java7.interceptor;
 
-import java.util.Iterator;
-
-import net.oneandone.troilus.ResultList;
+import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
  
@@ -47,20 +45,9 @@ public class RecordListAdapter implements ResultList<Record> {
     public boolean wasApplied() {
         return recordList.wasApplied();
     }
-    
+
     @Override
-    public ListenableFuture<Void> fetchMoreResults() {
-        return recordList.fetchMoreResults();
-    }
-    
-    @Override
-    public boolean isFullyFetched() {
-        return recordList.isFullyFetched();
-    }
-    
-    
-    @Override
-    public Iterator<Record> iterator() {
+    public FetchingIterator<Record> iterator() {
         return recordList.iterator();
     }
 }     

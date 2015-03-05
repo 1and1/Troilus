@@ -17,9 +17,9 @@ package net.oneandone.troilus.interceptor;
 
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.Record;
+import net.oneandone.troilus.ResultList;
 
 
 

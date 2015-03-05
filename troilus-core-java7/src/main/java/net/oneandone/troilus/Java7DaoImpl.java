@@ -26,6 +26,7 @@ import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.Insertion;
 import net.oneandone.troilus.java7.ListReadWithUnit;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
 import net.oneandone.troilus.java7.UpdateWithUnitAndCounter;
 import net.oneandone.troilus.java7.WriteWithCounter;

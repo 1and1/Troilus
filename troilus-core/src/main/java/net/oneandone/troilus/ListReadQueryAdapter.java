@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
+
 import org.reactivestreams.Publisher;
 
 import net.oneandone.troilus.AbstractQuery;
@@ -29,13 +30,14 @@ import net.oneandone.troilus.ListReadQuery.CountReadQuery;
 import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 
 
+
  
 
 /**
  * Java8 adapter of a ListReadQuery
  */
 class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>, Record> {
-    
+
     private final ListReadQuery query;
 
     

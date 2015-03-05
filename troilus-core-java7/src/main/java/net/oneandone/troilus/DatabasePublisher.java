@@ -15,7 +15,6 @@
  */
 package net.oneandone.troilus;
 
-import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -30,7 +29,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -97,14 +98,13 @@ class DatabasePublisher implements Publisher<Record> {
     }
     
     
-    private static class Datasource implements Iterator<Record> {
-        private Iterator<Record> it;
-        private ResultList<Record> resultList;
+    private static class Datasource implements FetchingIterator<Record> {
+        private FetchingIterator<Record> it;
         
         public Datasource(ListenableFuture<ResultList<Record>> recordsFuture) {
 
             try {
-                resultList =  recordsFuture.get();
+                ResultList<Record> resultList =  recordsFuture.get();
                 it = resultList.iterator();
             } catch (InterruptedException | ExecutionException | RuntimeException e) {
                 it = new ErrorIterator(e);
@@ -123,23 +123,15 @@ class DatabasePublisher implements Publisher<Record> {
         }
         
         public boolean isFullyFetched() {
-            if (resultList == null) {
-                return false;
-            } else {
-                return resultList.isFullyFetched();
-            }
+            return it.isFullyFetched();
         }
         
-        ListenableFuture<Void> fetchMoreResults() {
-            if (resultList == null) {
-                return Futures.immediateFuture(null);
-            } else {
-                return resultList.fetchMoreResults();
-            }
+        public ListenableFuture<Void> fetchMoreResults() {
+            return it.fetchMoreResults();
         }
         
         
-        private static final class ErrorIterator implements Iterator<Record> {
+        private static final class ErrorIterator implements FetchingIterator<Record> {
             private final Throwable error;
             
             public ErrorIterator(Throwable error) {
@@ -154,6 +146,16 @@ class DatabasePublisher implements Publisher<Record> {
             @Override
             public Record next() {
                 throw new RuntimeException(error); 
+            }
+            
+            @Override
+            public ListenableFuture<Void> fetchMoreResults() {
+                return Futures.immediateFuture(null);
+            }
+            
+            @Override
+            public boolean isFullyFetched() {
+                return false;
             }
         }
     }

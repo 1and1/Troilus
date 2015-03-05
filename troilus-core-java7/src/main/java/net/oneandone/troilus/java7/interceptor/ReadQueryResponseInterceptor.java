@@ -18,9 +18,9 @@ package net.oneandone.troilus.java7.interceptor;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 
 
 

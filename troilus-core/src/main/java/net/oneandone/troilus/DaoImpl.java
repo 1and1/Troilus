@@ -16,14 +16,13 @@
 package net.oneandone.troilus;
 
 
-import java.util.Iterator;
-
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import net.oneandone.troilus.Context;
@@ -507,13 +506,13 @@ public class DaoImpl implements Dao {
      * Java8 adapter of a RecordList
      */
     static class RecordListAdapter implements ResultList<Record> {
-        private final ResultList<net.oneandone.troilus.java7.Record> recordList;
+        private final net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record> recordList;
         
-        private RecordListAdapter(ResultList<net.oneandone.troilus.java7.Record> recordList) {
+        private RecordListAdapter(net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record> recordList) {
             this.recordList = recordList;
         }
         
-        static ResultList<Record> convertFromJava7(ResultList<net.oneandone.troilus.java7.Record> recordList) {
+        static ResultList<Record> convertFromJava7(net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record> recordList) {
             return new RecordListAdapter(recordList);
         }
         
@@ -532,21 +531,12 @@ public class DaoImpl implements Dao {
             return recordList.wasApplied();
         }
         
-        @Override
-        public ListenableFuture<Void> fetchMoreResults() {
-            return recordList.fetchMoreResults();
-        }
         
         @Override
-        public boolean isFullyFetched() {
-            return recordList.isFullyFetched();
-        }
-        
-        @Override
-        public Iterator<Record> iterator() {
+        public FetchingIterator<Record> iterator() {
             
-            return new Iterator<Record>() {
-                private final Iterator<net.oneandone.troilus.java7.Record> iterator = recordList.iterator();
+            return new FetchingIterator<Record>() {
+                private final net.oneandone.troilus.java7.FetchingIterator<net.oneandone.troilus.java7.Record> iterator = recordList.iterator();
 
                 @Override
                 public boolean hasNext() {
@@ -557,6 +547,16 @@ public class DaoImpl implements Dao {
                 public Record next() {
                     return RecordAdapter.convertFromJava7(iterator.next());
                 }
+                
+                @Override
+                public CompletableFuture<Void> fetchMoreResults() {
+                    return CompletableFutures.toCompletableFuture(iterator.fetchMoreResults());
+                }
+                
+                @Override
+                public boolean isFullyFetched() {
+                    return iterator.isFullyFetched();
+                }
             };
         }
   
@@ -565,23 +565,13 @@ public class DaoImpl implements Dao {
         
         
         
-        static ResultList<net.oneandone.troilus.java7.Record> convertToJava7(ResultList<Record> recordList) {
+        static net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record> convertToJava7(ResultList<Record> recordList) {
             
-            return new ResultList<net.oneandone.troilus.java7.Record>() {
+            return new net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record>() {
                 
                 @Override
                 public boolean wasApplied() {
                     return recordList.wasApplied();
-                }
-                
-                @Override
-                public ListenableFuture<Void> fetchMoreResults() {
-                    return recordList.fetchMoreResults();
-                }
-                
-                @Override
-                public boolean isFullyFetched() {
-                    return recordList.isFullyFetched();
                 }
                 
                 @Override
@@ -593,12 +583,12 @@ public class DaoImpl implements Dao {
                 public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
                     return recordList.getAllExecutionInfo();
                 }
-                
-                public Iterator<net.oneandone.troilus.java7.Record> iterator() {
+
+                public net.oneandone.troilus.java7.FetchingIterator<net.oneandone.troilus.java7.Record> iterator() {
                     
-                    return new Iterator<net.oneandone.troilus.java7.Record>() {
+                    return new net.oneandone.troilus.java7.FetchingIterator<net.oneandone.troilus.java7.Record>() {
                         
-                        private final Iterator<Record> iterator = recordList.iterator();
+                        private final FetchingIterator<Record> iterator = recordList.iterator();
 
                         @Override
                         public boolean hasNext() {
@@ -608,6 +598,16 @@ public class DaoImpl implements Dao {
                         @Override
                         public net.oneandone.troilus.java7.Record next() {
                             return RecordAdapter.convertToJava7(iterator.next());
+                        }
+                        
+                        @Override
+                        public ListenableFuture<Void> fetchMoreResults() {
+                            return CompletableFutures.toListenableFuture(iterator.fetchMoreResults());
+                        }
+                        
+                        @Override
+                        public boolean isFullyFetched() {
+                            return iterator.isFullyFetched();
                         }
                     };
                 }
@@ -649,29 +649,18 @@ public class DaoImpl implements Dao {
    
         
    static class EntityListAdapter<F> extends ResultAdapter implements ResultList<F> {
-       private final net.oneandone.troilus.ResultList<F> entityList;
+       private final net.oneandone.troilus.java7.ResultList<F> entityList;
    
-       EntityListAdapter(net.oneandone.troilus.ResultList<F> entityList) {
+       EntityListAdapter(net.oneandone.troilus.java7.ResultList<F> entityList) {
            super(entityList);
            this.entityList = entityList;
        }
        
        @Override
-       public ListenableFuture<Void> fetchMoreResults() {
-           return entityList.fetchMoreResults();
-       }
+       public FetchingIterator<F> iterator() {
    
-       @Override
-       public boolean isFullyFetched() {
-           return entityList.isFullyFetched();
-       }
-       
-       
-       @Override
-       public Iterator<F> iterator() {
-   
-           return new Iterator<F>() {
-               final Iterator<F> recordIt = entityList.iterator();
+           return new FetchingIterator<F>() {
+               final net.oneandone.troilus.java7.FetchingIterator<F> recordIt = entityList.iterator();
                
                @Override
                public boolean hasNext() {
@@ -681,6 +670,16 @@ public class DaoImpl implements Dao {
                @Override
                public F next() {
                    return recordIt.next();
+               }
+               
+               @Override
+               public boolean isFullyFetched() {
+                   return recordIt.isFullyFetched();
+               }
+               
+               @Override
+               public CompletableFuture<Void> fetchMoreResults() {
+                   return CompletableFutures.toCompletableFuture(recordIt.fetchMoreResults());
                }
            };
        }
@@ -1126,7 +1125,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public ListenableFuture<ResultList<net.oneandone.troilus.java7.Record>> onReadResponseAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data, ResultList<net.oneandone.troilus.java7.Record> recordList) {
+        public ListenableFuture<net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record>> onReadResponseAsync(net.oneandone.troilus.java7.interceptor.ReadQueryData data, net.oneandone.troilus.java7.ResultList<net.oneandone.troilus.java7.Record> recordList) {
             return CompletableFutures.toListenableFuture(interceptor.onReadResponseAsync(new ListReadQueryDataAdapter(data), RecordListAdapter.convertFromJava7(recordList))
                                                                     .thenApply(list -> RecordListAdapter.convertToJava7(list)));
         }

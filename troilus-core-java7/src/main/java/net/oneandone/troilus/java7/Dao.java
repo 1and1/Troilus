@@ -16,8 +16,8 @@
 package net.oneandone.troilus.java7;
 
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
+
 
 
 

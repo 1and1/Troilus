@@ -16,29 +16,14 @@
 package net.oneandone.troilus;
 
 
-
-
 /**
- * list read query  
+ * Iterable which supports fetching methods
  * 
- * @param <T>  the result type
+ * @param <E> the type
  */
-public interface ListReadWithUnit<T, R> extends ListReadWithColumns<T, R> {
+public interface FetchingIterable<E> extends Iterable<E> {
 
-    /**
-     * @return  a cloned query instance which reads all columns
-     */
-    ListRead<T, R> all();
+    @Override
+    public FetchingIterator<E> iterator();
+}
 
-    /**
-     * @return a cloned query instance which returns the count
-     */
-    ListRead<Count, Integer> count();
-
-    /**
-     * @param objectClass  the entity type
-     * @param <E> the type
-     * @return  a cloned query instance with the modified behavior 
-     */
-    <E> ListRead<ResultList<E>, E> asEntity(Class<E> objectClass);
-} 

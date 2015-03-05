@@ -20,7 +20,9 @@ import java.util.List;
 
 
 
+
 import net.oneandone.troilus.java7.Record;
+import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.SingleRead;
 import net.oneandone.troilus.java7.SingleReadWithUnit;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;

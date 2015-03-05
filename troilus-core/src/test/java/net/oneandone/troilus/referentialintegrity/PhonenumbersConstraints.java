@@ -19,11 +19,11 @@ package net.oneandone.troilus.referentialintegrity;
 
 
 
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Dao;
+import net.oneandone.troilus.FetchingIterator;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.ResultList;
@@ -75,16 +75,25 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
         }
         
         @Override
-        public Iterator<Record> iterator() {
+        public FetchingIterator<Record> iterator() {
             return new ValidatingIterator(super.iterator());
         }
 
         
-        private final class ValidatingIterator implements Iterator<Record> {
-            private Iterator<Record> it;
+        private final class ValidatingIterator implements FetchingIterator<Record> {
+            private FetchingIterator<Record> it;
             
-            public ValidatingIterator(Iterator<Record> it) {
+            public ValidatingIterator(FetchingIterator<Record> it) {
                 this.it = it;
+            }
+            
+            @Override
+            public boolean isFullyFetched() {
+                return it.isFullyFetched();
+            }
+            
+            public CompletableFuture<Void> fetchMoreResults() {
+                return it.fetchMoreResults();
             }
             
             @Override
