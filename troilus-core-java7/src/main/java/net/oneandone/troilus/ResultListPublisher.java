@@ -31,12 +31,20 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 
 
+/**
+ * ResultList-based publisher
+ *
+ * @param <R> the element type
+ */
 class ResultListPublisher<R> implements Publisher<R> {
     
     private boolean subscribed = false; // true after first subscribe
     private LazyInitializer lazyInitializer;
     
     
+    /**
+     * @param resultlistFuture  the future result list
+     */
     public ResultListPublisher(final ListenableFuture<ResultList<R>> resultlistFuture) {
         lazyInitializer = new LazyInitializer(resultlistFuture);
     }
@@ -88,6 +96,9 @@ class ResultListPublisher<R> implements Publisher<R> {
             }
         }
         
+        /**
+         * @param subscriber the subscriber to subcribe
+         */
         public void subscribe(Subscriber<? super R> subscriber) {
             synchronized (this) {
                 if (isInitialized) {
