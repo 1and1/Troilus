@@ -123,7 +123,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     }
     
     @Override
-    public ListRead<Count, Integer> count() {
+    public ListRead<Count, Count> count() {
         return new CountReadQueryAdapter(getContext(), query.count());
     }
     
@@ -216,7 +216,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     /**
      * Java8 adapter of a CountReadQuery
      */
-    private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count, Integer> {
+    private static class CountReadQueryAdapter extends AbstractQuery<CountReadQueryAdapter> implements ListRead<Count, Count> {
 
         private final CountReadQuery query;
     
@@ -235,23 +235,23 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }
         
         @Override
-        public ListRead<Count, Integer> withLimit(int limit) {
+        public ListRead<Count, Count> withLimit(int limit) {
             return new CountReadQueryAdapter(getContext(), query.withLimit(limit)); 
         }
         
         @Override
-        public ListRead<Count, Integer> withAllowFiltering() {
+        public ListRead<Count, Count> withAllowFiltering() {
             return new CountReadQueryAdapter(getContext(), query.withAllowFiltering());
         }
     
         @Override
-        public ListRead<Count, Integer> withFetchSize(int fetchSize) {
+        public ListRead<Count, Count> withFetchSize(int fetchSize) {
             return new CountReadQueryAdapter(getContext(), query.withFetchSize(fetchSize));
 
         }
     
         @Override
-        public ListRead<Count, Integer> withDistinct() {
+        public ListRead<Count, Count> withDistinct() {
             return new CountReadQueryAdapter(getContext(), query.withDistinct());
         }
         
@@ -261,9 +261,8 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         }
 
         @Override
-        public Publisher<Integer> executeRx() {
-            // TODO Auto-generated method stub
-            return null;
+        public Publisher<Count> executeRx() {
+            return query.executeRx();
         }
         
         @Override

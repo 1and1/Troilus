@@ -33,7 +33,7 @@ public interface ListReadWithUnit<T, R> extends ListReadWithColumns<T, R> {
     /**
      * @return a cloned query instance which returns the count
      */
-    ListRead<Count, Integer> count();
+    ListRead<Count, Count> count();
 
     /**
      * @param objectClass  the entity type

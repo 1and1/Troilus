@@ -473,7 +473,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
 
     
-    static class CountReadQuery extends AbstractQuery<CountReadQuery> implements ListRead<Count, Integer> {
+    static class CountReadQuery extends AbstractQuery<CountReadQuery> implements ListRead<Count, Count> {
         
         private final CountReadQueryData data;
     
@@ -483,12 +483,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             this.data = data;
         }
     
-        @Override
-        public Publisher<Integer> executeRx() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        
         @Override
         protected CountReadQuery newQuery(Context newContext) {
             return new CountReadQuery(newContext, data);
@@ -575,6 +569,20 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             };
             
             return Futures.transform(future, mapEntity);
+        }
+        
+        @Override
+        public Publisher<Count> executeRx() {
+            ListenableFuture<Count> countFuture = executeAsync();
+            
+            Function<Count, ResultList<Count>> toListFunction = new Function<Count, ResultList<Count>>() {
+                @Override
+                public ResultList<Count> apply(Count count) {
+                    return new SingleEntryResultListAdapter<>(count);
+                }
+            };
+            
+            return new FetchableListPublisher<>(Futures.transform(countFuture, toListFunction));
         }
     }  
 }

@@ -16,7 +16,6 @@
 package net.oneandone.troilus.java7.interceptor;
 
 import net.oneandone.troilus.java7.FetchingIterator;
-import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.ResultList;
 
 import com.datastax.driver.core.ExecutionInfo;
@@ -24,10 +23,10 @@ import com.google.common.collect.ImmutableList;
 
 
  
-public class RecordListAdapter implements ResultList<Record> {
-    private final ResultList<Record> recordList;
+public class ResultListAdapter<T> implements ResultList<T> {
+    private final ResultList<T> recordList;
     
-    public RecordListAdapter(ResultList<Record> recordList) {
+    public ResultListAdapter(ResultList<T> recordList) {
         this.recordList = recordList;
     }
     
@@ -47,7 +46,7 @@ public class RecordListAdapter implements ResultList<Record> {
     }
 
     @Override
-    public FetchingIterator<Record> iterator() {
+    public FetchingIterator<T> iterator() {
         return recordList.iterator();
     }
 }     

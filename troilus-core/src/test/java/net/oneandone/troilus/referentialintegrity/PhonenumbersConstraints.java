@@ -64,7 +64,7 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
     }
     
     
-    private static final class VaildatingRecordList extends RecordListAdapter {
+    private static final class VaildatingRecordList extends RecordListAdapter<Record> {
      
         private final Dao deviceDao;
 

@@ -19,7 +19,7 @@ package net.oneandone.troilus.interceptor;
 
 
 import net.oneandone.troilus.FetchingIterator;
-import net.oneandone.troilus.Record;
+
 import net.oneandone.troilus.ResultList;
 
 import com.datastax.driver.core.ExecutionInfo;
@@ -27,30 +27,30 @@ import com.google.common.collect.ImmutableList;
 
 
  
-public class RecordListAdapter implements ResultList<Record> {
-    private final ResultList<Record> recordList;
+public class RecordListAdapter<T> implements ResultList<T> {
+    private final ResultList<T> list;
     
-    public RecordListAdapter(ResultList<Record> recordList) {
-        this.recordList = recordList;
+    public RecordListAdapter(ResultList<T> list) {
+        this.list = list;
     }
     
     @Override
     public ExecutionInfo getExecutionInfo() {
-        return recordList.getExecutionInfo();
+        return list.getExecutionInfo();
     }
     
     @Override
     public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-        return recordList.getAllExecutionInfo();
+        return list.getAllExecutionInfo();
     }
 
     @Override
     public boolean wasApplied() {
-        return recordList.wasApplied();
+        return list.wasApplied();
     }
     
     @Override
-    public FetchingIterator<Record> iterator() {
-        return recordList.iterator();
+    public FetchingIterator<T> iterator() {
+        return list.iterator();
     }   
 }     
