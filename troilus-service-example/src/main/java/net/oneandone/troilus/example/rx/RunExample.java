@@ -27,6 +27,7 @@ import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 
 import com.datastax.driver.core.Session;
+import com.google.common.collect.ImmutableList;
 
 import rx.Observable;
 import rx.RxReactiveStreams;
@@ -53,9 +54,19 @@ public class RunExample {
             
             // and add some test records
             Random rnd = new Random();
-            Instant instant = LocalDate.of(2014, 6, 30).atStartOfDay(ZoneId.of("UTC")).toInstant();
+            Instant instant = LocalDate.of(2014, 6, 29).atStartOfDay(ZoneId.of("UTC")).toInstant();
             
             for (int i = 0; i < 300; i++) {
+                instant = instant.plus(Duration.ofSeconds(rnd.nextInt(59)));
+                ratingsDao.writeEntity(new HotelRating(instant, 
+                                                       String.valueOf(rnd.nextInt(50)), 
+                                                       "user" + rnd.nextInt(100),
+                                                       rnd.nextInt(5) + 1))
+                          .execute();
+            }
+    
+            instant = LocalDate.of(2014, 6, 30).atStartOfDay(ZoneId.of("UTC")).toInstant();
+            for (int i = 0; i < 50; i++) {
                 instant = instant.plus(Duration.ofSeconds(rnd.nextInt(59)));
                 ratingsDao.writeEntity(new HotelRating(instant, 
                                                        String.valueOf(rnd.nextInt(50)), 
@@ -77,7 +88,9 @@ public class RunExample {
     public static void perform(Dao ratingsDao) {
                 
         // execute db query on time series table with day partition key (-> 2014-06-29, 2014-06-30, ...) 
-        Observable<HotelRating> ratingStream = RxReactiveStreams.toObservable(ratingsDao.readSequenceWithKey("epoch_day", LocalDate.of(2014, 6, 30).toEpochDay())
+        ImmutableList<Object> dayList = ImmutableList.of(LocalDate.of(2014, 6, 29).toEpochDay(),
+                                                         LocalDate.of(2014, 6, 30).toEpochDay()); 
+        Observable<HotelRating> ratingStream = RxReactiveStreams.toObservable(ratingsDao.readSequenceWithKeys("epoch_day", dayList)
                                                                                         .asEntity(HotelRating.class)
                                                                                         .executeRx());
         
