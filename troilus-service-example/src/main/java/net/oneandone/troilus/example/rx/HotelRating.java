@@ -24,10 +24,10 @@ import net.oneandone.troilus.Field;
 
 class HotelRating {
 
-    @Field(name = "rated_at_epoch_day")
+    @Field(name = "epoch_day")
     private long ratedAtEpochDay;
     
-    @Field(name = "rated_at_epoch_millis")
+    @Field(name = "epoch_millis")
     private long ratedAtEpochMillis;
 
     @Field(name = "hotel_id")

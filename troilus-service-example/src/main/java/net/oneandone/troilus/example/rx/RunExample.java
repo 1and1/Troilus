@@ -18,6 +18,7 @@ package net.oneandone.troilus.example.rx;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Random;
 
@@ -32,51 +33,51 @@ import rx.RxReactiveStreams;
 
  
 
-public class CreateReportExample {
+public class RunExample {
     
-    
-    public void printReport() {
-        
-    }
-
     public static void main(String[] args) throws InterruptedException, IOException {
         
-        CassandraDB cassandra = CassandraDB.newInstance();
-        cassandra.executeCql("CREATE TABLE hotelrating (rated_at_epoch_day bigInt, " + 
-                             "                          rated_at_epoch_millis bigInt, " +
-                             "                          hotel_id text, " + 
-                             "                          user_id text, " + 
-                             "                          rating int, " +
-                             "                          PRIMARY KEY (rated_at_epoch_day, rated_at_epoch_millis));");
-        Session session = cassandra.getSession();
-        Dao ratingsDao = new DaoImpl(session, "hotelrating");        
-        
-        
-        // add some test records
-        Random rnd = new Random();
-        for (int i = 0; i < 300; i++) {
-            ratingsDao.writeEntity(new HotelRating(Instant.now(), 
-                                                   String.valueOf(rnd.nextInt(50)), 
-                                                   "user" + rnd.nextInt(100),
-                                                   rnd.nextInt(5) + 1))
-                      .execute();
-        }
+        try (CassandraDB cassandra = CassandraDB.newInstance()) {
 
-        
-        perform(ratingsDao);
-        
-        session.close();
-        cassandra.close();
+            // create schema
+            cassandra.executeCql("CREATE TABLE hotelrating (epoch_day bigInt, " + 
+                                 "                          epoch_millis bigInt, " +
+                                 "                          hotel_id text, " + 
+                                 "                          user_id text, " + 
+                                 "                          rating int, " +
+                                 "                          PRIMARY KEY (epoch_day, epoch_millis)) " +
+                                 "                          WITH CLUSTERING ORDER BY (epoch_millis DESC);");
+            Session session = cassandra.getSession();
+            Dao ratingsDao = new DaoImpl(session, "hotelrating");        
+            
+            
+            // and add some test records
+            Random rnd = new Random();
+            Instant instant = LocalDate.of(2014, 6, 30).atStartOfDay(ZoneId.of("UTC")).toInstant();
+            
+            for (int i = 0; i < 300; i++) {
+                instant = instant.plus(Duration.ofSeconds(rnd.nextInt(59)));
+                ratingsDao.writeEntity(new HotelRating(instant, 
+                                                       String.valueOf(rnd.nextInt(50)), 
+                                                       "user" + rnd.nextInt(100),
+                                                       rnd.nextInt(5) + 1))
+                          .execute();
+            }
+    
+            
+            
+            // perform the example
+            perform(ratingsDao);
+        }
     }
+    
     
     
     
     public static void perform(Dao ratingsDao) {
                 
-        
-        // execute db query
-        long fromEpochDay = Instant.now().minus(Duration.ofHours(1)).atZone(ZoneId.of("UTC")).toLocalDate().toEpochDay();
-        Observable<HotelRating> ratingStream = RxReactiveStreams.toObservable(ratingsDao.readSequenceWithKey("rated_at_epoch_day", fromEpochDay)
+        // execute db query on time series table with day partition key (-> 2014-06-29, 2014-06-30, ...) 
+        Observable<HotelRating> ratingStream = RxReactiveStreams.toObservable(ratingsDao.readSequenceWithKey("epoch_day", LocalDate.of(2014, 6, 30).toEpochDay())
                                                                                         .asEntity(HotelRating.class)
                                                                                         .executeRx());
         
