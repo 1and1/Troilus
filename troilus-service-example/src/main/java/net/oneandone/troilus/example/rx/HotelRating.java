@@ -15,34 +15,49 @@
  */
 package net.oneandone.troilus.example.rx;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import net.oneandone.troilus.Field;
 
 
 class HotelRating {
 
-    @Field(name = "rated_at")
-    private Long ratedAt = null;
+    @Field(name = "rated_at_epoch_day")
+    private long ratedAtEpochDay;
+    
+    @Field(name = "rated_at_epoch_millis")
+    private long ratedAtEpochMillis;
 
     @Field(name = "hotel_id")
-    private String hotelId = null;
+    private String hotelId;
 
     @Field(name = "user_id")
-    private String userId = null;
+    private String userId;
     
     @Field(name = "rating")
-    private Integer rating;
+    private int rating;
 
     
-    public HotelRating(Long ratedAt, String hotelId, String userId, Integer rating) {
-        super();
-        this.ratedAt = ratedAt;
+    @SuppressWarnings("unused")
+    private HotelRating() { }
+    
+    
+    public HotelRating(Instant ratedAt, String hotelId, String userId, int rating) {
+        this.ratedAtEpochDay = ratedAt.atZone(ZoneId.of("UTC")).toLocalDate().toEpochDay();
+        this.ratedAtEpochMillis = ratedAt.toEpochMilli();
         this.hotelId = hotelId;
         this.userId = userId;
         this.rating = rating;
     }
 
-    public Long getRatedAt() {
-        return ratedAt;
+    public LocalDate getRatedAtDay() {
+        return LocalDate.ofEpochDay(ratedAtEpochDay);
+    }
+
+    public Instant getRatedAt() {
+        return Instant.ofEpochMilli(ratedAtEpochMillis);
     }
 
     public String getHotelId() {
@@ -53,53 +68,7 @@ class HotelRating {
         return userId;
     }
 
-    public Integer getRating() {
+    public int getRating() {
         return rating;
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((hotelId == null) ? 0 : hotelId.hashCode());
-        result = prime * result + ((ratedAt == null) ? 0 : ratedAt.hashCode());
-        result = prime * result + ((rating == null) ? 0 : rating.hashCode());
-        result = prime * result + ((userId == null) ? 0 : userId.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        HotelRating other = (HotelRating) obj;
-        if (hotelId == null) {
-            if (other.hotelId != null)
-                return false;
-        } else if (!hotelId.equals(other.hotelId))
-            return false;
-        if (ratedAt == null) {
-            if (other.ratedAt != null)
-                return false;
-        } else if (!ratedAt.equals(other.ratedAt))
-            return false;
-        if (rating == null) {
-            if (other.rating != null)
-                return false;
-        } else if (!rating.equals(other.rating))
-            return false;
-        if (userId == null) {
-            if (other.userId != null)
-                return false;
-        } else if (!userId.equals(other.userId))
-            return false;
-        return true;
-    }
-
-    
-    
 }

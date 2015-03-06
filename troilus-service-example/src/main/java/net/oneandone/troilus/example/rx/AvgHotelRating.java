@@ -16,14 +16,13 @@
 package net.oneandone.troilus.example.rx;
 
 
-class AvgHotelRating {
 
-    private String hotelId;
-    private Integer ratingCount;
-    private Integer ratingSum;
+class AvgHotelRating {
+    private final String hotelId;
+    private final Integer ratingCount;
+    private final Integer ratingSum;
 
     public AvgHotelRating(String hotelId, Integer ratingCount, Integer ratingSum) {
-        super();
         this.hotelId = hotelId;
         this.ratingCount = ratingCount;
         this.ratingSum = ratingSum;
@@ -42,40 +41,10 @@ class AvgHotelRating {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((hotelId == null) ? 0 : hotelId.hashCode());
-        result = prime * result + ((ratingCount == null) ? 0 : ratingCount.hashCode());
-        result = prime * result + ((ratingSum == null) ? 0 : ratingSum.hashCode());
-        return result;
+    public String toString() {
+        return "Hotel " + getHotelId()  +
+               " was rated " + (getRatingSum() / getRatingCount())  + 
+               " on average by " + getRatingCount() + 
+               " visitors";
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        AvgHotelRating other = (AvgHotelRating) obj;
-        if (hotelId == null) {
-            if (other.hotelId != null)
-                return false;
-        } else if (!hotelId.equals(other.hotelId))
-            return false;
-        if (ratingCount == null) {
-            if (other.ratingCount != null)
-                return false;
-        } else if (!ratingCount.equals(other.ratingCount))
-            return false;
-        if (ratingSum == null) {
-            if (other.ratingSum != null)
-                return false;
-        } else if (!ratingSum.equals(other.ratingSum))
-            return false;
-        return true;
-    }
-
 }
