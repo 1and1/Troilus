@@ -240,7 +240,7 @@ class ResultListSubscription<T> implements Subscription {
         private void close() {
             synchronized (subscriber) {
                 isOpen = false;
-                notifications.clear();  // no further notifying (executor does not work)
+                notifications.clear();  
             }
         }
         
