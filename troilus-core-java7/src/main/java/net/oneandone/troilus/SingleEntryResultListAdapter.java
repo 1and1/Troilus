@@ -16,6 +16,8 @@
 package net.oneandone.troilus;
 
 
+import java.util.NoSuchElementException;
+
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.interceptor.ResultListAdapter;
@@ -78,11 +80,15 @@ class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T
             }
             
             @Override
-            public T next() {
+            public T next() throws NoSuchElementException {
                 synchronized (this) {
-                    T e = element;
-                    element = null;
-                    return e;
+                    if (element == null) {
+                        throw new NoSuchElementException();
+                    } else {
+                        T e = element;
+                        element = null;
+                        return e;
+                    }
                 }
             }
 

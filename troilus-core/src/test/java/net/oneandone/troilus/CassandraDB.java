@@ -17,6 +17,7 @@ package net.oneandone.troilus;
 
 
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -30,7 +31,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import com.sun.xml.internal.ws.Closeable;
 
 
 
