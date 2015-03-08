@@ -49,7 +49,7 @@ class ResultListSubscription<T> implements Subscription {
 
     /**
      * @param subscriber  the subscriber 
-     * @param iterator    the underyling iterator
+     * @param iterator    the underlying iterator
      */
     public ResultListSubscription(Subscriber<? super T> subscriber, FetchingIterator<T> iterator) {
         Executor executor = Executors.newCachedThreadPool();
@@ -230,7 +230,7 @@ class ResultListSubscription<T> implements Subscription {
         private final Executor executor;
         private boolean isOpen = true;
         
-        private Subscriber<? super R> subscriber;
+        private final Subscriber<? super R> subscriber;
         
         public SubscriberNotifier(Executor executor, Subscriber<? super R> subscriber) {
             this.executor = executor;
