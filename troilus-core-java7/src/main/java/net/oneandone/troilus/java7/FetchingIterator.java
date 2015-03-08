@@ -29,6 +29,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 public interface FetchingIterator<E> extends Iterator<E> {
 
     /**
+     * @return The number of rows that can be retrieved from this result set without blocking to fetch.
+     */
+    int getAvailableWithoutFetching();
+    
+    /**
      * @return whether all results have been fetched.
      */
     boolean isFullyFetched();
@@ -39,6 +44,6 @@ public interface FetchingIterator<E> extends Iterator<E> {
      *         then the returned future will return immediately but not particular error 
      *         will be thrown (you should thus call isFullyFetched() to know if calling this method can be of any use).
      */
-    ListenableFuture<Void> fetchMoreResults();
+    ListenableFuture<Void> fetchMoreResultsAsync();
 }
 

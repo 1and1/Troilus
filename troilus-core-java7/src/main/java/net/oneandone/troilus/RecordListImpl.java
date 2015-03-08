@@ -80,8 +80,13 @@ class RecordListImpl implements ResultList<Record> {
            }
            
            @Override
-           public ListenableFuture<Void> fetchMoreResults() {
+           public ListenableFuture<Void> fetchMoreResultsAsync() {
                return rs.fetchMoreResults();
+           }
+           
+           @Override
+           public int getAvailableWithoutFetching() {
+               return rs.getAvailableWithoutFetching();
            }
            
            @Override

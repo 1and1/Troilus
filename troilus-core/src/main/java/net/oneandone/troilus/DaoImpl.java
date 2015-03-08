@@ -549,8 +549,13 @@ public class DaoImpl implements Dao {
                 }
                 
                 @Override
-                public CompletableFuture<Void> fetchMoreResults() {
-                    return CompletableFutures.toCompletableFuture(iterator.fetchMoreResults());
+                public int getAvailableWithoutFetching() {
+                    return iterator.getAvailableWithoutFetching();
+                }
+                
+                @Override
+                public CompletableFuture<Void> fetchMoreResultsAsync() {
+                    return CompletableFutures.toCompletableFuture(iterator.fetchMoreResultsAsync());
                 }
                 
                 @Override
@@ -601,8 +606,13 @@ public class DaoImpl implements Dao {
                         }
                         
                         @Override
-                        public ListenableFuture<Void> fetchMoreResults() {
-                            return CompletableFutures.toListenableFuture(iterator.fetchMoreResults());
+                        public int getAvailableWithoutFetching() {
+                            return iterator.getAvailableWithoutFetching();
+                        }
+                        
+                        @Override
+                        public ListenableFuture<Void> fetchMoreResultsAsync() {
+                            return CompletableFutures.toListenableFuture(iterator.fetchMoreResultsAsync());
                         }
                         
                         @Override
@@ -673,13 +683,18 @@ public class DaoImpl implements Dao {
                }
                
                @Override
+               public int getAvailableWithoutFetching() {
+                   return recordIt.getAvailableWithoutFetching();
+               }
+               
+               @Override
                public boolean isFullyFetched() {
                    return recordIt.isFullyFetched();
                }
                
                @Override
-               public CompletableFuture<Void> fetchMoreResults() {
-                   return CompletableFutures.toCompletableFuture(recordIt.fetchMoreResults());
+               public CompletableFuture<Void> fetchMoreResultsAsync() {
+                   return CompletableFutures.toCompletableFuture(recordIt.fetchMoreResultsAsync());
                }
            };
        }

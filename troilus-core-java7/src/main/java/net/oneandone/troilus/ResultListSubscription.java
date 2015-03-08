@@ -15,10 +15,12 @@
  */
 package net.oneandone.troilus;
 
+import java.io.Closeable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 
 import net.oneandone.troilus.java7.FetchingIterator;
 
@@ -27,149 +29,276 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
 
-
-class ResultListSubscription<R> implements Subscription {
+/**
+ * ResultListSubscription
+ * 
+ * @param <T> the element type
+ */
+class ResultListSubscription<T> implements Subscription {
     private static final Logger LOG = LoggerFactory.getLogger(ResultListSubscription.class);
     
-    private final Executor executor = Executors.newCachedThreadPool();
-        
-    private final Object subscriberCallbackLock = new Object();
-    private final Object dbQueryLock = new Object();
-    
-    private final Subscriber<? super R> subscriber;
-    private final FetchingIterator<R> iterator;
-    
-    private final AtomicLong numRequestedReads = new AtomicLong();
-    
-    private Runnable runningDatabaseQuery = null;
-    private boolean isOpen = true;
-
-    private final Runnable requestTask = new ProcessingTask();
-
+    private final DatabaseSource<T> databaseSource;
+    private final SubscriberNotifier<T> subscriberNotifier;
   
-   
-    public ResultListSubscription(Subscriber<? super R> subscriber, FetchingIterator<R> iterator) {
-        this.subscriber = subscriber;
-        this.iterator = iterator;
-        
-        synchronized (subscriberCallbackLock) {
-            subscriber.onSubscribe(this);
-        }
+
+
+    /**
+     * @param subscriber  the subscriber 
+     * @param iterator    the underyling iterator
+     */
+    public ResultListSubscription(Subscriber<? super T> subscriber, FetchingIterator<T> iterator) {
+        Executor executor = Executors.newCachedThreadPool();
+
+        this.subscriberNotifier = new SubscriberNotifier<>(executor, subscriber);
+        this.databaseSource = new DatabaseSource<>(executor, subscriberNotifier, iterator);
+        subscriberNotifier.emitNotification(new OnSubscribe());
     }
 
+    
+    private class OnSubscribe extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.Notification<T> {
+        
+        @Override
+        public void send(Subscriber<? super T> subscriber) {
+            subscriber.onSubscribe(ResultListSubscription.this);
+        }
+    }
+    
+    
+    
+    @Override
+    public void cancel() {
+        databaseSource.close();
+    }
+    
     
     @Override
     public void request(long n) {                
         if(n <= 0) {
             // https://github.com/reactive-streams/reactive-streams#3.9
-            synchronized (subscriberCallbackLock) {
-                subscriber.onError(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9"));
-            }
-            return;
+            subscriberNotifier.emitNotification(new OnError<T>(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9")));
+        } else {
+            databaseSource.request(n);
         }
-        numRequestedReads.addAndGet(n);
-        
-        // Subscription: MUST NOT allow unbounded recursion such as Subscriber.onNext -> Subscription.request -> Subscriber.onNext
-        executor.execute(requestTask);
     }
     
-    private final class ProcessingTask implements Runnable {
+ 
     
+    // Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
+    private static class OnError<R> extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
+        private final Throwable error;
+        
+        public OnError(Throwable error) {
+            this.error = error;
+        }
+        
         @Override
-        public void run() {
-            processReadRequests();
-               
+        public void send(Subscriber<? super R> subscriber) {
+            LOG.warn("processing error occured", error);
+            try {
+                subscriber.onError(error);
+            } catch (RuntimeException rt) {
+                LOG.warn("error occured by notifying error ", rt);
+            }
         }
     }
-    
-    private void processReadRequests() {
-        processAvailableDatabaseRecords();
 
-        // more db records required? 
-        if (numRequestedReads.get() > 0) {
-            // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
-            // will be executed without the need of more records. However, it does not matter
-            requestDatabaseForMoreRecords();
+    
+    
+    
+    private static final class DatabaseSource<R> implements Closeable {
+        private final Object dbQueryLock = new Object();
+        private final AtomicBoolean isOpen = new AtomicBoolean(true);
+
+        private final AtomicLong numRequestedReads = new AtomicLong();
+        
+        private final Executor executor;
+        private final SubscriberNotifier<R> notifier;
+        private final FetchingIterator<R> iterator;
+        
+        private Runnable runningDatabaseQuery = null;
+
+
+        DatabaseSource(Executor executor, SubscriberNotifier<R> notifier, FetchingIterator<R> iterator) {
+            this.executor = executor;
+            this.notifier = notifier;
+            this.iterator = iterator;
         }
         
-    }
+        @Override
+        public void close() {
+            isOpen.set(false);
+        }
+          
+        
+        void request(long num) {
+            if (isOpen.get()) {
+                numRequestedReads.addAndGet(num);
+                processReadRequests();
+            } 
+        }
     
     
-    private void processAvailableDatabaseRecords() {
-        synchronized (subscriberCallbackLock) {
-            if (isOpen) {
-                while (iterator.hasNext() && numRequestedReads.get() > 0) {
-                    try {
-                        numRequestedReads.decrementAndGet();
-                        subscriber.onNext(iterator.next());
-                    } catch (RuntimeException rt) {
-                        LOG.warn("processing error occured", rt);
-                        teminateWithError(rt);
+        private void processReadRequests() {
+            if (isOpen.get()) {
+                processAvailableDatabaseRecords();
+        
+                // more db records required? 
+                if (numRequestedReads.get() > 0) {
+                    // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
+                    // will be executed without the need of more records. However, it does not matter
+                    requestDatabaseForMoreRecords();
+                }
+            }
+        }
+    
+        
+        private void processAvailableDatabaseRecords() {
+            while ((iterator.getAvailableWithoutFetching() > 0) && numRequestedReads.get() > 0) {
+                try {
+                    numRequestedReads.decrementAndGet();
+                    notifier.emitNotification(new OnNext(iterator.next()));
+                } catch (RuntimeException rt) {
+                    notifier.emitNotification(new OnError<R>(rt));
+                }
+            }
+        }
+
+        
+        
+        void requestDatabaseForMoreRecords() {
+            // no more data to fetch?
+            if (iterator.isFullyFetched()) {
+                notifier.emitNotification(new OnComplete());
+                
+            // yes, more elements can be fetched   
+            } else { 
+                // submit async database request 
+                synchronized (dbQueryLock) {
+                    if (runningDatabaseQuery == null) {
+                        Runnable databaseRequest = new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                synchronized (dbQueryLock) {
+                                                                    runningDatabaseQuery = null; 
+                                                                }
+                                                                processReadRequests();
+                                                            }                                                                           
+                                                   };
+                        runningDatabaseQuery = databaseRequest;
+                        
+                        ListenableFuture<Void> future = iterator.fetchMoreResultsAsync();
+                        future.addListener(databaseRequest, executor);
                     }
                 }
             }
         }
-    }
-    
-    
-    private void requestDatabaseForMoreRecords() {
-        // no more data to fetch?
-        if (iterator.isFullyFetched()) {
-            terminateRegularly(true);
-            return;
-        } 
         
-        synchronized (dbQueryLock) {
-            if (runningDatabaseQuery == null) {
-                Runnable databaseRequest = new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        synchronized (dbQueryLock) {
-                                                            runningDatabaseQuery = null; 
-                                                        }
-                                                        processReadRequests();
-                                                    }                                                                           
-                                           };
-                runningDatabaseQuery = databaseRequest;
-                
-                ListenableFuture<Void> future = iterator.fetchMoreResults();
-                future.addListener(databaseRequest, executor);
+        
+        private class OnNext extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.Notification<R> {
+            private final R element;
+            
+            public OnNext(R element) {
+                this.element = element;
+            }
+            
+            @Override
+            public void send(Subscriber<? super R> subscriber) {
+                subscriber.onNext(element);
+            }
+        }
+
+
+        // Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
+        private class OnComplete extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
+            
+            @Override
+            public void send(Subscriber<? super R> subscriber) {
+                subscriber.onComplete();
             }
         }
     }
-
     
-    @Override
-    public void cancel() {
-        terminateRegularly(false);
-    }
-
-
-    ////////////
-    // terminate methods: Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
     
-    private void terminateRegularly(boolean signalOnComplete) {
-        synchronized (subscriberCallbackLock) {
-            if (isOpen) {
+
+    private static final class SubscriberNotifier<R> implements Runnable {
+        private final ConcurrentLinkedQueue<Notification<R>> notifications = Queues.newConcurrentLinkedQueue();
+        private final Executor executor;
+        private boolean isOpen = true;
+        
+        private Subscriber<? super R> subscriber;
+        
+        public SubscriberNotifier(Executor executor, Subscriber<? super R> subscriber) {
+            this.executor = executor;
+            this.subscriber = subscriber;
+        }
+        
+        private void close() {
+            synchronized (subscriber) {
                 isOpen = false;
-                if(signalOnComplete) {
-                    subscriber.onComplete();
+                notifications.clear();  // no further notifying (executor does not work)
+            }
+        }
+        
+        public void emitNotification(Notification<R> notification) {
+            synchronized (subscriber) {
+                if (isOpen) {
+                    if (notifications.offer(notification)) {
+                        tryScheduleToExecute();
+                    }
                 }
             }
         }
-    }
-    
-    private void teminateWithError(Throwable t) {
-        synchronized (subscriberCallbackLock) {
-            if (isOpen) {
-                isOpen = false;
+
+        private final void tryScheduleToExecute() {
+            try {
+                executor.execute(this);
+            } catch (Throwable t) {
+                close(); // no further notifying (executor does not work)
                 subscriber.onError(t);
             }
         }
+        
+
+        // main "event loop" 
+        @Override 
+        public final void run() {
+            synchronized (subscriber) {
+                if (isOpen) {
+                    try {
+                        Notification<R> notification = notifications.poll(); 
+                        if (notification.isTerminating()) {
+                            close();
+                        }
+                        notification.send(subscriber);
+                    } finally {
+                        if(!notifications.isEmpty()) {
+                            tryScheduleToExecute(); 
+                        }
+                    }
+                }
+            }
+        }
+      
+        
+        private static abstract class Notification<R> { 
+            
+            abstract void send(Subscriber<? super R> subscriber);
+            
+            boolean isTerminating() {
+                return false;
+            }
+        };
+        
+        
+        private static abstract class TerminatingNotification<R> extends Notification<R> { 
+            boolean isTerminating() {
+                return true;
+            }
+        };
     }
-    
 }

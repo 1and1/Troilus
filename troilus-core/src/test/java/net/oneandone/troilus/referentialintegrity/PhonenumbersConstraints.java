@@ -92,8 +92,13 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
                 return it.isFullyFetched();
             }
             
-            public CompletableFuture<Void> fetchMoreResults() {
-                return it.fetchMoreResults();
+            public CompletableFuture<Void> fetchMoreResultsAsync() {
+                return it.fetchMoreResultsAsync();
+            }
+            
+            @Override
+            public int getAvailableWithoutFetching() {
+                return it.getAvailableWithoutFetching();
             }
             
             @Override

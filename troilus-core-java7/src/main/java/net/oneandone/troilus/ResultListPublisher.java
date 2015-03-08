@@ -136,12 +136,17 @@ class ResultListPublisher<R> implements Publisher<R> {
         }
         
         @Override
+        public int getAvailableWithoutFetching() {
+            return 1;
+        }
+        
+        @Override
         public R next() {
             throw new RuntimeException(error); 
         }
         
         @Override
-        public ListenableFuture<Void> fetchMoreResults() {
+        public ListenableFuture<Void> fetchMoreResultsAsync() {
             return Futures.immediateFuture(null);
         }
         

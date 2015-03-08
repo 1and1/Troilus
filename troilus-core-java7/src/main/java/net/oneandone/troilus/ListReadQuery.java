@@ -360,13 +360,18 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
                 
                 @Override
+                public int getAvailableWithoutFetching() {
+                    return recordIt.getAvailableWithoutFetching();
+                }
+                
+                @Override
                 public boolean isFullyFetched() {
                     return recordIt.isFullyFetched();
                 }
                 
                 @Override
-                public ListenableFuture<Void> fetchMoreResults() {
-                    return recordIt.fetchMoreResults();
+                public ListenableFuture<Void> fetchMoreResultsAsync() {
+                    return recordIt.fetchMoreResultsAsync();
                 }
             };
         }

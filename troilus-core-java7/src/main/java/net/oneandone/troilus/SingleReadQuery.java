@@ -281,8 +281,13 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             }
             
             @Override
-            public ListenableFuture<Void> fetchMoreResults() {
-                return iterator.fetchMoreResults();
+            public int getAvailableWithoutFetching() {
+                return iterator.getAvailableWithoutFetching();
+            }
+            
+            @Override
+            public ListenableFuture<Void> fetchMoreResultsAsync() {
+                return iterator.fetchMoreResultsAsync();
             }
             
             @Override

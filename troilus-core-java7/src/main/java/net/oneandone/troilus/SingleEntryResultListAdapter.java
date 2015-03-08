@@ -80,6 +80,11 @@ class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T
             }
             
             @Override
+            public int getAvailableWithoutFetching() {
+                return hasNext() ? 1 : 0;
+            }
+            
+            @Override
             public T next() throws NoSuchElementException {
                 synchronized (this) {
                     if (element == null) {
@@ -98,7 +103,7 @@ class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T
             }
             
             @Override
-            public ListenableFuture<Void> fetchMoreResults() {
+            public ListenableFuture<Void> fetchMoreResultsAsync() {
                 return Futures.immediateFuture(null);
             }
         }
