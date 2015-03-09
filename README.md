@@ -556,7 +556,9 @@ hotelsDao.readSequence()
          .thenAccept(hotelIt -> hotelIt.forEach(hotel -> System.out.println(hotel)));
 ```
 
-For true asynchronous streaming a [Subscriber](http://www.reactive-streams.org) `executeRx()` cab be called which returns a Publisher
+
+##Reactive streams Read
+For true asynchronous streaming `executeRx()` can be called which returns a reactive streams [Publisher](http://www.reactive-streams.org)   
 ``` java
 Subscriber<Hotel> mySubscriber = new MySubscriber();  
 
