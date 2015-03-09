@@ -352,7 +352,4 @@ class UDTValueMapper {
             }
         }
     }
-}    
-        
-        
-
+}   

@@ -46,7 +46,7 @@ class ResultListPublisher<R> implements Publisher<R> {
      * @param resultlistFuture  the future result list
      */
     public ResultListPublisher(ListenableFuture<ResultList<R>> resultlistFuture) {
-        lazyInitializer = new LazyInitializer(resultlistFuture);
+        this.lazyInitializer = new LazyInitializer(resultlistFuture);
     }
     
     @Override

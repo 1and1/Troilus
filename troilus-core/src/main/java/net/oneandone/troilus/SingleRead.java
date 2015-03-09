@@ -16,6 +16,8 @@
 package net.oneandone.troilus;
 
 
+import org.reactivestreams.Publisher;
+
 import com.datastax.driver.core.ConsistencyLevel;
 
 
@@ -26,21 +28,26 @@ import com.datastax.driver.core.ConsistencyLevel;
  *
  * @param <T>  the result type
  */
-public interface SingleRead<T> extends Query<T> {
+public interface SingleRead<T, R> extends Query<T> {
+    
+    /**
+     * @return the publisher
+     */
+    Publisher<R> executeRx();
 
     /**
      * @return a cloned query instance with deactivated tracking 
      */
-    SingleRead<T> withTracking();
+    SingleRead<T, R> withTracking();
 
     /**
      * @return a cloned query instance with deactivated tracking 
      */
-    SingleRead<T> withoutTracking();
+    SingleRead<T, R> withoutTracking();
     
     /**
      * @param consistencyLevel   the  consistency level to use
      * @return a cloned query instance with the modified behavior
      */
-    SingleRead<T> withConsistency(ConsistencyLevel consistencyLevel);
+    SingleRead<T, R> withConsistency(ConsistencyLevel consistencyLevel);
 }

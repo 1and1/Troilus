@@ -40,7 +40,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @param <T> the element type
  */
 class ResultListSubscription<T> implements Subscription {
-    private static final Logger LOG = LoggerFactory.getLogger(ResultListSubscription.class);
     
     private final DatabaseSource<T> databaseSource;
     private final SubscriberNotifier<T> subscriberNotifier;
@@ -56,6 +55,7 @@ class ResultListSubscription<T> implements Subscription {
 
         this.subscriberNotifier = new SubscriberNotifier<>(executor, subscriber);
         this.databaseSource = new DatabaseSource<>(executor, subscriberNotifier, iterator);
+        
         subscriberNotifier.emitNotification(new OnSubscribe());
     }
 
@@ -63,7 +63,7 @@ class ResultListSubscription<T> implements Subscription {
     private class OnSubscribe extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.Notification<T> {
         
         @Override
-        public void send(Subscriber<? super T> subscriber) {
+        public void signalTo(Subscriber<? super T> subscriber) {
             subscriber.onSubscribe(ResultListSubscription.this);
         }
     }
@@ -88,8 +88,8 @@ class ResultListSubscription<T> implements Subscription {
     
  
     
-    // Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
     private static class OnError<R> extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
+        private static final Logger LOG = LoggerFactory.getLogger(OnError.class);
         private final Throwable error;
         
         public OnError(Throwable error) {
@@ -97,8 +97,8 @@ class ResultListSubscription<T> implements Subscription {
         }
         
         @Override
-        public void send(Subscriber<? super R> subscriber) {
-            LOG.warn("processing error occured", error);
+        public void signalTo(Subscriber<? super R> subscriber) {
+            LOG.debug("processing error occured", error);
             try {
                 subscriber.onError(error);
             } catch (RuntimeException rt) {
@@ -171,17 +171,16 @@ class ResultListSubscription<T> implements Subscription {
         
         
         void requestDatabaseForMoreRecords() {
-            // no more data to fetch?
+            
+            // more data to fetch available?
             if (iterator.isFullyFetched()) {
+                // no, all data has been read
                 notifier.emitNotification(new OnComplete());
                 
             // yes, more elements can be fetched   
             } else { 
-                
-                // submit async database request 
                 synchronized (dbQueryLock) {
-
-                    // will start a new query, if no query is already running 
+                    // submit an async database query (if not already running) 
                     if (runningDatabaseQuery == null) {
                         ListenableFuture<Void> future = iterator.fetchMoreResultsAsync();
                         
@@ -211,17 +210,16 @@ class ResultListSubscription<T> implements Subscription {
             }
             
             @Override
-            public void send(Subscriber<? super R> subscriber) {
+            public void signalTo(Subscriber<? super R> subscriber) {
                 subscriber.onNext(element);
             }
         }
 
 
-        // Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
         private class OnComplete extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
             
             @Override
-            public void send(Subscriber<? super R> subscriber) {
+            public void signalTo(Subscriber<? super R> subscriber) {
                 subscriber.onComplete();
             }
         }
@@ -232,7 +230,7 @@ class ResultListSubscription<T> implements Subscription {
     private static final class SubscriberNotifier<R> implements Runnable {
         private final ConcurrentLinkedQueue<Notification<R>> notifications = Queues.newConcurrentLinkedQueue();
         private final Executor executor;
-        private boolean isOpen = true;
+        private final AtomicBoolean isOpen = new AtomicBoolean(true);
         
         private final Subscriber<? super R> subscriber;
         
@@ -242,18 +240,14 @@ class ResultListSubscription<T> implements Subscription {
         }
         
         private void close() {
-            synchronized (subscriber) {
-                isOpen = false;
-                notifications.clear();  
-            }
+            isOpen.set(false);
+            notifications.clear();  
         }
         
         public void emitNotification(Notification<R> notification) {
-            synchronized (subscriber) {
-                if (isOpen) {
-                    if (notifications.offer(notification)) {
-                        tryScheduleToExecute();
-                    }
+            if (isOpen.get()) {
+                if (notifications.offer(notification)) {
+                    tryScheduleToExecute();
                 }
             }
         }
@@ -271,15 +265,17 @@ class ResultListSubscription<T> implements Subscription {
         // main "event loop" 
         @Override 
         public final void run() {
-            synchronized (subscriber) {
-                if (isOpen) {
+            
+            if (isOpen.get()) {
+                
+                synchronized (subscriber) {
                     try {
                         Notification<R> notification = notifications.poll(); 
                         if (notification != null) {
                             if (notification.isTerminating()) {
                                 close();
                             }
-                            notification.send(subscriber);
+                            notification.signalTo(subscriber);
                         }
                     } finally {
                         if(!notifications.isEmpty()) {
@@ -291,9 +287,10 @@ class ResultListSubscription<T> implements Subscription {
         }
       
         
+        
         private static abstract class Notification<R> { 
             
-            abstract void send(Subscriber<? super R> subscriber);
+            abstract void signalTo(Subscriber<? super R> subscriber);
             
             boolean isTerminating() {
                 return false;
@@ -301,7 +298,10 @@ class ResultListSubscription<T> implements Subscription {
         };
         
         
+        
+        // Once a terminal state has been signaled (onError, onComplete) it is REQUIRED that no further signals occur
         private static abstract class TerminatingNotification<R> extends Notification<R> { 
+            
             boolean isTerminating() {
                 return true;
             }

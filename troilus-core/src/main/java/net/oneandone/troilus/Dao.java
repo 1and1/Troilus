@@ -249,26 +249,26 @@ public interface Dao {
     ////////////////////////////////
     // READ
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+    SingleReadWithUnit<Optional<Record>, Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
     
-    SingleReadWithUnit<Optional<Record>> readWithKey(String keyName, Object keyValue);
+    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String keyName, Object keyValue);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2);
+    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                             String composedKeyNamePart2, Object composedKeyValuePart2);
 
-    SingleReadWithUnit<Optional<Record>> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2,
-                                                     String composedKeyNamePart3, Object composedKeyValuePart3);
+    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
+                                                             String composedKeyNamePart2, Object composedKeyValuePart2,
+                                                             String composedKeyNamePart3, Object composedKeyValuePart3);
 
 
-    <T> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> keyName, T keyValue);
+    <T> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> keyName, T keyValue);
 
-    <T, E> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                            ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
+    <T, E> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                                    ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
 
-    <T, E, F> SingleReadWithUnit<Optional<Record>> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                               ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                                               ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
+    <T, E, F> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
+                                                                       ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
+                                                                       ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
     
     ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String name, ImmutableList<Object> values);
 

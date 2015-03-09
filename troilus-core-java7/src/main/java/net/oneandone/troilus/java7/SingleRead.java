@@ -32,7 +32,6 @@ public interface SingleRead<T, R> extends Query<T> {
      * @return the publisher
      */
     Publisher<R> executeRx();
-
     
     /**
      * @return a cloned Dao instance with activated tracking

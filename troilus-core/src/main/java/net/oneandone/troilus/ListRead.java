@@ -15,9 +15,6 @@
  */
 package net.oneandone.troilus;
 
-import org.reactivestreams.Publisher;
-
-
 
 
 
@@ -26,9 +23,7 @@ import org.reactivestreams.Publisher;
  *
  * @param <T> the result type
  */
-public interface ListRead<T, R> extends SingleRead<T> {
-
-    Publisher<R> executeRx();
+public interface ListRead<T, R> extends SingleRead<T, R> {
     
     
     /**

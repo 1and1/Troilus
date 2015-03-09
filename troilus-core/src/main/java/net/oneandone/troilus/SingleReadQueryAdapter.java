@@ -18,6 +18,8 @@ package net.oneandone.troilus;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import org.reactivestreams.Publisher;
+
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.ColumnName;
@@ -29,7 +31,7 @@ import net.oneandone.troilus.SingleReadQuery.SingleEntityReadQuery;
 /**
  * Java8 adapter of a SingleReadQuery
  */
-class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> implements SingleReadWithUnit<Optional<Record>> {
+class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> implements SingleReadWithUnit<Optional<Record>, Record> {
     
     private final SingleReadQuery query;
      
@@ -62,7 +64,7 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
 
     
     @Override
-    public SingleRead<Optional<Record>> all() {
+    public SingleRead<Optional<Record>, Record> all() {
         return newQuery(query.all());
     }
     
@@ -87,17 +89,17 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     }
 
     @Override
-    public SingleReadWithColumns<Optional<Record>> column(ColumnName<?> name) {
+    public SingleReadWithColumns<Optional<Record>, Record> column(ColumnName<?> name) {
         return newQuery(query.column(name));
     }
 
     @Override
-    public SingleReadWithColumns<Optional<Record>> columnWithMetadata(ColumnName<?> name) {
+    public SingleReadWithColumns<Optional<Record>, Record> columnWithMetadata(ColumnName<?> name) {
         return newQuery(query.columnWithMetadata(name));
     }
     
     @Override
-    public SingleReadWithColumns<Optional<Record>> columns(ColumnName<?>... names) {
+    public SingleReadWithColumns<Optional<Record>, Record> columns(ColumnName<?>... names) {
         return newQuery(query.columns(names));
     }
     
@@ -112,6 +114,11 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
                             .thenApply(record -> (record == null) ? Optional.empty() : Optional.of(RecordAdapter.convertFromJava7(record))); 
     }
     
+    @Override
+    public Publisher<Record> executeRx() {
+        Publisher<net.oneandone.troilus.java7.Record> publisher = query.executeRx();
+        return new RecordMappingPublisher(publisher);
+    }
     
     
     
@@ -120,7 +127,7 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
     /**
      * Java8 adapter of a SingleEntityReadQuery
      */
-    private static class SingleEntityReadQueryAdapter<E> extends AbstractQuery<SingleEntityReadQueryAdapter<E>> implements SingleRead<Optional<E>> {
+    private static class SingleEntityReadQueryAdapter<E> extends AbstractQuery<SingleEntityReadQueryAdapter<E>> implements SingleRead<Optional<E>, E> {
         
         private final SingleEntityReadQuery<E> query;
         
@@ -147,6 +154,11 @@ class SingleReadQueryAdapter extends AbstractQuery<SingleReadQueryAdapter> imple
         public CompletableFuture<Optional<E>> executeAsync() {
             return CompletableFutures.toCompletableFuture(query.executeAsync())
                             .thenApply(entity -> Optional.ofNullable(entity));
-        }        
+        }   
+        
+        @Override
+        public Publisher<E> executeRx() {
+            return query.executeRx();
+        }
     }
 }

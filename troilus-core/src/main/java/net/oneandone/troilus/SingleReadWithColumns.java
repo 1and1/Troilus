@@ -23,40 +23,40 @@ package net.oneandone.troilus;
  *
  * @param <T>  the result type
  */
-public interface SingleReadWithColumns<T> extends SingleRead<T> {
+public interface SingleReadWithColumns<T, R> extends SingleRead<T, R> {
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> column(String name);
+    SingleReadWithColumns<T, R> column(String name);
 
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> columnWithMetadata(String name);
+    SingleReadWithColumns<T, R> columnWithMetadata(String name);
 
     /**
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> columns(String... names);
+    SingleReadWithColumns<T, R> columns(String... names);
 
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> column(ColumnName<?> name);
+    SingleReadWithColumns<T, R> column(ColumnName<?> name);
 
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> columnWithMetadata(ColumnName<?> name);
+    SingleReadWithColumns<T, R> columnWithMetadata(ColumnName<?> name);
 
     /**
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    SingleReadWithColumns<T> columns(ColumnName<?>... names);
+    SingleReadWithColumns<T, R> columns(ColumnName<?>... names);
 }
