@@ -177,9 +177,14 @@ class ResultListSubscription<T> implements Subscription {
                 
             // yes, more elements can be fetched   
             } else { 
+                
                 // submit async database request 
                 synchronized (dbQueryLock) {
+
+                    // will start a new query, if no query is already running 
                     if (runningDatabaseQuery == null) {
+                        ListenableFuture<Void> future = iterator.fetchMoreResultsAsync();
+                        
                         Runnable databaseRequest = new Runnable() {
                                                             @Override
                                                             public void run() {
@@ -189,10 +194,9 @@ class ResultListSubscription<T> implements Subscription {
                                                                 processReadRequests();
                                                             }                                                                           
                                                    };
-                        runningDatabaseQuery = databaseRequest;
-                        
-                        ListenableFuture<Void> future = iterator.fetchMoreResultsAsync();
                         future.addListener(databaseRequest, executor);
+                        
+                        runningDatabaseQuery = databaseRequest;
                     }
                 }
             }
@@ -258,7 +262,7 @@ class ResultListSubscription<T> implements Subscription {
             try {
                 executor.execute(this);
             } catch (Throwable t) {
-                close(); // no further notifying (executor does not work)
+                close(); // no further notifying (executor does not work anyway)
                 subscriber.onError(t);
             }
         }
