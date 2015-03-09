@@ -32,10 +32,12 @@ public class PublisherFetchingTest {
         
         MySubscriber subscriber = new MySubscriber();
         
-        Publisher<Record> publisher = SimpleResultList.newResultListPublisher(400, 20);
+        int num = 400;
+        
+        Publisher<Record> publisher = SimpleResultList.newResultListPublisher(num, 20);
         publisher.subscribe(subscriber);
         
-        Assert.assertEquals(1000, subscriber.getAll().size());
+        Assert.assertEquals(num, subscriber.getAll().size());
     }        
 }
 
