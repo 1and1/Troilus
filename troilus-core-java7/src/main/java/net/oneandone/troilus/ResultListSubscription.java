@@ -271,10 +271,12 @@ class ResultListSubscription<T> implements Subscription {
                 if (isOpen) {
                     try {
                         Notification<R> notification = notifications.poll(); 
-                        if (notification.isTerminating()) {
-                            close();
+                        if (notification != null) {
+                            if (notification.isTerminating()) {
+                                close();
+                            }
+                            notification.send(subscriber);
                         }
-                        notification.send(subscriber);
                     } finally {
                         if(!notifications.isEmpty()) {
                             tryScheduleToExecute(); 
