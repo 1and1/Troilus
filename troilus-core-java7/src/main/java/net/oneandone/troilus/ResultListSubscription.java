@@ -60,7 +60,7 @@ class ResultListSubscription<T> implements Subscription {
     }
 
     
-    private class OnSubscribe extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.Notification<T> {
+    private class OnSubscribe extends SubscriberNotifier.Notification<T> {
         
         @Override
         public void signalTo(Subscriber<? super T> subscriber) {
@@ -88,7 +88,7 @@ class ResultListSubscription<T> implements Subscription {
     
  
     
-    private static class OnError<R> extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
+    private static class OnError<R> extends SubscriberNotifier.TerminatingNotification<R> {
         private static final Logger LOG = LoggerFactory.getLogger(OnError.class);
         private final Throwable error;
         
@@ -202,7 +202,7 @@ class ResultListSubscription<T> implements Subscription {
         }
         
         
-        private class OnNext extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.Notification<R> {
+        private class OnNext extends SubscriberNotifier.Notification<R> {
             private final R element;
             
             public OnNext(R element) {
@@ -216,7 +216,7 @@ class ResultListSubscription<T> implements Subscription {
         }
 
 
-        private class OnComplete extends net.oneandone.troilus.ResultListSubscription.SubscriberNotifier.TerminatingNotification<R> {
+        private class OnComplete extends SubscriberNotifier.TerminatingNotification<R> {
             
             @Override
             public void signalTo(Subscriber<? super R> subscriber) {
