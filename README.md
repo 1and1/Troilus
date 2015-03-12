@@ -621,8 +621,7 @@ Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new Phonenu
 To implement simple constraints the  `ConstraintsInterceptor` can be used 
 ``` java
 Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(ConstraintsInterceptor.newConstraints()
-                                                                                           .withNotNullColumn("device_id")
-                                                                                           .withImmutableColumn("device_id"));
+                                                                                           .withNotNullColumn("device_id"));
 ```
 
 ##More Complexe Interceptor Examples
