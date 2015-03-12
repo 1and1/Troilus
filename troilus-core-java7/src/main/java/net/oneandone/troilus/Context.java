@@ -481,7 +481,7 @@ class Context {
             return metadata;
         }
         
-        ListenableFuture<PreparedStatement> prepare(final BuiltStatement statement) {
+        ListenableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
             PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
             if (preparedStatment == null) {
                 ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
@@ -501,7 +501,7 @@ class Context {
         }
         
         
-        public ListenableFuture<Statement> bind(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
+        public ListenableFuture<Statement> bindAsync(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
             Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
                 @Override
                 public Statement apply(PreparedStatement preparedStatement) {

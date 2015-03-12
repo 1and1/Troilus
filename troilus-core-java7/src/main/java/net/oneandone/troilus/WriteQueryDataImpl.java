@@ -655,8 +655,8 @@ class WriteQueryDataImpl implements WriteQueryData {
         }
 
         
-        ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(insert);
-        return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
+        ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(insert);
+        return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
     }
     
     
@@ -721,8 +721,8 @@ class WriteQueryDataImpl implements WriteQueryData {
             
    
             
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(update);
-            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(update);
+            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
             
         // where condition-based update
         } else {

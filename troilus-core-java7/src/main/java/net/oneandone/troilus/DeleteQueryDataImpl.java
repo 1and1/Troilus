@@ -150,8 +150,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
             }
             
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(delete);
-            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(delete);
+            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
             
         // where condition-based delete    
         } else {

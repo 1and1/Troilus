@@ -136,8 +136,8 @@ class CounterMutationQueryData {
             }
 
             
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(update);
-            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(update);
+            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
             
         // where condition-based update
         } else {

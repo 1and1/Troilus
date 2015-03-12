@@ -278,8 +278,8 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
             
 
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepare(select);
-            return ctx.getDbSession().bind(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(select);
+            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
         }
     }   
 }
