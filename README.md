@@ -560,12 +560,10 @@ hotelsDao.readSequence()
 ##Reactive streams Read
 For true asynchronous streaming `executeRx()` can be called which returns a reactive streams [Publisher](http://www.reactive-streams.org)   
 ``` java
-Subscriber<Hotel> mySubscriber = new MySubscriber();  
-
 Publisher<Hotel> hotelPublisher = hotelsDao.readSequence()
                                            .asEntity(Hotel.class)
                                            .executeRx();
-hotelPublisher.subscribe(mySubscriber));
+hotelPublisher.subscribe(new ConsoleSubscriber());
 ```
 
 The Subscriber implements call back methods such as `onNext(...)` or `onError(...)` to process the result stream in a reactive way. By calling the hotels.subscribe(subscriber) above the `onSubscribe(...)` method of the subscriber below will be called.
@@ -574,7 +572,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class MySubscriber<T> implements Subscriber<Hotel> {
+public class ConsoleSubscriber implements Subscriber<Hotel> {
     private final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
     //...
     
@@ -586,8 +584,8 @@ public class MySubscriber<T> implements Subscriber<Hotel> {
     
     @Override
     public void onNext(Hotel hotel) {
-        System.out.println(hotel);
-        subscription.request(1);
+        System.out.println(obj);
+        subscription.request(1);   // request one more element
     }
     
     @Override
