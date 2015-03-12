@@ -564,7 +564,6 @@ Subscriber<Hotel> mySubscriber = new MySubscriber();
 
 Publisher<Hotel> hotelPublisher = hotelsDao.readSequence()
                                            .asEntity(Hotel.class)
-                                           .withLimit(5000)
                                            .executeRx();
 hotelPublisher.subscribe(mySubscriber));
 ```
