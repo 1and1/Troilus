@@ -96,12 +96,12 @@ public class DaoImpl implements Dao {
  
     @Override
     public Dao withTracking() {
-        return new DaoImpl(ctx.withEnableTracking());
+        return new DaoImpl(ctx.withTracking());
     }
     
     @Override
     public Dao withoutTracking() {
-        return new DaoImpl(ctx.withDisableTracking());
+        return new DaoImpl(ctx.withoutTracking());
     }
 
     @Override

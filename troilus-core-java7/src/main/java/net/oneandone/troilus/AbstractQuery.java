@@ -82,7 +82,7 @@ abstract class AbstractQuery<Q> {
      * @return a cloned query instance with activated tracking
      */
     public Q withTracking() {
-        return newQuery(ctx.withEnableTracking());
+        return newQuery(ctx.withTracking());
     }
     
 
@@ -90,7 +90,7 @@ abstract class AbstractQuery<Q> {
      * @return a cloned query instance with deactivated tracking 
      */
     public Q withoutTracking() {
-        return newQuery(ctx.withDisableTracking());
+        return newQuery(ctx.withoutTracking());
     }
     
     /**

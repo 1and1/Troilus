@@ -140,17 +140,17 @@ class Context {
                            executors);        
     }
     
-    Context withEnableTracking() {
+    Context withTracking() {
         return new Context(dbSession,
-                           executionSpec.withEnableTracking(),
+                           executionSpec.withTracking(),
                            interceptorRegistry,
                            beanMapper,
                            executors);        
     }
     
-    Context withDisableTracking() {
+    Context withoutTracking() {
         return new Context(dbSession,
-                           executionSpec.withDisableTracking(),
+                           executionSpec.withoutTracking(),
                            interceptorRegistry,
                            beanMapper,
                            executors);        
@@ -342,7 +342,7 @@ class Context {
                                      this.retryPolicy);
         }
 
-        ExecutionSpec withEnableTracking() {
+        ExecutionSpec withTracking() {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      this.ttlSec,
@@ -351,7 +351,7 @@ class Context {
                                      this.retryPolicy);
         }
 
-        ExecutionSpec withDisableTracking() {
+        ExecutionSpec withoutTracking() {
             return new ExecutionSpec(this.consistencyLevel,
                                      this.serialConsistencyLevel,
                                      this.ttlSec,
