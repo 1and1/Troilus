@@ -30,11 +30,15 @@ class Mutations {
     
     
     /**
-     * @param batchable the batchable to map
-     * @return the mapped batchable
+     * @param batchable the batchable to map or null
+     * @return the mapped batchable or null if mutation is null
      */
     public static net.oneandone.troilus.java7.Batchable<?> toJava7Mutation(Batchable<?> mutation) {
-        return new MutationToJava7MutationAdapter(mutation);
+        if (mutation == null) {
+            return null;
+        } else {
+            return new MutationToJava7MutationAdapter(mutation);
+        }
     }
     
     @SuppressWarnings("rawtypes")

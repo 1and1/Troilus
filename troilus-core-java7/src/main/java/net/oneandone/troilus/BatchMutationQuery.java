@@ -37,11 +37,22 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     private final Type type;  
     
     
-
+ 
     BatchMutationQuery(Context ctx, Batchable<?> mutation1, Batchable<?> mutation2) {
-        this(ctx, Type.LOGGED, ImmutableList.<Batchable<?>>of(mutation1, mutation2));
+        this(ctx, Type.LOGGED, join(mutation1, mutation2));
     }
-    
+ 
+    private static ImmutableList<Batchable<?>> join(Batchable<?> mutation1, Batchable<?> mutation2) {
+        if ((mutation1 != null) && (mutation2 != null)) {
+            return ImmutableList.<Batchable<?>>of(mutation1, mutation2);            
+        } else if ((mutation1 != null) && (mutation2 == null)) {
+            return ImmutableList.<Batchable<?>>of(mutation1);
+        } else if ((mutation1 == null) && (mutation2 != null)) {
+            return ImmutableList.<Batchable<?>>of(mutation1);
+        } else {
+            return null;
+        }
+    }
     
     private BatchMutationQuery(Context ctx, Type type, ImmutableList<Batchable<?>> batchables) {
         super(ctx);
@@ -79,7 +90,11 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
 
     @Override
     public BatchMutationQuery combinedWith(Batchable<?> other) {
-        return newQuery(type, Immutables.join(batchables, other));
+        if (other == null) {
+            return this;
+        } else {
+            return newQuery(type, Immutables.join(batchables, other));
+        }
     }
 
     @Override    

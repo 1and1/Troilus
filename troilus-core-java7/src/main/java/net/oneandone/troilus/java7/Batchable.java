@@ -28,7 +28,7 @@ public interface Batchable<Q extends Batchable<Q>> extends Mutation<Q, Result> {
 
 
     /**
-     * @param other  the other query to combine with
+     * @param other  the other query to combine with. If other is null, this query will be returned
      * @return a cloned query instance with the modified behavior
      */
     BatchMutation combinedWith(Batchable<?> other);
