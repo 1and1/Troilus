@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 
 
 
+
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ResultList;
 
@@ -51,7 +52,13 @@ class ResultListPublisher<R> implements Publisher<R> {
     
     @Override
     public void subscribe(Subscriber<? super R> subscriber) {
+        
         synchronized (this) {
+            // https://github.com/reactive-streams/reactive-streams-jvm#1.9
+            if (subscriber == null) {  
+                throw new NullPointerException("subscriber is null");
+            }
+            
             try {
                 if (subscribed == true) {
                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed

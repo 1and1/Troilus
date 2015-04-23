@@ -1,2 +1,2 @@
 0.12
- * 
+ * reactive-streams dependency set to 1.0.0.RC5

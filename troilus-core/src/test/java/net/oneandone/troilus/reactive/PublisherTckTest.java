@@ -39,8 +39,9 @@ public class PublisherTckTest extends PublisherVerification<Record> {
         return 100l;
     }
 
+    
     @Override
-    public Publisher<Record> createErrorStatePublisher() {
+    public Publisher<Record> createFailedPublisher() {
         return null;
     }
     
