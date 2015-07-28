@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.reactivestreams</groupId>
 			<artifactId>reactive-streams</artifactId>
-			<version>1.0.0.RC5</version>
+			<version>1.0.0.final</version>
 		</dependency>
 
 		<!-- use the same log framework the underlying cassandra driver is using -->
