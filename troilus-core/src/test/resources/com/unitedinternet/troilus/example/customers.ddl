@@ -1,3 +1,6 @@
+
+DROP TABLE customers;
+
 CREATE TABLE customers (
                			id text,
                     	name text,

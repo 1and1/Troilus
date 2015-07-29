@@ -1,3 +1,6 @@
+
+DROP TABLE hotels;
+
 CREATE TABLE hotels (
                      id text,
                      name text,

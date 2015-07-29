@@ -1,3 +1,6 @@
+
+DROP TABLE device;
+
 CREATE TABLE device (
                		   device_id text,
                		   type int,

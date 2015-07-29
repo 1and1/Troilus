@@ -121,8 +121,13 @@ class RecordAdapter implements Record {
     }
 
     @Override
-    public Date getDate(String name) {
-        return record.getDate(name);
+    public Instant getDate(String name) {
+        return record.getDate(name).toInstant();
+    }
+    
+    @Override
+    public long getTime(String name) {
+        return record.getTime(name);
     }
      
     @Override
@@ -338,8 +343,13 @@ class RecordAdapter implements Record {
             }
             
             @Override
+            public long getTime(String name) {
+                return record.getTime(name);
+            }
+            
+            @Override
             public Date getDate(String name) {
-                return record.getDate(name);
+                return Date.from(record.getDate(name));
             }
             
             @Override

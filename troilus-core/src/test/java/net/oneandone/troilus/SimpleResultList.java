@@ -16,12 +16,12 @@
 package net.oneandone.troilus;
 
 import java.math.BigDecimal;
+
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -241,7 +241,6 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                     
                     @Override
                     public boolean isNull(String name) {
-                        // TODO Auto-generated method stub
                         return false;
                     }
                     
@@ -253,128 +252,111 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                     
                     @Override
                     public BigInteger getVarint(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public <T> T getValue(String name, Class<T> type) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public <T> T getValue(ColumnName<T> name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public UUID getUUID(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public UDTValue getUDTValue(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public TupleValue getTupleValue(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public Duration getTtl(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public String getString(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public <T> ImmutableSet<T> getSet(String name, Class<T> elementsClass) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
-                    public <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass,
-                            Class<V> valuesClass) {
-                        // TODO Auto-generated method stub
+                    public <K, V> ImmutableMap<K, V> getMap(String name, Class<K> keysClass, Class<V> valuesClass) {
                         return null;
                     }
                     
                     @Override
                     public long getLong(String name) {
-                        // TODO Auto-generated method stub
                         return 0;
                     }
                     
                     @Override
                     public <T> ImmutableList<T> getList(String name, Class<T> elementsClass) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public int getInt(String name) {
-                        // TODO Auto-generated method stub
                         return 0;
                     }
                     
                     @Override
                     public Instant getInstant(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public InetAddress getInet(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public float getFloat(String name) {
-                        // TODO Auto-generated method stub
                         return 0;
                     }
                     
                     @Override
                     public <T extends Enum<T>> T getEnum(String name, Class<T> enumType) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public BigDecimal getDecimal(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
-                    public Date getDate(String name) {
-                        // TODO Auto-generated method stub
+                    public Instant getDate(String name) {
                         return null;
+                    }
+                    
+                    @Override
+                    public long getTime(String name) {
+                        return 0;
                     }
                     
                     @Override
                     public ByteBuffer getBytesUnsafe(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     
                     @Override
                     public ByteBuffer getBytes(String name) {
-                        // TODO Auto-generated method stub
                         return null;
                     }
                     

@@ -168,7 +168,12 @@ class RecordImpl implements Record {
     public String getString(String name) {
         return row.getString(name);
     }
-
+    
+    @Override
+    public long getTime(String name) {
+        return row.getTime(name);
+    }
+    
     @Override
     public boolean getBool(String name) {
         return row.getBool(name);

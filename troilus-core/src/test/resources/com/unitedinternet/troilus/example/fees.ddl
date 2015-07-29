@@ -1,3 +1,6 @@
+
+DROP TABLE fees;
+
 CREATE TABLE fees (
                    customer_id text,
                    year int,

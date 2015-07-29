@@ -1,3 +1,6 @@
+
+DROP TABLE phone_numbers;
+
 CREATE TABLE phone_numbers (
                		 	      number text,
                     	      device_id text,

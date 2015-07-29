@@ -1,3 +1,6 @@
+
+DROP TABLE rooms;
+
 CREATE TABLE rooms (
                     room_id text,
                     hotel_id text,

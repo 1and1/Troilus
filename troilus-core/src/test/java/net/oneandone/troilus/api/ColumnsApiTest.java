@@ -117,6 +117,7 @@ public class ColumnsApiTest{
                                       .getExecutionInfo();
 
         Assert.assertNotNull(info.getQueryTrace());
+        Assert.assertTrue(info.getWarnings().isEmpty());
         
         
         

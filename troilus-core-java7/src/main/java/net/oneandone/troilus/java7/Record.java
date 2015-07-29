@@ -103,6 +103,14 @@ public interface Record extends Result {
      */
     Date getDate(String name);
      
+    
+    /**
+     * @param name the column name 
+     * @return value of column name as time. If the value is NULL, 0 is returned.
+     */
+    long getTime(String name);
+
+    
     /**
      * @param name the column name 
      * @return the value of column name as a decimal. If the value is NULL, null is returned

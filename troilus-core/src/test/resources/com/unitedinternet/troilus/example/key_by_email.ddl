@@ -1,3 +1,6 @@
+
+DROP TABLE key_by_email;
+
 CREATE TABLE key_by_email (
               			    email text,
               			    created bigint,

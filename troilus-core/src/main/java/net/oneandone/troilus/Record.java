@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 import net.oneandone.troilus.ColumnName;
@@ -102,8 +101,14 @@ public interface Record extends Result {
      * @param name the column name 
      * @return value of column name as a date. If the value is NULL, null is returned.
      */
-    Date getDate(String name);
-     
+    Instant getDate(String name);
+  
+    /**
+     * @param name the column name 
+     * @return value of column name as time. If the value is NULL, 0 is returned.
+     */
+    long getTime(String name);
+  
     /**
      * @param name the column name 
      * @return the value of column name as a decimal. If the value is NULL, null is returned

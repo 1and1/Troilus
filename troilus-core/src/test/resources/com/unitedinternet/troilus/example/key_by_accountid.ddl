@@ -1,3 +1,6 @@
+
+DROP TABLE key_by_accountid;
+
 CREATE TABLE key_by_accountid (
               					account_id text,
                					key blob,

@@ -1,3 +1,6 @@
+
+DROP TABLE history;
+
 CREATE TABLE history (
     sender_email text,
     receiver_email text,
