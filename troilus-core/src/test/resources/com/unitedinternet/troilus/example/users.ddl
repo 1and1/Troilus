@@ -1,3 +1,7 @@
+
+
+DROP table users;
+
 CREATE TABLE users (
                     user_id text,
                     user_type text,

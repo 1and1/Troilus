@@ -65,7 +65,17 @@ class Immutables {
     public static <T> ImmutableList<T> join(ImmutableList<T> list, T entryToAdd) {
         return ImmutableList.<T>builder().addAll(list).add(entryToAdd).build();
     }
- 
+
+    /**
+     * merges a new entry into a list
+     * 
+     * @param list        the list to merge
+     * @param entryToAdd  the entry to add
+     * @return the new merged immutable list
+     */
+    public static <T> ImmutableList<T> join(T entryToAdd, ImmutableList<T> list) {
+        return ImmutableList.<T>builder().add(entryToAdd).addAll(list).build();
+    }
  
     /**
      * merges 2 lists

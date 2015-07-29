@@ -19,6 +19,7 @@ package net.oneandone.troilus.api;
 
 
 import java.io.IOException;
+
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,10 +27,10 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import net.oneandone.troilus.Batchable;
-import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.IfConditionException;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.CounterMutation;

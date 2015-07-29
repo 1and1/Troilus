@@ -426,7 +426,7 @@ class Context {
             this.tableMetadata = loadTableMetadata(session, tablename);
             this.columnNames = loadColumnNames(tableMetadata);
             
-            this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
+            this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
             this.preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build();
             this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
         }
@@ -458,7 +458,7 @@ class Context {
         }
         
         ProtocolVersion getProtocolVersion() {
-            return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+            return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
         }
         
         LoadingCache<String, UserType> getUserTypeCache() {

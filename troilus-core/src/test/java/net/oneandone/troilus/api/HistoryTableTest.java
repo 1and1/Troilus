@@ -19,9 +19,9 @@ package net.oneandone.troilus.api;
 
 import java.io.IOException;
 
-import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.CassandraDB;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,7 +32,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 
 
 
-public class HistroyTableTest {
+public class HistoryTableTest {
     
     private static CassandraDB cassandra;
     

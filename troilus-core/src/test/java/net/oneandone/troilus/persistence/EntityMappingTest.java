@@ -75,7 +75,7 @@ public class EntityMappingTest  {
         
         ////////////////
         // inserts
-        userDao.writeEntity(new User("4454", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("67454545", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
         
@@ -83,13 +83,13 @@ public class EntityMappingTest  {
         
         ////////////////
         // reads
-        userDao.readWithKey("user_id", "4454")   
+        userDao.readWithKey("user_id", "67454545")   
                .execute()
                .ifPresent(user -> System.out.println(user));
         
         
 
-        Optional<User> optionalUser =  userDao.readWithKey("user_id", "4454")   
+        Optional<User> optionalUser =  userDao.readWithKey("user_id", "67454545")   
                                               .asEntity(User.class)
                                               .execute();
         
@@ -113,12 +113,12 @@ public class EntityMappingTest  {
         
         
             
-        Iterator<Record> records = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "4454"))
+        Iterator<Record> records = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "67454545"))
                                           .execute()
                                           .iterator();
         
         Record record = records.next();
-        Assert.assertEquals("4454", record.getString("user_Id"));
+        Assert.assertEquals("67454545", record.getString("user_Id"));
         Assert.assertEquals(true, record.getBool("is_customer"));
         Assert.assertNotNull(record.getLong("modified"));
         Assert.assertTrue(record.getSet("phone_numbers", String.class).contains("12313241243"));
@@ -128,7 +128,7 @@ public class EntityMappingTest  {
         
         
         
-        list = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "4454"))
+        list = userDao.readSequenceWhere(QueryBuilder.eq("user_id", "67454545"))
                       .asEntity(User.class)   
                       .execute()
                       .iterator();
@@ -155,12 +155,12 @@ public class EntityMappingTest  {
         
         ////////////////
         // update
-        userDao.writeWithKey(UsersTable.USER_ID, "4454")
+        userDao.writeWithKey(UsersTable.USER_ID, "67454545")
                .value(UsersTable.NAME, "eric")
                .execute();
 
 
-        Record user = userDao.readWithKey("user_id", "4454")   
+        Record user = userDao.readWithKey("user_id", "67454545")   
                              .execute()
                              .get();
         Assert.assertEquals("eric", user.getString(UsersTable.NAME));
@@ -170,11 +170,11 @@ public class EntityMappingTest  {
         
         ////////////////
         // update
-        userDao.writeEntity(new User("4454", null, true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of()))
+        userDao.writeEntity(new User("67454545", null, true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of()))
                .execute();
 
  
-        user = userDao.readWithKey("user_id", "4454")   
+        user = userDao.readWithKey("user_id", "67454545")   
                       .execute()
                       .get(); 
         Assert.assertNull(user.getString(UsersTable.NAME));
@@ -186,7 +186,7 @@ public class EntityMappingTest  {
         
         ////////////////
         // inserts
-        userDao.writeWithKey("user_id", "566655")
+        userDao.writeWithKey("user_id", "568785563")
                .entity(new MinimalUser("paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .execute();
 
@@ -195,7 +195,7 @@ public class EntityMappingTest  {
         
         ////////////////
         // reads
-        User usr = userDao.readWithKey("user_id", "566655")   
+        User usr = userDao.readWithKey("user_id", "568785563")   
                           .asEntity(User.class)
                           .execute()
                           .get();
@@ -206,11 +206,11 @@ public class EntityMappingTest  {
         
 
         
-        userDao.writeEntity(new User("452324234234", "bertra", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), null, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("435675743", "bertra", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), null, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
         
-        usr = userDao.readWithKey("user_id", "452324234234")   
+        usr = userDao.readWithKey("user_id", "435675743")   
                      .asEntity(User.class)
                      .execute()
                      .get();
@@ -219,7 +219,7 @@ public class EntityMappingTest  {
         
         
         
-        userDao.writeEntity(new User("3432424234", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new User("232443443", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new byte[] { 5, 7, 8, 5}, 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .withTtl(Duration.ofSeconds(11))
                .execute();

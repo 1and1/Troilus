@@ -127,7 +127,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     @Override
     public WriteWithCounterQuery prependListValue(String name, Object value) {
         ImmutableList<Object> values = getData().getListValuesToPrepend().get(name);
-        values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
+        values = (values == null) ? ImmutableList.of(value) : Immutables.join(value, values);
 
         return newQuery(getData().listValuesToPrepend(Immutables.join(getData().getListValuesToPrepend(), name, values)));
     } 
