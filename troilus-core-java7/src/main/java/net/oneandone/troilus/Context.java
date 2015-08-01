@@ -27,6 +27,10 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
@@ -35,10 +39,13 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.UserType;
+import com.datastax.driver.core.exceptions.DriverInternalError;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.google.common.base.Function;
@@ -62,6 +69,11 @@ import com.google.common.util.concurrent.ListenableFuture;
  * 
  */
 class Context {
+    
+    
+    private static final Logger LOG = LoggerFactory.getLogger(Context.class);
+
+
     
     private final ExecutionSpec executionSpec;
     private final InterceptorRegistry interceptorRegistry;
@@ -419,6 +431,8 @@ class Context {
         private final UDTValueMapper udtValueMapper;
         private final Cache<String, PreparedStatement> preparedStatementsCache;
         private final LoadingCache<String, UserType> userTypeCache;
+        
+        private final AtomicLong statementCacheCleanTime = new AtomicLong(0);
 
         public DBSession(Session session, String tablename, BeanMapper beanMapper) {
             this.session = session;
@@ -448,8 +462,20 @@ class Context {
             
             return ImmutableSet.copyOf(columnNames);
         }
+        
+        public ListenableFuture<ResultSet> executeAsync(Statement statement) {
+            try {
+                return getSession().executeAsync(statement);
+            } catch (InvalidQueryException | DriverInternalError e) {
+                // InvalidQueryException will be thrown by 2.1 driver
+                
+                clearStatementCache();
+                LOG.warn("could not execute statement", e);
+                return Futures.immediateFailedFuture(e);
+            }
+        }
 
-        Session getSession() {
+        private Session getSession() {
             return session;
         }
         
@@ -500,6 +526,15 @@ class Context {
             }
         }
         
+        
+        private void clearStatementCache() {
+
+            // avoid bulk clean calls within the same time
+            if (System.currentTimeMillis() > (statementCacheCleanTime.get() + 1000)) {
+                statementCacheCleanTime.set(System.currentTimeMillis());
+                preparedStatementsCache.invalidateAll();;
+            }
+        }
         
         public ListenableFuture<Statement> bindAsync(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
             Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {

@@ -8,5 +8,6 @@ CREATE TABLE hotels (
                      classification text,
                      room_ids set<text>,
                      address frozen<address>,
+                     phone text,
                      PRIMARY KEY (id)
                     );

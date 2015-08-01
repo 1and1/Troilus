@@ -38,6 +38,7 @@ import com.datastax.driver.core.Session;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -53,6 +54,7 @@ public class CassandraDB {
     private static int nativePort = 0;
     private static Cluster globalCluster;
     private static Session globalSession;
+    private static String globalKeyspacename;
   
     private static final Set<String> running = Sets.newCopyOnWriteArraySet();
     
@@ -101,6 +103,11 @@ public class CassandraDB {
         return session;
     }
         
+    public Session newSession() {
+        Cluster cluster = createCluster();
+        return createSession(cluster);
+    }
+    
     /**
      * executes a CQL file 
      * 
@@ -203,15 +210,12 @@ public class CassandraDB {
     }
     
     private static void init() {
-        globalCluster = Cluster.builder()
-                               .addContactPointsWithPorts(ImmutableSet.of(new InetSocketAddress("localhost", nativePort)))
-                               .build();
+        globalKeyspacename = "ks_" + UUID.randomUUID().toString().replace("-", "");
+        
+        globalCluster = createCluster();
+        createKeyspace(globalCluster, globalKeyspacename);
 
-
-        String keyspacename = "ks_" + UUID.randomUUID().toString().replace("-", "");
-        createKeyspace(globalCluster, keyspacename);
-
-        globalSession = globalCluster.connect(keyspacename);
+        globalSession = createSession(globalCluster);
     }
     
     
@@ -221,6 +225,16 @@ public class CassandraDB {
         }
     }
     
+    
+    public static Cluster createCluster() {
+        return Cluster.builder()
+                      .addContactPointsWithPorts(ImmutableSet.of(new InetSocketAddress("localhost", nativePort)))
+                      .build();
+    }
+    
+    private static Session createSession(Cluster cluster) {
+        return cluster.connect(globalKeyspacename);
+    }
 
 
     
@@ -276,11 +290,18 @@ public class CassandraDB {
 
             cassandraConfiguration.put("start_native_transport", "true");
 
+            Object obj = cassandraConfiguration.get("data_file_directories");
+            
+            cassandraConfiguration.put("data_file_directories", Lists.newArrayList(new File(cassandraDir, "data").getAbsolutePath()));
+            cassandraConfiguration.put("commitlog_directory", new File(cassandraDir, "commitlog").getAbsolutePath());
+            cassandraConfiguration.put("saved_caches_directory", new File(cassandraDir, "saved_caches").getAbsolutePath());
+            
             cassandraConfigurationOutput =
               new OutputStreamWriter(new FileOutputStream(cassandraDirName + File.separator + CASSANDRA_YAML_FILE), Charsets.UTF_8);
 
-            yaml.dump(cassandraConfiguration, cassandraConfigurationOutput);
             
+            
+            yaml.dump(cassandraConfiguration, cassandraConfigurationOutput);
             
             
             System.setProperty("cassandra.config", new File(cassandraDirName, CASSANDRA_YAML_FILE).toURI().toString());

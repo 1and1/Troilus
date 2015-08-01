@@ -29,6 +29,7 @@ public interface HotelsTable  {
     public static final String ROOM_IDS = "room_ids";
     public static final String DESCRIPTION = "description";
     public static final String CLASSIFICATION = "classification";
+    public static final String PHONE = "phone";
     
     
     public static final String DDL = "com/unitedinternet/troilus/example/hotels.ddl";

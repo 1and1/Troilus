@@ -84,7 +84,8 @@ public class HotelTest {
                                  ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
                                  Optional.of(ClassifierEnum.FIVE), 
                                  Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
-                                 new Address("Erzsébet körút 43", "Budapest", "1073"));
+                                 new Address("Erzsébet körút 43", "Budapest", "1073"),
+                                 Optional.empty());
                
         hotelsDao.writeEntity(entity)
                  .ifNotExists()
@@ -136,7 +137,8 @@ public class HotelTest {
                                                                            ImmutableSet.of("1", "2", "3"),
                                                                            Optional.of(ClassifierEnum.TWO), 
                                                                            Optional.empty(),
-                                                                           new Address("Thököly Ut 111", "Budapest", "1145")))
+                                                                           new Address("Thököly Ut 111", "Budapest", "1145"),
+                                                                            Optional.of("+3613568583")))
                                                     .withConsistency(ConsistencyLevel.ANY)
                                                     .executeAsync();
         future.get(); // waits for completion

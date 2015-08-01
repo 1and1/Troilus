@@ -859,7 +859,7 @@ tracetype_repair_ttl: 604800
 # prevents execution of evil code. CASSANDRA-9402 will fix this issue for Cassandra 3.0.
 # This will inherently be backwards-incompatible with any 2.2 UDF that perform insecure
 # operations such as opening a socket or writing to the filesystem.
-enable_user_defined_functions: false
+enable_user_defined_functions: true
 
 # The default Windows kernel timer and scheduling resolution is 15.6ms for power conservation.
 # Lowering this value on Windows can provide much tighter latency and better throughput, however

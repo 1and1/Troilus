@@ -14,7 +14,7 @@ The main features of Troilus are
 * (Entity) Bean-Mapping support for tables and user defined data types (incl. mapping support of generic artefacts such as Java8/Guava Optional and Guava ImmutableCollections)
 * Build-in data swap check 
 * Build-in prepared statement management 
-* Implementation support for data-related constraint checks (mandatory fields, more complex data swap validation checks, …)          
+* Implementation support for data-related constraint checks (mandatory fields, more complex data swap validation checks, â€¦)          
 
 #Maven
 -------
@@ -105,7 +105,11 @@ public class Hotel  {
     
     @Field(name = "description")
     private Optional<String> description = Optional.empty();
-        
+
+    @Field(name = "phone")
+    private Optional<String> phone = Optional.empty();
+
+    
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -114,12 +118,14 @@ public class Hotel  {
                  String name, 
                  ImmutableSet<String> roomIds,  
                  Optional<ClassifierEnum> classification, 
-                 Optional<String> description) {
+                 Optional<String> description,
+                 Optional<String> phone) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
+        this.phone = phone;
     }
 
     public String getId() {
@@ -140,6 +146,10 @@ public class Hotel  {
 
     public Optional<String> getDescription() {
         return description;
+    }
+
+    public Optional<String> getPhone() {
+        return phone;
     }
 }
 ```
@@ -351,41 +361,76 @@ to use the user-defined types support a Java class which represents the user-def
 
 
 ``` java
-public class Address {
+public class Hotel  {
+   
+    @Field(name = "id")
+    private String id = null;
+    
+    @Field(name = "name")
+    private String name = null;
 
-    @Field(name = "street")
-    private String street;
+    @Field(name = "room_ids")
+    private ImmutableSet<String> roomIds = ImmutableSet.of();
+
+    @Field(name = "classification")
+    private Optional<ClassifierEnum> classification = Optional.empty();
     
-    @Field(name = "city")
-    private String city;
+    @Field(name = "description")
+    private Optional<String> description = Optional.empty();
+
+    @Field(name = "address")
+    private Address address = null;
+
+    @Field(name = "phone")
+    private Optional<String> phone = Optional.empty();
+
     
-    @Field(name = "post_code")
-    private String postCode;
     
-        
     @SuppressWarnings("unused")
-    private Address() { }
-
+    private Hotel() { }
     
-    public Address(String street, String city, String postCode) {
-        this.street = street;
-        this.city = city;
-        this.postCode = postCode;
+    public Hotel(String id, 
+                 String name, 
+                 ImmutableSet<String> roomIds,  
+                 Optional<ClassifierEnum> classification, 
+                 Optional<String> description,
+                 Address address,
+                 Optional<String> phone) {
+        this.id = id;
+        this.name = name;
+        this.roomIds = roomIds;
+        this.classification = classification;
+        this.description = description;
+        this.address = address;
+        this.phone = phone;
     }
 
-
-    public String getStreet() {
-        return street;
+    public String getId() {
+        return id;
     }
 
-
-    public String getCity() {
-        return city;
+    public String getName() {
+        return name;
+    }
+    
+    public ImmutableSet<String> getRoomIds() {
+        return roomIds;
     }
 
+    public Optional<ClassifierEnum> getClassification() {
+        return classification;
+    }
 
-    public String getPostCode() {
-        return postCode;
+    public Optional<String> getDescription() {
+        return description;
+    }
+    
+    public Address getAddress() {
+        return address;
+    }
+    
+    public Optional<String> getPhone() {
+        return phone;
     }
 }
 ```
@@ -400,7 +445,7 @@ hotelsDao.writeWithKey("id", "BUP932432")
          .value("name", "City Budapest")
          .value("room_ids", ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"))
          .value("classification", ClassifierEnum.FOUR)
-         .value("address", new Address("Thököly Ut 111", "Budapest", "1145"))
+         .value("address", new Address("ThÃ¶kÃ¶ly Ut 111", "Budapest", "1145"))
          .withWritetime(microsSinceEpoch)
          .execute();
 ```
@@ -413,7 +458,7 @@ hotel = new Hotel("BUP14334",
                   ImmutableSet.of("1", "2", "3", "4", "5"),
                   Optional.of(ClassifierEnum.TWO),
                   Optional.empty(),
-                  new Address("Thököly Ut 111", "Budapest", "1145"));
+                  new Address("ThÃ¶kÃ¶ly Ut 111", "Budapest", "1145"));
 
 hotelsDao.writeEntity(hotel)
          .execute();

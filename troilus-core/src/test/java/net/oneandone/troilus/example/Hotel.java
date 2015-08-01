@@ -42,7 +42,11 @@ public class Hotel  {
 
     @Field(name = "address")
     private Address address = null;
-        
+
+    @Field(name = "phone")
+    private Optional<String> phone = Optional.empty();
+
+    
     
     @SuppressWarnings("unused")
     private Hotel() { }
@@ -52,13 +56,15 @@ public class Hotel  {
                  ImmutableSet<String> roomIds,  
                  Optional<ClassifierEnum> classification, 
                  Optional<String> description,
-                 Address address) {
+                 Address address,
+                 Optional<String> phone) {
         this.id = id;
         this.name = name;
         this.roomIds = roomIds;
         this.classification = classification;
         this.description = description;
         this.address = address;
+        this.phone = phone;
     }
 
     public String getId() {
@@ -83,5 +89,9 @@ public class Hotel  {
     
     public Address getAddress() {
         return address;
+    }
+    
+    public Optional<String> getPhone() {
+        return phone;
     }
 }
