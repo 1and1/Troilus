@@ -226,11 +226,11 @@ public class SessionReplacedTest {
         public State getState() {
             return sessionRef.get().getState();
         }
-        
+      /*  
         @Override
         protected ListenableFuture<PreparedStatement> prepareAsync(String query, Map<String, ByteBuffer> customPayload) {
             return null;
-        }
+        }*/
     }
 }
 

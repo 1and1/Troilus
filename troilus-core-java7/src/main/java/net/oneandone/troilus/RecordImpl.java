@@ -171,7 +171,8 @@ class RecordImpl implements Record {
     
     @Override
     public long getTime(String name) {
-        return row.getTime(name);
+        //return row.getTime(name);
+        return -1;
     }
     
     @Override
@@ -196,7 +197,7 @@ class RecordImpl implements Record {
 
     @Override
     public Date getDate(String name) {
-        return new Date(row.getDate(name).getMillisSinceEpoch());
+        return new Date(row.getDate(name).getTime());
     }
 
     @Override

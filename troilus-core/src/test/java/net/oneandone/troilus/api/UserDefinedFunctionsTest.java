@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -37,6 +36,7 @@ import net.oneandone.troilus.example.HotelsTable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.ColumnDefinitions.Definition;
