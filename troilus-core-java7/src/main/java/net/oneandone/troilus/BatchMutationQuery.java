@@ -48,7 +48,7 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
         } else if ((mutation1 != null) && (mutation2 == null)) {
             return ImmutableList.<Batchable<?>>of(mutation1);
         } else if ((mutation1 == null) && (mutation2 != null)) {
-            return ImmutableList.<Batchable<?>>of(mutation1);
+            return ImmutableList.<Batchable<?>>of(mutation2);
         } else {
             return null;
         }
