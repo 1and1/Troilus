@@ -37,6 +37,8 @@ import net.oneandone.troilus.interceptor.QueryInterceptor;
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.Host.StateListener;
+import com.datastax.driver.core.Host;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -444,7 +446,32 @@ class Context {
             this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
             this.preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build();
             this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
+            
+            
+            session.getCluster().register(new NodeUpListener());
         }
+        
+        
+        private final class NodeUpListener implements StateListener {
+        
+            @Override
+            public void onUp(Host host) {
+                clearCaches();                
+            }
+            
+            @Override
+            public void onDown(Host host) { }
+
+            @Override
+            public void onAdd(Host host) { }
+            
+            @Override
+            public void onRemove(Host host) { }
+
+            @Override
+            public void onSuspected(Host host) { }
+        }
+        
 
         private static TableMetadata loadTableMetadata(Session session, String tablename) {
             TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
@@ -468,9 +495,10 @@ class Context {
             try {
                 return getSession().executeAsync(statement);
             } catch (InvalidQueryException | DriverInternalError e) {
-                // InvalidQueryException will be thrown by 2.1 driver
+                // InvalidQueryException -> session replace
+                // DriverInternalError -> node restart 
                 
-                clearStatementCache();
+                clearCaches();
                 LOG.warn("could not execute statement", e);
                 return Futures.immediateFailedFuture(e);
             }
@@ -529,12 +557,14 @@ class Context {
         }
         
         
-        private void clearStatementCache() {
+        private void clearCaches() {
 
             // avoid bulk clean calls within the same time
             if (System.currentTimeMillis() > (statementCacheCleanTime.get() + 1000)) {
                 statementCacheCleanTime.set(System.currentTimeMillis());
-                preparedStatementsCache.invalidateAll();;
+                
+                preparedStatementsCache.invalidateAll();
+                userTypeCache.invalidateAll();
             }
         }
         

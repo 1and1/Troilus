@@ -161,7 +161,7 @@ class BeanMapper {
         return getPropertiesMapper(clazz).fromValues(datasource, propertyNames);
     }
     
-    
+
     private PropertiesMapper getPropertiesMapper(Class<?> clazz) {
         try {
             return propertiesMapperCache.get(clazz);
