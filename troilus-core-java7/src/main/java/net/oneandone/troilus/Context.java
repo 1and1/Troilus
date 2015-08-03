@@ -28,6 +28,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -428,77 +429,35 @@ class Context {
     static class DBSession  {
         private final Session session;
         private final String tablename;
-        private final TableMetadata tableMetadata;
-        private final ImmutableSet<String> columnNames; 
         private final UDTValueMapper udtValueMapper;
-        private final Cache<String, PreparedStatement> preparedStatementsCache;
+        private final TableMetadataCache tableMetadataCache;
+        private final PreparedStatementCache preparedStatementCache;
         private final LoadingCache<String, UserType> userTypeCache;
         
-        private final AtomicLong statementCacheCleanTime = new AtomicLong(0);
+        private final AtomicLong lastCacheCleanTime = new AtomicLong(0);
+        
+
+        
 
         public DBSession(Session session, String tablename, BeanMapper beanMapper) {
             this.session = session;
             this.tablename = tablename;
-            this.tableMetadata = loadTableMetadata(session, tablename);
-            this.columnNames = loadColumnNames(tableMetadata);
             
             //this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
             this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
-            this.preparedStatementsCache = CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build();
+            this.preparedStatementCache = new PreparedStatementCache(session);
             this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
-            
+            this.tableMetadataCache = new TableMetadataCache(session, tablename);
             
             session.getCluster().register(new NodeUpListener());
         }
-        
-        
-        private final class NodeUpListener implements StateListener {
-        
-            @Override
-            public void onUp(Host host) {
-                clearCaches();                
-            }
-            
-            @Override
-            public void onDown(Host host) { }
-
-            @Override
-            public void onAdd(Host host) { }
-            
-            @Override
-            public void onRemove(Host host) { }
-
-            @Override
-            public void onSuspected(Host host) { }
-        }
-        
-
-        private static TableMetadata loadTableMetadata(Session session, String tablename) {
-            TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
-            if (tableMetadata == null) {
-                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
-            }
-
-            return tableMetadata;
-        }
-
-        private static ImmutableSet<String> loadColumnNames(TableMetadata tableMetadata) {
-            Set<String> columnNames = Sets.newHashSet();
-            for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
-                columnNames.add(columnMetadata.getName());
-            }
-            
-            return ImmutableSet.copyOf(columnNames);
-        }
-        
+   
+    
         public ListenableFuture<ResultSet> executeAsync(Statement statement) {
             try {
                 return getSession().executeAsync(statement);
             } catch (InvalidQueryException | DriverInternalError e) {
-                // InvalidQueryException -> session replace
-                // DriverInternalError -> node restart 
-                
-                clearCaches();
+                cleanUp();
                 LOG.warn("could not execute statement", e);
                 return Futures.immediateFailedFuture(e);
             }
@@ -524,49 +483,19 @@ class Context {
         UDTValueMapper getUDTValueMapper() {
             return udtValueMapper;
         }
-        
+     
         ImmutableSet<String> getColumnNames() {
-            return columnNames;
+            return tableMetadataCache.getColumnNames();
         }
         
         ColumnMetadata getColumnMetadata(String columnName) {
-            ColumnMetadata metadata = tableMetadata.getColumn(columnName);
-            if (metadata == null) {
-                throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " does not support column '" + columnName + "'");
-            }
-            return metadata;
+            return tableMetadataCache.getColumnMetadata(columnName); 
         }
         
         ListenableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
-            PreparedStatement preparedStatment = preparedStatementsCache.getIfPresent(statement.getQueryString());
-            if (preparedStatment == null) {
-                ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
-                
-                Function<PreparedStatement, PreparedStatement> addToCacheFunction = new Function<PreparedStatement, PreparedStatement>() {
-                    
-                    public PreparedStatement apply(PreparedStatement preparedStatment) {
-                        preparedStatementsCache.put(statement.getQueryString(), preparedStatment);
-                        return preparedStatment;
-                    }
-                };
-                return Futures.transform(future, addToCacheFunction);
-                
-            } else {
-                return Futures.immediateFuture(preparedStatment);
-            }
+            return preparedStatementCache.prepareAsync(statement);
         }
         
-        
-        private void clearCaches() {
-
-            // avoid bulk clean calls within the same time
-            if (System.currentTimeMillis() > (statementCacheCleanTime.get() + 1600)) {
-                statementCacheCleanTime.set(System.currentTimeMillis());
-                
-                preparedStatementsCache.invalidateAll();
-                userTypeCache.invalidateAll();
-            }
-        }
         
         public ListenableFuture<Statement> bindAsync(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
             Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
@@ -583,13 +512,47 @@ class Context {
         public String toString() {
             return MoreObjects.toStringHelper(this)
                               .add("tablename", tablename)
-                              .add("preparedStatementsCache", printCache(preparedStatementsCache))
+                              .add("preparedStatementsCache", preparedStatementCache.toString())
                               .toString();
         }
+      
         
-        private String printCache(Cache<String, ?> cache) {
-            return Joiner.on(", ").withKeyValueSeparator("=").join(cache.asMap());
+        private void cleanUp() {
+
+            // avoid bulk clean calls within the same time
+            if (System.currentTimeMillis() > (lastCacheCleanTime.get() + 1600)) {  // not really thread safe. However this does not matter 
+                lastCacheCleanTime.set(System.currentTimeMillis());
+
+                preparedStatementCache.invalidateAll();
+                userTypeCache.invalidateAll();
+                tableMetadataCache.invalidateAll();;
+            }
         }
+        
+        
+        
+        private final class NodeUpListener implements StateListener {
+            
+            @Override
+            public void onUp(Host host) {
+                // perform clean up for 2 reasons
+                cleanUp();                
+            }
+            
+            @Override
+            public void onDown(Host host) { }
+
+            @Override
+            public void onAdd(Host host) { }
+            
+            @Override
+            public void onRemove(Host host) { }
+
+            @Override
+            public void onSuspected(Host host) { }
+        }
+        
+        
         
         private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
             private final Session session;
@@ -603,5 +566,120 @@ class Context {
                 return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
             }
         }    
+        
+        
+        
+        private static final class PreparedStatementCache {
+            private final Session session;
+            private final Cache<String, PreparedStatement> preparedStatementCache;
+
+            public PreparedStatementCache(Session session) {
+                this.session = session;
+                this.preparedStatementCache = CacheBuilder.newBuilder().maximumSize(150).<String, PreparedStatement>build();
+            }
+            
+            
+            ListenableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
+                PreparedStatement preparedStatment = preparedStatementCache.getIfPresent(statement.getQueryString());
+                if (preparedStatment == null) {
+                    ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
+                    
+                    Function<PreparedStatement, PreparedStatement> addToCacheFunction = new Function<PreparedStatement, PreparedStatement>() {
+                        
+                        public PreparedStatement apply(PreparedStatement preparedStatment) {
+                            preparedStatementCache.put(statement.getQueryString(), preparedStatment);
+                            return preparedStatment;
+                        }
+                    };
+                    
+                    return Futures.transform(future, addToCacheFunction);
+                } else {
+                    return Futures.immediateFuture(preparedStatment);
+                }
+            }
+            
+            
+            public void invalidateAll() {
+                preparedStatementCache.invalidateAll();
+            }      
+            
+            
+            @Override
+            public String toString() {
+                return Joiner.on(", ").withKeyValueSeparator("=").join(preparedStatementCache.asMap());
+            }
+        }
+        
+        
+        
+        private static final class TableMetadataCache {
+            private final Session session;
+            private final String tablename;
+            
+            private final AtomicReference<TableMetadata> tableMetadataRef = new AtomicReference<>();
+            private final AtomicReference<ImmutableSet<String>> columnNamesRef = new AtomicReference<>();
+            
+            private final AtomicLong timeMetadataLoaded = new AtomicLong(System.currentTimeMillis());
+            
+
+            public TableMetadataCache(Session session, String tablename) {
+                this.session = session;
+                this.tablename = tablename;
+                
+                invalidateAll(); // initiate loading 
+            }
+            
+            
+            public void invalidateAll() {
+                this.tableMetadataRef.set(loadTableMetadata(session, tablename));
+                this.columnNamesRef.set(loadColumnNames(tableMetadataRef.get()));
+            }
+            
+
+            ImmutableSet<String> getColumnNames() {
+                refreshIfIsOld();
+                
+                return columnNamesRef.get();
+            }
+            
+            ColumnMetadata getColumnMetadata(String columnName) {
+                refreshIfIsOld();
+                
+                ColumnMetadata metadata = tableMetadataRef.get().getColumn(columnName);
+                if (metadata == null) {
+                    throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " does not support column '" + columnName + "'");
+                }
+                return metadata;
+            }
+            
+            
+            private void refreshIfIsOld() {
+                // avoid frequent refreshing
+                if (System.currentTimeMillis() > (timeMetadataLoaded.get() + 3600)) {  // not really thread safe. However this does not matter 
+                    timeMetadataLoaded.set(System.currentTimeMillis());
+
+                    invalidateAll();
+                }
+            }
+            
+            
+            private static TableMetadata loadTableMetadata(Session session, String tablename) {
+                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
+                if (tableMetadata == null) {
+                    throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
+                }
+
+                return tableMetadata;
+            }
+
+            private static ImmutableSet<String> loadColumnNames(TableMetadata tableMetadata) {
+                Set<String> columnNames = Sets.newHashSet();
+                for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+                    columnNames.add(columnMetadata.getName());
+                }
+                
+                return ImmutableSet.copyOf(columnNames);
+            }
+        }
     }
 }

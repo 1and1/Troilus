@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.oneandone.troilus.Dao;
@@ -52,6 +54,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.sun.org.apache.bcel.internal.generic.NEWARRAY;
 
 
 
@@ -126,18 +129,38 @@ public class SessionReplacedTest {
                     .execute()
                     .get();
             Assert.assertEquals("Corinthia Budapest", record.getString(HotelsTable.NAME));
-        } catch (Exception exepcted) {
-            exepcted.printStackTrace();
-        }
+            Assert.fail("Exception exepected");
+        } catch (Exception exepected) {  }
         
 
-        record = hotelsDao.readWithKey(HotelsTable.ID, "BUP45544")
-                .column(HotelsTable.NAME)
-                .execute()
-                .get();
-        Assert.assertEquals("Corinthia Budapest", record.getString(HotelsTable.NAME));
+        int num = 25;
+        CountDownLatch cdl = new CountDownLatch(num);
+        AtomicBoolean isError = new AtomicBoolean(false);
+        
+        for (int i = 0; i < num; i++) {
+            
+            new Thread() {
+                
+                public void run() {
+                    try {
+                        Record record = hotelsDao.readWithKey(HotelsTable.ID, "BUP45544")
+                                                 .column(HotelsTable.NAME)
+                                                 .execute()
+                                                 .get();
+                        Assert.assertEquals("Corinthia Budapest", record.getString(HotelsTable.NAME));
+                    } catch (Throwable t) {
+                        isError.set(true);
+                    }
+                    cdl.countDown();
+                };
+            }.start();
+            
+        }
 
-      
+        cdl.await();
+        
+
+        Assert.assertFalse(isError.get());
     }
     
     
