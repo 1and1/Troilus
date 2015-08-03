@@ -560,7 +560,7 @@ class Context {
         private void clearCaches() {
 
             // avoid bulk clean calls within the same time
-            if (System.currentTimeMillis() > (statementCacheCleanTime.get() + 2300)) {
+            if (System.currentTimeMillis() > (statementCacheCleanTime.get() + 1600)) {
                 statementCacheCleanTime.set(System.currentTimeMillis());
                 
                 preparedStatementsCache.invalidateAll();
