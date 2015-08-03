@@ -655,7 +655,7 @@ class Context {
             
             private void refreshIfIsOld() {
                 // avoid frequent refreshing
-                if (System.currentTimeMillis() > (timeMetadataLoaded.get() + 3600)) {  // not really thread safe. However this does not matter 
+                if (System.currentTimeMillis() > (timeMetadataLoaded.get() + (96 * 1000))) {  // not really thread safe. However this does not matter 
                     timeMetadataLoaded.set(System.currentTimeMillis());
 
                     invalidateAll();
