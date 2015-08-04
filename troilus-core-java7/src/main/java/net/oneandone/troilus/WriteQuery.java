@@ -17,7 +17,6 @@ package net.oneandone.troilus;
 
 
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.Batchable;

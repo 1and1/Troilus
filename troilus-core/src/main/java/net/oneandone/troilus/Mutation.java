@@ -16,7 +16,6 @@
 package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.Context.DBSession;
 

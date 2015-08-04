@@ -210,7 +210,6 @@ public class Context  {
         return dbSession;
     }
     
-    @Deprecated
     ExecutionSpec getExecutionSpec() {
         return executionSpec;
     }
@@ -235,19 +234,13 @@ public class Context  {
         List<Object> result = Lists.newArrayList(); 
 
         for (Object value : values) {
-            result.add(toStatementValue(tablename, name, value));
+            result.add(getDefaultDbSession().toStatementValue(tablename, name, value));
         }
         
         return ImmutableList.copyOf(result);
     }
 
-    
-    @Deprecated
-    Object toStatementValue(Tablename tablename, String name, Object value) {
-        return dbSession.toStatementValue(tablename, name, value);
-    }
-    
-    
+  
   
     @Override
     public String toString() {

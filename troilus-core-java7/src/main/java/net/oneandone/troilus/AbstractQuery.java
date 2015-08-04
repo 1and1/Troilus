@@ -110,7 +110,7 @@ abstract class AbstractQuery<Q> {
      * @return a cloned query instance with the modified behavior
      */
     public Q withWritetime(long writetimeMicrosSinceEpoch) {
-        return newQuery(getContext().withWritetime(writetimeMicrosSinceEpoch));
+        return newQuery(ctx.withWritetime(writetimeMicrosSinceEpoch));
     }
    
     
@@ -119,7 +119,7 @@ abstract class AbstractQuery<Q> {
      * @return a cloned query instance with the modified behavior
      */
     public Q withTtl(int ttlSec) {
-        return newQuery(getContext().withTtl(ttlSec));
+        return newQuery(ctx.withTtl(ttlSec));
     }
     
     /**
@@ -127,7 +127,7 @@ abstract class AbstractQuery<Q> {
      * @return a cloned query instance with the modified behavior
     */
     public Q withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return newQuery(getContext().withSerialConsistency(consistencyLevel));
+        return newQuery(ctx.withSerialConsistency(consistencyLevel));
     }
 
     // 
@@ -143,30 +143,33 @@ abstract class AbstractQuery<Q> {
     /**
      * @return the context
      */
-    @Deprecated
     protected Context getContext() {
         return ctx; 
     }
     
     
     protected DBSession getDefaultDbSession() {
-        return getContext().getDefaultDbSession();
+        return ctx.getDefaultDbSession();
     }
     
     
     
     protected Executor getExecutor() {
-        return getContext().getTaskExecutor();
+        return ctx.getTaskExecutor();
     }
     
     
     protected ExecutionSpec getExecutionSpec() {
-        return getContext().getExecutionSpec();
+        return ctx.getExecutionSpec();
     }
     
     
     InterceptorRegistry getInterceptorRegistry() {
-        return getContext().getInterceptorRegistry();
+        return ctx.getInterceptorRegistry();
+    }
+    
+    BeanMapper getBeanMapper() {
+        return ctx.getBeanMapper();
     }
     
     /**
@@ -192,20 +195,20 @@ abstract class AbstractQuery<Q> {
      * @return the result future 
      */
     protected ListenableFuture<ResultSet> performAsync(DBSession dbSession, Statement statement) {
-        if (getContext().getConsistencyLevel() != null) {
-            statement.setConsistencyLevel(getContext().getConsistencyLevel());
+        if (getExecutionSpec().getConsistencyLevel() != null) {
+            statement.setConsistencyLevel(getExecutionSpec().getConsistencyLevel());
         }
         
-        if (getContext().getWritetime() != null) {
-            statement.setDefaultTimestamp(getContext().getWritetime());
+        if (getExecutionSpec().getWritetime() != null) {
+            statement.setDefaultTimestamp(getExecutionSpec().getWritetime());
         }
 
-        if (getContext().getRetryPolicy() != null) {
-            statement.setRetryPolicy(getContext().getRetryPolicy());
+        if (getExecutionSpec().getRetryPolicy() != null) {
+            statement.setRetryPolicy(getExecutionSpec().getRetryPolicy());
         }
 
-        if (getContext().getEnableTracing() != null) {
-            if (getContext().getEnableTracing()) {
+        if (getExecutionSpec().getEnableTracing() != null) {
+            if (getExecutionSpec().getEnableTracing()) {
                 statement.enableTracing();
             } else {
                 statement.disableTracing(); 

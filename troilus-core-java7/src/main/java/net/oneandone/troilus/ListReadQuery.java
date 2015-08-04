@@ -18,11 +18,6 @@ package net.oneandone.troilus;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
-
-
-
-
-
 import java.util.List;
 
 import net.oneandone.troilus.Context.DBSession;
@@ -315,7 +310,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
                 @Override
                 public ResultList<E> apply(ResultList<Record> recordList) {
-                    return new EntityListImpl<>(query.data.getTablename(), getContext(), recordList, clazz);
+                    return new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getDefaultDbSession(), recordList, clazz);
                 }
             };
             
@@ -332,14 +327,16 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private static class EntityListImpl<F> extends ResultAdapter implements ResultList<F> {
         private final Tablename tablename;
-        private final Context ctx;
+        private final BeanMapper beanMapper;
+        private final DBSession dbSession;
         private final ResultList<Record> recordList;
         private final Class<F> clazz;
     
-        EntityListImpl(Tablename tablename, Context ctx, ResultList<Record> recordList, Class<F> clazz) {
+        EntityListImpl(Tablename tablename, BeanMapper beanMapper, DBSession dbSession, ResultList<Record> recordList, Class<F> clazz) {
             super(recordList);
             this.tablename = tablename;
-            this.ctx = ctx;
+            this.beanMapper = beanMapper;
+            this.dbSession = dbSession;
             this.recordList = recordList;
             this.clazz = clazz;
         }
@@ -356,7 +353,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDefaultDbSession().getColumnNames(tablename));
+                    return beanMapper.fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), dbSession.getColumnNames(tablename));
                 }
                 
                 @Override

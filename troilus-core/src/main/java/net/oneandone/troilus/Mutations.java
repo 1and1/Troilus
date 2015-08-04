@@ -16,15 +16,14 @@
 package net.oneandone.troilus;
 
 
-import java.util.concurrent.Executor;
-
 import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.BatchMutation;
 
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.util.concurrent.ListenableFuture;
+
+
 
 
 class Mutations { 
