@@ -109,38 +109,40 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
     }
     
 
+
     
-    public ListenableFuture<Statement> getStatementAsync(final ExecutionSpec executionSpec, final DBSession dbSession, final Executor executor) {
+    
+    public ListenableFuture<Statement> getStatementAsync(final DBSession dbSession) {
         // perform request executors
-        ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(executor, Futures.<WriteQueryData>immediateFuture(data));        
+        ListenableFuture<WriteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<WriteQueryData>immediateFuture(data));        
         
         // query data to statement
         Function<WriteQueryData, ListenableFuture<Statement>> queryDataToStatement = new Function<WriteQueryData, ListenableFuture<Statement>>() {
             @Override
             public ListenableFuture<Statement> apply(WriteQueryData queryData) {
-                return WriteQueryDataImpl.toStatementAsync(queryData, executionSpec, dbSession);
+                return WriteQueryDataImpl.toStatementAsync(queryData, getExecutionSpec(), dbSession);
             }
         };
         
         
-        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, executor);
-        if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
+        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, getExecutor());
+        if (getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).isEmpty()) {
             return statementFuture;
             
             
         // cascading statements   
         } else {
-            ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(executionSpec, dbSession, executor, queryDataFuture);
-            return mergeStatements(executor, statementFuture, cascadingStatmentsFuture);
+            ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(dbSession, queryDataFuture);
+            return mergeStatements(statementFuture, cascadingStatmentsFuture);
         }
     }
     
     
     
     
-    private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(Executor executor, ListenableFuture<WriteQueryData> queryDataFuture) {
+    private ListenableFuture<WriteQueryData> executeRequestInterceptorsAsync(ListenableFuture<WriteQueryData> queryDataFuture) {
 
-        for (WriteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
+        for (WriteQueryRequestInterceptor interceptor : getInterceptorRegistry().getInterceptors(WriteQueryRequestInterceptor.class).reverse()) {
             final WriteQueryRequestInterceptor icptor = interceptor;
 
             Function<WriteQueryData, ListenableFuture<WriteQueryData>> mapperFunction = new Function<WriteQueryData, ListenableFuture<WriteQueryData>>() {
@@ -151,7 +153,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
             };
 
             // running interceptors within dedicated threads!
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, executor);
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getExecutor());
         }
 
         return queryDataFuture; 
@@ -159,10 +161,10 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
     
     
     
-    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(ExecutionSpec executionSpec, DBSession dbSession, final Executor executor, ListenableFuture<WriteQueryData> queryDataFuture) {
+    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(DBSession dbSession, ListenableFuture<WriteQueryData> queryDataFuture) {
         Set<ListenableFuture<ImmutableSet<Statement>>> statmentFutures = Sets.newHashSet();
         
-        for (CascadeOnWriteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).reverse()) {
+        for (CascadeOnWriteInterceptor interceptor : getInterceptorRegistry().getInterceptors(CascadeOnWriteInterceptor.class).reverse()) {
             final CascadeOnWriteInterceptor icptor = interceptor;
 
             Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>> querydataToBatchables = new Function<WriteQueryData, ListenableFuture<ImmutableSet<? extends Batchable<?>>>>() {
@@ -173,12 +175,12 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
             };
             
             // running interceptors within dedicated threads!
-            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, executor);
+            ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables, getExecutor());
             
-            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(executionSpec, dbSession, executor, batchablesFutureSet);
+            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(dbSession, batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);
         }
 
-        return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), executor);
+        return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getExecutor());
     }
 }

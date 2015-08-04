@@ -97,7 +97,7 @@ public class Java7DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        ImmutableMap<String, Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDbSession().getColumnNames(tablename));
+        ImmutableMap<String, Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDefaultDbSession().getColumnNames(tablename));
         return new InsertQuery(ctx, new WriteQueryDataImpl(tablename).valuesToMutate(values));
     }
     

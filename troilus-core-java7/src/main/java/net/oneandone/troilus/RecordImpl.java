@@ -92,7 +92,7 @@ class RecordImpl implements Record {
             
             // check if response key matches with any of the request keys
             for (Object value : entry.getValue()) {
-                ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDbSession().getProtocolVersion());
+                ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDefaultDbSession().getProtocolVersion());
                 
                 if (requestKeyValue.compareTo(responseKeyValue) == 0) {
                     return;
@@ -261,7 +261,7 @@ class RecordImpl implements Record {
                 if (byteBuffer == null) {
                     obj = null;
                 } else  {
-                    obj = datatype.deserialize(byteBuffer, ctx.getDbSession().getProtocolVersion());
+                    obj = datatype.deserialize(byteBuffer, ctx.getDefaultDbSession().getProtocolVersion());
                 }
             
                 // enum
@@ -285,7 +285,7 @@ class RecordImpl implements Record {
              
             // udt
             } else {
-                return ctx.getDbSession().getUDTValueMapper().fromUdtValue(datatype, getUDTValue(name), elementsClass);
+                return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValue(datatype, getUDTValue(name), elementsClass);
             }
         }
         
@@ -300,11 +300,11 @@ class RecordImpl implements Record {
             return ImmutableSet.of();
         }
 
-        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableSet.copyOf(getRow().getSet(name, elementsClass));
         } else {
-            return ctx.getDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), ImmutableSet.copyOf(getRow().getSet(name, UDTValue.class)), elementsClass);
+            return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), ImmutableSet.copyOf(getRow().getSet(name, UDTValue.class)), elementsClass);
         }
     }
     
@@ -314,11 +314,11 @@ class RecordImpl implements Record {
             return ImmutableList.of();
         }
         
-        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableList.copyOf(getRow().getList(name, elementsClass));
         } else {
-            return ctx.getDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), ImmutableList.copyOf(getRow().getList(name, UDTValue.class)), elementsClass);
+            return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), ImmutableList.copyOf(getRow().getList(name, UDTValue.class)), elementsClass);
         }
     }
     
@@ -328,19 +328,19 @@ class RecordImpl implements Record {
             return ImmutableMap.of();
         }
         
-        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableMap.copyOf(getRow().getMap(name, keysClass, valuesClass));
             
         } else {
             if (UDTValueMapper.isBuildInType(datatype.getTypeArguments().get(0))) {
-                return ctx.getDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, keysClass, UDTValue.class)), keysClass, valuesClass);
+                return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, keysClass, UDTValue.class)), keysClass, valuesClass);
 
             } else if (UDTValueMapper.isBuildInType(datatype.getTypeArguments().get(1))) {
-                return ctx.getDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, UDTValue.class, valuesClass)), keysClass, valuesClass);
+                return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, UDTValue.class, valuesClass)), keysClass, valuesClass);
                 
             } else {
-                return ctx.getDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, UDTValue.class, UDTValue.class)), keysClass, valuesClass);
+                return ctx.getDefaultDbSession().getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, UDTValue.class, UDTValue.class)), keysClass, valuesClass);
             }
         }
     }
@@ -371,7 +371,7 @@ class RecordImpl implements Record {
             return "";
         } else {
             StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDbSession().getProtocolVersion()));
+            builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDefaultDbSession().getProtocolVersion()));
 
             return builder.toString();
         }

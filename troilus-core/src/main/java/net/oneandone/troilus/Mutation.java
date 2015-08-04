@@ -65,6 +65,6 @@ public interface Mutation<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    CompletableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor);
+    CompletableFuture<Statement> getStatementAsync(DBSession dbSession);
 }
 

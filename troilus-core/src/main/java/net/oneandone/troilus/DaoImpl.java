@@ -147,7 +147,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDbSession().getColumnNames(tablename));
+        ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDefaultDbSession().getColumnNames(tablename));
         return new InsertQueryAdapter(ctx, new InsertQuery(ctx, new WriteQueryDataImpl(tablename).valuesToMutate(values)));
     }
     

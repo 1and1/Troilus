@@ -17,6 +17,8 @@ package net.oneandone.troilus;
 
 
 
+import java.util.concurrent.Executor;
+
 import net.oneandone.troilus.Context.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -141,10 +143,31 @@ abstract class AbstractQuery<Q> {
     /**
      * @return the context
      */
+    @Deprecated
     protected Context getContext() {
         return ctx; 
     }
     
+    
+    protected DBSession getDefaultDbSession() {
+        return getContext().getDefaultDbSession();
+    }
+    
+    
+    
+    protected Executor getExecutor() {
+        return getContext().getTaskExecutor();
+    }
+    
+    
+    protected ExecutionSpec getExecutionSpec() {
+        return getContext().getExecutionSpec();
+    }
+    
+    
+    InterceptorRegistry getInterceptorRegistry() {
+        return getContext().getInterceptorRegistry();
+    }
     
     /**
      * @param statementFuture  the statement to perform in an async way

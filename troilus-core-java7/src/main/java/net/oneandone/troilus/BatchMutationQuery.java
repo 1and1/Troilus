@@ -18,7 +18,6 @@ package net.oneandone.troilus;
 
 
 
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.BatchMutation;
@@ -102,11 +101,11 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
 
 
     @Override
-    public ListenableFuture<Statement> getStatementAsync(final ExecutionSpec executionSpec, final DBSession dbSession, final Executor executor) {
+    public ListenableFuture<Statement> getStatementAsync(final DBSession dbSession) {
         
         Function<Batchable<?>, ListenableFuture<Statement>> statementFetcher = new Function<Batchable<?>, ListenableFuture<Statement>>() {
             public ListenableFuture<Statement> apply(Batchable<?> batchable) {
-                return batchable.getStatementAsync(executionSpec, dbSession, executor);
+                return batchable.getStatementAsync(dbSession);
             };
         };
         return mergeToBatch(type, batchables.iterator(), statementFetcher);

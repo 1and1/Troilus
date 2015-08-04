@@ -74,7 +74,7 @@ class UpdateQuery extends WriteQuery<UpdateWithUnitAndCounter> implements Update
      * @return the new insert query
      */@Override
      public UpdateQuery entity(Object entity) {
-        ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames(getData().getTablename()));
+        ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getDefaultDbSession().getColumnNames(getData().getTablename()));
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     

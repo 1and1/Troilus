@@ -22,8 +22,10 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 
+
 import java.util.List;
 
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;
@@ -191,16 +193,16 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         Function<ReadQueryData, ListenableFuture<ResultList<Record>>> queryExecutor = new Function<ReadQueryData, ListenableFuture<ResultList<Record>>>() {
             @Override
             public ListenableFuture<ResultList<Record>> apply(ReadQueryData querData) {
-                return executeAsync(querData);
+                return executeAsync(querData, getDefaultDbSession());
             }
         };
         return ListenableFutures.transform(queryDataFuture, queryExecutor);
     }
 
     
-    private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData) {
+    private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData, DBSession dbSession) {
         // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(getContext().getDbSession(), ReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, dbSession));        
         
         // result set to record list mapper
         Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
@@ -219,7 +221,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private ListenableFuture<ReadQueryData> executeRequestInterceptorsAsync(ListenableFuture<ReadQueryData> queryDataFuture) {
 
-        for (ReadQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ReadQueryRequestInterceptor.class).reverse()) {
+        for (ReadQueryRequestInterceptor interceptor : getInterceptorRegistry().getInterceptors(ReadQueryRequestInterceptor.class).reverse()) {
             final ReadQueryRequestInterceptor icptor = interceptor;
             
             Function<ReadQueryData, ListenableFuture<ReadQueryData>> mapperFunction = new Function<ReadQueryData, ListenableFuture<ReadQueryData>>() {
@@ -230,7 +232,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             };
             
             // running interceptors within dedicated threads!
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getExecutor());
         }
 
         return queryDataFuture;
@@ -239,7 +241,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private ListenableFuture<ResultList<Record>> executeResponseInterceptorsAsync(final ReadQueryData queryData, ListenableFuture<ResultList<Record>> recordFuture) {
     
-        for (ReadQueryResponseInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(ReadQueryResponseInterceptor.class).reverse()) {
+        for (ReadQueryResponseInterceptor interceptor : getInterceptorRegistry().getInterceptors(ReadQueryResponseInterceptor.class).reverse()) {
             final ReadQueryResponseInterceptor icptor = interceptor;
             
             Function<ResultList<Record>, ListenableFuture<ResultList<Record>>> mapperFunction = new Function<ResultList<Record>, ListenableFuture<ResultList<Record>>>() {
@@ -250,7 +252,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             };
             
             // running interceptors within dedicagted threads!
-            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getContext().getTaskExecutor());
+            recordFuture = ListenableFutures.transform(recordFuture, mapperFunction, getExecutor());
         }
 
         return recordFuture;
@@ -354,7 +356,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDbSession().getColumnNames(tablename));
+                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDefaultDbSession().getColumnNames(tablename));
                 }
                 
                 @Override
@@ -579,7 +581,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public ListenableFuture<Count> executeAsync() {
-            ListenableFuture<ResultSet> future = performAsync(getContext().getDbSession(), toStatement(data));
+            ListenableFuture<ResultSet> future = performAsync(getDefaultDbSession(), toStatement(data));
             
             Function<ResultSet, Count> mapEntity = new Function<ResultSet, Count>() {
                 @Override

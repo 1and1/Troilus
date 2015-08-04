@@ -16,9 +16,6 @@
 package net.oneandone.troilus;
 
 
-
-import java.util.concurrent.Executor;
-
 import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.CounterMutation;
 
@@ -65,7 +62,7 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getContext().getDbSession(), getStatementAsync(getContext().getExecutionSpec(), getContext().getDbSession(), getContext().getTaskExecutor()));
+        ListenableFuture<ResultSet> future = performAsync(getDefaultDbSession(), getStatementAsync(getContext().getDefaultDbSession()));
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -79,8 +76,8 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
     
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
-        return data.toStatementAsync(executionSpec, dbSession, data.getTablename());
+    public ListenableFuture<Statement> getStatementAsync(DBSession dbSession) {
+        return data.toStatementAsync(getExecutionSpec(), dbSession, data.getTablename());
     }
 }
 

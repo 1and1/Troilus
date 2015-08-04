@@ -205,8 +205,8 @@ public class Context  {
         return executionSpec.getEnableTracing();
     }
     
-    @Deprecated
-    DBSession getDbSession() {
+    
+    DBSession getDefaultDbSession() {
         return dbSession;
     }
     
@@ -515,6 +515,17 @@ public class Context  {
             }
         }
         
+        
+        ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
+            List<Object> result = Lists.newArrayList(); 
+
+            for (Object value : values) {
+                result.add(toStatementValue(tablename, name, value));
+            }
+            
+            return ImmutableList.copyOf(result);
+        }
+
      
         private boolean isNullOrEmpty(Object value) {
             return (value == null) || 

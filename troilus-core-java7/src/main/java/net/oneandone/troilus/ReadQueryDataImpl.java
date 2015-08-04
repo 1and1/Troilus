@@ -27,6 +27,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import com.datastax.driver.core.PreparedStatement;
@@ -221,7 +222,7 @@ class ReadQueryDataImpl implements ReadQueryData {
      * @param ctx    the context
      * @return  the query as statement
      */
-    static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, DBSession dbSession) {
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -286,17 +287,17 @@ class ReadQueryDataImpl implements ReadQueryData {
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 if (entry.getValue().size() == 1) {
                     select.where(eq(entry.getKey(), bindMarker()));
-                    values.add(ctx.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().get(0)));
+                    values.add(dbSession.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().get(0)));
                 } else {
                     select.where(in(entry.getKey(), bindMarker()));
-                    values.add(ctx.toStatementValues(data.getTablename(), entry.getKey(), entry.getValue()));
+                    values.add(dbSession.toStatementValues(data.getTablename(), entry.getKey(), entry.getValue()));
                 }
                 
             }
             
 
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(select);
-            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(select);
+            return dbSession.bindAsync(preparedStatementFuture, values.toArray());
         }
     }   
 }

@@ -19,12 +19,9 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
 
-
-
-
-import java.util.concurrent.Executor;
 
 import com.datastax.driver.core.Statement;
 
@@ -57,7 +54,7 @@ abstract class AbstractQueryAdapter<Q> extends AbstractQuery<Q> {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }  
     
-    public CompletableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
-       return CompletableFutures.toCompletableFuture(query.getStatementAsync(executionSpec, dbSession, executor));
+    public CompletableFuture<Statement> getStatementAsync(DBSession dbSession) {
+       return CompletableFutures.toCompletableFuture(query.getStatementAsync(dbSession));
     }
 }

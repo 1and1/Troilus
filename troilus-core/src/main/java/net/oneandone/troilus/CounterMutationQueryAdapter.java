@@ -17,8 +17,8 @@ package net.oneandone.troilus;
 
 
 import java.time.Duration;
+
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
@@ -119,8 +119,8 @@ import com.google.common.util.concurrent.ListenableFuture;
          }
          
          @Override
-         public ListenableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
-             return CompletableFutures.toListenableFuture(mutation.getStatementAsync(executionSpec, dbSession, executor));
+         public ListenableFuture<Statement> getStatementAsync(DBSession dbSession) {
+             return CompletableFutures.toListenableFuture(mutation.getStatementAsync(dbSession));
          }
          
          
@@ -190,8 +190,8 @@ import com.google.common.util.concurrent.ListenableFuture;
              }
 
              @Override
-            public CompletableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
-                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync(executionSpec, dbSession, executor));
+            public CompletableFuture<Statement> getStatementAsync(DBSession dbSession) {
+                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync(dbSession));
              }
          }
      }
