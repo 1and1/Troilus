@@ -200,7 +200,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData) {
         // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(ReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(getContext().getDbSession(), ReadQueryDataImpl.toStatementAsync(queryData, getContext()));        
         
         // result set to record list mapper
         Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
@@ -579,7 +579,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public ListenableFuture<Count> executeAsync() {
-            ListenableFuture<ResultSet> future = performAsync(toStatement(data));
+            ListenableFuture<ResultSet> future = performAsync(getContext().getDbSession(), toStatement(data));
             
             Function<ResultSet, Count> mapEntity = new Function<ResultSet, Count>() {
                 @Override

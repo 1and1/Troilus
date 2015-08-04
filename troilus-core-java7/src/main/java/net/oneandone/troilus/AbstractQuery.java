@@ -17,6 +17,8 @@ package net.oneandone.troilus;
 
 
 
+import net.oneandone.troilus.Context.DBSession;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
@@ -148,12 +150,12 @@ abstract class AbstractQuery<Q> {
      * @param statementFuture  the statement to perform in an async way
      * @return the result future 
      */
-    protected ListenableFuture<ResultSet> performAsync(ListenableFuture<Statement> statementFuture) {
+    protected ListenableFuture<ResultSet> performAsync(final DBSession dbSession, ListenableFuture<Statement> statementFuture) {
         
         Function<Statement, ListenableFuture<ResultSet>> statementToResultSetFuture = new Function<Statement, ListenableFuture<ResultSet>>() {
             @Override
             public ListenableFuture<ResultSet> apply(Statement statement) {
-                return performAsync(statement);
+                return performAsync(dbSession, statement);
             }
         };
         
@@ -166,7 +168,7 @@ abstract class AbstractQuery<Q> {
      * @param statementFuture  the statement to perform in a sync way
      * @return the result future 
      */
-    protected ListenableFuture<ResultSet> performAsync(Statement statement) {
+    protected ListenableFuture<ResultSet> performAsync(DBSession dbSession, Statement statement) {
         if (getContext().getConsistencyLevel() != null) {
             statement.setConsistencyLevel(getContext().getConsistencyLevel());
         }
@@ -187,7 +189,7 @@ abstract class AbstractQuery<Q> {
             }
         }
         
-        return ctx.getDbSession().executeAsync(statement);
+        return dbSession.executeAsync(statement);
     }
     
     

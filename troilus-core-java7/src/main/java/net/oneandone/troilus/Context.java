@@ -429,7 +429,6 @@ public class Context {
     
     
     static class DBSession  {
-        
         private final Session session;
         private final boolean isKeyspacenameAssigned;
         private final String keyspacename;
