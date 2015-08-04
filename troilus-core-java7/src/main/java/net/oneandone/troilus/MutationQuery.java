@@ -56,7 +56,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync(getContext()));
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -69,11 +69,11 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     
-    public abstract ListenableFuture<Statement> getStatementAsync();
+    public abstract ListenableFuture<Statement> getStatementAsync(final Context ctx);
     
     
-    protected ListenableFuture<Statement> mergeStatements(ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {
-        ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, getContext().getTaskExecutor());
+    protected ListenableFuture<Statement> mergeStatements(Context ctx, ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {
+        ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, ctx.getTaskExecutor());
 
         Function<ImmutableSet<Statement>, Statement> statementsBatcher = new Function<ImmutableSet<Statement>, Statement>() {
             
@@ -89,20 +89,20 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     
-    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet) {
+    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(Context ctx, ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet) {
                     
         Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>>() {                
             @Override
             public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable<?>> batchables) {
                 Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
                 for(Batchable<?> batchable : batchables) {
-                    statementFutureSet.add(batchable.getStatementAsync());
+                    statementFutureSet.add(batchable.getStatementAsync(getContext()));
                 }
                 return ImmutableSet.copyOf(statementFutureSet);                    
             }
         };            
         ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
-        return ListenableFutures.flat(statementFutureSet, getContext().getTaskExecutor());
+        return ListenableFutures.flat(statementFutureSet, ctx.getTaskExecutor());
     }
     
     

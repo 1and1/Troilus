@@ -74,7 +74,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
      * @return the new insert query
      */@Override
      public WriteWithCounterQuery entity(Object entity) {
-        ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames());
+        ImmutableMap<String, Optional<Object>> values = getContext().getBeanMapper().toValues(entity, getContext().getDbSession().getColumnNames(getData().getTablename()));
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     
@@ -186,8 +186,8 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
 
     @Override
     public InsertQuery ifNotExists() {
-        return new InsertQuery(getContext(), new WriteQueryDataImpl().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
-                                                                     .ifNotExists(true));
+        return new InsertQuery(getContext(), new WriteQueryDataImpl(getData().getTablename()).valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
+                                                                                             .ifNotExists(true));
     }
 }
 

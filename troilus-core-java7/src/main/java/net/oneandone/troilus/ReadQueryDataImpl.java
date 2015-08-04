@@ -47,6 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class ReadQueryDataImpl implements ReadQueryData {
     
+    private final String tablename;
     private final ImmutableMap<String, ImmutableList<Object>> keys;
     private final ImmutableSet<Clause> whereClauses;
     private final ImmutableMap<String, Boolean> columnsToFetch;
@@ -59,8 +60,9 @@ class ReadQueryDataImpl implements ReadQueryData {
     /**
      * Constructor
      */
-    ReadQueryDataImpl() {
-        this(ImmutableMap.<String, ImmutableList<Object>>of(),
+    ReadQueryDataImpl(String tablename) {
+        this(tablename,
+             ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
              ImmutableMap.<String, Boolean>of(),
              null,
@@ -70,13 +72,15 @@ class ReadQueryDataImpl implements ReadQueryData {
     }
 
     
-    private ReadQueryDataImpl(ImmutableMap<String, ImmutableList<Object>> keys,
-                                  ImmutableSet<Clause> whereClauses, 
-                                  ImmutableMap<String, Boolean> columnsToFetch, 
-                                  Integer limit, 
-                                  Boolean allowFiltering,
-                                  Integer fetchSize,
-                                  Boolean distinct) {
+    private ReadQueryDataImpl(String tablename,
+                              ImmutableMap<String, ImmutableList<Object>> keys,
+                              ImmutableSet<Clause> whereClauses, 
+                              ImmutableMap<String, Boolean> columnsToFetch, 
+                              Integer limit, 
+                              Boolean allowFiltering,
+                              Integer fetchSize,
+                              Boolean distinct) {
+        this.tablename = tablename;
         this.keys = keys;
         this.whereClauses = whereClauses;
         this.columnsToFetch = columnsToFetch;
@@ -89,79 +93,91 @@ class ReadQueryDataImpl implements ReadQueryData {
 
     @Override
     public ReadQueryDataImpl keys(ImmutableMap<String, ImmutableList<Object>> keys) {
-        return new ReadQueryDataImpl(keys,
-                                         this.whereClauses,
-                                         this.columnsToFetch,
-                                         this.limit,
-                                         this.allowFiltering,
-                                         this.fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl whereConditions(ImmutableSet<Clause> whereClauses) {
-        return new ReadQueryDataImpl(this.keys,
-                                         whereClauses,
-                                         this.columnsToFetch,
-                                         this.limit,
-                                         this.allowFiltering,
-                                         this.fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl columnsToFetch(ImmutableMap<String, Boolean> columnsToFetch) {
-        return new ReadQueryDataImpl(this.keys,
-                                         this.whereClauses,
-                                         columnsToFetch,
-                                         this.limit,
-                                         this.allowFiltering,
-                                         this.fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl limit(Integer limit) {
-        return new ReadQueryDataImpl(this.keys,
-                                         this.whereClauses,
-                                         this.columnsToFetch,
-                                         limit,
-                                         this.allowFiltering,
-                                         this.fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl allowFiltering(Boolean allowFiltering) {
-        return new ReadQueryDataImpl(this.keys,
-                                         this.whereClauses,
-                                         this.columnsToFetch,
-                                         this.limit,
-                                         allowFiltering,
-                                         this.fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl fetchSize(Integer fetchSize) {
-        return new ReadQueryDataImpl(this.keys,
-                                         this.whereClauses,
-                                         this.columnsToFetch,
-                                         this.limit,
-                                         this.allowFiltering,
-                                         fetchSize,
-                                         this.distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     fetchSize,
+                                     this.distinct);  
     }
 
     @Override
     public ReadQueryDataImpl distinct(Boolean distinct) {
-        return new ReadQueryDataImpl(this.keys,
-                                         this.whereClauses,
-                                         this.columnsToFetch,
-                                         this.limit,
-                                         this.allowFiltering,
-                                         this.fetchSize,
-                                         distinct);  
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     distinct);  
+    }
+    
+    @Override
+    public String getTablename() {
+        return tablename;
     }
     
     @Override
@@ -237,7 +253,7 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
         }
         
-        Select select = selection.from(ctx.getDbSession().getTablename());
+        Select select = selection.from(data.getTablename());
   
         if (data.getLimit() != null) {
             select.limit(data.getLimit());
@@ -269,10 +285,10 @@ class ReadQueryDataImpl implements ReadQueryData {
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 if (entry.getValue().size() == 1) {
                     select.where(eq(entry.getKey(), bindMarker()));
-                    values.add(ctx.toStatementValue(entry.getKey(), entry.getValue().get(0)));
+                    values.add(ctx.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().get(0)));
                 } else {
                     select.where(in(entry.getKey(), bindMarker()));
-                    values.add(ctx.toStatementValues(entry.getKey(), entry.getValue()));
+                    values.add(ctx.toStatementValues(data.getTablename(), entry.getKey(), entry.getValue()));
                 }
                 
             }

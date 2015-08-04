@@ -31,6 +31,11 @@ import com.google.common.collect.ImmutableSet;
  *
  */
 public interface ReadQueryData {
+    
+    /**
+     * @return tablename
+     */
+    String getTablename();
 
     /**
      * @param keys  the keys 

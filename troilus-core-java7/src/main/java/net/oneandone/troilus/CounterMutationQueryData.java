@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 class CounterMutationQueryData {
 
+    private final String tablename;
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
 
@@ -46,17 +47,20 @@ class CounterMutationQueryData {
     private final long diff;
 
     
-    public CounterMutationQueryData() {
-        this(ImmutableMap.<String, Object>of(),
+    public CounterMutationQueryData(String tablename) {
+        this(tablename,
+             ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),
              null,
              0);
     }
     
-    private CounterMutationQueryData(ImmutableMap<String, Object> keys,
+    private CounterMutationQueryData(String tablename,
+                                     ImmutableMap<String, Object> keys,
                                      ImmutableList<Clause> whereConditions,
                                      String name,
                                      long diff) {
+        this.tablename = tablename;
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.name = name; 
@@ -65,33 +69,41 @@ class CounterMutationQueryData {
    
     
     public CounterMutationQueryData keys(ImmutableMap<String, Object> keys) {
-        return new CounterMutationQueryData(keys,
+        return new CounterMutationQueryData(this.tablename,
+                                            keys,
                                             this.whereConditions, 
                                             this.name,
                                             this.diff);
     }
     
     public CounterMutationQueryData whereConditions(ImmutableList<Clause> whereConditions) {
-        return new CounterMutationQueryData(this.keys,
+        return new CounterMutationQueryData(this.tablename,
+                                            this.keys,
                                             whereConditions, 
                                             this.name,
                                             this.diff);
     }
     
     public CounterMutationQueryData name(String name) {
-        return new CounterMutationQueryData(this.keys,
+        return new CounterMutationQueryData(this.tablename,
+                                            this.keys,
                                             this.whereConditions, 
                                             name,
                                             this.diff);
     }
     
     public CounterMutationQueryData diff(long diff) {
-        return new CounterMutationQueryData(this.keys,
+        return new CounterMutationQueryData(this.tablename,
+                                            this.keys,
                                             this.whereConditions, 
                                             this.name,
                                             diff);
     }
     
+    
+    public String getTablename() {
+        return tablename;
+    }
     
     public ImmutableMap<String, Object> getKeys() {
         return keys;
@@ -109,8 +121,8 @@ class CounterMutationQueryData {
         return diff;
     }
     
-    ListenableFuture<Statement> toStatementAsync(Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
+    ListenableFuture<Statement> toStatementAsync(Context ctx, String tablename) {
+        com.datastax.driver.core.querybuilder.Update update = update(tablename);
         
         // key-based update
         if (getWhereConditions().isEmpty()) {

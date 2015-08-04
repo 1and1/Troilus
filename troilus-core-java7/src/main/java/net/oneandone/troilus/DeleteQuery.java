@@ -23,6 +23,7 @@ import java.util.Set;
 
 
 
+
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.Batchable;
@@ -46,6 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
 
     private final DeleteQueryData data;
+    
     
     /**
      * @param ctx    the context
@@ -105,10 +107,10 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
+    public ListenableFuture<Statement> getStatementAsync(final Context ctx) {
         
         // perform request executors
-        ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<DeleteQueryData>immediateFuture(data));
+        ListenableFuture<DeleteQueryData> queryDataFuture = executeRequestInterceptorsAsync(ctx, Futures.<DeleteQueryData>immediateFuture(data));
         
         // query data to statement
         Function<DeleteQueryData, ListenableFuture<Statement>> queryDataToStatement = new Function<DeleteQueryData, ListenableFuture<Statement>>() {
@@ -117,19 +119,19 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 if (queryData == null) {
                     throw new NullPointerException();
                 }
-                return DeleteQueryDataImpl.toStatementAsync(queryData, getContext());
+                return DeleteQueryDataImpl.toStatementAsync(queryData, ctx);
             }
         };
         
         
-        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, getContext().getTaskExecutor());
+        ListenableFuture<Statement> statementFuture = ListenableFutures.transform(queryDataFuture, queryDataToStatement, ctx.getTaskExecutor());
         if (getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).isEmpty()) {
             return statementFuture;
         
         // cascading statements   
         } else {
-            ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(queryDataFuture);
-            return mergeStatements(statementFuture, cascadingStatmentsFuture);
+            ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture = executeCascadeInterceptorsAsync(ctx, queryDataFuture);
+            return mergeStatements(ctx, statementFuture, cascadingStatmentsFuture);
         }
     }
 
@@ -138,9 +140,9 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     
    
     
-    private ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
+    private ListenableFuture<DeleteQueryData> executeRequestInterceptorsAsync(Context ctx, ListenableFuture<DeleteQueryData> queryDataFuture) {
 
-        for (DeleteQueryRequestInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class).reverse()) {
+        for (DeleteQueryRequestInterceptor interceptor : ctx.getInterceptorRegistry().getInterceptors(DeleteQueryRequestInterceptor.class).reverse()) {
             final DeleteQueryRequestInterceptor icptor = interceptor;
 
             Function<DeleteQueryData, ListenableFuture<DeleteQueryData>> mapperFunction = new Function<DeleteQueryData, ListenableFuture<DeleteQueryData>>() {
@@ -151,14 +153,14 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             };
             
             // running interceptors within dedicated threads!
-            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, getContext().getTaskExecutor());
+            queryDataFuture = ListenableFutures.transform(queryDataFuture, mapperFunction, ctx.getTaskExecutor());
         }
 
         return queryDataFuture; 
     }
     
     
-    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(ListenableFuture<DeleteQueryData> queryDataFuture) {
+    private ListenableFuture<ImmutableSet<Statement>> executeCascadeInterceptorsAsync(Context ctx, ListenableFuture<DeleteQueryData> queryDataFuture) {
         Set<ListenableFuture<ImmutableSet<Statement>>> statmentFutures = Sets.newHashSet();
         
         for (CascadeOnDeleteInterceptor interceptor : getContext().getInterceptorRegistry().getInterceptors(CascadeOnDeleteInterceptor.class).reverse()) {
@@ -172,11 +174,11 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
             };
             ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet = ListenableFutures.transform(queryDataFuture, querydataToBatchables);
             
-            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(batchablesFutureSet);
+            ListenableFuture<ImmutableSet<Statement>> flattenStatementFutureSet = transformBatchablesToStatement(ctx, batchablesFutureSet);
             statmentFutures.add(flattenStatementFutureSet);
         }
 
         // running interceptors within dedicated threads!
-        return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), getContext().getTaskExecutor());
+        return ListenableFutures.flat(ImmutableSet.copyOf(statmentFutures), ctx.getTaskExecutor());
     }
 }

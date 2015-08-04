@@ -28,7 +28,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +37,6 @@ import net.oneandone.troilus.interceptor.QueryInterceptor;
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.Host.StateListener;
-import com.datastax.driver.core.Host;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -71,7 +68,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * the context
  * 
  */
-class Context {
+public class Context {
     
     
     private static final Logger LOG = LoggerFactory.getLogger(Context.class);
@@ -86,14 +83,13 @@ class Context {
     
     /**
      * @param session    the underlying session
-     * @param tablename  the tablename
      */
-    Context(Session session, String tablename) {
-        this(session, tablename, new BeanMapper());
+    Context(Session session) {
+        this(session, new BeanMapper());
     }
     
-    private Context(Session session, String tablename, BeanMapper beanMapper) {
-        this(new DBSession(session, tablename, beanMapper), 
+    private Context(Session session, BeanMapper beanMapper) {
+        this(new DBSession(session, beanMapper), 
              new ExecutionSpec(), 
              new InterceptorRegistry(),
              beanMapper,
@@ -227,22 +223,22 @@ class Context {
         return interceptorRegistry;
     }
         
-    ImmutableList<Object> toStatementValues(String name, ImmutableList<Object> values) {
+    ImmutableList<Object> toStatementValues(String tablename, String name, ImmutableList<Object> values) {
         List<Object> result = Lists.newArrayList(); 
 
         for (Object value : values) {
-            result.add(toStatementValue(name, value));
+            result.add(toStatementValue(tablename, name, value));
         }
         
         return ImmutableList.copyOf(result);
     }
 
-    Object toStatementValue(String name, Object value) {
+    Object toStatementValue(String tablename, String name, Object value) {
         if (isNullOrEmpty(value)) {
             return null;
         } 
         
-        DataType dataType = dbSession.getColumnMetadata(name).getType();
+        DataType dataType = dbSession.getColumnMetadata(tablename, name).getType();
         
         // build in
         if (UDTValueMapper.isBuildInType(dataType)) {
@@ -262,7 +258,7 @@ class Context {
          
         // udt    
         } else {
-            return dbSession.getUDTValueMapper().toUdtValue(dbSession.getUserTypeCache(), dbSession.getColumnMetadata(name).getType(), value);
+            return dbSession.getUDTValueMapper().toUdtValue(dbSession.getUserTypeCache(), dbSession.getColumnMetadata(tablename, name).getType(), value);
         }
     }
     
@@ -428,7 +424,6 @@ class Context {
     
     static class DBSession  {
         private final Session session;
-        private final String tablename;
         private final UDTValueMapper udtValueMapper;
         private final TableMetadataCache tableMetadataCache;
         private final PreparedStatementCache preparedStatementCache;
@@ -439,17 +434,14 @@ class Context {
 
         
 
-        public DBSession(Session session, String tablename, BeanMapper beanMapper) {
+        public DBSession(Session session, BeanMapper beanMapper) {
             this.session = session;
-            this.tablename = tablename;
             
             //this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
             this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
             this.preparedStatementCache = new PreparedStatementCache(session);
             this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
-            this.tableMetadataCache = new TableMetadataCache(session, tablename);
-            
-            session.getCluster().register(new NodeUpListener());
+            this.tableMetadataCache = new TableMetadataCache(session);
         }
    
     
@@ -467,9 +459,6 @@ class Context {
             return session;
         }
         
-        String getTablename() {
-            return tablename;
-        }
         
         ProtocolVersion getProtocolVersion() {
             //return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
@@ -484,12 +473,12 @@ class Context {
             return udtValueMapper;
         }
      
-        ImmutableSet<String> getColumnNames() {
-            return tableMetadataCache.getColumnNames();
+        ImmutableSet<String> getColumnNames(String tablename) {
+            return tableMetadataCache.getColumnNames(tablename);
         }
         
-        ColumnMetadata getColumnMetadata(String columnName) {
-            return tableMetadataCache.getColumnMetadata(columnName); 
+        ColumnMetadata getColumnMetadata(String tablename, String columnName) {
+            return tableMetadataCache.getColumnMetadata(tablename, columnName); 
         }
         
         ListenableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
@@ -511,7 +500,6 @@ class Context {
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(this)
-                              .add("tablename", tablename)
                               .add("preparedStatementsCache", preparedStatementCache.toString())
                               .toString();
         }
@@ -525,31 +513,7 @@ class Context {
 
                 preparedStatementCache.invalidateAll();
                 userTypeCache.invalidateAll();
-                tableMetadataCache.invalidateAll();;
             }
-        }
-        
-        
-        
-        private final class NodeUpListener implements StateListener {
-            
-            @Override
-            public void onUp(Host host) {
-                // perform clean up for 2 reasons
-                cleanUp();                
-            }
-            
-            @Override
-            public void onDown(Host host) { }
-
-            @Override
-            public void onAdd(Host host) { }
-            
-            @Override
-            public void onRemove(Host host) { }
-
-            @Override
-            public void onSuspected(Host host) { }
         }
         
         
@@ -612,56 +576,37 @@ class Context {
         
         
         
+        
         private static final class TableMetadataCache {
             private final Session session;
-            private final String tablename;
-            
-            private final AtomicReference<TableMetadata> tableMetadataRef = new AtomicReference<>();
-            private final AtomicReference<ImmutableSet<String>> columnNamesRef = new AtomicReference<>();
-            
-            private final AtomicLong timeMetadataLoaded = new AtomicLong(System.currentTimeMillis());
-            
+            private final Cache<String, Metadata> tableMetadataCache;
 
-            public TableMetadataCache(Session session, String tablename) {
+            public TableMetadataCache(Session session) {
                 this.session = session;
-                this.tablename = tablename;
-                
-                invalidateAll(); // initiate loading 
+                this.tableMetadataCache = CacheBuilder.newBuilder().maximumSize(150).<String, Metadata>build();
             }
             
-            
-            public void invalidateAll() {
-                this.tableMetadataRef.set(loadTableMetadata(session, tablename));
-                this.columnNamesRef.set(loadColumnNames(tableMetadataRef.get()));
+            ImmutableSet<String> getColumnNames(String tablename) {
+                return getMetadata(tablename).getColumnNames();
             }
             
-
-            ImmutableSet<String> getColumnNames() {
-                refreshIfIsOld();
-                
-                return columnNamesRef.get();
+            ColumnMetadata getColumnMetadata(String tablename, String columnName) {
+                return getMetadata(tablename).getColumnMetadata(columnName);
             }
             
-            ColumnMetadata getColumnMetadata(String columnName) {
-                refreshIfIsOld();
-                
-                ColumnMetadata metadata = tableMetadataRef.get().getColumn(columnName);
-                if (metadata == null) {
-                    throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " does not support column '" + columnName + "'");
+            private Metadata getMetadata(String tablename) {
+                Metadata metadata = tableMetadataCache.getIfPresent(tablename);
+                if ((metadata == null) || metadata.isExpired()) {
+                    TableMetadata tableMetadata = loadTableMetadata(session, tablename);
+                    ImmutableSet<String> columnNames = loadColumnNames(tableMetadata);
+                    metadata = new Metadata(System.currentTimeMillis(), tablename, tableMetadata, columnNames);
+         
+                    tableMetadataCache.put(tablename, metadata);
                 }
+                
                 return metadata;
             }
-            
-            
-            private void refreshIfIsOld() {
-                // avoid frequent refreshing
-                if (System.currentTimeMillis() > (timeMetadataLoaded.get() + (96 * 1000))) {  // not really thread safe. However this does not matter 
-                    timeMetadataLoaded.set(System.currentTimeMillis());
 
-                    invalidateAll();
-                }
-            }
-            
             
             private static TableMetadata loadTableMetadata(Session session, String tablename) {
                 TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
@@ -679,6 +624,37 @@ class Context {
                 }
                 
                 return ImmutableSet.copyOf(columnNames);
+            }
+        }
+        
+        
+        private static final class Metadata {
+            private final long readtime;
+            private final String tablename;
+            private final TableMetadata tableMetadata;
+            private final ImmutableSet<String> columnNames;
+            
+            public Metadata(long readtime, String tablename, TableMetadata tableMetadata, ImmutableSet<String> columnNames) {
+                this.readtime = readtime;
+                this.tablename = tablename;
+                this.tableMetadata = tableMetadata;
+                this.columnNames = columnNames;
+            }
+            
+            boolean isExpired() {
+                return System.currentTimeMillis() > (readtime + (2 * 60 * 1000));
+            }
+            
+            ImmutableSet<String> getColumnNames() {
+                return columnNames;
+            }
+            
+            ColumnMetadata getColumnMetadata(String columnName) {
+                ColumnMetadata metadata = tableMetadata.getColumn(columnName);
+                if (metadata == null) {
+                    throw new RuntimeException("table " + tablename + " does not support column '" + columnName + "'");
+                }
+                return metadata;
             }
         }
     }

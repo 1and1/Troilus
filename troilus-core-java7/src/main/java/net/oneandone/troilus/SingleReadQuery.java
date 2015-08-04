@@ -210,7 +210,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                     if (record == null) {
                         return null;
                     } else {
-                        return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getContext().getDbSession().getColumnNames());
+                        return getContext().getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getContext().getDbSession().getColumnNames(query.data.getTablename()));
                     }
                 }
             };

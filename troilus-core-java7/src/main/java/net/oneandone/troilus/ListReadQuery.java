@@ -157,7 +157,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public CountReadQuery count() {
-        return new CountReadQuery(getContext(), new CountReadQueryData().whereConditions(data.getWhereConditions())
+        return new CountReadQuery(getContext(), new CountReadQueryData(data.getTablename())
+                                                                        .whereConditions(data.getWhereConditions())
                                                                         .limit(data.getLimit())
                                                                         .fetchSize(data.getFetchSize())
                                                                         .allowFiltering(data.getAllowFiltering())
@@ -312,7 +313,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
                 @Override
                 public ResultList<E> apply(ResultList<Record> recordList) {
-                    return new EntityListImpl<>(getContext(), recordList, clazz);
+                    return new EntityListImpl<>(query.data.getTablename(), getContext(), recordList, clazz);
                 }
             };
             
@@ -328,12 +329,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     private static class EntityListImpl<F> extends ResultAdapter implements ResultList<F> {
+        private final String tablename;
         private final Context ctx;
         private final ResultList<Record> recordList;
         private final Class<F> clazz;
     
-        EntityListImpl(Context ctx, ResultList<Record> recordList, Class<F> clazz) {
+        EntityListImpl(String tablename, Context ctx, ResultList<Record> recordList, Class<F> clazz) {
             super(recordList);
+            this.tablename = tablename;
             this.ctx = ctx;
             this.recordList = recordList;
             this.clazz = clazz;
@@ -351,7 +354,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDbSession().getColumnNames());
+                    return ctx.getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), ctx.getDbSession().getColumnNames(tablename));
                 }
                 
                 @Override
@@ -379,6 +382,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     private static final class CountReadQueryData {
+        final String tablename;
         final ImmutableSet<Clause> whereClauses;
         final Integer limit;
         final Boolean allowFiltering;
@@ -387,19 +391,22 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         
-        public CountReadQueryData() {
-            this(ImmutableSet.<Clause>of(),
+        public CountReadQueryData(String tablename) {
+            this(tablename,
+                 ImmutableSet.<Clause>of(),
                  null,
                  null,
                  null,
                  null);
         }
         
-        private CountReadQueryData(ImmutableSet<Clause> whereClauses, 
+        private CountReadQueryData(String tablename,
+                                   ImmutableSet<Clause> whereClauses, 
                                    Integer limit, 
                                    Boolean allowFiltering,
                                    Integer fetchSize,
                                    Boolean distinct) {
+            this.tablename = tablename;
             this.whereClauses = whereClauses;
             this.limit = limit;
             this.allowFiltering = allowFiltering;
@@ -410,7 +417,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         public CountReadQueryData whereConditions(ImmutableSet<Clause> whereClauses) {
-            return new CountReadQueryData(whereClauses,
+            return new CountReadQueryData(this.tablename,
+                                          whereClauses,
                                           this.limit,
                                           this.allowFiltering,
                                           this.fetchSize,
@@ -420,8 +428,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         public CountReadQueryData limit(Integer limit) {
-            return new CountReadQueryData(this.whereClauses,
-                    limit,
+            return new CountReadQueryData(this.tablename,
+                                          this.whereClauses,
+                                          limit,
                                           this.allowFiltering,
                                           this.fetchSize,
                                           this.distinct);  
@@ -429,7 +438,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         public CountReadQueryData allowFiltering(Boolean allowFiltering) {
-            return new CountReadQueryData(this.whereClauses,
+            return new CountReadQueryData(this.tablename,
+                                          this.whereClauses,
                                           this.limit,
                                           allowFiltering,
                                           this.fetchSize,
@@ -438,7 +448,8 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         public CountReadQueryData fetchSize(Integer fetchSize) {
-            return new CountReadQueryData(this.whereClauses,
+            return new CountReadQueryData(this.tablename,
+                                          this.whereClauses,
                                           this.limit,
                                           this.allowFiltering,
                                           fetchSize,
@@ -447,13 +458,17 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         public CountReadQueryData distinct(Boolean distinct) {
-            return new CountReadQueryData(this.whereClauses,
+            return new CountReadQueryData(this.tablename,
+                                          this.whereClauses,
                                           this.limit,
                                           this.allowFiltering,
                                           this.fetchSize,
                                           distinct);  
         }
         
+        public String getTablename() {
+            return tablename;
+        }
         
         public ImmutableSet<Clause> getWhereConditions() {
             return whereClauses;
@@ -532,7 +547,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      
             selection.countAll();
             
-            Select select = selection.from(getContext().getDbSession().getTablename());
+            Select select = selection.from(data.getTablename());
             
             for (Clause whereCondition : queryData.getWhereConditions()) {
                 select.where(whereCondition);

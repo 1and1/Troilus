@@ -66,11 +66,11 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
+    public ListenableFuture<Statement> getStatementAsync(final Context ctx) {
         
         Function<CounterMutation, ListenableFuture<Statement>> statementFetcher = new Function<CounterMutation, ListenableFuture<Statement>>() {
             public ListenableFuture<Statement> apply(CounterMutation batchable) {
-                return batchable.getStatementAsync();
+                return batchable.getStatementAsync(ctx);
             };
         };
         return mergeToBatch(Type.COUNTER, batchables.iterator(), statementFetcher);

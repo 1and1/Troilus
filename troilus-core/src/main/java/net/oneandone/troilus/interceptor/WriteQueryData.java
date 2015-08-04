@@ -39,6 +39,12 @@ import com.google.common.collect.ImmutableSet;
 public interface WriteQueryData {
  
     /**
+     * @return the tablename
+     */
+    String getTablename();
+    
+    
+    /**
      * @param keys  the keys 
      * @return the new write data
      */

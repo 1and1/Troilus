@@ -56,7 +56,7 @@ class RecordImpl implements Record {
     
     private static final Logger LOG = LoggerFactory.getLogger(RecordImpl.class);
 
-    
+    private final String tablename;
     private final Context ctx;
     private final Result result;
     private final Row row;
@@ -70,6 +70,7 @@ class RecordImpl implements Record {
         this.ctx = ctx;
         this.result = result;
         this.row = row;
+        this.tablename = queryData.getTablename();
        
         paranoiaCheck(ctx, this, queryData);
     }
@@ -299,7 +300,7 @@ class RecordImpl implements Record {
             return ImmutableSet.of();
         }
 
-        DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
+        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableSet.copyOf(getRow().getSet(name, elementsClass));
         } else {
@@ -313,7 +314,7 @@ class RecordImpl implements Record {
             return ImmutableList.of();
         }
         
-        DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
+        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableList.copyOf(getRow().getList(name, elementsClass));
         } else {
@@ -327,7 +328,7 @@ class RecordImpl implements Record {
             return ImmutableMap.of();
         }
         
-        DataType datatype = ctx.getDbSession().getColumnMetadata(name).getType();
+        DataType datatype = ctx.getDbSession().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableMap.copyOf(getRow().getMap(name, keysClass, valuesClass));
             

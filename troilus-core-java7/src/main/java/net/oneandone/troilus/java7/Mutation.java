@@ -16,6 +16,8 @@
 package net.oneandone.troilus.java7;
 
 
+import net.oneandone.troilus.Context;
+
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -61,5 +63,5 @@ public interface Mutation<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    ListenableFuture<Statement> getStatementAsync();
+    ListenableFuture<Statement> getStatementAsync(Context ctx);
 }

@@ -58,6 +58,8 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class WriteQueryDataImpl implements WriteQueryData {
 
+    private final String tablename;
+    
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
     
@@ -77,8 +79,9 @@ class WriteQueryDataImpl implements WriteQueryData {
     /**
      * constructor
      */
-    WriteQueryDataImpl() {
-        this(ImmutableMap.<String, Object>of(),
+    WriteQueryDataImpl(String tablename) {
+        this(tablename,
+             ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),
              ImmutableMap.<String, Optional<Object>>of(),
              ImmutableMap.<String, ImmutableSet<Object>>of(),
@@ -92,7 +95,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
 
     
-    private WriteQueryDataImpl(ImmutableMap<String, Object> keys, 
+    private WriteQueryDataImpl(String tablemname,
+                               ImmutableMap<String, Object> keys, 
                                ImmutableList<Clause> whereConditions, 
                                ImmutableMap<String, Optional<Object>> valuesToMutate, 
                                ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd,
@@ -103,6 +107,7 @@ class WriteQueryDataImpl implements WriteQueryData {
                                ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate,
                                ImmutableList<Clause> onlyIfConditions,
                                Boolean ifNotExists) {
+        this.tablename = tablemname;
         this.keys = keys;
         this.whereConditions = whereConditions;
         this.valuesToMutate = valuesToMutate;
@@ -119,7 +124,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     @Override
     public WriteQueryDataImpl keys(ImmutableMap<String, Object> keys) {
-        return new WriteQueryDataImpl(keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -134,7 +140,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     @Override
     public WriteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -149,7 +156,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     @Override
     public WriteQueryDataImpl valuesToMutate(ImmutableMap<String, Optional<Object>> valuesToMutate) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       valuesToMutate, 
                                       this.setValuesToAdd,
@@ -164,7 +172,8 @@ class WriteQueryDataImpl implements WriteQueryData {
  
     @Override
     public WriteQueryDataImpl setValuesToAdd(ImmutableMap<String, ImmutableSet<Object>> setValuesToAdd) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       setValuesToAdd,
@@ -179,7 +188,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     @Override
     public WriteQueryDataImpl setValuesToRemove(ImmutableMap<String, ImmutableSet<Object>> setValuesToRemove) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -194,7 +204,8 @@ class WriteQueryDataImpl implements WriteQueryData {
  
     @Override
     public WriteQueryDataImpl listValuesToAppend(ImmutableMap<String, ImmutableList<Object>> listValuesToAppend) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -209,7 +220,8 @@ class WriteQueryDataImpl implements WriteQueryData {
    
     @Override
     public WriteQueryDataImpl listValuesToPrepend(ImmutableMap<String, ImmutableList<Object>> listValuesToPrepend) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -224,7 +236,8 @@ class WriteQueryDataImpl implements WriteQueryData {
  
     @Override
     public WriteQueryDataImpl listValuesToRemove(ImmutableMap<String, ImmutableList<Object>> listValuesToRemove) {
-         return new WriteQueryDataImpl(this.keys, 
+         return new WriteQueryDataImpl(this.tablename,
+                                       this.keys, 
                                        this.whereConditions,
                                        this.valuesToMutate, 
                                        this.setValuesToAdd,
@@ -239,7 +252,8 @@ class WriteQueryDataImpl implements WriteQueryData {
  
     @Override
     public WriteQueryDataImpl mapValuesToMutate(ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> mapValuesToMutate) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -254,7 +268,8 @@ class WriteQueryDataImpl implements WriteQueryData {
 
     @Override
     public WriteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -269,7 +284,8 @@ class WriteQueryDataImpl implements WriteQueryData {
 
     @Override
     public WriteQueryDataImpl ifNotExists(Boolean ifNotExists) {
-        return new WriteQueryDataImpl(this.keys, 
+        return new WriteQueryDataImpl(this.tablename,
+                                      this.keys, 
                                       this.whereConditions,
                                       this.valuesToMutate, 
                                       this.setValuesToAdd,
@@ -282,6 +298,10 @@ class WriteQueryDataImpl implements WriteQueryData {
                                       ifNotExists);
     }
     
+    @Override
+    public String getTablename() {
+        return tablename;
+    }
     
     @Override
     public ImmutableMap<String, Object> getKeys() {
@@ -633,13 +653,13 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data,Context ctx) {
-        Insert insert = insertInto(ctx.getDbSession().getTablename());
+        Insert insert = insertInto(data.getTablename());
         
         List<Object> values = Lists.newArrayList();
         
         for(Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
             insert.value(entry.getKey(), bindMarker());  
-            values.add(ctx.toStatementValue(entry.getKey(), entry.getValue().orNull())); 
+            values.add(ctx.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().orNull())); 
         }
         
         if (data.getIfNotExits() != null) {
@@ -663,7 +683,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(ctx.getDbSession().getTablename());
+        com.datastax.driver.core.querybuilder.Update update = update(data.getTablename());
         
         
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
@@ -683,40 +703,40 @@ class WriteQueryDataImpl implements WriteQueryData {
             
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
                 update.with(set(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue().orNull()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue().orNull()));
             }
 
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
                 update.with(addAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             }
             for(Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
                 update.with(removeAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             }
 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
                 update.with(prependAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
                 update.with(appendAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
                 update.with(discardAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
 
             for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 update.with(putAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue()));
             }
             
             
             for(Entry<String, Object> entry : data.getKeys().entrySet()) {
                 update.where(eq(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(ctx, entry.getKey(), entry.getValue())); 
+                values.add(toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())); 
             }
             
    
@@ -727,28 +747,28 @@ class WriteQueryDataImpl implements WriteQueryData {
         // where condition-based update
         } else {
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
-                update.with(set(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue().orNull())));
+                update.with(set(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue().orNull())));
             }
 
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
-                update.with(addAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(addAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             }
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
-                update.with(removeAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(removeAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             }
             
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
-                update.with(prependAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(prependAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
-                update.with(appendAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(appendAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
-                update.with(discardAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(discardAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
 
             for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
-                update.with(putAll(entry.getKey(), toStatementValue(ctx, entry.getKey(), entry.getValue())));
+                update.with(putAll(entry.getKey(), toStatementValue(ctx, data.getTablename(), entry.getKey(), entry.getValue())));
             }
 
             if (ctx.getTtlSec() != null) {
@@ -775,32 +795,32 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
 
-    private static Object toStatementValue(Context ctx, String name, Object value) {
-        return ctx.toStatementValue(name, value);
+    private static Object toStatementValue(Context ctx, String tablename, String name, Object value) {
+        return ctx.toStatementValue(tablename, name, value);
     }
     
     
-    private static ImmutableSet<Object> toStatementValue(Context ctx, String name, ImmutableSet<Object> values) {
-        return ImmutableSet.copyOf(toStatementValue(ctx, name, ImmutableList.copyOf(values))); 
+    private static ImmutableSet<Object> toStatementValue(Context ctx, String tablename, String name, ImmutableSet<Object> values) {
+        return ImmutableSet.copyOf(toStatementValue(ctx, tablename, name, ImmutableList.copyOf(values))); 
     }
 
     
-    private static ImmutableList<Object> toStatementValue(Context ctx, String name, ImmutableList<Object> values) {
+    private static ImmutableList<Object> toStatementValue(Context ctx, String tablename, String name, ImmutableList<Object> values) {
         
         List<Object> result = Lists.newArrayList();
 
         for (Object value : values) {
-            result.add(toStatementValue(ctx, name, value));
+            result.add(toStatementValue(ctx, tablename, name, value));
         }
         
         return ImmutableList.copyOf(result);
     }
   
     
-    private static Map<Object, Object> toStatementValue(Context ctx, String name, ImmutableMap<Object, Optional<Object>> map) {
+    private static Map<Object, Object> toStatementValue(Context ctx, String tablename, String name, ImmutableMap<Object, Optional<Object>> map) {
         Map<Object, Object> m = Maps.newHashMap();
         for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(ctx, name, toStatementValue(ctx, name, entry.getKey())), toStatementValue(ctx, name, entry.getValue().orNull()));
+            m.put(toStatementValue(ctx, tablename, name, toStatementValue(ctx, tablename, name, entry.getKey())), toStatementValue(ctx, tablename, name, entry.getValue().orNull()));
         }
         return m;
     } 

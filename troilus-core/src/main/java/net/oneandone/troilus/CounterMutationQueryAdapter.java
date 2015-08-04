@@ -117,8 +117,8 @@ import com.google.common.util.concurrent.ListenableFuture;
          }
          
          @Override
-         public ListenableFuture<Statement> getStatementAsync() {
-             return CompletableFutures.toListenableFuture(mutation.getStatementAsync());
+         public ListenableFuture<Statement> getStatementAsync(Context ctx) {
+             return CompletableFutures.toListenableFuture(mutation.getStatementAsync(ctx));
          }
          
          
@@ -188,8 +188,8 @@ import com.google.common.util.concurrent.ListenableFuture;
              }
 
              @Override
-             public CompletableFuture<Statement> getStatementAsync() {
-                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync());
+             public CompletableFuture<Statement> getStatementAsync(Context ctx) {
+                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync(ctx));
              }
          }
      }

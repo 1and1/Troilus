@@ -98,11 +98,11 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
     }
 
     @Override    
-    public ListenableFuture<Statement> getStatementAsync() {
+    public ListenableFuture<Statement> getStatementAsync(final Context ctx) {
         
         Function<Batchable<?>, ListenableFuture<Statement>> statementFetcher = new Function<Batchable<?>, ListenableFuture<Statement>>() {
             public ListenableFuture<Statement> apply(Batchable<?> batchable) {
-                return batchable.getStatementAsync();
+                return batchable.getStatementAsync(ctx);
             };
         };
         return mergeToBatch(type, batchables.iterator(), statementFetcher);

@@ -31,6 +31,11 @@ import com.google.common.collect.ImmutableMap;
  * Delete query data
  */
 public interface DeleteQueryData {
+    
+    /**
+     * @return the tablename
+     */
+    String getTablename();  
 
     /**
      * @param key  the key

@@ -44,6 +44,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class DeleteQueryDataImpl implements DeleteQueryData {
  
+    private final String tablename;
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
@@ -53,17 +54,20 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     /**
      * constructor 
      */
-    DeleteQueryDataImpl() {
-        this(ImmutableMap.<String, Object>of(), 
+    DeleteQueryDataImpl(String tablename) {
+        this(tablename,
+             ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
              ImmutableList.<Clause>of(),
              null);
     }
     
-    private DeleteQueryDataImpl(ImmutableMap<String, Object> keyNameValuePairs, 
-                            ImmutableList<Clause> whereConditions, 
-                            ImmutableList<Clause> onlyIfConditions,
-                            Boolean ifExists) {   
+    private DeleteQueryDataImpl(String tablename,
+                                ImmutableMap<String, Object> keyNameValuePairs, 
+                                ImmutableList<Clause> whereConditions, 
+                                ImmutableList<Clause> onlyIfConditions,
+                                Boolean ifExists) {
+        this.tablename = tablename;
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.onlyIfConditions = onlyIfConditions;
@@ -72,7 +76,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     
     @Override
     public DeleteQueryDataImpl key(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQueryDataImpl(keyNameValuePairs, 
+        return new DeleteQueryDataImpl(this.tablename, 
+                                       keyNameValuePairs, 
                                        this.whereConditions, 
                                        this.onlyIfConditions,
                                        this.ifExists);  
@@ -80,7 +85,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     
     @Override
     public DeleteQueryDataImpl whereConditions(ImmutableList<Clause> whereConditions) {
-        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
+        return new DeleteQueryDataImpl(this.tablename, 
+                                       this.keyNameValuePairs, 
                                        whereConditions, 
                                        this.onlyIfConditions,
                                        this.ifExists);  
@@ -88,7 +94,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     
     @Override
     public DeleteQueryDataImpl onlyIfConditions(ImmutableList<Clause> onlyIfConditions) {
-        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
+        return new DeleteQueryDataImpl(this.tablename, 
+                                       this.keyNameValuePairs, 
                                        this.whereConditions, 
                                        onlyIfConditions,
                                        this.ifExists);  
@@ -96,10 +103,16 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     
     @Override
     public DeleteQueryDataImpl ifExists(Boolean ifExists) {
-        return new DeleteQueryDataImpl(this.keyNameValuePairs, 
+        return new DeleteQueryDataImpl(this.tablename, 
+                                       this.keyNameValuePairs, 
                                        this.whereConditions, 
                                        this.onlyIfConditions,
                                        ifExists);  
+    }
+    
+    @Override
+    public String getTablename() {
+        return tablename;
     }
     
     @Override
@@ -129,7 +142,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @return the query data statement
      */
     static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, Context ctx) {
-        Delete delete = delete().from(ctx.getDbSession().getTablename());
+        Delete delete = delete().from(data.getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
@@ -147,7 +160,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 
-                values.add(ctx.toStatementValue(entry.getKey(), entry.getValue()));
+                values.add(ctx.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue()));
             }
             
             ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(delete);

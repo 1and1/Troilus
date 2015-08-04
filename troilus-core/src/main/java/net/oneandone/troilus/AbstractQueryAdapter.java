@@ -53,7 +53,7 @@ abstract class AbstractQueryAdapter<Q> extends AbstractQuery<Q> {
         return CompletableFutures.toCompletableFuture(query.executeAsync());
     }  
     
-    public CompletableFuture<Statement> getStatementAsync() {
-       return CompletableFutures.toCompletableFuture(query.getStatementAsync());
+    public CompletableFuture<Statement> getStatementAsync(Context ctx) {
+       return CompletableFutures.toCompletableFuture(query.getStatementAsync(ctx));
     }
 }

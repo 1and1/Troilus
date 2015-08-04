@@ -62,7 +62,7 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
     
     @Override
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getStatementAsync());
+        ListenableFuture<ResultSet> future = performAsync(getStatementAsync(getContext()));
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -75,8 +75,8 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync() {
-        return data.toStatementAsync(getContext());
+    public ListenableFuture<Statement> getStatementAsync(Context ctx) {
+        return data.toStatementAsync(ctx, data.getTablename());
     }
 }
 

@@ -91,8 +91,8 @@ class Mutations {
         }
         
         @Override
-        public ListenableFuture<Statement> getStatementAsync() {
-            return CompletableFutures.toListenableFuture(mutation.getStatementAsync());
+        public ListenableFuture<Statement> getStatementAsync(Context ctx) {
+            return CompletableFutures.toListenableFuture(mutation.getStatementAsync(ctx));
         }
     }
 }

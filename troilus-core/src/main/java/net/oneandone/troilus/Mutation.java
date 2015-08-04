@@ -62,6 +62,6 @@ public interface Mutation<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    CompletableFuture<Statement> getStatementAsync();
+    CompletableFuture<Statement> getStatementAsync(Context ctx);
 }
 

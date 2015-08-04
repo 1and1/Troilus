@@ -68,6 +68,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 public class DaoImpl implements Dao {
     
+    private final String tablename;
     private final Context ctx;
     
     /**
@@ -75,38 +76,39 @@ public class DaoImpl implements Dao {
      * @param tablename   the tablename
      */
     public DaoImpl(Session session, String tablename) {
-        this(new Context(session, tablename));
+        this(new Context(session), tablename);
     }
      
     
-    private DaoImpl(Context ctx) {
+    private DaoImpl(Context ctx, String tablename) {
         this.ctx = ctx;
+        this.tablename = tablename;
     }
     
     
     @Override
     public Dao withConsistency(ConsistencyLevel consistencyLevel) {
-        return new DaoImpl(ctx.withConsistency(consistencyLevel));
+        return new DaoImpl(ctx.withConsistency(consistencyLevel), this.tablename);
     }
     
     @Override
     public Dao withSerialConsistency(ConsistencyLevel consistencyLevel) {
-        return new DaoImpl(ctx.withSerialConsistency(consistencyLevel));
+        return new DaoImpl(ctx.withSerialConsistency(consistencyLevel), this.tablename);
     }
  
     @Override
     public Dao withTracking() {
-        return new DaoImpl(ctx.withTracking());
+        return new DaoImpl(ctx.withTracking(), this.tablename);
     }
     
     @Override
     public Dao withoutTracking() {
-        return new DaoImpl(ctx.withoutTracking());
+        return new DaoImpl(ctx.withoutTracking(), this.tablename);
     }
 
     @Override
     public Dao withRetryPolicy(RetryPolicy policy) {
-        return new DaoImpl(ctx.withRetryPolicy(policy));
+        return new DaoImpl(ctx.withRetryPolicy(policy), this.tablename);
     }
 
     
@@ -139,24 +141,24 @@ public class DaoImpl implements Dao {
             context = context.withInterceptor(new CascadeOnDeleteInterceptorAdapter((CascadeOnDeleteInterceptor) queryInterceptor));
         }
 
-        return new DaoImpl(context);
+        return new DaoImpl(context, this.tablename);
     }
     
     
     @Override
     public Insertion writeEntity(Object entity) {
-        ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDbSession().getColumnNames());
-        return new InsertQueryAdapter(ctx, new InsertQuery(ctx, new WriteQueryDataImpl().valuesToMutate(values)));
+        ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getDbSession().getColumnNames(tablename));
+        return new InsertQueryAdapter(ctx, new InsertQuery(ctx, new WriteQueryDataImpl(tablename).valuesToMutate(values)));
     }
     
     @Override
     public UpdateWithUnitAndCounter writeWhere(Clause... clauses) {
-        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl().whereConditions((ImmutableList.copyOf(clauses)))));
+        return new UpdateQueryAdapter(ctx, new UpdateQuery(ctx, new WriteQueryDataImpl(tablename).whereConditions((ImmutableList.copyOf(clauses)))));
     }
     
     @Override
     public WriteWithCounter writeWithKey(ImmutableMap<String, Object> composedKeyParts) {
-        return new WriteWithCounterQueryAdapter(ctx, new WriteWithCounterQuery(ctx, new WriteQueryDataImpl().keys(composedKeyParts)));
+        return new WriteWithCounterQueryAdapter(ctx, new WriteWithCounterQuery(ctx, new WriteQueryDataImpl(tablename).keys(composedKeyParts)));
     }
     
     @Override
@@ -207,7 +209,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public Deletion deleteWhere(Clause... whereConditions) {
-        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().whereConditions(ImmutableList.copyOf(whereConditions))));      
+        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl(tablename).whereConditions(ImmutableList.copyOf(whereConditions))));      
     };
    
     @Override
@@ -254,7 +256,7 @@ public class DaoImpl implements Dao {
     }
     
     public Deletion deleteWithKey(ImmutableMap<String, Object> keyNameValuePairs) {
-        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl().key(keyNameValuePairs)));      
+        return new DeleteQueryAdapter(ctx, new DeleteQuery(ctx, new DeleteQueryDataImpl(tablename).key(keyNameValuePairs)));      
     }
     
     
@@ -266,7 +268,7 @@ public class DaoImpl implements Dao {
             keys.put(entry.getKey(), ImmutableList.of(entry.getValue()));
         }
         
-        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.copyOf(keys))));
+        return new SingleReadQueryAdapter(ctx, new SingleReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.copyOf(keys))));
     }
     
     @Override
@@ -314,35 +316,35 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String name, ImmutableList<Object> values) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(name, values))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.of(name, values))));
     }
     
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                              String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                                                 composedKeyNamePart2, composedKeyValuesPart2))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                                                          composedKeyNamePart2, composedKeyValuesPart2))));
     }
     
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                              String composedKeyNamePart2, Object composedKeyValuePart2,
                                                              String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                                                     composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
-                                                                                                                     composedKeyNamePart3, composedKeyValuesPart3))));        
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                                                          composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
+                                                                                                                          composedKeyNamePart3, composedKeyValuesPart3))));        
     }
 
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)))));
     }
 
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
                                                             String composedKeyNamePart2, Object composedKeyValuePart2) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
-                                                                                                                     composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).keys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                                                                                          composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)))));
     }
     
     @SuppressWarnings("unchecked")
@@ -383,12 +385,12 @@ public class DaoImpl implements Dao {
     
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequenceWhere(Clause... clauses) {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().whereConditions(ImmutableSet.copyOf(clauses))));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).whereConditions(ImmutableSet.copyOf(clauses))));
     }
      
     @Override
     public ListReadWithUnit<ResultList<Record>, Record> readSequence() {
-        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl().columnsToFetch(ImmutableMap.of())));
+        return new ListReadQueryAdapter(ctx, new ListReadQuery(ctx, new ReadQueryDataImpl(tablename).columnsToFetch(ImmutableMap.of())));
     }
 
     
@@ -410,8 +412,8 @@ public class DaoImpl implements Dao {
         private final net.oneandone.troilus.java7.interceptor.ReadQueryData data;
 
         
-        ListReadQueryDataAdapter() {
-            this(new ReadQueryDataImpl());
+        ListReadQueryDataAdapter(String tablename) {
+            this(new ReadQueryDataImpl(tablename));
         }
 
         private ListReadQueryDataAdapter(net.oneandone.troilus.java7.interceptor.ReadQueryData data) {
@@ -455,6 +457,11 @@ public class DaoImpl implements Dao {
         }
         
         @Override
+        public String getTablename() {
+            return data.getTablename();
+        }
+        
+        @Override
         public ImmutableMap<String, ImmutableList<Object>> getKeys() {
             return data.getKeys();
         }
@@ -490,13 +497,13 @@ public class DaoImpl implements Dao {
         }
         
         static net.oneandone.troilus.java7.interceptor.ReadQueryData convert(ReadQueryData data) {
-            return new ReadQueryDataImpl().keys(data.getKeys())
-                                              .whereConditions(data.getWhereConditions())
-                                              .columnsToFetch(data.getColumnsToFetch())
-                                              .limit(data.getLimit().orElse(null))
-                                              .allowFiltering(data.getAllowFiltering().orElse(null))
-                                              .fetchSize(data.getFetchSize().orElse(null))
-                                              .distinct(data.getDistinct().orElse(null));
+            return new ReadQueryDataImpl(data.getTablename()).keys(data.getKeys())
+                                                             .whereConditions(data.getWhereConditions())
+                                                             .columnsToFetch(data.getColumnsToFetch())
+                                                             .limit(data.getLimit().orElse(null))
+                                                             .allowFiltering(data.getAllowFiltering().orElse(null))
+                                                             .fetchSize(data.getFetchSize().orElse(null))
+                                                             .distinct(data.getDistinct().orElse(null));
         }
     }
     
@@ -792,6 +799,11 @@ public class DaoImpl implements Dao {
         @Override
         public WriteQueryDataAdapter ifNotExists(Optional<Boolean> ifNotExists) {
             return new WriteQueryDataAdapter(data.ifNotExists(ifNotExists.orElse(null)));
+        }
+        
+        @Override
+        public String getTablename() {
+            return data.getTablename();
         }
         
         @Override        
@@ -1093,17 +1105,17 @@ public class DaoImpl implements Dao {
         }
         
         static net.oneandone.troilus.java7.interceptor.WriteQueryData convert(WriteQueryData data) {
-            return new WriteQueryDataImpl().keys(data.getKeys())
-                                           .whereConditions(data.getWhereConditions())
-                                           .valuesToMutate(toGuavaOptional(data.getValuesToMutate()))
-                                           .setValuesToAdd(data.getSetValuesToAdd())
-                                           .setValuesToRemove(data.getSetValuesToRemove())
-                                           .listValuesToAppend(data.getListValuesToAppend())
-                                           .listValuesToPrepend(data.getListValuesToPrepend())
-                                           .listValuesToRemove(data.getListValuesToRemove())
-                                           .mapValuesToMutate(toGuavaOptional(data.getMapValuesToMutate()))
-                                           .onlyIfConditions(data.getOnlyIfConditions())
-                                           .ifNotExists(data.getIfNotExits().orElse(null));
+            return new WriteQueryDataImpl(data.getTablename()).keys(data.getKeys())
+                                                              .whereConditions(data.getWhereConditions())
+                                                              .valuesToMutate(toGuavaOptional(data.getValuesToMutate()))
+                                                              .setValuesToAdd(data.getSetValuesToAdd())
+                                                              .setValuesToRemove(data.getSetValuesToRemove())
+                                                              .listValuesToAppend(data.getListValuesToAppend())
+                                                              .listValuesToPrepend(data.getListValuesToPrepend())
+                                                              .listValuesToRemove(data.getListValuesToRemove())
+                                                              .mapValuesToMutate(toGuavaOptional(data.getMapValuesToMutate()))
+                                                              .onlyIfConditions(data.getOnlyIfConditions())
+                                                              .ifNotExists(data.getIfNotExits().orElse(null));
         }
     }
     
