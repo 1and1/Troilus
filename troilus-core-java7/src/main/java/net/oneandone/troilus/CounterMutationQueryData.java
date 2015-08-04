@@ -122,9 +122,9 @@ class CounterMutationQueryData {
     }
     
     ListenableFuture<Statement> toStatementAsync(Context ctx, Tablename tablename) {
-        ctx.checkKeyspacename(tablename);
         
-        com.datastax.driver.core.querybuilder.Update update = update(tablename.getTablename());
+        com.datastax.driver.core.querybuilder.Update update = (tablename.getKeyspacename() == null) ? update(tablename.getTablename()) 
+                                                                                                    : update(tablename.getKeyspacename(), tablename.getTablename());
         
         // key-based update
         if (getWhereConditions().isEmpty()) {

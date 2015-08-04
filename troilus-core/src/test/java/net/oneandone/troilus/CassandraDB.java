@@ -107,6 +107,25 @@ public class CassandraDB {
         Cluster cluster = createCluster();
         return createSession(cluster);
     }
+
+    
+    public Session newGobalSession() {
+        Cluster cluster = createCluster();
+        return cluster.connect();
+    }
+
+    
+    public Session newSession(String keyspacename) {
+        Cluster cluster = createCluster();
+        return cluster.connect(keyspacename);
+    }
+    
+    
+    
+    
+    public String getKeyspacename() {
+        return globalKeyspacename;
+    }
     
     /**
      * executes a CQL file 

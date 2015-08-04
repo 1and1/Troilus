@@ -19,7 +19,6 @@ package net.oneandone.troilus.api;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.time.Duration;
 import java.util.Optional;
 
 import net.oneandone.troilus.Dao;

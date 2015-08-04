@@ -653,9 +653,8 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data, Context ctx) {
-        ctx.checkKeyspacename(data.getTablename());
-        
-        Insert insert = insertInto(data.getTablename().getTablename());
+        Insert insert = (data.getTablename().getKeyspacename() == null) ? insertInto(data.getTablename().getTablename()) 
+                                                                        : insertInto(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
         
         List<Object> values = Lists.newArrayList();
         
@@ -685,10 +684,9 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, Context ctx) {
-        ctx.checkKeyspacename(data.getTablename());
         
-        com.datastax.driver.core.querybuilder.Update update = update(data.getTablename().getTablename());
-        
+        com.datastax.driver.core.querybuilder.Update update = (data.getTablename().getKeyspacename() == null) ? update(data.getTablename().getTablename()) 
+                                                                                                              : update(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
         
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             update.onlyIf(onlyIfCondition);

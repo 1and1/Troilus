@@ -142,9 +142,9 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @return the query data statement
      */
     static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, Context ctx) {
-        ctx.checkKeyspacename(data.getTablename());
         
-        Delete delete = delete().from(data.getTablename().getTablename());
+        Delete delete = (data.getTablename().getKeyspacename() == null) ? delete().from(data.getTablename().getTablename())
+                                                                        : delete().from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);

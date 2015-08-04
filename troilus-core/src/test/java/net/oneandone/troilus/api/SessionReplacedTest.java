@@ -18,9 +18,7 @@ package net.oneandone.troilus.api;
 
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,8 +52,6 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.sun.org.apache.bcel.internal.generic.NEWARRAY;
-
 
 
 public class SessionReplacedTest {

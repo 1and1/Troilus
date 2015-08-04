@@ -30,7 +30,7 @@ public class Tablename {
     static Tablename newTablename(Session session, String tablename) {
         if (tablename.contains(".")) {
             int posDot = tablename.indexOf(".");
-            String keyspacename = tablename.substring(0,posDot);
+            String keyspacename = tablename.substring(0, posDot);
             return new Tablename(keyspacename, tablename.substring(posDot + 1, tablename.length()));
         } else {
             return new Tablename(session.getLoggedKeyspace(), tablename);
@@ -42,6 +42,10 @@ public class Tablename {
         this.tablename = tablename;
     }
 
+    String getKeyspacename() {
+        return keyspacename;
+    }
+    
     public String getTablename() {
         return tablename;
     }
@@ -60,6 +64,6 @@ public class Tablename {
     
     @Override
     public String toString() {
-        return keyspacename + "." + tablename;
+        return (keyspacename == null) ? tablename : keyspacename + "." + tablename;
     }
 }

@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
+
+import net.oneandone.troilus.Context.DBSession.UserTypeCache;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;
@@ -29,7 +30,6 @@ import com.datastax.driver.core.TupleType;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
 import com.google.common.base.Optional;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -52,12 +52,8 @@ class UDTValueMapper {
     
     
     
-    private UserType getUserType(LoadingCache<String, UserType> userTypeCache, String usertypeName) {
-        try {
-            return userTypeCache.get(usertypeName);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e.getCause());
-        }
+    private UserType getUserType(Tablename tablename, UserTypeCache userTypeCache, String usertypeName) {
+        return userTypeCache.get(tablename, usertypeName);
     }
     
 
@@ -270,7 +266,8 @@ class UDTValueMapper {
     
     
     @SuppressWarnings("unchecked")
-    public Object toUdtValue(LoadingCache<String, UserType> userTypeCache, 
+    public Object toUdtValue(Tablename tablename,
+                             UserTypeCache userTypeCache, 
                              DataType datatype, 
                              Object value) {
         
@@ -288,7 +285,7 @@ class UDTValueMapper {
                Set<Object> udt = Sets.newHashSet();
                if (value != null) {
                    for (Object element : (Set<Object>) value) {
-                       udt.add(toUdtValue(userTypeCache, elementDataType, element));
+                       udt.add(toUdtValue(tablename, userTypeCache, elementDataType, element));
                    }
                }
                
@@ -301,7 +298,7 @@ class UDTValueMapper {
                List<Object> udt = Lists.newArrayList();
                if (value != null) {
                    for (Object element : (List<Object>) value) {
-                       udt.add(toUdtValue(userTypeCache, elementDataType, element));
+                       udt.add(toUdtValue(tablename, userTypeCache, elementDataType, element));
                    }
                }
                
@@ -315,8 +312,8 @@ class UDTValueMapper {
                Map<Object, Object> udt = Maps.newHashMap();
                if (value != null) {
                    for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
-                         udt.put(toUdtValue(userTypeCache, keyDataType, entry.getKey()), 
-                                 toUdtValue(userTypeCache, valueDataType, entry.getValue()));
+                         udt.put(toUdtValue(tablename, userTypeCache, keyDataType, entry.getKey()), 
+                                 toUdtValue(tablename, userTypeCache, valueDataType, entry.getValue()));
                    }
                
                }
@@ -330,7 +327,7 @@ class UDTValueMapper {
                 return value;
                 
             } else {
-                UserType usertype = getUserType(userTypeCache, ((UserType) datatype).getTypeName());
+                UserType usertype = getUserType(tablename, userTypeCache, ((UserType) datatype).getTypeName());
                 UDTValue udtValue = usertype.newValue();
                 
                 for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value, ImmutableSet.<String>of()).entrySet()) {
@@ -342,7 +339,7 @@ class UDTValueMapper {
                     Object vl = entry.getValue().get();
                     
                     if (!isBuildInType(usertype.getFieldType(entry.getKey()))) {
-                        vl = toUdtValue(userTypeCache, fieldType, vl);
+                        vl = toUdtValue(tablename, userTypeCache, fieldType, vl);
                     }
                     
                     udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, protocolVersion));

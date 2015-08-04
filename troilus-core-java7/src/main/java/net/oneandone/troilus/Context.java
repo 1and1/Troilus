@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 
 import java.lang.reflect.InvocationTargetException;
+
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -54,8 +55,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -263,7 +262,7 @@ public class Context {
          
         // udt    
         } else {
-            return dbSession.getUDTValueMapper().toUdtValue(dbSession.getUserTypeCache(), dbSession.getColumnMetadata(tablename, name).getType(), value);
+            return dbSession.getUDTValueMapper().toUdtValue(tablename, dbSession.getUserTypeCache(), dbSession.getColumnMetadata(tablename, name).getType(), value);
         }
     }
     
@@ -280,11 +279,7 @@ public class Context {
     }
     
     
-    void checkKeyspacename(Tablename tablename) {
   
-        
-    }
-        
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -441,7 +436,7 @@ public class Context {
         private final UDTValueMapper udtValueMapper;
         private final TableMetadataCache tableMetadataCache;
         private final PreparedStatementCache preparedStatementCache;
-        private final LoadingCache<String, UserType> userTypeCache;
+        private final UserTypeCache userTypeCache;
         
         private final AtomicLong lastCacheCleanTime = new AtomicLong(0);
         
@@ -457,7 +452,7 @@ public class Context {
             //this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
             this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
             this.preparedStatementCache = new PreparedStatementCache(session);
-            this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
+            this.userTypeCache = new UserTypeCache(session);
             this.tableMetadataCache = new TableMetadataCache(session, executor);
         }
    
@@ -491,7 +486,7 @@ public class Context {
             return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
         }
         
-        LoadingCache<String, UserType> getUserTypeCache() {
+        UserTypeCache getUserTypeCache() {
             return userTypeCache; 
         }
                 
@@ -544,17 +539,32 @@ public class Context {
         
         
         
-        private static final class UserTypeCacheLoader extends CacheLoader<String, UserType> {
+        static final class UserTypeCache {
             private final Session session;
+            private final Cache<String, UserType> userTypeCache;
             
-            public UserTypeCacheLoader(Session session) {
+            public UserTypeCache(Session session) {
                 this.session = session;
+                this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build();
             }
 
-            @Override
-            public UserType load(String usertypeName) throws Exception {
-                return session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getUserType(usertypeName);
+            
+            public UserType get(Tablename tablename, String usertypeName) {
+                String key = tablename.getKeyspacename() + "." + usertypeName;
+                
+                UserType userType = userTypeCache.getIfPresent(key);
+                if (userType == null) {
+                    userType = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getUserType(usertypeName);
+                    userTypeCache.put(key, userType);
+                } 
+                
+                return userType;
             }
+            
+
+            public void invalidateAll() {
+                userTypeCache.invalidateAll();
+            }      
         }    
         
         
@@ -676,9 +686,9 @@ public class Context {
             
             
             private static TableMetadata loadTableMetadata(Session session, Tablename tablename) {
-                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename.getTablename());
+                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getTable(tablename.getTablename());
                 if (tableMetadata == null) {
-                    throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
+                    throw new RuntimeException("table " + tablename + " is not defined");
                 }
 
                 return tableMetadata;

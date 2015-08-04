@@ -222,8 +222,6 @@ class ReadQueryDataImpl implements ReadQueryData {
      * @return  the query as statement
      */
     static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, Context ctx) {
-        ctx.checkKeyspacename(data.getTablename());
-        
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -255,7 +253,8 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
         }
         
-        Select select = selection.from(data.getTablename().getTablename());
+        Select select = (data.getTablename().getKeyspacename() == null) ? selection.from(data.getTablename().getTablename())
+                                                                        : selection.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
   
         if (data.getLimit() != null) {
             select.limit(data.getLimit());
