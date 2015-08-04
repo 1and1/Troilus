@@ -68,13 +68,11 @@ import com.google.common.util.concurrent.ListenableFuture;
  * the context
  * 
  */
-public class Context {
-    
+public class Context  {
     
     private static final Logger LOG = LoggerFactory.getLogger(Context.class);
 
 
-    
     private final ExecutionSpec executionSpec;
     private final InterceptorRegistry interceptorRegistry;
     private final BeanMapper beanMapper;
@@ -94,7 +92,7 @@ public class Context {
     
     private Context(Session session, BeanMapper beanMapper, Executor executor) {
         this(new DBSession(session, beanMapper, executor), 
-             new ExecutionSpec(), 
+             new ExecutionSpecImpl(), 
              new InterceptorRegistry(),
              beanMapper,
              executor);
@@ -207,8 +205,14 @@ public class Context {
         return executionSpec.getEnableTracing();
     }
     
+    @Deprecated
     DBSession getDbSession() {
         return dbSession;
+    }
+    
+    @Deprecated
+    ExecutionSpec getExecutionSpec() {
+        return executionSpec;
     }
     
     RetryPolicy getRetryPolicy() {
@@ -237,45 +241,10 @@ public class Context {
         return ImmutableList.copyOf(result);
     }
 
-    Object toStatementValue(Tablename tablename, String name, Object value) {
-        if (isNullOrEmpty(value)) {
-            return null;
-        } 
-        
-        DataType dataType = dbSession.getColumnMetadata(tablename, name).getType();
-        
-        // build in
-        if (UDTValueMapper.isBuildInType(dataType)) {
-            
-            // enum
-            if (isTextDataType(dataType) && Enum.class.isAssignableFrom(value.getClass())) {
-                return value.toString();
-            }
-            
-            // byte buffer (byte[])
-            if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
-                return ByteBuffer.wrap((byte[]) value);
-            }
-
-            
-            return value;
-         
-        // udt    
-        } else {
-            return dbSession.getUDTValueMapper().toUdtValue(tablename, dbSession.getUserTypeCache(), dbSession.getColumnMetadata(tablename, name).getType(), value);
-        }
-    }
     
-    boolean isTextDataType(DataType dataType) {
-        return dataType.equals(DataType.text()) ||
-               dataType.equals(DataType.ascii()) ||
-               dataType.equals(DataType.varchar());
-    }
- 
-    private boolean isNullOrEmpty(Object value) {
-        return (value == null) || 
-               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
-               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
+    @Deprecated
+    Object toStatementValue(Tablename tablename, String name, Object value) {
+        return dbSession.toStatementValue(tablename, name, value);
     }
     
     
@@ -291,7 +260,7 @@ public class Context {
    
     
      
-    static class ExecutionSpec {
+    static class ExecutionSpecImpl implements ExecutionSpec {
         
         private final ConsistencyLevel consistencyLevel;
         private final ConsistencyLevel serialConsistencyLevel;
@@ -300,7 +269,7 @@ public class Context {
         private final Boolean enableTracing;
         private final RetryPolicy retryPolicy;
         
-        ExecutionSpec() {
+        ExecutionSpecImpl() {
             this(null, 
                  null,
                  null,
@@ -309,12 +278,12 @@ public class Context {
                  null);
         }
     
-        public ExecutionSpec(ConsistencyLevel consistencyLevel, 
-                             ConsistencyLevel serialConsistencyLevel,
-                             Integer ttlSec,
-                             Long writetimeMicrosSinceEpoch,
-                             Boolean enableTracking,
-                             RetryPolicy retryPolicy) {
+        public ExecutionSpecImpl(ConsistencyLevel consistencyLevel, 
+                                 ConsistencyLevel serialConsistencyLevel,
+                                 Integer ttlSec,
+                                 Long writetimeMicrosSinceEpoch,
+                                 Boolean enableTracking,
+                                 RetryPolicy retryPolicy) {
             this.consistencyLevel = consistencyLevel;
             this.serialConsistencyLevel = serialConsistencyLevel;
             this.ttlSec = ttlSec;
@@ -323,67 +292,67 @@ public class Context {
             this.retryPolicy = retryPolicy;
         }
         
-        ExecutionSpec withConsistency(ConsistencyLevel consistencyLevel) {
-            return new ExecutionSpec(consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     this.ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing,
-                                     this.retryPolicy);
+        public ExecutionSpec withConsistency(ConsistencyLevel consistencyLevel) {
+            return new ExecutionSpecImpl(consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         this.ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         this.enableTracing,
+                                         this.retryPolicy);
         }
     
-        ExecutionSpec withSerialConsistency(ConsistencyLevel consistencyLevel) {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     consistencyLevel,
-                                     this.ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing,
-                                     this.retryPolicy);
+        public ExecutionSpec withSerialConsistency(ConsistencyLevel consistencyLevel) {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         consistencyLevel,
+                                         this.ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         this.enableTracing,
+                                         this.retryPolicy);
         }
         
-        ExecutionSpec withTtl(int ttlSec) {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing,
-                                     this.retryPolicy);
+        public ExecutionSpec withTtl(int ttlSec) {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         this.enableTracing,
+                                         this.retryPolicy);
         }
         
-        ExecutionSpec withWritetime(long microsSinceEpoch) {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     this.ttlSec,
-                                     microsSinceEpoch,
-                                     this.enableTracing,
-                                     this.retryPolicy);
+        public ExecutionSpec withWritetime(long microsSinceEpoch) {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         this.ttlSec,
+                                         microsSinceEpoch,
+                                         this.enableTracing,
+                                         this.retryPolicy);
         }
 
-        ExecutionSpec withTracking() {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     this.ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     true,
-                                     this.retryPolicy);
+        public ExecutionSpec withTracking() {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         this.ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         true,
+                                         this.retryPolicy);
         }
 
-        ExecutionSpec withoutTracking() {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     this.ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     false,
-                                     this.retryPolicy);
+        public ExecutionSpec withoutTracking() {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         this.ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         false,
+                                         this.retryPolicy);
         }
         
-        ExecutionSpec withRetryPolicy(RetryPolicy policy) {
-            return new ExecutionSpec(this.consistencyLevel,
-                                     this.serialConsistencyLevel,
-                                     this.ttlSec,
-                                     this.writetimeMicrosSinceEpoch,
-                                     this.enableTracing,
-                                     policy);
+        public ExecutionSpec withRetryPolicy(RetryPolicy policy) {
+            return new ExecutionSpecImpl(this.consistencyLevel,
+                                         this.serialConsistencyLevel,
+                                         this.ttlSec,
+                                         this.writetimeMicrosSinceEpoch,
+                                         this.enableTracing,
+                                         policy);
         }
 
         public ConsistencyLevel getConsistencyLevel() {
@@ -428,7 +397,7 @@ public class Context {
 
     
     
-    static class DBSession  {
+    public static class DBSession  {
         private final Session session;
         private final boolean isKeyspacenameAssigned;
         private final String keyspacename;
@@ -442,7 +411,7 @@ public class Context {
 
         
 
-        public DBSession(Session session, BeanMapper beanMapper, Executor executor) {
+        DBSession(Session session, BeanMapper beanMapper, Executor executor) {
             this.session = session;
             
             this.keyspacename = session.getLoggedKeyspace();
@@ -515,6 +484,44 @@ public class Context {
             };
             return Futures.transform(preparedStatementFuture, bindStatementFunction);
         }
+        
+        
+        Object toStatementValue(Tablename tablename, String name, Object value) {
+            if (isNullOrEmpty(value)) {
+                return null;
+            } 
+            
+            DataType dataType = getColumnMetadata(tablename, name).getType();
+            
+            // build in
+            if (UDTValueMapper.isBuildInType(dataType)) {
+                
+                // enum
+                if (DataTypes.isTextDataType(dataType) && Enum.class.isAssignableFrom(value.getClass())) {
+                    return value.toString();
+                }
+                
+                // byte buffer (byte[])
+                if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
+                    return ByteBuffer.wrap((byte[]) value);
+                }
+
+                
+                return value;
+             
+            // udt    
+            } else {
+                return getUDTValueMapper().toUdtValue(tablename, getUserTypeCache(), getColumnMetadata(tablename, name).getType(), value);
+            }
+        }
+        
+     
+        private boolean isNullOrEmpty(Object value) {
+            return (value == null) || 
+                   (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
+                   (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
+        }
+        
         
         
         @Override

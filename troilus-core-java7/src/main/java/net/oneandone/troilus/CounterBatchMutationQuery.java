@@ -17,6 +17,9 @@ package net.oneandone.troilus;
 
 
 
+import java.util.concurrent.Executor;
+
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.BatchStatement.Type;
@@ -66,11 +69,11 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
     }
     
     @Override
-    public ListenableFuture<Statement> getStatementAsync(final Context ctx) {
+    public ListenableFuture<Statement> getStatementAsync(final ExecutionSpec executionSpec, final DBSession dbSession, final Executor executor) {
         
         Function<CounterMutation, ListenableFuture<Statement>> statementFetcher = new Function<CounterMutation, ListenableFuture<Statement>>() {
             public ListenableFuture<Statement> apply(CounterMutation batchable) {
-                return batchable.getStatementAsync(ctx);
+                return batchable.getStatementAsync(executionSpec, dbSession, executor);
             };
         };
         return mergeToBatch(Type.COUNTER, batchables.iterator(), statementFetcher);

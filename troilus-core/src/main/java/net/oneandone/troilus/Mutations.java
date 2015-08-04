@@ -16,6 +16,9 @@
 package net.oneandone.troilus;
 
 
+import java.util.concurrent.Executor;
+
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.BatchMutation;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -91,8 +94,8 @@ class Mutations {
         }
         
         @Override
-        public ListenableFuture<Statement> getStatementAsync(Context ctx) {
-            return CompletableFutures.toListenableFuture(mutation.getStatementAsync(ctx));
+        public ListenableFuture getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
+            return CompletableFutures.toListenableFuture(mutation.getStatementAsync(executionSpec, dbSession, executor));
         }
     }
 }

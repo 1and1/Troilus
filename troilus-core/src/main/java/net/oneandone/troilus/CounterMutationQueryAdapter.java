@@ -18,9 +18,11 @@ package net.oneandone.troilus;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
+import net.oneandone.troilus.Context.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
@@ -117,8 +119,8 @@ import com.google.common.util.concurrent.ListenableFuture;
          }
          
          @Override
-         public ListenableFuture<Statement> getStatementAsync(Context ctx) {
-             return CompletableFutures.toListenableFuture(mutation.getStatementAsync(ctx));
+         public ListenableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
+             return CompletableFutures.toListenableFuture(mutation.getStatementAsync(executionSpec, dbSession, executor));
          }
          
          
@@ -188,8 +190,8 @@ import com.google.common.util.concurrent.ListenableFuture;
              }
 
              @Override
-             public CompletableFuture<Statement> getStatementAsync(Context ctx) {
-                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync(ctx));
+            public CompletableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor) {
+                 return CompletableFutures.toCompletableFuture(mutation.getStatementAsync(executionSpec, dbSession, executor));
              }
          }
      }

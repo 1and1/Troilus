@@ -23,6 +23,8 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.oneandone.troilus.Context.DBSession;
+
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -121,7 +123,7 @@ class CounterMutationQueryData {
         return diff;
     }
     
-    ListenableFuture<Statement> toStatementAsync(Context ctx, Tablename tablename) {
+    ListenableFuture<Statement> toStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Tablename tablename) {
         
         com.datastax.driver.core.querybuilder.Update update = (tablename.getKeyspacename() == null) ? update(tablename.getTablename()) 
                                                                                                     : update(tablename.getKeyspacename(), tablename.getTablename());
@@ -144,14 +146,14 @@ class CounterMutationQueryData {
                 values.add(entry.getValue());
             }
             
-            if (ctx.getTtlSec() != null) {
+            if (executionSpec.getTtl() != null) {
                 update.using(QueryBuilder.ttl(bindMarker())); 
-                values.add((Integer) ctx.getTtlSec());
+                values.add((Integer) executionSpec.getTtl());
             }
 
             
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(update);
-            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(update);
+            return dbSession.bindAsync(preparedStatementFuture, values.toArray());
             
         // where condition-based update
         } else {
@@ -163,8 +165,8 @@ class CounterMutationQueryData {
                 update.with(QueryBuilder.decr(getName(), 0 - getDiff()));
             }
                             
-            if (ctx.getTtlSec() != null) {
-                update.using(QueryBuilder.ttl(ctx.getTtlSec().intValue()));
+            if (executionSpec.getTtl() != null) {
+                update.using(QueryBuilder.ttl(executionSpec.getTtl().intValue()));
             }
             
             for (Clause whereCondition : getWhereConditions()) {

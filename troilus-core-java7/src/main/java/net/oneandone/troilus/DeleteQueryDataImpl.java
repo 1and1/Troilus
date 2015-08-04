@@ -26,6 +26,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 import com.datastax.driver.core.querybuilder.Clause;
@@ -141,7 +142,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @param ctx   the context
      * @return the query data statement
      */
-    static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, Context ctx) {
+    static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, ExecutionSpec executionSpec, DBSession dbSession) {
         
         Delete delete = (data.getTablename().getKeyspacename() == null) ? delete().from(data.getTablename().getTablename())
                                                                         : delete().from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
@@ -162,11 +163,11 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 
-                values.add(ctx.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(dbSession.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue()));
             }
             
-            ListenableFuture<PreparedStatement> preparedStatementFuture = ctx.getDbSession().prepareAsync(delete);
-            return ctx.getDbSession().bindAsync(preparedStatementFuture, values.toArray());
+            ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(delete);
+            return dbSession.bindAsync(preparedStatementFuture, values.toArray());
             
         // where condition-based delete    
         } else {

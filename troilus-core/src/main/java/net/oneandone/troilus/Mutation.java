@@ -16,6 +16,9 @@
 package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
+import net.oneandone.troilus.Context.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
@@ -62,6 +65,6 @@ public interface Mutation<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    CompletableFuture<Statement> getStatementAsync(Context ctx);
+    CompletableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor);
 }
 

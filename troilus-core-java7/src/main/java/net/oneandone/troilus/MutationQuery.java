@@ -20,7 +20,9 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
+import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;
@@ -56,7 +58,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     public ListenableFuture<Result> executeAsync() {
-        ListenableFuture<ResultSet> future = performAsync(getContext().getDbSession(), getStatementAsync(getContext()));
+        ListenableFuture<ResultSet> future = performAsync(getContext().getDbSession(), getStatementAsync(getContext().getExecutionSpec(), getContext().getDbSession(), getContext().getTaskExecutor()));
         
         Function<ResultSet, Result> mapEntity = new Function<ResultSet, Result>() {
             @Override
@@ -69,11 +71,11 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     
-    public abstract ListenableFuture<Statement> getStatementAsync(final Context ctx);
+    public abstract ListenableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor);
     
     
-    protected ListenableFuture<Statement> mergeStatements(Context ctx, ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {
-        ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, ctx.getTaskExecutor());
+    protected ListenableFuture<Statement> mergeStatements(Executor executor, ListenableFuture<Statement> statementFuture, ListenableFuture<ImmutableSet<Statement>> cascadingStatmentsFuture) {
+        ListenableFuture<ImmutableSet<Statement>> statementsFuture = ListenableFutures.join(cascadingStatmentsFuture, statementFuture, executor);
 
         Function<ImmutableSet<Statement>, Statement> statementsBatcher = new Function<ImmutableSet<Statement>, Statement>() {
             
@@ -89,20 +91,20 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
     }
     
     
-    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(Context ctx, ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet) {
+    protected ListenableFuture<ImmutableSet<Statement>> transformBatchablesToStatement(final ExecutionSpec executionSpec, final DBSession dbSession, final Executor executor, ListenableFuture<ImmutableSet<? extends Batchable<?>>> batchablesFutureSet) {
                     
         Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>> batchablesToStatement = new Function<ImmutableSet<? extends Batchable<?>>, ImmutableSet<ListenableFuture<Statement>>>() {                
             @Override
             public ImmutableSet<ListenableFuture<Statement>> apply(ImmutableSet<? extends Batchable<?>> batchables) {
                 Set<ListenableFuture<Statement>> statementFutureSet = Sets.newHashSet();
                 for(Batchable<?> batchable : batchables) {
-                    statementFutureSet.add(batchable.getStatementAsync(getContext()));
+                    statementFutureSet.add(batchable.getStatementAsync(executionSpec, dbSession, executor));
                 }
                 return ImmutableSet.copyOf(statementFutureSet);                    
             }
         };            
         ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
-        return ListenableFutures.flat(statementFutureSet, ctx.getTaskExecutor());
+        return ListenableFutures.flat(statementFutureSet, executor);
     }
     
     

@@ -16,7 +16,11 @@
 package net.oneandone.troilus.java7;
 
 
+import java.util.concurrent.Executor;
+
 import net.oneandone.troilus.Context;
+import net.oneandone.troilus.ExecutionSpec;
+import net.oneandone.troilus.Context.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
@@ -63,5 +67,5 @@ public interface Mutation<Q, R> extends Query<R> {
     /**
      * @return the statement future
      */
-    ListenableFuture<Statement> getStatementAsync(Context ctx);
+    ListenableFuture<Statement> getStatementAsync(ExecutionSpec executionSpec, DBSession dbSession, Executor executor);
 }

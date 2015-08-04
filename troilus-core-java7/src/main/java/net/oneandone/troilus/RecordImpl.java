@@ -265,7 +265,7 @@ class RecordImpl implements Record {
                 }
             
                 // enum
-                if ((obj != null) && ctx.isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {
+                if ((obj != null) && DataTypes.isTextDataType(datatype) && Enum.class.isAssignableFrom(elementsClass)) {
                     return (T) Enum.valueOf((Class<Enum>) elementsClass, obj.toString());
                 }
                 
