@@ -329,12 +329,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     private static class EntityListImpl<F> extends ResultAdapter implements ResultList<F> {
-        private final String tablename;
+        private final Tablename tablename;
         private final Context ctx;
         private final ResultList<Record> recordList;
         private final Class<F> clazz;
     
-        EntityListImpl(String tablename, Context ctx, ResultList<Record> recordList, Class<F> clazz) {
+        EntityListImpl(Tablename tablename, Context ctx, ResultList<Record> recordList, Class<F> clazz) {
             super(recordList);
             this.tablename = tablename;
             this.ctx = ctx;
@@ -382,7 +382,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     
     private static final class CountReadQueryData {
-        final String tablename;
+        final Tablename tablename;
         final ImmutableSet<Clause> whereClauses;
         final Integer limit;
         final Boolean allowFiltering;
@@ -391,7 +391,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         
         
-        public CountReadQueryData(String tablename) {
+        public CountReadQueryData(Tablename tablename) {
             this(tablename,
                  ImmutableSet.<Clause>of(),
                  null,
@@ -400,7 +400,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                  null);
         }
         
-        private CountReadQueryData(String tablename,
+        private CountReadQueryData(Tablename tablename,
                                    ImmutableSet<Clause> whereClauses, 
                                    Integer limit, 
                                    Boolean allowFiltering,
@@ -466,7 +466,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                                           distinct);  
         }
         
-        public String getTablename() {
+        public Tablename getTablename() {
             return tablename;
         }
         
@@ -547,7 +547,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      
             selection.countAll();
             
-            Select select = selection.from(data.getTablename());
+            Select select = selection.from(data.getTablename().getTablename());
             
             for (Clause whereCondition : queryData.getWhereConditions()) {
                 select.where(whereCondition);

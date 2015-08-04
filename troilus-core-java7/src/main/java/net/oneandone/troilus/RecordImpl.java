@@ -56,7 +56,7 @@ class RecordImpl implements Record {
     
     private static final Logger LOG = LoggerFactory.getLogger(RecordImpl.class);
 
-    private final String tablename;
+    private final Tablename tablename;
     private final Context ctx;
     private final Result result;
     private final Row row;

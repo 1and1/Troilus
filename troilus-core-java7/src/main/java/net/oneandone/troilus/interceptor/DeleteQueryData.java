@@ -17,6 +17,8 @@ package net.oneandone.troilus.interceptor;
 
 
 
+import net.oneandone.troilus.Tablename;
+
 import com.datastax.driver.core.querybuilder.Clause;
 
 
@@ -35,7 +37,7 @@ public interface DeleteQueryData {
     /**
      * @return the tablename
      */
-    String getTablename();  
+    Tablename getTablename();  
 
     /**
      * @param key  the key

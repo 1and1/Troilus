@@ -39,7 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 class CounterMutationQueryData {
 
-    private final String tablename;
+    private final Tablename tablename;
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
 
@@ -47,7 +47,7 @@ class CounterMutationQueryData {
     private final long diff;
 
     
-    public CounterMutationQueryData(String tablename) {
+    public CounterMutationQueryData(Tablename tablename) {
         this(tablename,
              ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),
@@ -55,7 +55,7 @@ class CounterMutationQueryData {
              0);
     }
     
-    private CounterMutationQueryData(String tablename,
+    private CounterMutationQueryData(Tablename tablename,
                                      ImmutableMap<String, Object> keys,
                                      ImmutableList<Clause> whereConditions,
                                      String name,
@@ -101,7 +101,7 @@ class CounterMutationQueryData {
     }
     
     
-    public String getTablename() {
+    public Tablename getTablename() {
         return tablename;
     }
     
@@ -121,8 +121,10 @@ class CounterMutationQueryData {
         return diff;
     }
     
-    ListenableFuture<Statement> toStatementAsync(Context ctx, String tablename) {
-        com.datastax.driver.core.querybuilder.Update update = update(tablename);
+    ListenableFuture<Statement> toStatementAsync(Context ctx, Tablename tablename) {
+        ctx.checkKeyspacename(tablename);
+        
+        com.datastax.driver.core.querybuilder.Update update = update(tablename.getTablename());
         
         // key-based update
         if (getWhereConditions().isEmpty()) {

@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import net.oneandone.troilus.ColumnName;
+import net.oneandone.troilus.Tablename;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +42,7 @@ public interface WriteQueryData {
     /**
      * @return the tablename
      */
-    String getTablename();
+    Tablename getTablename();
     
     
     /**

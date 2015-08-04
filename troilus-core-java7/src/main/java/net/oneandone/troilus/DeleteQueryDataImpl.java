@@ -44,7 +44,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class DeleteQueryDataImpl implements DeleteQueryData {
  
-    private final String tablename;
+    private final Tablename tablename;
     private final ImmutableMap<String, Object> keyNameValuePairs;
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
@@ -54,7 +54,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     /**
      * constructor 
      */
-    DeleteQueryDataImpl(String tablename) {
+    DeleteQueryDataImpl(Tablename tablename) {
         this(tablename,
              ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
@@ -62,7 +62,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
              null);
     }
     
-    private DeleteQueryDataImpl(String tablename,
+    private DeleteQueryDataImpl(Tablename tablename,
                                 ImmutableMap<String, Object> keyNameValuePairs, 
                                 ImmutableList<Clause> whereConditions, 
                                 ImmutableList<Clause> onlyIfConditions,
@@ -111,7 +111,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     }
     
     @Override
-    public String getTablename() {
+    public Tablename getTablename() {
         return tablename;
     }
     
@@ -142,7 +142,9 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @return the query data statement
      */
     static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, Context ctx) {
-        Delete delete = delete().from(data.getTablename());
+        ctx.checkKeyspacename(data.getTablename());
+        
+        Delete delete = delete().from(data.getTablename().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);

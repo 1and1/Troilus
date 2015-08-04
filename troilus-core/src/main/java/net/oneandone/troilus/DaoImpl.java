@@ -68,19 +68,19 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 public class DaoImpl implements Dao {
     
-    private final String tablename;
+    private final Tablename tablename;
     private final Context ctx;
     
     /**
-     * @param session     the underyling session
-     * @param tablename   the tablename
+     * @param session     the underlying session
+     * @param tablename   the table name
      */
     public DaoImpl(Session session, String tablename) {
-        this(new Context(session), tablename);
+        this(new Context(session), Tablename.newTablename(session, tablename));
     }
      
-    
-    private DaoImpl(Context ctx, String tablename) {
+ 
+    private DaoImpl(Context ctx, Tablename tablename) {
         this.ctx = ctx;
         this.tablename = tablename;
     }
@@ -412,7 +412,7 @@ public class DaoImpl implements Dao {
         private final net.oneandone.troilus.java7.interceptor.ReadQueryData data;
 
         
-        ListReadQueryDataAdapter(String tablename) {
+        ListReadQueryDataAdapter(Tablename tablename) {
             this(new ReadQueryDataImpl(tablename));
         }
 
@@ -457,7 +457,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public String getTablename() {
+        public Tablename getTablename() {
             return data.getTablename();
         }
         
@@ -802,7 +802,7 @@ public class DaoImpl implements Dao {
         }
         
         @Override
-        public String getTablename() {
+        public Tablename getTablename() {
             return data.getTablename();
         }
         

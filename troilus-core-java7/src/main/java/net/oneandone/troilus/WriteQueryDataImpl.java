@@ -58,7 +58,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class WriteQueryDataImpl implements WriteQueryData {
 
-    private final String tablename;
+    private final Tablename tablename;
     
     private final ImmutableMap<String, Object> keys;
     private final ImmutableList<Clause> whereConditions;
@@ -79,7 +79,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     /**
      * constructor
      */
-    WriteQueryDataImpl(String tablename) {
+    WriteQueryDataImpl(Tablename tablename) {
         this(tablename,
              ImmutableMap.<String, Object>of(),
              ImmutableList.<Clause>of(),
@@ -95,7 +95,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
 
     
-    private WriteQueryDataImpl(String tablemname,
+    private WriteQueryDataImpl(Tablename tablemname,
                                ImmutableMap<String, Object> keys, 
                                ImmutableList<Clause> whereConditions, 
                                ImmutableMap<String, Optional<Object>> valuesToMutate, 
@@ -299,7 +299,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     @Override
-    public String getTablename() {
+    public Tablename getTablename() {
         return tablename;
     }
     
@@ -652,8 +652,10 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
     
-    private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data,Context ctx) {
-        Insert insert = insertInto(data.getTablename());
+    private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data, Context ctx) {
+        ctx.checkKeyspacename(data.getTablename());
+        
+        Insert insert = insertInto(data.getTablename().getTablename());
         
         List<Object> values = Lists.newArrayList();
         
@@ -683,7 +685,9 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, Context ctx) {
-        com.datastax.driver.core.querybuilder.Update update = update(data.getTablename());
+        ctx.checkKeyspacename(data.getTablename());
+        
+        com.datastax.driver.core.querybuilder.Update update = update(data.getTablename().getTablename());
         
         
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
@@ -795,17 +799,17 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
 
-    private static Object toStatementValue(Context ctx, String tablename, String name, Object value) {
+    private static Object toStatementValue(Context ctx, Tablename tablename, String name, Object value) {
         return ctx.toStatementValue(tablename, name, value);
     }
     
     
-    private static ImmutableSet<Object> toStatementValue(Context ctx, String tablename, String name, ImmutableSet<Object> values) {
+    private static ImmutableSet<Object> toStatementValue(Context ctx, Tablename tablename, String name, ImmutableSet<Object> values) {
         return ImmutableSet.copyOf(toStatementValue(ctx, tablename, name, ImmutableList.copyOf(values))); 
     }
 
     
-    private static ImmutableList<Object> toStatementValue(Context ctx, String tablename, String name, ImmutableList<Object> values) {
+    private static ImmutableList<Object> toStatementValue(Context ctx, Tablename tablename, String name, ImmutableList<Object> values) {
         
         List<Object> result = Lists.newArrayList();
 
@@ -817,7 +821,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
   
     
-    private static Map<Object, Object> toStatementValue(Context ctx, String tablename, String name, ImmutableMap<Object, Optional<Object>> map) {
+    private static Map<Object, Object> toStatementValue(Context ctx, Tablename tablename, String name, ImmutableMap<Object, Optional<Object>> map) {
         Map<Object, Object> m = Maps.newHashMap();
         for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
             m.put(toStatementValue(ctx, tablename, name, toStatementValue(ctx, tablename, name, entry.getKey())), toStatementValue(ctx, tablename, name, entry.getValue().orNull()));

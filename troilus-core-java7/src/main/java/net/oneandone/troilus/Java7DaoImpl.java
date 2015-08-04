@@ -49,17 +49,17 @@ import com.google.common.collect.Maps;
 public class Java7DaoImpl implements Dao {
     
     private final Context ctx;
-    private final String tablename;
+    private final Tablename tablename;
     
     /**
      * @param session    the underlying session
      * @param tablename  the table name
      */
     public Java7DaoImpl(Session session, String tablename) {
-        this(new Context(session), tablename);
+        this(new Context(session), Tablename.newTablename(session, tablename));
     }
      
-    private Java7DaoImpl(Context ctx, String tablename) {
+    private Java7DaoImpl(Context ctx, Tablename tablename) {
         this.ctx = ctx;
         this.tablename = tablename;
     }

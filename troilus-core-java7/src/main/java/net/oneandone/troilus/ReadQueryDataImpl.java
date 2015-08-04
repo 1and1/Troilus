@@ -47,7 +47,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 class ReadQueryDataImpl implements ReadQueryData {
     
-    private final String tablename;
+    private final Tablename tablename;
     private final ImmutableMap<String, ImmutableList<Object>> keys;
     private final ImmutableSet<Clause> whereClauses;
     private final ImmutableMap<String, Boolean> columnsToFetch;
@@ -60,7 +60,7 @@ class ReadQueryDataImpl implements ReadQueryData {
     /**
      * Constructor
      */
-    ReadQueryDataImpl(String tablename) {
+    ReadQueryDataImpl(Tablename tablename) {
         this(tablename,
              ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
@@ -72,7 +72,7 @@ class ReadQueryDataImpl implements ReadQueryData {
     }
 
     
-    private ReadQueryDataImpl(String tablename,
+    private ReadQueryDataImpl(Tablename tablename,
                               ImmutableMap<String, ImmutableList<Object>> keys,
                               ImmutableSet<Clause> whereClauses, 
                               ImmutableMap<String, Boolean> columnsToFetch, 
@@ -176,7 +176,7 @@ class ReadQueryDataImpl implements ReadQueryData {
     }
     
     @Override
-    public String getTablename() {
+    public Tablename getTablename() {
         return tablename;
     }
     
@@ -222,6 +222,8 @@ class ReadQueryDataImpl implements ReadQueryData {
      * @return  the query as statement
      */
     static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, Context ctx) {
+        ctx.checkKeyspacename(data.getTablename());
+        
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -253,7 +255,7 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
         }
         
-        Select select = selection.from(data.getTablename());
+        Select select = selection.from(data.getTablename().getTablename());
   
         if (data.getLimit() != null) {
             select.limit(data.getLimit());

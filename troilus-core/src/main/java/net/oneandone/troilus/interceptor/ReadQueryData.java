@@ -19,6 +19,9 @@ package net.oneandone.troilus.interceptor;
 import java.util.Optional;
 
 
+
+import net.oneandone.troilus.Tablename;
+
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -35,7 +38,7 @@ public interface ReadQueryData {
     /**
      * @return tablename
      */
-    String getTablename();
+    Tablename getTablename();
 
     /**
      * @param keys  the keys 

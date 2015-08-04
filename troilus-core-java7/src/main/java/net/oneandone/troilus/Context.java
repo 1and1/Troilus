@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class Context {
     private final ExecutionSpec executionSpec;
     private final InterceptorRegistry interceptorRegistry;
     private final BeanMapper beanMapper;
-    private final Executor executors;
+    private final Executor executor;
     private final DBSession dbSession;
     
     /**
@@ -89,11 +90,15 @@ public class Context {
     }
     
     private Context(Session session, BeanMapper beanMapper) {
-        this(new DBSession(session, beanMapper), 
+        this(session, beanMapper, newTaskExecutor());
+    }
+    
+    private Context(Session session, BeanMapper beanMapper, Executor executor) {
+        this(new DBSession(session, beanMapper, executor), 
              new ExecutionSpec(), 
              new InterceptorRegistry(),
              beanMapper,
-             newTaskExecutor());
+             executor);
     }
     
     private static Executor newTaskExecutor() {
@@ -113,7 +118,7 @@ public class Context {
         this.dbSession = dbSession;
         this.executionSpec = executionSpec;
         this.interceptorRegistry = interceptorRegistry;
-        this.executors = executors;
+        this.executor = executors;
         this.beanMapper = beanMapper;
     }
  
@@ -123,7 +128,7 @@ public class Context {
                            executionSpec,  
                            interceptorRegistry.withInterceptor(interceptor),
                            beanMapper,
-                           executors);
+                           executor);
 
     }
     
@@ -132,7 +137,7 @@ public class Context {
                            executionSpec.withSerialConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           executors);
+                           executor);
     }
 
     Context withTtl(int ttlSec) {
@@ -140,7 +145,7 @@ public class Context {
                            executionSpec.withTtl(ttlSec),
                            interceptorRegistry,
                            beanMapper,
-                           executors);        
+                           executor);        
     }
 
     Context withWritetime(long microsSinceEpoch) {
@@ -148,7 +153,7 @@ public class Context {
                            executionSpec.withWritetime(microsSinceEpoch),
                            interceptorRegistry,
                            beanMapper,
-                           executors);        
+                           executor);        
     }
     
     Context withTracking() {
@@ -156,7 +161,7 @@ public class Context {
                            executionSpec.withTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           executors);        
+                           executor);        
     }
     
     Context withoutTracking() {
@@ -164,7 +169,7 @@ public class Context {
                            executionSpec.withoutTracking(),
                            interceptorRegistry,
                            beanMapper,
-                           executors);        
+                           executor);        
     }
     
     Context withRetryPolicy(RetryPolicy policy) {
@@ -172,7 +177,7 @@ public class Context {
                            executionSpec.withRetryPolicy(policy),
                            interceptorRegistry,
                            beanMapper,
-                           executors);        
+                           executor);        
     }
     
     Context withConsistency(ConsistencyLevel consistencyLevel) {
@@ -180,7 +185,7 @@ public class Context {
                            executionSpec.withConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
-                           executors);
+                           executor);
     }
     
     ConsistencyLevel getConsistencyLevel() {
@@ -212,7 +217,7 @@ public class Context {
     }   
     
     Executor getTaskExecutor() {
-        return executors;
+        return executor;
     }
     
     BeanMapper getBeanMapper() {
@@ -223,7 +228,7 @@ public class Context {
         return interceptorRegistry;
     }
         
-    ImmutableList<Object> toStatementValues(String tablename, String name, ImmutableList<Object> values) {
+    ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
         List<Object> result = Lists.newArrayList(); 
 
         for (Object value : values) {
@@ -233,7 +238,7 @@ public class Context {
         return ImmutableList.copyOf(result);
     }
 
-    Object toStatementValue(String tablename, String name, Object value) {
+    Object toStatementValue(Tablename tablename, String name, Object value) {
         if (isNullOrEmpty(value)) {
             return null;
         } 
@@ -272,6 +277,12 @@ public class Context {
         return (value == null) || 
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
                (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
+    }
+    
+    
+    void checkKeyspacename(Tablename tablename) {
+  
+        
     }
         
     @Override
@@ -423,7 +434,10 @@ public class Context {
     
     
     static class DBSession  {
+        
         private final Session session;
+        private final boolean isKeyspacenameAssigned;
+        private final String keyspacename;
         private final UDTValueMapper udtValueMapper;
         private final TableMetadataCache tableMetadataCache;
         private final PreparedStatementCache preparedStatementCache;
@@ -434,14 +448,17 @@ public class Context {
 
         
 
-        public DBSession(Session session, BeanMapper beanMapper) {
+        public DBSession(Session session, BeanMapper beanMapper, Executor executor) {
             this.session = session;
+            
+            this.keyspacename = session.getLoggedKeyspace();
+            this.isKeyspacenameAssigned = (keyspacename != null);
             
             //this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
             this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
             this.preparedStatementCache = new PreparedStatementCache(session);
             this.userTypeCache = CacheBuilder.newBuilder().maximumSize(100).<String, UserType>build(new UserTypeCacheLoader(session));
-            this.tableMetadataCache = new TableMetadataCache(session);
+            this.tableMetadataCache = new TableMetadataCache(session, executor);
         }
    
     
@@ -455,6 +472,15 @@ public class Context {
             }
         }
 
+        
+        boolean isKeyspaqcenameAssigned() {
+            return isKeyspacenameAssigned; 
+        }
+        
+        String getKeyspacename() {
+            return keyspacename;
+        }
+        
         private Session getSession() {
             return session;
         }
@@ -473,11 +499,11 @@ public class Context {
             return udtValueMapper;
         }
      
-        ImmutableSet<String> getColumnNames(String tablename) {
+        ImmutableSet<String> getColumnNames(Tablename tablename) {
             return tableMetadataCache.getColumnNames(tablename);
         }
         
-        ColumnMetadata getColumnMetadata(String tablename, String columnName) {
+        ColumnMetadata getColumnMetadata(Tablename tablename, String columnName) {
             return tableMetadataCache.getColumnMetadata(tablename, columnName); 
         }
         
@@ -579,37 +605,78 @@ public class Context {
         
         private static final class TableMetadataCache {
             private final Session session;
-            private final Cache<String, Metadata> tableMetadataCache;
+            private final Cache<Tablename, Metadata> tableMetadataCache;
+            
+            private final Executor executor;
+            private final AtomicBoolean isRefreshRunning = new AtomicBoolean(false);
+            
+            
 
-            public TableMetadataCache(Session session) {
+            public TableMetadataCache(Session session, Executor executor) {
                 this.session = session;
-                this.tableMetadataCache = CacheBuilder.newBuilder().maximumSize(150).<String, Metadata>build();
+                this.executor = executor;
+                this.tableMetadataCache = CacheBuilder.newBuilder().maximumSize(150).<Tablename, Metadata>build();
             }
             
-            ImmutableSet<String> getColumnNames(String tablename) {
+            ImmutableSet<String> getColumnNames(Tablename tablename) {
                 return getMetadata(tablename).getColumnNames();
             }
             
-            ColumnMetadata getColumnMetadata(String tablename, String columnName) {
+            ColumnMetadata getColumnMetadata(Tablename tablename, String columnName) {
                 return getMetadata(tablename).getColumnMetadata(columnName);
             }
             
-            private Metadata getMetadata(String tablename) {
+            private Metadata getMetadata(Tablename tablename) {
                 Metadata metadata = tableMetadataCache.getIfPresent(tablename);
-                if ((metadata == null) || metadata.isExpired()) {
-                    TableMetadata tableMetadata = loadTableMetadata(session, tablename);
-                    ImmutableSet<String> columnNames = loadColumnNames(tableMetadata);
-                    metadata = new Metadata(System.currentTimeMillis(), tablename, tableMetadata, columnNames);
-         
+                if (metadata == null) {
+                    metadata = loadMetadata(tablename);
                     tableMetadataCache.put(tablename, metadata);
+                               
+                } else if (metadata.isExpired()) {
+                    refreshCache();
                 }
+                
                 
                 return metadata;
             }
 
             
-            private static TableMetadata loadTableMetadata(Session session, String tablename) {
-                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename);
+            private void refreshCache() {
+                
+                if (isRefreshRunning.getAndSet(true)) {
+                    
+                    Runnable refreshTask = new Runnable() {
+                        
+                        @Override
+                        public void run() {
+                            try {
+                                for (Tablename tablename : Sets.newHashSet(tableMetadataCache.asMap().keySet())) {
+                                    Metadata metadata = loadMetadata(tablename);
+                                    tableMetadataCache.put(tablename, metadata);
+                                    
+                                }
+                            } finally {
+                                isRefreshRunning.set(false);
+                            }
+                        }
+                    };
+                    
+                    executor.execute(refreshTask);
+                }
+            }
+            
+            
+            private Metadata loadMetadata(Tablename tablename) {
+                TableMetadata tableMetadata = loadTableMetadata(session, tablename);
+                ImmutableSet<String> columnNames = loadColumnNames(tableMetadata);
+                Metadata metadata = new Metadata(System.currentTimeMillis(), tablename, tableMetadata, columnNames);
+                
+                return metadata;
+            }
+            
+            
+            private static TableMetadata loadTableMetadata(Session session, Tablename tablename) {
+                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(session.getLoggedKeyspace()).getTable(tablename.getTablename());
                 if (tableMetadata == null) {
                     throw new RuntimeException("table " + session.getLoggedKeyspace() + "." + tablename + " is not defined in keyspace '" + session.getLoggedKeyspace() + "'");
                 }
@@ -630,11 +697,11 @@ public class Context {
         
         private static final class Metadata {
             private final long readtime;
-            private final String tablename;
+            private final Tablename tablename;
             private final TableMetadata tableMetadata;
             private final ImmutableSet<String> columnNames;
             
-            public Metadata(long readtime, String tablename, TableMetadata tableMetadata, ImmutableSet<String> columnNames) {
+            public Metadata(long readtime, Tablename tablename, TableMetadata tableMetadata, ImmutableSet<String> columnNames) {
                 this.readtime = readtime;
                 this.tablename = tablename;
                 this.tableMetadata = tableMetadata;
@@ -642,7 +709,7 @@ public class Context {
             }
             
             boolean isExpired() {
-                return System.currentTimeMillis() > (readtime + (2 * 60 * 1000));
+                return System.currentTimeMillis() > (readtime + (96 * 1000));
             }
             
             ImmutableSet<String> getColumnNames() {
