@@ -10,7 +10,7 @@
 
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
-	<version>0.15</version>
+	<version>0.16-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
         <properties>
@@ -95,9 +95,5 @@
                        </plugin>
                 </plugins>
 	</build>
-
-  <scm>
-    <tag>troilus-parent-0.15</tag>
-  </scm>
 </project>
 
