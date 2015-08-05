@@ -117,7 +117,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 if (queryData == null) {
                     throw new NullPointerException();
                 }
-                return DeleteQueryDataImpl.toStatementAsync(queryData, getExecutionSpec(), dbSession);
+                return DeleteQueryDataImpl.toStatementAsync(queryData, getExecutionSpec(), getUDTValueMapper(), dbSession);
             }
         };
         

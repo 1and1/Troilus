@@ -164,6 +164,10 @@ abstract class AbstractQuery<Q> {
         return ctx.getExecutionSpec();
     }
     
+    protected UDTValueMapper getUDTValueMapper() {
+        return ctx.getUDTValueMapper(); 
+    }
+    
     
     InterceptorRegistry getInterceptorRegistry() {
         return ctx.getInterceptorRegistry();

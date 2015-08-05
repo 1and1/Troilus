@@ -118,7 +118,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
         Function<WriteQueryData, ListenableFuture<Statement>> queryDataToStatement = new Function<WriteQueryData, ListenableFuture<Statement>>() {
             @Override
             public ListenableFuture<Statement> apply(WriteQueryData queryData) {
-                return WriteQueryDataImpl.toStatementAsync(queryData, getExecutionSpec(), dbSession);
+                return WriteQueryDataImpl.toStatementAsync(queryData, getExecutionSpec(), getUDTValueMapper(), dbSession);
             }
         };
         

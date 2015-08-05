@@ -141,7 +141,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      * @param ctx   the context
      * @return the query data statement
      */
-    static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, ExecutionSpec executionSpec, DBSession dbSession) {
+    static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         
         Delete delete = (data.getTablename().getKeyspacename() == null) ? delete().from(data.getTablename().getTablename())
                                                                         : delete().from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
@@ -162,7 +162,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                 Clause keybasedWhereClause = eq(entry.getKey(), bindMarker());
                 delete.where(keybasedWhereClause);
                                 
-                values.add(dbSession.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(udtValueMapper.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue()));
             }
             
             ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(delete);

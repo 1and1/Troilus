@@ -632,7 +632,7 @@ class WriteQueryDataImpl implements WriteQueryData {
      * @param ctx    the context
      * @return the query data as statement
      */
-    static ListenableFuture<Statement> toStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, DBSession dbSession) {
+    static ListenableFuture<Statement> toStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         
         if (isKeyOnlyStatement(data)) {
             Map<String, Optional<Object>> valuesToMUtate = Maps.newHashMap();
@@ -645,14 +645,14 @@ class WriteQueryDataImpl implements WriteQueryData {
         
         
         if ((data.getIfNotExits() != null) || (data.getKeys().isEmpty() && data.getWhereConditions().isEmpty())) {
-            return toInsertStatementAsync(data, executionSpec, dbSession);
+            return toInsertStatementAsync(data, executionSpec, udtValueMapper, dbSession);
         } else {
-            return toUpdateStatementAsync(data, executionSpec, dbSession);
+            return toUpdateStatementAsync(data, executionSpec, udtValueMapper, dbSession);
         }
     }
     
     
-    private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, DBSession dbSession) {
+    private static ListenableFuture<Statement> toInsertStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         Insert insert = (data.getTablename().getKeyspacename() == null) ? insertInto(data.getTablename().getTablename()) 
                                                                         : insertInto(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
         
@@ -660,7 +660,7 @@ class WriteQueryDataImpl implements WriteQueryData {
         
         for(Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
             insert.value(entry.getKey(), bindMarker());  
-            values.add(dbSession.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().orNull())); 
+            values.add(udtValueMapper.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().orNull())); 
         }
         
         if (data.getIfNotExits() != null) {
@@ -683,7 +683,7 @@ class WriteQueryDataImpl implements WriteQueryData {
     
     
     
-    private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, DBSession dbSession) {
+    private static ListenableFuture<Statement> toUpdateStatementAsync(WriteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         
         com.datastax.driver.core.querybuilder.Update update = (data.getTablename().getKeyspacename() == null) ? update(data.getTablename().getTablename()) 
                                                                                                               : update(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
@@ -705,40 +705,40 @@ class WriteQueryDataImpl implements WriteQueryData {
             
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
                 update.with(set(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue().orNull()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue().orNull()));
             }
 
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
                 update.with(addAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             }
             for(Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
                 update.with(removeAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             }
 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
                 update.with(prependAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
                 update.with(appendAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
                 update.with(discardAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             } 
 
             for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 update.with(putAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue()));
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
             }
             
             
             for(Entry<String, Object> entry : data.getKeys().entrySet()) {
                 update.where(eq(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())); 
+                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())); 
             }
             
    
@@ -749,28 +749,28 @@ class WriteQueryDataImpl implements WriteQueryData {
         // where condition-based update
         } else {
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
-                update.with(set(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue().orNull())));
+                update.with(set(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue().orNull())));
             }
 
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
-                update.with(addAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(addAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             }
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToRemove().entrySet()) {
-                update.with(removeAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(removeAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             }
             
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToPrepend().entrySet()) {
-                update.with(prependAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(prependAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToAppend().entrySet()) {
-                update.with(appendAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(appendAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
             for (Entry<String, ImmutableList<Object>> entry : data.getListValuesToRemove().entrySet()) {
-                update.with(discardAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(discardAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             } 
 
             for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
-                update.with(putAll(entry.getKey(), toStatementValue(dbSession, data.getTablename(), entry.getKey(), entry.getValue())));
+                update.with(putAll(entry.getKey(), toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue())));
             }
 
             if (executionSpec.getTtl() != null) {
@@ -797,32 +797,32 @@ class WriteQueryDataImpl implements WriteQueryData {
     }
     
 
-    private static Object toStatementValue(DBSession dbSession, Tablename tablename, String name, Object value) {
-        return dbSession.toStatementValue(tablename, name, value);
+    private static Object toStatementValue(UDTValueMapper udtValueMapper, Tablename tablename, String name, Object value) {
+        return udtValueMapper.toStatementValue(tablename, name, value);
     }
     
     
-    private static ImmutableSet<Object> toStatementValue(DBSession dbSession, Tablename tablename, String name, ImmutableSet<Object> values) {
-        return ImmutableSet.copyOf(toStatementValue(dbSession, tablename, name, ImmutableList.copyOf(values))); 
+    private static ImmutableSet<Object> toStatementValue(UDTValueMapper udtValueMapper, Tablename tablename, String name, ImmutableSet<Object> values) {
+        return ImmutableSet.copyOf(toStatementValue(udtValueMapper, tablename, name, ImmutableList.copyOf(values))); 
     }
 
     
-    private static ImmutableList<Object> toStatementValue(DBSession dbSession, Tablename tablename, String name, ImmutableList<Object> values) {
+    private static ImmutableList<Object> toStatementValue(UDTValueMapper udtValueMapper, Tablename tablename, String name, ImmutableList<Object> values) {
         
         List<Object> result = Lists.newArrayList();
 
         for (Object value : values) {
-            result.add(toStatementValue(dbSession, tablename, name, value));
+            result.add(toStatementValue(udtValueMapper, tablename, name, value));
         }
         
         return ImmutableList.copyOf(result);
     }
   
     
-    private static Map<Object, Object> toStatementValue(DBSession dbSession, Tablename tablename, String name, ImmutableMap<Object, Optional<Object>> map) {
+    private static Map<Object, Object> toStatementValue(UDTValueMapper udtValueMapper, Tablename tablename, String name, ImmutableMap<Object, Optional<Object>> map) {
         Map<Object, Object> m = Maps.newHashMap();
         for (Entry<Object, Optional<Object>> entry : map.entrySet()) {
-            m.put(toStatementValue(dbSession, tablename, name, toStatementValue(dbSession, tablename, name, entry.getKey())), toStatementValue(dbSession, tablename, name, entry.getValue().orNull()));
+            m.put(toStatementValue(udtValueMapper, tablename, name, toStatementValue(udtValueMapper, tablename, name, entry.getKey())), toStatementValue(udtValueMapper, tablename, name, entry.getValue().orNull()));
         }
         return m;
     } 

@@ -196,7 +196,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData, DBSession dbSession) {
         // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, dbSession));        
+        ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, getUDTValueMapper(), dbSession));        
         
         // result set to record list mapper
         Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {

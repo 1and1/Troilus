@@ -17,10 +17,13 @@ package net.oneandone.troilus;
 
 
 
+import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+
 
 
 import com.datastax.driver.core.DataType;
@@ -43,9 +46,11 @@ class UDTValueMapper {
 
     private final ProtocolVersion protocolVersion;
     private final BeanMapper beanMapper;
+    private final MetadataCatalog catalog;
     
-    UDTValueMapper(ProtocolVersion protocolVersion, BeanMapper beanMapper) {
+    UDTValueMapper(ProtocolVersion protocolVersion, MetadataCatalog catalog, BeanMapper beanMapper) {
         this.protocolVersion = protocolVersion;
+        this.catalog = catalog;
         this.beanMapper = beanMapper;
     }
     
@@ -341,5 +346,64 @@ class UDTValueMapper {
                 return udtValue;
             }
         }
+    }
+    
+    
+    /**
+     * @param tablename  the table name
+     * @param name       the columnname
+     * @param value      the value 
+     * @return the mapped value
+     */
+    Object toStatementValue(Tablename tablename, String name, Object value) {
+        if (isNullOrEmpty(value)) {
+            return null;
+        } 
+        
+        DataType dataType = catalog.getColumnMetadata(tablename, name).getType();
+        
+        // build in
+        if (UDTValueMapper.isBuildInType(dataType)) {
+            
+            // enum
+            if (DataTypes.isTextDataType(dataType) && Enum.class.isAssignableFrom(value.getClass())) {
+                return value.toString();
+            }
+            
+            // byte buffer (byte[])
+            if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
+                return ByteBuffer.wrap((byte[]) value);
+            }
+
+            
+            return value;
+         
+        // udt    
+        } else {
+            return toUdtValue(tablename, catalog, catalog.getColumnMetadata(tablename, name).getType(), value);
+        }
+    }
+    
+    /**
+     * @param tablename   the tablename
+     * @param name        the columnname
+     * @param values      the vlaues 
+     * @return            the mapped values
+     */
+    ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
+        List<Object> result = Lists.newArrayList(); 
+
+        for (Object value : values) {
+            result.add(toStatementValue(tablename, name, value));
+        }
+        
+        return ImmutableList.copyOf(result);
+    }
+
+ 
+    private boolean isNullOrEmpty(Object value) {
+        return (value == null) || 
+               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
+               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
 }   

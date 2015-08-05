@@ -221,7 +221,7 @@ class ReadQueryDataImpl implements ReadQueryData {
      * @param ctx    the context
      * @return  the query as statement
      */
-    static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, DBSession dbSession) {
+    static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, UDTValueMapper udtValueMapper, DBSession dbSession) {
         Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
@@ -286,10 +286,10 @@ class ReadQueryDataImpl implements ReadQueryData {
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 if (entry.getValue().size() == 1) {
                     select.where(eq(entry.getKey(), bindMarker()));
-                    values.add(dbSession.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().get(0)));
+                    values.add(udtValueMapper.toStatementValue(data.getTablename(), entry.getKey(), entry.getValue().get(0)));
                 } else {
                     select.where(in(entry.getKey(), bindMarker()));
-                    values.add(dbSession.toStatementValues(data.getTablename(), entry.getKey(), entry.getValue()));
+                    values.add(udtValueMapper.toStatementValues(data.getTablename(), entry.getKey(), entry.getValue()));
                 }
                 
             }

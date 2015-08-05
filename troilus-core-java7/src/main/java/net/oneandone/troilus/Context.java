@@ -42,6 +42,7 @@ public class Context  {
  
     private final ExecutionSpec executionSpec;
     private final InterceptorRegistry interceptorRegistry;
+    private final UDTValueMapper udtValueMapper;
     private final BeanMapper beanMapper;
     private final Executor executor;
     private final MetadataCatalog catalog;
@@ -60,14 +61,39 @@ public class Context  {
     }
     
     private Context(Session session, BeanMapper beanMapper, Executor executor) {
-        this(new DBSession(session, new MetadataCatalog(session), beanMapper), 
-             new MetadataCatalog(session),
+        this(session, beanMapper, executor, new MetadataCatalog(session));
+    }
+    
+    private Context(Session session, BeanMapper beanMapper, Executor executor, MetadataCatalog catalog) {
+        this(session, beanMapper, executor, catalog, new DBSession(session, catalog, beanMapper));
+    }
+    
+    private Context(Session session, BeanMapper beanMapper, Executor executor, MetadataCatalog catalog, DBSession dbSession) {
+        this(dbSession, 
+             catalog,
              new ExecutionSpecImpl(), 
              new InterceptorRegistry(),
              beanMapper,
+             new UDTValueMapper(dbSession.getProtocolVersion(), catalog, beanMapper),
              executor);
     }
     
+    private Context(DBSession dbSession, 
+                    MetadataCatalog catalog,
+                    ExecutionSpec executionSpec,
+                    InterceptorRegistry interceptorRegistry,
+                    BeanMapper beanMapper,
+                    UDTValueMapper udtValueMapper,
+                    Executor executors) {
+        this.dbSession = dbSession;
+        this.catalog = catalog;
+        this.executionSpec = executionSpec;
+        this.interceptorRegistry = interceptorRegistry;
+        this.executor = executors;
+        this.beanMapper = beanMapper;
+        this.udtValueMapper = udtValueMapper;
+    }
+ 
   
     
     private static Executor newTaskExecutor() {
@@ -79,20 +105,6 @@ public class Context  {
         }
     }
     
-    private Context(DBSession dbSession, 
-                    MetadataCatalog catalog,
-                    ExecutionSpec executionSpec,
-                    InterceptorRegistry interceptorRegistry,
-                    BeanMapper beanMapper,
-                    Executor executors) {
-        this.dbSession = dbSession;
-        this.catalog = catalog;
-        this.executionSpec = executionSpec;
-        this.interceptorRegistry = interceptorRegistry;
-        this.executor = executors;
-        this.beanMapper = beanMapper;
-    }
- 
     
     Context withInterceptor(QueryInterceptor interceptor) {
         return new Context(dbSession,
@@ -100,6 +112,7 @@ public class Context  {
                            executionSpec,  
                            interceptorRegistry.withInterceptor(interceptor),
                            beanMapper,
+                           udtValueMapper,
                            executor);
 
     }
@@ -110,6 +123,7 @@ public class Context  {
                            executionSpec.withSerialConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);
     }
 
@@ -119,6 +133,7 @@ public class Context  {
                            executionSpec.withTtl(ttlSec),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);        
     }
 
@@ -128,6 +143,7 @@ public class Context  {
                            executionSpec.withWritetime(microsSinceEpoch),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);        
     }
     
@@ -137,6 +153,7 @@ public class Context  {
                            executionSpec.withTracking(),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);        
     }
     
@@ -146,6 +163,7 @@ public class Context  {
                            executionSpec.withoutTracking(),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);        
     }
     
@@ -155,6 +173,7 @@ public class Context  {
                            executionSpec.withRetryPolicy(policy),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);        
     }
     
@@ -164,6 +183,7 @@ public class Context  {
                            executionSpec.withConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
+                           udtValueMapper,
                            executor);
     }
     
@@ -176,6 +196,10 @@ public class Context  {
     
     MetadataCatalog getCatalog() {
         return catalog;
+    }
+    
+    UDTValueMapper getUDTValueMapper() {
+        return udtValueMapper;
     }
     
     ExecutionSpec getExecutionSpec() {

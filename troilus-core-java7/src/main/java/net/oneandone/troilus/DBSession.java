@@ -16,17 +16,11 @@
 package net.oneandone.troilus;
 
 
-
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
@@ -40,8 +34,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -54,10 +46,8 @@ public class DBSession  {
     private static final Logger LOG = LoggerFactory.getLogger(DBSession.class);
 
     private final Session session;
-    private final MetadataCatalog catalog;
     private final boolean isKeyspacenameAssigned;
     private final String keyspacename;
-    private final UDTValueMapper udtValueMapper;
     private final PreparedStatementCache preparedStatementCache;
     
     private final AtomicLong lastCacheCleanTime = new AtomicLong(0);
@@ -73,13 +63,10 @@ public class DBSession  {
      */
     DBSession(Session session, MetadataCatalog catalog, BeanMapper beanMapper) {
         this.session = session;
-        this.catalog = catalog;
         
         this.keyspacename = session.getLoggedKeyspace();
         this.isKeyspacenameAssigned = (keyspacename != null);
         
-        //this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersion(), beanMapper);
-        this.udtValueMapper = new UDTValueMapper(session.getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum(), beanMapper);
         this.preparedStatementCache = new PreparedStatementCache(session);
     }
 
@@ -112,13 +99,6 @@ public class DBSession  {
         return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
     }
     
-    /**
-     * @return the udtvalue mapper
-     */
-    UDTValueMapper getUDTValueMapper() {
-        return udtValueMapper;
-    }
- 
  
     /**
      * @param statement the statement to prepare
@@ -158,65 +138,6 @@ public class DBSession  {
         }
     }
 
-    
-    /**
-     * @param tablename  the table name
-     * @param name       the columnname
-     * @param value      the value 
-     * @return the mapped value
-     */
-    Object toStatementValue(Tablename tablename, String name, Object value) {
-        if (isNullOrEmpty(value)) {
-            return null;
-        } 
-        
-        DataType dataType = catalog.getColumnMetadata(tablename, name).getType();
-        
-        // build in
-        if (UDTValueMapper.isBuildInType(dataType)) {
-            
-            // enum
-            if (DataTypes.isTextDataType(dataType) && Enum.class.isAssignableFrom(value.getClass())) {
-                return value.toString();
-            }
-            
-            // byte buffer (byte[])
-            if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
-                return ByteBuffer.wrap((byte[]) value);
-            }
-
-            
-            return value;
-         
-        // udt    
-        } else {
-            return getUDTValueMapper().toUdtValue(tablename, catalog, catalog.getColumnMetadata(tablename, name).getType(), value);
-        }
-    }
-    
-    /**
-     * @param tablename   the tablename
-     * @param name        the columnname
-     * @param values      the vlaues 
-     * @return            the mapped values
-     */
-    ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
-        List<Object> result = Lists.newArrayList(); 
-
-        for (Object value : values) {
-            result.add(toStatementValue(tablename, name, value));
-        }
-        
-        return ImmutableList.copyOf(result);
-    }
-
- 
-    private boolean isNullOrEmpty(Object value) {
-        return (value == null) || 
-               (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
-               (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
-    }
-    
     
     
     @Override
@@ -279,7 +200,4 @@ public class DBSession  {
             return Joiner.on(", ").withKeyValueSeparator("=").join(preparedStatementCache.asMap());
         }
     }
-    
-    
-    
-    }
+}
