@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.DBSession.UserTypeCache;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;
@@ -51,13 +50,7 @@ class UDTValueMapper {
     }
     
     
-    
-    private UserType getUserType(Tablename tablename, UserTypeCache userTypeCache, String usertypeName) {
-        return userTypeCache.get(tablename, usertypeName);
-    }
-    
-
-
+   
     static boolean isBuildInType(DataType dataType) {        
         if (dataType.isCollection()) {
             for (DataType type : dataType.getTypeArguments()) {
@@ -267,7 +260,7 @@ class UDTValueMapper {
     
     @SuppressWarnings("unchecked")
     public Object toUdtValue(Tablename tablename,
-                             UserTypeCache userTypeCache, 
+                             MetadataCatalog catalog, 
                              DataType datatype, 
                              Object value) {
         
@@ -285,7 +278,7 @@ class UDTValueMapper {
                Set<Object> udt = Sets.newHashSet();
                if (value != null) {
                    for (Object element : (Set<Object>) value) {
-                       udt.add(toUdtValue(tablename, userTypeCache, elementDataType, element));
+                       udt.add(toUdtValue(tablename, catalog, elementDataType, element));
                    }
                }
                
@@ -298,7 +291,7 @@ class UDTValueMapper {
                List<Object> udt = Lists.newArrayList();
                if (value != null) {
                    for (Object element : (List<Object>) value) {
-                       udt.add(toUdtValue(tablename, userTypeCache, elementDataType, element));
+                       udt.add(toUdtValue(tablename, catalog, elementDataType, element));
                    }
                }
                
@@ -312,8 +305,8 @@ class UDTValueMapper {
                Map<Object, Object> udt = Maps.newHashMap();
                if (value != null) {
                    for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
-                         udt.put(toUdtValue(tablename, userTypeCache, keyDataType, entry.getKey()), 
-                                 toUdtValue(tablename, userTypeCache, valueDataType, entry.getValue()));
+                         udt.put(toUdtValue(tablename, catalog, keyDataType, entry.getKey()), 
+                                 toUdtValue(tablename, catalog, valueDataType, entry.getValue()));
                    }
                
                }
@@ -327,7 +320,7 @@ class UDTValueMapper {
                 return value;
                 
             } else {
-                UserType usertype = getUserType(tablename, userTypeCache, ((UserType) datatype).getTypeName());
+                UserType usertype = catalog.getUserType(tablename, ((UserType) datatype).getTypeName());
                 UDTValue udtValue = usertype.newValue();
                 
                 for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value, ImmutableSet.<String>of()).entrySet()) {
@@ -339,7 +332,7 @@ class UDTValueMapper {
                     Object vl = entry.getValue().get();
                     
                     if (!isBuildInType(usertype.getFieldType(entry.getKey()))) {
-                        vl = toUdtValue(tablename, userTypeCache, fieldType, vl);
+                        vl = toUdtValue(tablename, catalog, fieldType, vl);
                     }
                     
                     udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, protocolVersion));

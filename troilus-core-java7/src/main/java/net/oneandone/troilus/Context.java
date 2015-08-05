@@ -20,7 +20,6 @@ package net.oneandone.troilus;
 import java.lang.reflect.InvocationTargetException;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -31,8 +30,6 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 
 
@@ -47,6 +44,7 @@ public class Context  {
     private final InterceptorRegistry interceptorRegistry;
     private final BeanMapper beanMapper;
     private final Executor executor;
+    private final MetadataCatalog catalog;
     private final DBSession dbSession;
 
     
@@ -62,12 +60,15 @@ public class Context  {
     }
     
     private Context(Session session, BeanMapper beanMapper, Executor executor) {
-        this(new DBSession(session, beanMapper, executor), 
+        this(new DBSession(session, new MetadataCatalog(session), beanMapper), 
+             new MetadataCatalog(session),
              new ExecutionSpecImpl(), 
              new InterceptorRegistry(),
              beanMapper,
              executor);
     }
+    
+  
     
     private static Executor newTaskExecutor() {
         try {
@@ -79,11 +80,13 @@ public class Context  {
     }
     
     private Context(DBSession dbSession, 
+                    MetadataCatalog catalog,
                     ExecutionSpec executionSpec,
                     InterceptorRegistry interceptorRegistry,
                     BeanMapper beanMapper,
                     Executor executors) {
         this.dbSession = dbSession;
+        this.catalog = catalog;
         this.executionSpec = executionSpec;
         this.interceptorRegistry = interceptorRegistry;
         this.executor = executors;
@@ -93,6 +96,7 @@ public class Context  {
     
     Context withInterceptor(QueryInterceptor interceptor) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec,  
                            interceptorRegistry.withInterceptor(interceptor),
                            beanMapper,
@@ -102,6 +106,7 @@ public class Context  {
     
     Context withSerialConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withSerialConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
@@ -110,6 +115,7 @@ public class Context  {
 
     Context withTtl(int ttlSec) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withTtl(ttlSec),
                            interceptorRegistry,
                            beanMapper,
@@ -118,6 +124,7 @@ public class Context  {
 
     Context withWritetime(long microsSinceEpoch) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withWritetime(microsSinceEpoch),
                            interceptorRegistry,
                            beanMapper,
@@ -126,6 +133,7 @@ public class Context  {
     
     Context withTracking() {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withTracking(),
                            interceptorRegistry,
                            beanMapper,
@@ -134,6 +142,7 @@ public class Context  {
     
     Context withoutTracking() {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withoutTracking(),
                            interceptorRegistry,
                            beanMapper,
@@ -142,6 +151,7 @@ public class Context  {
     
     Context withRetryPolicy(RetryPolicy policy) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withRetryPolicy(policy),
                            interceptorRegistry,
                            beanMapper,
@@ -150,44 +160,27 @@ public class Context  {
     
     Context withConsistency(ConsistencyLevel consistencyLevel) {
         return new Context(dbSession,
+                           catalog,
                            executionSpec.withConsistency(consistencyLevel),
                            interceptorRegistry,
                            beanMapper,
                            executor);
     }
     
-    ConsistencyLevel getConsistencyLevel() {
-        return executionSpec.getConsistencyLevel();
-    }
 
-    ConsistencyLevel getSerialConsistencyLevel() {
-        return executionSpec.getSerialConsistencyLevel();
-    }
-
-    Integer getTtlSec() {
-        return executionSpec.getTtl();
-    }
-
-    Long getWritetime() {
-        return executionSpec.getWritetime();
-    }
-
-    Boolean getEnableTracing() {
-        return executionSpec.getEnableTracing();
-    }
     
     
     DBSession getDefaultDbSession() {
         return dbSession;
     }
     
+    MetadataCatalog getCatalog() {
+        return catalog;
+    }
+    
     ExecutionSpec getExecutionSpec() {
         return executionSpec;
     }
-    
-    RetryPolicy getRetryPolicy() {
-        return executionSpec.getRetryPolicy();
-    }   
     
     Executor getTaskExecutor() {
         return executor;
@@ -201,17 +194,6 @@ public class Context  {
         return interceptorRegistry;
     }
         
-    ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
-        List<Object> result = Lists.newArrayList(); 
-
-        for (Object value : values) {
-            result.add(getDefaultDbSession().toStatementValue(tablename, name, value));
-        }
-        
-        return ImmutableList.copyOf(result);
-    }
-
-  
   
     @Override
     public String toString() {
@@ -224,7 +206,7 @@ public class Context  {
    
     
      
-    static class ExecutionSpecImpl implements ExecutionSpec {
+    private static class ExecutionSpecImpl implements ExecutionSpec {
         
         private final ConsistencyLevel consistencyLevel;
         private final ConsistencyLevel serialConsistencyLevel;

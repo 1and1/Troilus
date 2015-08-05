@@ -150,6 +150,9 @@ abstract class AbstractQuery<Q> {
         return ctx.getDefaultDbSession();
     }
     
+    protected MetadataCatalog getCatalog() {
+        return ctx.getCatalog();
+    }
     
     
     protected Executor getExecutor() {

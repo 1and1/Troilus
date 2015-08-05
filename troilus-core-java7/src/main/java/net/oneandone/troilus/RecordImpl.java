@@ -300,7 +300,7 @@ class RecordImpl implements Record {
             return ImmutableSet.of();
         }
 
-        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getCatalog().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableSet.copyOf(getRow().getSet(name, elementsClass));
         } else {
@@ -314,7 +314,7 @@ class RecordImpl implements Record {
             return ImmutableList.of();
         }
         
-        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getCatalog().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableList.copyOf(getRow().getList(name, elementsClass));
         } else {
@@ -328,7 +328,7 @@ class RecordImpl implements Record {
             return ImmutableMap.of();
         }
         
-        DataType datatype = ctx.getDefaultDbSession().getColumnMetadata(tablename, name).getType();
+        DataType datatype = ctx.getCatalog().getColumnMetadata(tablename, name).getType();
         if (UDTValueMapper.isBuildInType(datatype)) {
             return ImmutableMap.copyOf(getRow().getMap(name, keysClass, valuesClass));
             

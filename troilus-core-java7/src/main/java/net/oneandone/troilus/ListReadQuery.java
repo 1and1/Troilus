@@ -309,7 +309,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
                 @Override
                 public ResultList<E> apply(ResultList<Record> recordList) {
-                    return new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getDefaultDbSession(), recordList, clazz);
+                    return new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getCatalog(), recordList, clazz);
                 }
             };
             
@@ -327,15 +327,15 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     private static class EntityListImpl<F> extends ResultAdapter implements ResultList<F> {
         private final Tablename tablename;
         private final BeanMapper beanMapper;
-        private final DBSession dbSession;
+        private final MetadataCatalog catalog;
         private final ResultList<Record> recordList;
         private final Class<F> clazz;
     
-        EntityListImpl(Tablename tablename, BeanMapper beanMapper, DBSession dbSession, ResultList<Record> recordList, Class<F> clazz) {
+        EntityListImpl(Tablename tablename, BeanMapper beanMapper, MetadataCatalog catalog, ResultList<Record> recordList, Class<F> clazz) {
             super(recordList);
             this.tablename = tablename;
             this.beanMapper = beanMapper;
-            this.dbSession = dbSession;
+            this.catalog = catalog;
             this.recordList = recordList;
             this.clazz = clazz;
         }
@@ -352,7 +352,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 
                 @Override
                 public F next() {
-                    return beanMapper.fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), dbSession.getColumnNames(tablename));
+                    return beanMapper.fromValues(clazz, RecordImpl.toPropertiesSource(recordIt.next()), catalog.getColumnNames(tablename));
                 }
                 
                 @Override

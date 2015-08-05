@@ -20,13 +20,20 @@ import com.google.common.base.Objects;
 
 
 
- 
+/**
+ * Tablename
+ */
 public class Tablename {
 
     private String keyspacename;
     private String tablename;
     
-    
+
+    /**
+     * @param session    the session
+     * @param tablename  the unresolved tablename
+     * @return hte tablename object
+     */
     static Tablename newTablename(Session session, String tablename) {
         if (tablename.contains(".")) {
             int posDot = tablename.indexOf(".");
@@ -42,10 +49,17 @@ public class Tablename {
         this.tablename = tablename;
     }
 
+    
+    /**
+     * @return the keyspaceanme or null
+     */
     String getKeyspacename() {
         return keyspacename;
     }
     
+    /**
+     * @return the tablename
+     */
     public String getTablename() {
         return tablename;
     }
