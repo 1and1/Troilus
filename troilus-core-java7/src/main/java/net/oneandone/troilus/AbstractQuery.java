@@ -19,8 +19,6 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.Executor;
 
-import net.oneandone.troilus.Context.DBSession;
-
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;

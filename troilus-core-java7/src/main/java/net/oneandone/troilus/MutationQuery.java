@@ -21,7 +21,6 @@ package net.oneandone.troilus;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.Batchable;
 
 import com.datastax.driver.core.BatchStatement;

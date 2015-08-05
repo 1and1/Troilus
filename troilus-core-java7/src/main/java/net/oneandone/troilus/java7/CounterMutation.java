@@ -18,7 +18,7 @@ package net.oneandone.troilus.java7;
 import net.oneandone.troilus.Result;
 
 
-/**
+/** 
  * counter mutation
  */
 public interface CounterMutation extends Mutation<CounterMutation, Result> {

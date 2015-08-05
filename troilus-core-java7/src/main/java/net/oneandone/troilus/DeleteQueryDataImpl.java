@@ -26,7 +26,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 
 import com.datastax.driver.core.querybuilder.Clause;

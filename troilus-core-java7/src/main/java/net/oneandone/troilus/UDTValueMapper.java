@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.Context.DBSession.UserTypeCache;
+import net.oneandone.troilus.DBSession.UserTypeCache;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;

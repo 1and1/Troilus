@@ -27,7 +27,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
 import com.datastax.driver.core.PreparedStatement;

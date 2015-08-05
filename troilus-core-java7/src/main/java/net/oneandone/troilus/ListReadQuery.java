@@ -20,7 +20,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;

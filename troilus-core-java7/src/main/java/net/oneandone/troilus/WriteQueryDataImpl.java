@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
 import com.datastax.driver.core.PreparedStatement;

@@ -17,7 +17,6 @@ package net.oneandone.troilus;
 
 
 
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.BatchStatement.Type;

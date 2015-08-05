@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 
 import net.oneandone.troilus.Context;
 import net.oneandone.troilus.Result;
-import net.oneandone.troilus.Context.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;

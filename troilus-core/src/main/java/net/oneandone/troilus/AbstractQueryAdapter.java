@@ -27,7 +27,6 @@ import com.datastax.driver.core.Statement;
 
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
-import net.oneandone.troilus.Context.DBSession;
 import net.oneandone.troilus.Result;
 
 

@@ -15,13 +15,14 @@
  */
 package net.oneandone.troilus.java7;
 
-
-import net.oneandone.troilus.Context.DBSession;
+import net.oneandone.troilus.DBSession;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.google.common.util.concurrent.ListenableFuture;
+
+
 
 
 /**
