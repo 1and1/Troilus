@@ -1,5 +1,9 @@
-0.14
- * Bugfix removing invalid cached prepared statements: internal prepared statement cache will be invalidated, if a host goes up or an internal driver error occurs
 
+0.15
+ * bugfix: Prepared statement can no longer be executed by other sessions than the session which prepared the statement. This could result in invalid prepared sessions
+
+0.14
+ * bugfix: removing invalid cached prepared statements: internal prepared statement cache will be invalidated, if a host goes up or an internal driver error occurs
+ 
 0.12
  * reactive-streams dependency set to 1.0.0.RC5
