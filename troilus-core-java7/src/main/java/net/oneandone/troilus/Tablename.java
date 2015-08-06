@@ -31,17 +31,27 @@ public class Tablename {
 
     /**
      * @param session    the session
-     * @param tablename  the unresolved tablename
+     * @param tablename  the tablename
      * @return hte tablename object
      */
     static Tablename newTablename(Session session, String tablename) {
-        if (tablename.contains(".")) {
-            int posDot = tablename.indexOf(".");
-            String keyspacename = tablename.substring(0, posDot);
-            return new Tablename(keyspacename, tablename.substring(posDot + 1, tablename.length()));
-        } else {
-            return new Tablename(session.getLoggedKeyspace(), tablename);
+        String keyspacename = session.getLoggedKeyspace();
+        
+        if (keyspacename == null) {
+            throw new IllegalStateException("no keyspace assigned");
         }
+
+        return newTablename(keyspacename, tablename);
+    }
+    
+   
+    /**
+     * @param tablename    the tablename
+     * @param keyspacename the keyspacename
+     * @return hte tablename object
+     */
+    static Tablename newTablename(String keyspacename, String tablename) {
+        return new Tablename(keyspacename, tablename);
     }
     
     private Tablename(String keyspacename, String tablename) {

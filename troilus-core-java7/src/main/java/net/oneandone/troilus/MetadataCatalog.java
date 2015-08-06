@@ -19,6 +19,7 @@ package net.oneandone.troilus;
 import java.util.Set;
 
 
+
 import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
@@ -119,12 +120,18 @@ class MetadataCatalog  {
         
         
         private static TableMetadata loadTableMetadata(Session session, Tablename tablename) {
-            TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getTable(tablename.getTablename());
-            if (tableMetadata == null) {
-                throw new RuntimeException("table " + tablename + " is not defined");
-            }
+            String keyspacename = tablename.getKeyspacename();
+            if (keyspacename == null) {
+                throw new IllegalStateException("no keyspacename assigned for " + tablename);
+            } else {
+                
+                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getTable(tablename.getTablename());
+                if (tableMetadata == null) {
+                    throw new RuntimeException("table " + tablename + " is not defined");
+                }
 
-            return tableMetadata;
+                return tableMetadata;
+            }
         }
 
         private static ImmutableSet<String> loadColumnNames(TableMetadata tableMetadata) {

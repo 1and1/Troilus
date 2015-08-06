@@ -58,11 +58,22 @@ public class Java7DaoImpl implements Dao {
     public Java7DaoImpl(Session session, String tablename) {
         this(new Context(session), Tablename.newTablename(session, tablename));
     }
-     
+
+    /**
+     * @param session      the underlying session
+     * @param tablename    the table name
+     * @param keyspacename the keyspacename
+     */
+    public Java7DaoImpl(Session session, String keyspacename, String tablename) {
+        this(new Context(session), Tablename.newTablename(keyspacename, tablename));
+    }
+
+    
     private Java7DaoImpl(Context ctx, Tablename tablename) {
         this.ctx = ctx;
         this.tablename = tablename;
     }
+    
     
     
     @Override

@@ -100,7 +100,7 @@ public class ExpliciteKeyspacenameTest {
     @Test
     public void testExplicite() throws Exception {
         
-        Dao hotelsDao = new DaoImpl(cassandra.getSession(), cassandra.getKeyspacename() + "." + HotelsTable.TABLE)
+        Dao hotelsDao = new DaoImpl(cassandra.getSession(), cassandra.getKeyspacename(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
@@ -130,7 +130,7 @@ public class ExpliciteKeyspacenameTest {
     @Test
     public void testExpliciteWithSessionWithoutAssignedKeyspace() throws Exception {
         
-        Dao hotelsDao = new DaoImpl(cassandra.newGobalSession(), cassandra.getKeyspacename() + "." + HotelsTable.TABLE)
+        Dao hotelsDao = new DaoImpl(cassandra.newGobalSession(), cassandra.getKeyspacename(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
@@ -155,10 +155,22 @@ public class ExpliciteKeyspacenameTest {
     }
     
     
+    
+    @Test
+    public void testExpliciteWithSessionWithoutAssignedKeyspaceMissingKeyspaceprefix() throws Exception {
+        
+        try  {
+            new DaoImpl(cassandra.newGobalSession(), HotelsTable.TABLE)
+                                 .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
+            Assert.fail("IllegalStateException expected");
+        } catch (IllegalStateException expected) { }
+    }
+    
+    
     @Test
     public void testExpliciteWithSessionAssignedToOtherKeyspace() throws Exception {
         
-        Dao hotelsDao = new DaoImpl(cassandra.newSession("system"), cassandra.getKeyspacename() + "." + HotelsTable.TABLE)
+        Dao hotelsDao = new DaoImpl(cassandra.newSession("system"), cassandra.getKeyspacename(), HotelsTable.TABLE)
                                   .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         

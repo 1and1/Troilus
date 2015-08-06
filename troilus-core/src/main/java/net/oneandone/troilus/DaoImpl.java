@@ -16,7 +16,6 @@
 package net.oneandone.troilus;
 
 
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,7 +77,17 @@ public class DaoImpl implements Dao {
     public DaoImpl(Session session, String tablename) {
         this(new Context(session), Tablename.newTablename(session, tablename));
     }
-     
+
+    
+    /**
+     * @param session      the underlying session
+     * @param tablename    the table name
+     * @param keyspacename the keyspacename
+     */
+    public DaoImpl(Session session, String keyspacename, String tablename) {
+        this(new Context(session), Tablename.newTablename(keyspacename, tablename));
+    }
+
  
     private DaoImpl(Context ctx, Tablename tablename) {
         this.ctx = ctx;

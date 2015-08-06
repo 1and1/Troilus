@@ -1,4 +1,7 @@
 
+0.16
+ * DaoImpl constructor supports keyspacename paramter instead dot-composed keyspace and tablename string
+
 0.15
  * bugfix: Prepared statement can no longer be executed by other sessions than the session which prepared the statement. This could result in invalid prepared sessions
 
