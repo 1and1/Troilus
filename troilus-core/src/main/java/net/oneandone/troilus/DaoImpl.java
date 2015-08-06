@@ -71,7 +71,7 @@ public class DaoImpl implements Dao {
     private final Context ctx;
     
     /**
-     * @param session     the underlying session
+     * @param session     the underlying session which has an assigned keyspace
      * @param tablename   the table name
      */
     public DaoImpl(Session session, String tablename) {

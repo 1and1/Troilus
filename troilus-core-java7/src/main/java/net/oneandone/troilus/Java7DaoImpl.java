@@ -52,7 +52,7 @@ public class Java7DaoImpl implements Dao {
     private final Tablename tablename;
     
     /**
-     * @param session    the underlying session
+     * @param session    the underlying session which has an assigned keyspace
      * @param tablename  the table name
      */
     public Java7DaoImpl(Session session, String tablename) {
