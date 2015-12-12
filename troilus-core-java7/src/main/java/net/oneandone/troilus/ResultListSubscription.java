@@ -29,6 +29,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.ResultSet;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -38,6 +39,9 @@ import com.google.common.util.concurrent.ListenableFuture;
  * ResultListSubscription
  * 
  * @param <T> the element type
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class ResultListSubscription<T> implements Subscription {
     
@@ -182,7 +186,8 @@ class ResultListSubscription<T> implements Subscription {
                 synchronized (dbQueryLock) {
                     // submit an async database query (if not already running) 
                     if (runningDatabaseQuery == null) {
-                        ListenableFuture<Void> future = iterator.fetchMoreResultsAsync();
+                    	// 3.x API change
+                        ListenableFuture<ResultSet> future = iterator.fetchMoreResultsAsync();
                         
                         Runnable databaseRequest = new Runnable() {
                                                             @Override
