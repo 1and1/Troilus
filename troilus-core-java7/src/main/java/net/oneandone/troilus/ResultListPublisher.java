@@ -17,15 +17,13 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.ExecutionException;
 
-
-
-
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ResultList;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
+import com.datastax.driver.core.ResultSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -36,6 +34,9 @@ import com.google.common.util.concurrent.MoreExecutors;
  * ResultList-based publisher
  *
  * @param <R> the element type
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class ResultListPublisher<R> implements Publisher<R> {
     
@@ -153,7 +154,7 @@ class ResultListPublisher<R> implements Publisher<R> {
         }
         
         @Override
-        public ListenableFuture<Void> fetchMoreResultsAsync() {
+        public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
             return Futures.immediateFuture(null);
         }
         
