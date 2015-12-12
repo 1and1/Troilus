@@ -26,9 +26,14 @@ import java.util.Map.Entry;
 
 
 
+
+
+
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.TupleType;
+import com.datastax.driver.core.TypeCodec;
 import com.datastax.driver.core.UDTValue;
 import com.datastax.driver.core.UserType;
 import com.google.common.base.Optional;
@@ -41,12 +46,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API changes. 
+ * 12-12-2015: New - serialize(), deserialize(), getCodecRegistry(), getMetadataCatalog()
+ *
+ */
 class UDTValueMapper {
 
     private final ProtocolVersion protocolVersion;
     private final BeanMapper beanMapper;
     private final MetadataCatalog catalog;
+    private final CodecRegistry codecRegistry = CodecRegistry.DEFAULT_INSTANCE;
     
     UDTValueMapper(ProtocolVersion protocolVersion, MetadataCatalog catalog, BeanMapper beanMapper) {
         this.protocolVersion = protocolVersion;
@@ -54,8 +66,7 @@ class UDTValueMapper {
         this.beanMapper = beanMapper;
     }
     
-    
-   
+      
     static boolean isBuildInType(DataType dataType) {        
         if (dataType.isCollection()) {
             for (DataType type : dataType.getTypeArguments()) {
@@ -80,33 +91,53 @@ class UDTValueMapper {
      * @param fieldname  the fieldname
      * @return the mapped value or <code>null</code>
      */
-    public Object fromUdtValue(DataType datatype, 
+    public <T> Object fromUdtValue(DataType datatype, 
                                UDTValue udtValue,
                                Class<?> fieldtype1, 
                                Class<?> fieldtype2,
                                String fieldname) {
-        
+    	CodecRegistry codecRegistry = getCodecRegistry();
+    	
         // build-in type 
         if (isBuildInType(datatype)) {
-            return datatype.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
+        	TypeCodec<T> typeCodec = codecRegistry.codecFor(datatype);
+        	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
+        	// jwestra: 3.x API change
+           // return datatype.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
         
             
         // udt collection    
         } else if (datatype.isCollection()) {
-            Class<?> type = datatype.getName().asJavaClass();
+            //Class<?> type = datatype.getName().asJavaClass();
            
             // set
-            if (Set.class.isAssignableFrom(type)) {
+        	 if (DataType.Name.SET == datatype.getName()) {
+        		// jwestra: 3.x API change
+            //if (Set.class.isAssignableFrom(type)) {
+            //    return fromUdtValues(datatype.getTypeArguments().get(0), 
+            //                        ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
+            //                         fieldtype1); 
+        		 
+        		// New API passes fieldtype2, which is the elements class
                 return fromUdtValues(datatype.getTypeArguments().get(0), 
-                                     ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
-                                     fieldtype1); 
+                        ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
+                        fieldtype2); 
                 
             // list
-            } else if (List.class.isAssignableFrom(type)) {
+        	 } else if (DataType.Name.LIST == datatype.getName()) {
+        		// jwestra: 3.x API change
+             //} else if (List.class.isAssignableFrom(type)) {
+             //   return fromUdtValues(datatype.getTypeArguments().get(0), 
+             //                        ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
+             //                        fieldtype1); 
+        		 
+        		 
+        		// New API passes fieldtype2, which is the elements class
                 return fromUdtValues(datatype.getTypeArguments().get(0), 
-                                     ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
-                                     fieldtype1); 
-
+                        ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
+                        fieldtype2); 
+                
+                
             // map
             } else {
                 if (isBuildInType(datatype.getTypeArguments().get(0))) {
@@ -276,8 +307,10 @@ class UDTValueMapper {
         // udt collection
         } else if (datatype.isCollection()) {
            
-           // set 
-           if (Set.class.isAssignableFrom(datatype.getName().asJavaClass())) {
+           // set
+        	if (DataType.Name.SET == datatype.getName()) {
+        		// jwestra: 3.x API change
+           //if (Set.class.isAssignableFrom(datatype.getName().asJavaClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
                Set<Object> udt = Sets.newHashSet();
@@ -290,7 +323,9 @@ class UDTValueMapper {
                return ImmutableSet.copyOf(udt);
                
            // list 
-           } else if (List.class.isAssignableFrom(datatype.getName().asJavaClass())) {
+        	 } else if (DataType.Name.LIST == datatype.getName()) {    
+        		 // jwestra: 3.x API change
+          // } else if (List.class.isAssignableFrom(datatype.getName().asJavaClass())) {
                DataType elementDataType = datatype.getTypeArguments().get(0);
                
                List<Object> udt = Lists.newArrayList();
@@ -340,7 +375,11 @@ class UDTValueMapper {
                         vl = toUdtValue(tablename, catalog, fieldType, vl);
                     }
                     
-                    udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, protocolVersion));
+                    String key = entry.getKey();
+                    udtValue.setBytesUnsafe(key, serialize(fieldType, vl));
+                    
+                  //  fieldType.
+                  //  udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, protocolVersion));
                 }
                 
                 return udtValue;
@@ -406,4 +445,79 @@ class UDTValueMapper {
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
                (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    //
+    // NEW
+    //
+    ///////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+	 * Get the CodecRegistry this uses to serialize/deserialize
+	 * @return the codecRegistry
+	 */
+	public CodecRegistry getCodecRegistry() {
+		return this.codecRegistry;
+	}
+	
+	/**
+	 * Get the metadata catalog this uses
+	 * @return the metadata catalog
+	 */
+	public MetadataCatalog getMetadataCatalog() {
+    	return this.catalog;
+    }
+	
+	 /**
+     * Serialize a field using the data type passed.
+     * @param dataType
+     * @param value
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+	public <T> ByteBuffer serialize(DataType dataType, Object value) {
+    	CodecRegistry codecRegistry = getCodecRegistry();
+    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+    	return typeCodec.serialize((T)value, protocolVersion);
+    }
+    
+    
+    /**
+     * Serialize a field using the Codec for the value itself
+     * @param value
+     * @return
+     */
+    public <T> ByteBuffer serialize(T value) {
+    	CodecRegistry codecRegistry = getCodecRegistry();
+    	TypeCodec<T> typeCodec = codecRegistry.codecFor(value);
+    	return typeCodec.serialize((T)value, protocolVersion);
+    }
+    
+    /**
+     * jwestra: 3.x API change
+     * deserialize a single field in a UDTValue map
+     * @param dataType
+     * @param udtValue
+     * @param fieldname
+     * @return
+     */
+    public <T> T deserialize(DataType dataType, UDTValue udtValue, String fieldname) {
+    	CodecRegistry codecRegistry = getCodecRegistry();
+    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+    	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
+    }
+    
+    /**
+     * Deserialize a whole ByteBuffer into an object
+     * @param dataType
+     * @param byteBuffer
+     * @return
+     */
+    public <T> T deserialize(DataType dataType, ByteBuffer byteBuffer) {
+    	CodecRegistry codecRegistry = getCodecRegistry();
+    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+    	return typeCodec.deserialize(byteBuffer, protocolVersion);
+    }
+    
+
 }   
