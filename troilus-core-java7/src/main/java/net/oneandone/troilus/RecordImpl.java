@@ -17,34 +17,34 @@ package net.oneandone.troilus;
 
 
 import java.math.BigDecimal;
-
-
-
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.LocalDate;
-import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Optional;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +55,10 @@ import com.google.common.collect.ImmutableSet;
  * 
  * @author Jason Westra - edited original
  * 12-12-2015: 3.x API change - paranoiaCheck(), getDate(), toString(), getValue()
+ * Completely re-wrote PropertySourceAdapter's read() and 
+ *       read(String name, Class<?> clazz1, Class<?> clazz2) to work with UDTValue collections.
+ *       This is verified in UDTValueMappingCollectionTests.java
+ * 
  */
 class RecordImpl implements Record {
     
@@ -422,19 +426,45 @@ class RecordImpl implements Record {
         
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1) {
-            return read(name, clazz1, Object.class);
+        	// bug fix: mapping entity collections
+            //return read(name, clazz1, Object.class);
+        	if (Collection.class.isAssignableFrom(clazz1)) {
+        		throw new IllegalArgumentException("clazz1 cannot be a collection. "
+        				+ "Call read(String name, Class<?> clazz1, Class<?> clazz2) instead.");
+        	}
+        	return read(name, clazz1, null);
         }
     
         
         @SuppressWarnings("unchecked")
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
-            T value = (T) record.getValue(name, clazz1);
-            if (value == null) {
-                return Optional.absent();
-            } else {
-                return Optional.of(value);
-            }
+        	// bug fix: mapping entity collections
+        	T value = null;
+        	if (List.class.isAssignableFrom(clazz1)) {
+        		value = (T) record.getList(name, clazz2);
+        	} else if (Set.class.isAssignableFrom(clazz1)) {
+        		value = (T) record.getSet(name, clazz2);
+        	} else if (clazz2 != null) {
+        		// It is a Map if both clazz1 and clazz2 are set
+        		// yet clazz1 is NOT a collection.  This is the only way
+        		// I could figure out how to do it without changing the read API
+        		// to take more parameters
+        		Class<?> keyClass = clazz1;
+        		Class<?> valuesClass = clazz2;
+        		value = (T)record.getMap(name, keyClass, valuesClass);
+        	} else {
+        		// Its not a Set or List & clazz2 is null
+        		// so, it is a single attribute
+        		value = (T) record.getValue(name, clazz1);
+        	}
+            
+        	 if (value == null) {
+                 return Optional.absent();
+             } else {
+                 return Optional.of(value);
+             }
+        	
         }
     }
 }
