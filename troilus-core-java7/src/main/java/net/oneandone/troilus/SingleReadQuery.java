@@ -18,10 +18,6 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 import java.util.List;
 
-
-
-import org.reactivestreams.Publisher;
-
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.ResultList;
@@ -30,6 +26,9 @@ import net.oneandone.troilus.java7.SingleReadWithUnit;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 import net.oneandone.troilus.java7.interceptor.ResultListAdapter;
 
+import org.reactivestreams.Publisher;
+
+import com.datastax.driver.core.ResultSet;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -42,6 +41,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Read query implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record, Record> {
 
@@ -286,7 +288,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             }
             
             @Override
-            public ListenableFuture<Void> fetchMoreResultsAsync() {
+            public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                 return iterator.fetchMoreResultsAsync();
             }
             
