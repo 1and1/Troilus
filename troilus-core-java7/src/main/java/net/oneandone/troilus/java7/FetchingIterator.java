@@ -49,5 +49,6 @@ public interface FetchingIterator<E> extends Iterator<E> {
      *         will be thrown (you should thus call isFullyFetched() to know if calling this method can be of any use).
      */
     ListenableFuture<ResultSet> fetchMoreResultsAsync();
+    //ListenableFuture<Void> fetchMoreResultsAsync();
 }
 
