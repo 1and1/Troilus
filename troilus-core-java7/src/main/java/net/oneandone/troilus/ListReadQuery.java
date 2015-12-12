@@ -17,7 +17,6 @@ package net.oneandone.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-
 import java.util.List;
 
 import net.oneandone.troilus.java7.FetchingIterator;
@@ -50,6 +49,9 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * The list read query implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  *
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
@@ -371,7 +373,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
                 
                 @Override
-                public ListenableFuture<Void> fetchMoreResultsAsync() {
+                public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                     return recordIt.fetchMoreResultsAsync();
                 }
             };
