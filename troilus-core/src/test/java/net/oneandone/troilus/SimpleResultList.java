@@ -16,7 +16,6 @@
 package net.oneandone.troilus;
 
 import java.math.BigDecimal;
-
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -31,6 +30,7 @@ import net.oneandone.troilus.java7.FetchingIterator;
 import org.testng.collections.Lists;
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +41,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
+ *
+ */
 public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<Record> {
     private final long elements;
     private final int fetchDelayMillis;
@@ -128,9 +133,9 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
         }
         
         @Override
-        public ListenableFuture<Void> fetchMoreResultsAsync() {
+        public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
 
-            return new AbstractFuture<Void>() {
+            return new AbstractFuture<ResultSet>() {
                 
                 {
                     new Thread() {
