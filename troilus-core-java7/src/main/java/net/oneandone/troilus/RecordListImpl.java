@@ -29,7 +29,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: ListenableFuture<Void> to ListenableFuture<ResultSet>
+ *
+ */
 class RecordListImpl implements ResultList<Record> {
     private final Context ctx;
     private final ReadQueryData queryData;
@@ -80,7 +85,7 @@ class RecordListImpl implements ResultList<Record> {
            }
            
            @Override
-           public ListenableFuture<Void> fetchMoreResultsAsync() {
+           public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                return rs.fetchMoreResults();
            }
            
