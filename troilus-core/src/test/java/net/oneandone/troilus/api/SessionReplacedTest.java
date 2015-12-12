@@ -18,7 +18,9 @@ package net.oneandone.troilus.api;
 
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,7 +55,12 @@ import com.datastax.driver.core.Statement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: prepareAsync(), initAsync() added to make it compile, but not implemented
+ *
+ */
 public class SessionReplacedTest {
     
     private static CassandraDB cassandra;
@@ -99,7 +106,7 @@ public class SessionReplacedTest {
                                  ImmutableSet.of("1", "2", "3", "122", "123", "124", "322", "333"),
                                  Optional.of(ClassifierEnum.FIVE), 
                                  Optional.of("Superb hotel housed in a heritage building - exudes old world charm"),
-                                 new Address("Erzsébet körút 43", "Budapest", "1073"),
+                                 new Address("Erzsï¿½bet kï¿½rï¿½t 43", "Budapest", "1073"),
                                  Optional.empty());
                
         hotelsDao.writeEntity(entity)
@@ -250,6 +257,21 @@ public class SessionReplacedTest {
         protected ListenableFuture<PreparedStatement> prepareAsync(String query, Map<String, ByteBuffer> customPayload) {
             return null;
         }*/
+        
+        // 3.x API change
+        @Override
+		public ListenableFuture<Session> initAsync() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+        // 3.x API change
+		@Override
+		protected ListenableFuture<PreparedStatement> prepareAsync(
+				String query, Map<String, ByteBuffer> customPayload) {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 }
 
