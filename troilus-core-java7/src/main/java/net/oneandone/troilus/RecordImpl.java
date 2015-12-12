@@ -37,6 +37,7 @@ import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
@@ -51,6 +52,9 @@ import com.google.common.collect.ImmutableSet;
  
 /**
  * The record implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - paranoiaCheck(), getDate(), toString(), getValue()
  */
 class RecordImpl implements Record {
     
@@ -92,11 +96,24 @@ class RecordImpl implements Record {
             
             // check if response key matches with any of the request keys
             for (Object value : entry.getValue()) {
-                ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDefaultDbSession().getProtocolVersion());
-                
-                if (requestKeyValue.compareTo(responseKeyValue) == 0) {
-                    return;
-                }
+            	// begin: 3.x API change
+            	UDTValueMapper udtValueMapper = ctx.getUDTValueMapper();
+            	if (value == null) continue;
+            	try {
+            		ByteBuffer requestKeyValue = udtValueMapper.serialize(value);
+                	if (requestKeyValue.compareTo(responseKeyValue) == 0) {
+                        return;
+                    }
+            	} catch(Exception e) {
+            		LOG.warn("Cassandra 3.0 serialization failed to serialize object: "+value, e);
+            	}
+            	// end: 3.x API change
+            	
+                //ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDefaultDbSession().getProtocolVersion());
+                //
+                //if (requestKeyValue.compareTo(responseKeyValue) == 0) {
+                //    return;
+                //}
             }
             
             LOG.warn("Dataswap error for " + entry.getKey());
@@ -198,7 +215,10 @@ class RecordImpl implements Record {
 
     @Override
     public Date getDate(String name) {
-        return new Date(row.getDate(name).getTime());
+        //return new Date(row.getDate(name).getTime());
+        // jwestra: 3.x API change
+        LocalDate ld = row.getDate(name);
+    	return new Date(ld.getMillisSinceEpoch());
     }
 
     @Override
@@ -261,7 +281,9 @@ class RecordImpl implements Record {
                 if (byteBuffer == null) {
                     obj = null;
                 } else  {
-                    obj = datatype.deserialize(byteBuffer, ctx.getDefaultDbSession().getProtocolVersion());
+                	// jwestra: 3.x API change
+                    //obj = datatype.deserialize(byteBuffer, ctx.getDefaultDbSession().getProtocolVersion());
+                	obj = ctx.getUDTValueMapper().deserialize(datatype, byteBuffer);
                 }
             
                 // enum
@@ -371,8 +393,10 @@ class RecordImpl implements Record {
             return "";
         } else {
             StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDefaultDbSession().getProtocolVersion()));
-
+            // jwestra: 3.x API change
+            //builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDefaultDbSession().getProtocolVersion()));
+            builder.append(ctx.getUDTValueMapper().deserialize(dataType, getRow().getBytesUnsafe(name)));
+            
             return builder.toString();
         }
     }
