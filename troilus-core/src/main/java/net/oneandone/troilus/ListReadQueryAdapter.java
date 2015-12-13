@@ -20,7 +20,11 @@ import java.util.concurrent.CompletableFuture;
 
 
 
+
+
 import org.reactivestreams.Publisher;
+
+import com.datastax.driver.core.PagingState;
 
 import net.oneandone.troilus.AbstractQuery;
 import net.oneandone.troilus.Context;
@@ -35,6 +39,9 @@ import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 
 /**
  * Java8 adapter of a ListReadQuery
+ * 
+ * @author Jason Westra - edited original
+ * 12-13-2015: pagination APIs - withPagingState()
  */
 class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>, Record> {
 
@@ -122,6 +129,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         return newQuery(query.withDistinct());
     }
     
+	@Override
+	public ListRead<ResultList<Record>, Record> withPagingState(
+			PagingState pagingState) {
+		return newQuery(query.withPagingState(pagingState));
+	}  
+	
     @Override
     public ListRead<Count, Count> count() {
         return new CountReadQueryAdapter(getContext(), query.count());
@@ -208,6 +221,12 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         public Publisher<E> executeRx() {
             return query.executeRx();
         }
+        
+        @Override
+    	public ListRead<ResultList<E>, E> withPagingState(
+    			PagingState pagingState) {
+        	return new ListEntityReadQueryAdapter<>(getContext(), query.withPagingState(pagingState));
+        }  
     }
     
     
@@ -268,6 +287,11 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
         @Override
         public CompletableFuture<Count> executeAsync() {
             return CompletableFutures.toCompletableFuture(query.executeAsync());
-        }        
+        }    
+        
+        @Override
+		public ListRead<Count, Count> withPagingState(PagingState pagingState) {
+			throw new IllegalArgumentException("Count readers cannot be configured with paging state.");
+		}      
     }  
 }

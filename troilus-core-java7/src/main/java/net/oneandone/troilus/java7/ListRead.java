@@ -15,12 +15,17 @@
  */
 package net.oneandone.troilus.java7;
 
+import com.datastax.driver.core.PagingState;
+
 
 
 /**
  * List read query
  *
  * @param <T> the result type
+ *
+ * @author Jason Westra - edited original
+ * 12-13-2015: pagination APIs - withPagingState()
  */
 public interface ListRead<T, R> extends SingleRead<T, R> {
 
@@ -46,4 +51,9 @@ public interface ListRead<T, R> extends SingleRead<T, R> {
      * @return a cloned query instance which allows filtering
      */
     ListRead<T, R> withAllowFiltering();
+    
+    /**
+     * @return a cloned query instance which allows paging
+     */
+    ListRead<T, R> withPagingState(PagingState pagingState);
 }

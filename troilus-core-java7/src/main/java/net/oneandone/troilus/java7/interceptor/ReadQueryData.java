@@ -18,6 +18,7 @@ package net.oneandone.troilus.java7.interceptor;
 
 import net.oneandone.troilus.Tablename;
 
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -28,6 +29,9 @@ import com.google.common.collect.ImmutableSet;
  
 /**
  * list read query data 
+ * 
+ * @author Jason Westra - edited original
+ * 12-13-2015: pagination APIs - getPagingState(), pagingState()
  */
 public interface ReadQueryData {
     
@@ -115,4 +119,17 @@ public interface ReadQueryData {
      * @return the distinct flag
      */
     Boolean getDistinct();
+    
+    /**
+     * @return paging state or null, if none
+     * @return
+     */
+    PagingState getPagingState();
+    
+    /** Sets paging state
+     * 
+     * @param pagingState
+     * @return
+     */
+    ReadQueryData pagingState(PagingState pagingState);
 }

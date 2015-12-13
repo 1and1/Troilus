@@ -17,11 +17,8 @@ package net.oneandone.troilus;
 
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
-
-
-
-import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.util.List;
@@ -29,6 +26,7 @@ import java.util.Map.Entry;
 
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
 
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -44,6 +42,11 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * List query data implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-13-2015: pagination APIs - pagingState(), getPagingState() 
+ * 			   Explicit comment about NOT setting PagingState in toStatementAsync() 
+ * 			   because of issues with DataStax driver hash() check
  */
 class ReadQueryDataImpl implements ReadQueryData {
     
@@ -55,7 +58,7 @@ class ReadQueryDataImpl implements ReadQueryData {
     private final Boolean allowFiltering;
     private final Integer fetchSize;
     private final Boolean distinct;
-
+    private final PagingState pagingState;
     
     /**
      * Constructor
@@ -65,6 +68,7 @@ class ReadQueryDataImpl implements ReadQueryData {
              ImmutableMap.<String, ImmutableList<Object>>of(),
              ImmutableSet.<Clause>of(), 
              ImmutableMap.<String, Boolean>of(),
+             null,
              null,
              null,
              null,
@@ -79,7 +83,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                               Integer limit, 
                               Boolean allowFiltering,
                               Integer fetchSize,
-                              Boolean distinct) {
+                              Boolean distinct,
+                              PagingState pagingState) {
         this.tablename = tablename;
         this.keys = keys;
         this.whereClauses = whereClauses;
@@ -88,6 +93,7 @@ class ReadQueryDataImpl implements ReadQueryData {
         this.allowFiltering = allowFiltering;
         this.fetchSize = fetchSize;
         this.distinct = distinct;
+        this.pagingState = pagingState;
     }
     
 
@@ -100,7 +106,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      this.allowFiltering,
                                      this.fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState); 
     }
 
     @Override
@@ -112,7 +119,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      this.allowFiltering,
                                      this.fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState);  
     }
 
     @Override
@@ -124,7 +132,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      this.allowFiltering,
                                      this.fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState);  
     }
 
     @Override
@@ -136,7 +145,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      limit,
                                      this.allowFiltering,
                                      this.fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState);  
     }
 
     @Override
@@ -148,7 +158,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      allowFiltering,
                                      this.fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState);  
     }
 
     @Override
@@ -160,7 +171,8 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      this.allowFiltering,
                                      fetchSize,
-                                     this.distinct);  
+                                     this.distinct,
+                                     this.pagingState); 
     }
 
     @Override
@@ -172,7 +184,21 @@ class ReadQueryDataImpl implements ReadQueryData {
                                      this.limit,
                                      this.allowFiltering,
                                      this.fetchSize,
-                                     distinct);  
+                                     distinct,
+                                     this.pagingState);  
+    }
+    
+    @Override
+    public ReadQueryDataImpl pagingState(PagingState pagingState) {
+        return new ReadQueryDataImpl(this.tablename,
+                                     this.keys,
+                                     this.whereClauses,
+                                     this.columnsToFetch,
+                                     this.limit,
+                                     this.allowFiltering,
+                                     this.fetchSize,
+                                     this.distinct,
+                                     pagingState);  
     }
     
     @Override
@@ -268,7 +294,16 @@ class ReadQueryDataImpl implements ReadQueryData {
             select.setFetchSize(data.getFetchSize());
         }
         
-        
+        // begin: jwestra: 12-10-2015 - Pagination
+        // NOTE:
+        // This results in a PagingStateException because a Select is a RegularStatement
+        // while the ResultSet.getPagingState() has the final BoundStatement in it.
+        // So, their hash() is different and the driver throws the PagingStateException
+        // @see PagingState.hash()
+    	//if (data.getPagingState() != null) {
+    	//	select.setPagingState(data.getPagingState());
+    	//}
+    	// end: changes for Pagination
         
         // where-based selection
         if (data.getKeys().isEmpty()) {
@@ -299,4 +334,9 @@ class ReadQueryDataImpl implements ReadQueryData {
             return dbSession.bindAsync(preparedStatementFuture, values.toArray());
         }
     }   
+    
+    @Override
+	public PagingState getPagingState() {
+		return pagingState;
+	}   
 }
