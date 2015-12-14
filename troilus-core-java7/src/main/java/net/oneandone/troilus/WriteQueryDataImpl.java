@@ -54,6 +54,9 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * write query data implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-13-2015: toUpdateStatementAsync(): bug fix - don't bind keys into the SET
  *
  */
 class WriteQueryDataImpl implements WriteQueryData {
@@ -704,8 +707,13 @@ class WriteQueryDataImpl implements WriteQueryData {
             }
             
             for (Entry<String, Optional<Object>> entry : data.getValuesToMutate().entrySet()) {
-                update.with(set(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue().orNull()));
+            	// 12-13-2015 - Don't bind keys into the SET
+            	// fixes error of com.datastax.driver.core.exceptions.InvalidQueryException: PRIMARY KEY part id found in SET part
+            	boolean isPrimaryKey = udtValueMapper.getMetadataCatalog().isPrimaryKey(data.getTablename(), entry.getKey());
+            	if (!isPrimaryKey) {
+            		update.with(set(entry.getKey(), bindMarker())); 
+                    values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue().orNull()));
+            	}
             }
 
             for (Entry<String, ImmutableSet<Object>> entry : data.getSetValuesToAdd().entrySet()) {
