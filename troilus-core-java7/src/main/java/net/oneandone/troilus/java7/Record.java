@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -38,6 +39,8 @@ import com.google.common.collect.ImmutableSet;
  * record result
  *
  * @author grro
+ * @author Jason Westra - edited original
+ * 12-14-2015: added getLocalDateTime()
  */
 public interface Record extends Result {
    
@@ -110,6 +113,11 @@ public interface Record extends Result {
      */
     long getTime(String name);
 
+    /**
+     * @param name
+     * @return LocalDateTime
+     */
+    LocalDateTime getLocalDateTime(String name);
     
     /**
      * @param name the column name 

@@ -39,6 +39,7 @@ import com.datastax.driver.core.Session;
  * - pagingState
  * 
  * @author Jason Westra
+ * 12-14-2015: Maps LocalDateTime field to Entity without need to convert(date)
  *
  */
 @RunWith(value=BlockJUnit4ClassRunner.class)
@@ -234,7 +235,7 @@ public class PaginationTest extends TestCase implements PaginationInvites {
 		while(i.hasNext()) {
 			InvitesByMonthAndInviteDate invite = i.next();
 			
-			LocalDateTime inviteDate = convert(invite.getInviteDate());
+			LocalDateTime inviteDate = invite.getInviteDate();
 			if (previousInviteDate != null) {
 				if (previousInviteDate.isAfter(inviteDate)) {
 					fail("Fetched out of order of the invite date");
@@ -257,7 +258,7 @@ public class PaginationTest extends TestCase implements PaginationInvites {
 		private String emailAddress;
 		
 		@Field(name="invite_date")
-		private Date inviteDate;
+		private LocalDateTime inviteDate;
 
 
 		/**
@@ -291,14 +292,14 @@ public class PaginationTest extends TestCase implements PaginationInvites {
 		/**
 		 * @return the inviteDate
 		 */
-		public Date getInviteDate() {
+		public LocalDateTime getInviteDate() {
 			return inviteDate;
 		}
 
 		/**
 		 * @param inviteDate the inviteDate to set
 		 */
-		public void setInviteDate(Date inviteDate) {
+		public void setInviteDate(LocalDateTime inviteDate) {
 			this.inviteDate = inviteDate;
 		}
 		

@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -37,7 +40,6 @@ import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
@@ -58,7 +60,7 @@ import com.google.common.collect.ImmutableSet;
  * Completely re-wrote PropertySourceAdapter's read() and 
  *       read(String name, Class<?> clazz1, Class<?> clazz2) to work with UDTValue collections.
  *       This is verified in UDTValueMappingCollectionTests.java
- * 
+ * 12-14-2015: getTime() - no longer returns -1.  Calls row.getTime(name), added getLocalDateTime() 
  */
 class RecordImpl implements Record {
     
@@ -193,8 +195,7 @@ class RecordImpl implements Record {
     
     @Override
     public long getTime(String name) {
-        //return row.getTime(name);
-        return -1;
+    	return row.getTime(name);
     }
     
     @Override
@@ -221,8 +222,14 @@ class RecordImpl implements Record {
     public Date getDate(String name) {
         //return new Date(row.getDate(name).getTime());
         // jwestra: 3.x API change
-        LocalDate ld = row.getDate(name);
-    	return new Date(ld.getMillisSinceEpoch());
+    	return row.getTimestamp(name);
+    }
+    
+    @Override
+    public LocalDateTime getLocalDateTime(String name) {
+    	long timestamp = row.getTimestamp(name).getTime();
+    	Instant instant = Instant.ofEpochMilli(timestamp);
+		return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     @Override

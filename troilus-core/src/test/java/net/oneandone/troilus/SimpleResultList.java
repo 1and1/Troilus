@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -45,7 +46,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * 
  * @author Jason Westra - edited original
  * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
- *
+ * 12-14-2015: added getLocalDateTime()
  */
 public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<Record> {
     private final long elements;
@@ -370,6 +371,12 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                         // TODO Auto-generated method stub
                         return false;
                     }
+
+					@Override
+					public LocalDateTime getLocalDateTime(String name) {
+						// TODO Auto-generated method stub
+						return null;
+					}
                 };
             }   
         }

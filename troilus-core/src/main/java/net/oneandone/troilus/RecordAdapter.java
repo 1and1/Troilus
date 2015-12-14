@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -42,6 +43,9 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Java8 adapter of a Record
+ * 
+ * @author Jason Westra - edited original
+ * 12-14-2015: added getLocalDateTime()
  */
 class RecordAdapter implements Record {
     
@@ -128,6 +132,11 @@ class RecordAdapter implements Record {
     @Override
     public long getTime(String name) {
         return record.getTime(name);
+    }
+    
+    @Override
+    public LocalDateTime getLocalDateTime(String name) {
+    	return record.getLocalDateTime(name);
     }
      
     @Override
@@ -366,6 +375,11 @@ class RecordAdapter implements Record {
             public boolean getBool(String name) {
                 return record.getBool(name);
             }
+
+			@Override
+			public LocalDateTime getLocalDateTime(String name) {
+				return record.getLocalDateTime(name);
+			}
         };
     }
 }
