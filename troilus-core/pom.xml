@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>net.oneandone.troilus</groupId>
 		<artifactId>troilus-parent</artifactId>
-		<version>0.17-SNAPSHOT</version>
+		<version>0.17-RELEASE</version>
 	</parent>
 	<artifactId>troilus-core</artifactId>
 	<packaging>jar</packaging>
@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>net.oneandone.troilus</groupId>
 			<artifactId>troilus-core-java7</artifactId>
-			<version>0.17-SNAPSHOT</version>
+			<version>0.17-RELEASE</version>
 		</dependency>
 
 

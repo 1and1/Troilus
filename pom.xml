@@ -21,7 +21,7 @@
 	-->
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
-	<version>0.17-SNAPSHOT</version>
+	<version>0.17-RELEASE</version>
 	<packaging>pom</packaging>
 
         <properties>
