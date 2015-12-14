@@ -8,6 +8,17 @@
 		<version>1.5.1</version>
 	</parent>
 
+	<!-- 
+	  This is the Kritek fork of Troilus .17-SNAPSHOT
+	  See changes.txt for what was added to Kritek fork.
+	  
+	  NOTE: To build in Eclipse IDE, just delete this Problems 'Marker', whenever it shows up:
+	  
+	  Description	Resource	Path	Location	Type
+	  ============================================================
+	  Plugin execution not covered by lifecycle configuration: org.jacoco:jacoco-maven-plugin:0.7.2.201409121644:prepare-agent (execution: default-prepare-agent, phase: initialize)	pom.xml	/troilus-core	line 5	Maven Project Build Lifecycle Mapping Problem
+	  
+	-->
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
 	<version>0.17-SNAPSHOT</version>

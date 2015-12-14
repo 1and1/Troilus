@@ -1,4 +1,13 @@
 
+0.17 - Kritek Fork
+ * Pagination Support - ListRead.withPagingState(), ListReadQuery.toStatementAsync()
+ * Inheritance of @Field mappings for entities in BeanMapper
+ * Upgrade from Cassandra Datastax 2.2.0-rc2 driver to 3.0.0-beta1 driver
+ * Upgrade tests from Cassandra 2.x to Cassandra 3.0.0 (see pom.xml dependency and CassandraDB.java)
+ * bugfix: WriteQueryDataImpl.java toUpdateStatementAsync() no longer maps primary keys into Update SET
+ * bugfix: RecordImpl.PropertySourceAdapter rewrote read() and read(String name, Class<?> clazz1, Class<?> clazz2) to work with UDTValue collections.
+ * New test cases: PaginationTest.java, EntityInheritanceMappingTest.java, UDTValueMappingCollectionTests.java
+ 
 0.16
  * DaoImpl constructor supports keyspacename paramter instead dot-composed keyspace and tablename string
 
