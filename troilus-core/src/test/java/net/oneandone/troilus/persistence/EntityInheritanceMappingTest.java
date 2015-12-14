@@ -29,7 +29,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 /**
  * Tests ability to map to an entity with inherited @Field(s)
  * 
- * @author Jason Westra  12-10-2015
+ * @author Jason Westra  12-13-2015
  * 
  *
  */
@@ -106,7 +106,7 @@ public class EntityInheritanceMappingTest extends TestCase {
 		mockDOWithInheritance.setLatitude(new BigDecimal(44));
 		mockDOWithInheritance.setVersion(2);
 		
-		// update here
+		// update here demonstrating onlyIf() on the version
 		try {
 			dao.writeWithKey("id", mockDOWithInheritance.getId())
 			.entity(mockDOWithInheritance)
