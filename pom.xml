@@ -104,7 +104,7 @@
                               <!-- Set this to "true" to redirect the unit test standard output to a file 
                                     (found in reportsDirectory/testName-output.txt). -->
                                        <threadCount>1</threadCount>
-				<redirectTestOutputToFile>true</redirectTestOutputToFile>
+				
                               </configuration>
                        </plugin>
                 </plugins>
