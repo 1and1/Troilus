@@ -18,29 +18,20 @@ package net.oneandone.troilus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import net.oneandone.troilus.Context;
-import net.oneandone.troilus.DeleteQuery;
-import net.oneandone.troilus.DeleteQueryDataImpl;
-import net.oneandone.troilus.ListReadQuery;
-import net.oneandone.troilus.ReadQueryDataImpl;
-import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.SingleReadQuery;
-import net.oneandone.troilus.UpdateQuery;
-import net.oneandone.troilus.WriteQueryDataImpl;
 import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
+import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.interceptor.ReadQueryData;
 import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
 import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
-import net.oneandone.troilus.interceptor.QueryInterceptor;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
 import net.oneandone.troilus.java7.Batchable;
@@ -48,11 +39,12 @@ import net.oneandone.troilus.java7.Batchable;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.Clause;
-import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -64,6 +56,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * DaoImpl
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - CompletableFuture<Void> to CompletableFuture<ResultSet>
  */
 public class DaoImpl implements Dao {
     
@@ -570,7 +565,7 @@ public class DaoImpl implements Dao {
                 }
                 
                 @Override
-                public CompletableFuture<Void> fetchMoreResultsAsync() {
+                public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
                     return CompletableFutures.toCompletableFuture(iterator.fetchMoreResultsAsync());
                 }
                 
@@ -627,7 +622,7 @@ public class DaoImpl implements Dao {
                         }
                         
                         @Override
-                        public ListenableFuture<Void> fetchMoreResultsAsync() {
+                        public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                             return CompletableFutures.toListenableFuture(iterator.fetchMoreResultsAsync());
                         }
                         
@@ -709,7 +704,7 @@ public class DaoImpl implements Dao {
                }
                
                @Override
-               public CompletableFuture<Void> fetchMoreResultsAsync() {
+               public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
                    return CompletableFutures.toCompletableFuture(recordIt.fetchMoreResultsAsync());
                }
            };

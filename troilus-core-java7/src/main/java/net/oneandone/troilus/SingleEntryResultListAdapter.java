@@ -23,11 +23,18 @@ import net.oneandone.troilus.java7.ResultList;
 import net.oneandone.troilus.java7.interceptor.ResultListAdapter;
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
+ *
+ * @param <T>
+ */
 class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T> {
 
     public SingleEntryResultListAdapter(T element) {
@@ -103,7 +110,7 @@ class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T
             }
             
             @Override
-            public ListenableFuture<Void> fetchMoreResultsAsync() {
+            public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                 return Futures.immediateFuture(null);
             }
         }

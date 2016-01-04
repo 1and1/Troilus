@@ -29,7 +29,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: ListenableFuture<Void> to ListenableFuture<ResultSet>
+ * 12-13-2015: PaginationBasedResultsIterator
+ *
+ */
 class RecordListImpl implements ResultList<Record> {
     private final Context ctx;
     private final ReadQueryData queryData;
@@ -61,6 +67,9 @@ class RecordListImpl implements ResultList<Record> {
     }
 
     public FetchingIterator<Record> iterator() {
+        if (queryData.getFetchSize() != null) {
+        	return new PaginationBasedResultsIterator();
+        }
         
         return new FetchingIterator<Record>() {
 
@@ -80,7 +89,7 @@ class RecordListImpl implements ResultList<Record> {
            }
            
            @Override
-           public ListenableFuture<Void> fetchMoreResultsAsync() {
+           public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                return rs.fetchMoreResults();
            }
            
@@ -95,4 +104,41 @@ class RecordListImpl implements ResultList<Record> {
            }
         };
     }
+    
+    private class PaginationBasedResultsIterator implements FetchingIterator<Record> {
+
+    	int limit;
+    	
+    	PaginationBasedResultsIterator() {
+    		limit = rs.getAvailableWithoutFetching();
+        }
+    	    	
+		@Override
+		public boolean hasNext() {
+			return limit > 0;
+		}
+
+		@Override
+		public Record next() {
+			limit--;
+			return new RecordImpl(ctx, queryData, RecordListImpl.this, iterator.next());
+		}
+
+		@Override
+		public int getAvailableWithoutFetching() {
+			return limit;
+		}
+
+		@Override
+		public boolean isFullyFetched() {
+			return rs.isFullyFetched();
+		}
+
+		@Override
+		public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
+			return rs.fetchMoreResults();
+		}
+    	
+    }
+    
 }     

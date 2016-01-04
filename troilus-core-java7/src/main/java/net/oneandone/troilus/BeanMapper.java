@@ -27,6 +27,7 @@ import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,6 +47,13 @@ import com.google.common.collect.Maps;
 /**
  * bean mapper
  *
+ * 
+ * @author Jason Westra - edited
+ * 12-12-2015: PropertyWriter.readValue(Class<?> clazz, PropertiesSource datasource)
+ * 12-12-2015: PropertiesMapperLoader - loads fields more efficiently
+ * 12-12-2015: PropertiesMapperLoader - includes super class annotations
+ * 12-12-2015: PropertiesMapper - constructor does proactive check on ability to instantiate the field
+ * 
  */
 class BeanMapper {
     
@@ -57,14 +65,26 @@ class BeanMapper {
         private final Class<?> clazz;
         private final ImmutableMap<String, PropertyWriter> propertyWriters;
         private final ImmutableMap<String, PropertyReader> propertyReaders;
-        
-    
+           
         public PropertiesMapper(ImmutableMap<String, PropertyReader> propertyReaders,  ImmutableMap<String, PropertyWriter> propertyWriters, Class<?> clazz) {
-            this.propertyReaders = propertyReaders;
+            // Safety check up front for invalid classes that cannot be instantiated
+        	// during property mapping
+        	try {
+				newInstance((Constructor<?>) clazz.getDeclaredConstructor());
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new IllegalArgumentException("Invalid class for properties mapping.  It cannot be "
+						+ "instantiated through Java Reflection: "+clazz.getName(), e);
+			}
+        	
+        	this.propertyReaders = propertyReaders;
             this.propertyWriters = propertyWriters;
-            this.clazz = clazz;
+        	this.clazz = clazz;
+            
         }
      
+        private Class<?> getConcreteClass() {
+        	return clazz;
+        }
       
         public ImmutableMap<String, Optional<Object>> toValues(Object entity, ImmutableSet<String> namesToMap) {
             Map<String, Optional<Object>> values = Maps.newHashMap();
@@ -83,7 +103,11 @@ class BeanMapper {
         @SuppressWarnings("unchecked")
         public <T> T fromValues(PropertiesSource datasource, ImmutableSet<String> namesToMap) {
             try {
-                T bean = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
+            	T bean = newInstance((Constructor<T>) getConcreteClass().getDeclaredConstructor());
+            	
+            	// This blows on java.util.List, ImmutableList, etc.
+            	// Basically, anything that is not a concrete class with an empty constructor
+                //T bean = newInstance((Constructor<T>) clazz.getDeclaredConstructor());
                 
                 for (Entry<String, PropertyWriter> entry : propertyWriters.entrySet()) {
                     if (namesToMap.isEmpty() || namesToMap.contains(entry.getKey())) {
@@ -176,28 +200,82 @@ class BeanMapper {
         @Override
         public PropertiesMapper load(Class<?> clazz) throws Exception {
 
-            // readers
+        	// readers
             Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
-            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
-            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-     
+            propertyReaders.putAll(  loadPropertyReaders(clazz) );
+            
             // writers
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
-            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
-            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
-                   
+            
+            propertyWriters.putAll( loadPropertyWriters(clazz));
+        	
+        // OLD APIS DID NOT LOAD SUPER CLASS FIELDS	
+//            // readers
+//            Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
+//            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyReaders.putAll(fetchJEEFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyReaders.putAll(fetchCassandraMapperFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyReaders.putAll(fetchFieldReaders(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//     
+//            // writers
+//            Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
+//            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyWriters.putAll(fetchJEEFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyWriters.putAll(fetchCassandraMapperFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getFields())));
+//            propertyWriters.putAll(fetchFieldWriters(ImmutableSet.copyOf(clazz.getDeclaredFields())));
+//                   
             
             return new PropertiesMapper(ImmutableMap.copyOf(propertyReaders), ImmutableMap.copyOf(propertyWriters), clazz);
         }
      
+        private static Map<String, PropertyReader> loadPropertyReaders(Class<?> clazz) {
+        	Map<String, PropertyReader> fieldMap = new HashMap<String, PropertyReader>();
+        	Class<?> fieldsFromClass = clazz;
+    		while(fieldsFromClass != null) {
+    			ImmutableSet<Field> fields = ImmutableSet.copyOf(fieldsFromClass.getDeclaredFields());
+    			try {
+    				fieldMap.putAll(fetchCassandraMapperFieldReaders(fields));
+    				fieldMap.putAll(fetchFieldReaders(fields));
+    				fieldMap.putAll(fetchJEEFieldReaders(fields));
+    				
+					//Method loaderMethod = PropertiesMapperLoader.class.getDeclaredMethod(methodName, ImmutableSet.class);
+					//fieldMap.putAll((Map<? extends String, ? extends PropertyReader>)loaderMethod.invoke(PropertiesMapperLoader.class, ImmutableSet.copyOf(fieldsFromClass.getFields())));
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to load property reader for class: "+fieldsFromClass.getName(), e);
+				}
+    			
+    			// Search base classes for annotations as well
+    			fieldsFromClass = fieldsFromClass.getSuperclass();
+    		}
+    		return fieldMap;
+        }
+        
+		private static Map<String, PropertyWriter> loadPropertyWriters(Class<?> clazz) {
+        	Map<String, PropertyWriter> fieldMap = new HashMap<String, PropertyWriter>();
+        	Class<?> fieldsFromClass = clazz;
+        	
+    		while(fieldsFromClass != null) {
+    			ImmutableSet<Field> fields = ImmutableSet.copyOf(fieldsFromClass.getDeclaredFields());
+    			
+    			try {
+    				fieldMap.putAll(fetchCassandraMapperFieldWriters(fields));
+    				fieldMap.putAll(fetchFieldWriters(fields));
+    				fieldMap.putAll(fetchJEEFieldWriters(fields));
+    			} catch (Exception e) {
+					throw new RuntimeException("Failed to load property writer "
+							+ "for class: "+fieldsFromClass, e);
+				}
+    			
+    			// Search base classes for annotations as well
+    			fieldsFromClass = fieldsFromClass.getSuperclass();
+    		}
+    		return fieldMap;
+        }
+		
         
         private static ImmutableMap<String, PropertyReader> fetchFieldReaders(ImmutableSet<Field> beanFields) {
             Map<String, PropertyReader> propertyReaders = Maps.newHashMap();
@@ -268,7 +346,7 @@ class BeanMapper {
         }
         
    
-        private Map<String, PropertyWriter> fetchFieldWriters(ImmutableSet<Field> beanFields) {
+        private static Map<String, PropertyWriter> fetchFieldWriters(ImmutableSet<Field> beanFields) {
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
@@ -283,7 +361,7 @@ class BeanMapper {
         }
         
         
-        private Map<String, PropertyWriter> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
+        private static Map<String, PropertyWriter> fetchJEEFieldWriters(ImmutableSet<Field> beanFields) {
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
             
             for (Field beanField : beanFields) {
@@ -307,7 +385,7 @@ class BeanMapper {
 
         
                 
-        private Map<String, PropertyWriter> fetchCassandraMapperFieldWriters(ImmutableSet<Field> beanFields) {
+        private static Map<String, PropertyWriter> fetchCassandraMapperFieldWriters(ImmutableSet<Field> beanFields) {
             Map<String, PropertyWriter> propertyWriters = Maps.newHashMap();
 
             for (Field beanField : beanFields) {
@@ -495,20 +573,21 @@ class BeanMapper {
                 type = getActualTypeArgument(type, 0);
             }
                 
-            if (ImmutableSet.class.isAssignableFrom(clazz)) {
-                value = datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0));
+            if (Set.class.isAssignableFrom(clazz)) {
+            //if (ImmutableSet.class.isAssignableFrom(clazz)) {
+                value = datasource.read(fieldName, clazz, (Class<Object>) getActualTypeArgument(type, 0));
                 if (value.isPresent()) {
                     return Optional.<Object>of(ImmutableSet.copyOf((Collection) value.get()));
                 }
 
-            } else if (ImmutableList.class.isAssignableFrom(clazz)) {
-                value =  datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0));
+            } else if (List.class.isAssignableFrom(clazz)) {
+            //else if (ImmutableList.class.isAssignableFrom(clazz)) {
+                value =  datasource.read(fieldName, clazz, (Class<Object>) getActualTypeArgument(type, 0));
                 if (value.isPresent()) {
                     return Optional.<Object>of(ImmutableList.copyOf((Collection) value.get()));
                 }
-
-
-            } else if (ImmutableMap.class.isAssignableFrom(clazz)) {
+            } else if (Map.class.isAssignableFrom(clazz)) {
+            //else if (ImmutableMap.class.isAssignableFrom(clazz)) {
                 value = datasource.read(fieldName, (Class<Object>) getActualTypeArgument(type, 0), (Class<Object>) getActualTypeArgument(field.getGenericType(), 1));
                 if (value.isPresent()) {
                     return Optional.<Object>of(ImmutableMap.copyOf((Map) value.get()));

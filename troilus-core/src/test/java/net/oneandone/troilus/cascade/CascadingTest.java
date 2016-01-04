@@ -18,7 +18,6 @@ package net.oneandone.troilus.cascade;
 
 
 import java.io.IOException;
-
 import java.util.Optional;
 
 
@@ -42,19 +41,30 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.TupleType;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API changes
+ *
+ */
 public class CascadingTest {
 
     private static CassandraDB cassandra;
     
+    // 3.x API change
+    private ProtocolVersion protocolVersion = ProtocolVersion.NEWEST_SUPPORTED;
+    // 3.x API change
+    private CodecRegistry codecRegistry = CodecRegistry.DEFAULT_INSTANCE;
     
     @BeforeClass
     public static void beforeClass() throws IOException {
@@ -90,7 +100,8 @@ public class CascadingTest {
         
         //////////////////////////////////////
         // insert 
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+       // TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
                        .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
@@ -159,7 +170,9 @@ public class CascadingTest {
         
         //////////////////////////////////////
         // insert 
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        // 3.x API change
+        //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
                        .value(KeyByAccountColumns.EMAIL_IDX, ImmutableSet.of(idxType.newValue(email, time)))
@@ -283,7 +296,9 @@ public class CascadingTest {
         
         //////////////////////////////////////
         // insert
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        // 3.x API change
+        //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         try {
             keyByAccountDao.writeWhere(QueryBuilder.in(KeyByAccountColumns.ACCOUNT_ID.getName(), id))
                            .value(KeyByAccountColumns.KEY, key)
@@ -315,7 +330,9 @@ public class CascadingTest {
         
         //////////////////////////////////////
         // insert 
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());       
+        // 3.x API change
+        //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());    
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
                        .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
@@ -379,7 +396,9 @@ public class CascadingTest {
         
         //////////////////////////////////////
         // insert 
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
+        // 3.x API change
+        //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());     
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
                        .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
@@ -440,7 +459,9 @@ public class CascadingTest {
         //////////////////////////////////////
         // insert 
         try {
-            TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());            
+        	// 3.x API change
+            //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());
+        	TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
             keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                            .value(KeyByAccountColumns.KEY, key)
                            .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))
@@ -467,7 +488,9 @@ public class CascadingTest {
 
         //////////////////////////////////////
         // insert 
-        TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
+        // 3.x API change
+        //TupleType idxType = TupleType.of(DataType.text(), DataType.bigint());        
+        TupleType idxType = TupleType.of(protocolVersion, codecRegistry,DataType.text(), DataType.bigint());
         keyByAccountDao.writeWithKey(KeyByAccountColumns.ACCOUNT_ID, id)
                        .value(KeyByAccountColumns.KEY, key)
                        .addSetValue(KeyByAccountColumns.EMAIL_IDX, idxType.newValue(email, time))

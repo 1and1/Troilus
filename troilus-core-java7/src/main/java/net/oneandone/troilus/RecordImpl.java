@@ -17,33 +17,36 @@ package net.oneandone.troilus;
 
 
 import java.math.BigDecimal;
-
-
-
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.interceptor.ReadQueryData;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Optional;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -51,6 +54,13 @@ import com.google.common.collect.ImmutableSet;
  
 /**
  * The record implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - paranoiaCheck(), getDate(), toString(), getValue()
+ * Completely re-wrote PropertySourceAdapter's read() and 
+ *       read(String name, Class<?> clazz1, Class<?> clazz2) to work with UDTValue collections.
+ *       This is verified in UDTValueMappingCollectionTests.java
+ * 12-14-2015: getTime() - no longer returns -1.  Calls row.getTime(name), added getLocalDateTime() 
  */
 class RecordImpl implements Record {
     
@@ -92,11 +102,24 @@ class RecordImpl implements Record {
             
             // check if response key matches with any of the request keys
             for (Object value : entry.getValue()) {
-                ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDefaultDbSession().getProtocolVersion());
-                
-                if (requestKeyValue.compareTo(responseKeyValue) == 0) {
-                    return;
-                }
+            	// begin: 3.x API change
+            	UDTValueMapper udtValueMapper = ctx.getUDTValueMapper();
+            	if (value == null) continue;
+            	try {
+            		ByteBuffer requestKeyValue = udtValueMapper.serialize(value);
+                	if (requestKeyValue.compareTo(responseKeyValue) == 0) {
+                        return;
+                    }
+            	} catch(Exception e) {
+            		LOG.warn("Cassandra 3.0 serialization failed to serialize object: "+value, e);
+            	}
+            	// end: 3.x API change
+            	
+                //ByteBuffer requestKeyValue = DataType.serializeValue(value, ctx.getDefaultDbSession().getProtocolVersion());
+                //
+                //if (requestKeyValue.compareTo(responseKeyValue) == 0) {
+                //    return;
+                //}
             }
             
             LOG.warn("Dataswap error for " + entry.getKey());
@@ -172,8 +195,7 @@ class RecordImpl implements Record {
     
     @Override
     public long getTime(String name) {
-        //return row.getTime(name);
-        return -1;
+    	return row.getTime(name);
     }
     
     @Override
@@ -198,7 +220,16 @@ class RecordImpl implements Record {
 
     @Override
     public Date getDate(String name) {
-        return new Date(row.getDate(name).getTime());
+        //return new Date(row.getDate(name).getTime());
+        // jwestra: 3.x API change
+    	return row.getTimestamp(name);
+    }
+    
+    @Override
+    public LocalDateTime getLocalDateTime(String name) {
+    	long timestamp = row.getTimestamp(name).getTime();
+    	Instant instant = Instant.ofEpochMilli(timestamp);
+		return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     @Override
@@ -261,7 +292,9 @@ class RecordImpl implements Record {
                 if (byteBuffer == null) {
                     obj = null;
                 } else  {
-                    obj = datatype.deserialize(byteBuffer, ctx.getDefaultDbSession().getProtocolVersion());
+                	// jwestra: 3.x API change
+                    //obj = datatype.deserialize(byteBuffer, ctx.getDefaultDbSession().getProtocolVersion());
+                	obj = ctx.getUDTValueMapper().deserialize(datatype, byteBuffer);
                 }
             
                 // enum
@@ -371,8 +404,10 @@ class RecordImpl implements Record {
             return "";
         } else {
             StringBuilder builder = new StringBuilder();
-            builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDefaultDbSession().getProtocolVersion()));
-
+            // jwestra: 3.x API change
+            //builder.append(dataType.deserialize(getRow().getBytesUnsafe(name), ctx.getDefaultDbSession().getProtocolVersion()));
+            builder.append(ctx.getUDTValueMapper().deserialize(dataType, getRow().getBytesUnsafe(name)));
+            
             return builder.toString();
         }
     }
@@ -398,19 +433,45 @@ class RecordImpl implements Record {
         
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1) {
-            return read(name, clazz1, Object.class);
+        	// bug fix: mapping entity collections
+            //return read(name, clazz1, Object.class);
+        	if (Collection.class.isAssignableFrom(clazz1)) {
+        		throw new IllegalArgumentException("clazz1 cannot be a collection. "
+        				+ "Call read(String name, Class<?> clazz1, Class<?> clazz2) instead.");
+        	}
+        	return read(name, clazz1, null);
         }
     
         
         @SuppressWarnings("unchecked")
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
-            T value = (T) record.getValue(name, clazz1);
-            if (value == null) {
-                return Optional.absent();
-            } else {
-                return Optional.of(value);
-            }
+        	// bug fix: mapping entity collections
+        	T value = null;
+        	if (List.class.isAssignableFrom(clazz1)) {
+        		value = (T) record.getList(name, clazz2);
+        	} else if (Set.class.isAssignableFrom(clazz1)) {
+        		value = (T) record.getSet(name, clazz2);
+        	} else if (clazz2 != null) {
+        		// It is a Map if both clazz1 and clazz2 are set
+        		// yet clazz1 is NOT a collection.  This is the only way
+        		// I could figure out how to do it without changing the read API
+        		// to take more parameters
+        		Class<?> keyClass = clazz1;
+        		Class<?> valuesClass = clazz2;
+        		value = (T)record.getMap(name, keyClass, valuesClass);
+        	} else {
+        		// Its not a Set or List & clazz2 is null
+        		// so, it is a single attribute
+        		value = (T) record.getValue(name, clazz1);
+        	}
+            
+        	 if (value == null) {
+                 return Optional.absent();
+             } else {
+                 return Optional.of(value);
+             }
+        	
         }
     }
 }

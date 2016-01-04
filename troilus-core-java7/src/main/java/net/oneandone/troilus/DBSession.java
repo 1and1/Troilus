@@ -41,6 +41,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * DBSession
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API changes - getProtocolVersion()
  */
 public class DBSession  {
     private static final Logger LOG = LoggerFactory.getLogger(DBSession.class);
@@ -96,7 +99,9 @@ public class DBSession  {
      */
     ProtocolVersion getProtocolVersion() {
         //return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
-        return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+        //return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
+        
+        return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
     }
     
  

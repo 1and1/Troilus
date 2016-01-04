@@ -16,12 +16,12 @@
 package net.oneandone.troilus;
 
 import java.math.BigDecimal;
-
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -31,6 +31,7 @@ import net.oneandone.troilus.java7.FetchingIterator;
 import org.testng.collections.Lists;
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.TupleValue;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +42,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
+ * 12-14-2015: added getLocalDateTime()
+ */
 public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<Record> {
     private final long elements;
     private final int fetchDelayMillis;
@@ -128,9 +134,9 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
         }
         
         @Override
-        public ListenableFuture<Void> fetchMoreResultsAsync() {
+        public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
 
-            return new AbstractFuture<Void>() {
+            return new AbstractFuture<ResultSet>() {
                 
                 {
                     new Thread() {
@@ -365,6 +371,12 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                         // TODO Auto-generated method stub
                         return false;
                     }
+
+					@Override
+					public LocalDateTime getLocalDateTime(String name) {
+						// TODO Auto-generated method stub
+						return null;
+					}
                 };
             }   
         }

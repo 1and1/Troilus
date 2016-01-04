@@ -18,12 +18,17 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 
+import com.datastax.driver.core.ResultSet;
+
 
 
 /**
  * Iterator which supports fetching methods
  * 
  * @param <E> the element type
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - CompletableFuture<Void> to CompletableFuture<ResultSet>
  */
 public interface FetchingIterator<E> extends Iterator<E> {
 
@@ -44,6 +49,6 @@ public interface FetchingIterator<E> extends Iterator<E> {
      *         then the returned future will return immediately but not particular error 
      *         will be thrown (you should thus call isFullyFetched() to know if calling this method can be of any use).
      */
-    CompletableFuture<Void> fetchMoreResultsAsync();
+    CompletableFuture<ResultSet> fetchMoreResultsAsync();
 }
 

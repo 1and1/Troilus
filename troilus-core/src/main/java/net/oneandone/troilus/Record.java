@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import net.oneandone.troilus.ColumnName;
@@ -39,6 +40,8 @@ import com.google.common.collect.ImmutableSet;
  * record result
  *
  * @author grro
+ * @author Jason Westra - edited original
+ * 12-14-2015: added getLocalDateTime()
  */
 public interface Record extends Result {
    
@@ -109,6 +112,12 @@ public interface Record extends Result {
      */
     long getTime(String name);
   
+    /**
+     * @param name
+     * @return LocalDateTime
+     */
+    LocalDateTime getLocalDateTime(String name);
+    
     /**
      * @param name the column name 
      * @return the value of column name as a decimal. If the value is NULL, null is returned

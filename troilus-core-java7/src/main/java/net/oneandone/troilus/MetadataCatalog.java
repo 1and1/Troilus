@@ -16,7 +16,9 @@
 package net.oneandone.troilus;
 
 
+import java.util.List;
 import java.util.Set;
+
 
 
 
@@ -35,7 +37,11 @@ import com.google.common.collect.Sets;
  * MetadataCatalog including database metadata 
  * 
  * @author grro
- *
+ * 
+ * @author Jason Westra - edited original
+ * 12-13-2015: isPrimaryKey() - used to generate Update Statement properly
+ * @see WriteQueryDataImpl.toUpdateStatementAsync()
+ * 
  */
 class MetadataCatalog  {
 
@@ -77,7 +83,17 @@ class MetadataCatalog  {
         return userTypeCache.get(tablename, usertypeName);
     }
     
-    
+    /**
+     * Whether or not this column is part of the primary key
+     * @param tablename
+     * @param columnName
+     * @return true if pk, false otherwise
+     */
+    public boolean isPrimaryKey(Tablename tablename, String columnName) {
+    	List<ColumnMetadata> primaryKeys = tableMetadataCache.getMetadata(tablename).tableMetadata.getPrimaryKey();
+    	ColumnMetadata columnMetadata = getColumnMetadata(tablename, columnName);
+    	return primaryKeys.contains(columnMetadata);
+    }
     
 
     private static final class TableMetadataCache {

@@ -22,10 +22,10 @@ package net.oneandone.troilus.referentialintegrity;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.FetchingIterator;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.ConstraintException;
 import net.oneandone.troilus.ResultList;
 import net.oneandone.troilus.interceptor.ReadQueryData;
 import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
@@ -33,10 +33,16 @@ import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
 import net.oneandone.troilus.interceptor.RecordListAdapter;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ResultSet;
 import com.google.common.collect.ImmutableSet;
     
 
-
+/**
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - CompletableFuture<Void> to CompletableFuture<ResultSet>
+ *
+ */
 class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
                                          ReadQueryResponseInterceptor {
     
@@ -92,7 +98,7 @@ class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
                 return it.isFullyFetched();
             }
             
-            public CompletableFuture<Void> fetchMoreResultsAsync() {
+            public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
                 return it.fetchMoreResultsAsync();
             }
             

@@ -17,8 +17,8 @@ package net.oneandone.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ListRead;
@@ -31,6 +31,7 @@ import net.oneandone.troilus.java7.interceptor.ReadQueryResponseInterceptor;
 
 import org.reactivestreams.Publisher;
 
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
@@ -50,6 +51,11 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * The list read query implementation
+ * 
+ * @author Jason Westra - edited original
+ * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
+ * 12-13-2015: pagination APIs - withPagingState(), added toStatementAsync() - to set fetchSize & pagingState properly
+ * 				modified executeAsync() - calls toStatementAsync() to set up pagination properties, if needed
  *
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
@@ -152,6 +158,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     @Override
+    public ListReadQuery withPagingState(PagingState pagingState) {
+        return newQuery(data.pagingState(pagingState));
+    }
+    
+    @Override
     public CountReadQuery count() {
         return new CountReadQuery(getContext(), new CountReadQueryData(data.getTablename())
                                                                         .whereConditions(data.getWhereConditions())
@@ -195,8 +206,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     
     private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData, DBSession dbSession) {
-        // perform query
-        ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, getUDTValueMapper(), dbSession));        
+        // 12-11-2015: jwestra - pagination support. Calls toStatementAsync() to perform
+    	// extra post-processing on the Statement to do pagination correctly
+    	// perform query
+    	ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, toStatementAsync(queryData, getUDTValueMapper(), dbSession));
+    	
+        //ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, getUDTValueMapper(), dbSession));        
         
         // result set to record list mapper
         Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
@@ -252,6 +267,44 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         return recordFuture;
     }
     
+    /**
+     * 12-11-2015: jwestra
+     * 
+     * Prepares the Statement for Pagination, if fetchSize is set. Otherwise, it simply  
+     * returns ReadQueryDataImpl.toStatementAsync(data, udtValueMapper, dbSession)
+     * as in the original code did in executeAsync().
+     * 
+     * @param queryData
+     * @param udtValueMapper
+     * @param dbSession
+     * 
+     * @return ListenableFuture<Statement>
+     */
+    private ListenableFuture<Statement> toStatementAsync(final ReadQueryData queryData, UDTValueMapper udtValueMapper, DBSession dbSession) {
+    	ListenableFuture<Statement> lfs = ReadQueryDataImpl.toStatementAsync(data, udtValueMapper, dbSession);
+    	
+    	Integer fetchSize = data.getFetchSize();
+    	if (fetchSize != null) {
+    		Statement statement = null;
+    		try {
+    			statement = lfs.get();
+    		} catch (InterruptedException | ExecutionException e) {
+    			throw new RuntimeException("Failed to get the Statement from ListenableFuture<Statement>", e);
+    		}
+    		
+			// The FetchSize is lost somehow when ReadQueryData.toStatementAsync() is invoked.
+    		// In the debugger, it was always zero.  So, it is reset here directly on the Statement
+			// This sets the fetchsize specifically on the Statement before executing.
+			statement.setFetchSize(fetchSize);
+			
+			// The PagingState is not set during ReadQueryData.toStatementAsync() because
+			// the driver compares the Select (a RegularStatement) to the previous PagingState's
+			// BoundStatement and fails the hash() check with a PagingStateException.
+			// So, like the fetch size, the PagingState must be done here.
+			statement.setPagingState(data.getPagingState());
+		}
+    	return lfs;
+    }
     
     /**
      * The entity list read implementation
@@ -321,6 +374,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
             return new ResultListPublisher<>(recordsFuture);
         }
+
+		@Override
+		public ListEntityReadQuery<E> withPagingState(
+				PagingState pagingState) {
+			return query.withPagingState(pagingState).asEntity(clazz);
+		}
+
+
     }
     
     
@@ -371,7 +432,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
                 
                 @Override
-                public ListenableFuture<Void> fetchMoreResultsAsync() {
+                public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
                     return recordIt.fetchMoreResultsAsync();
                 }
             };
@@ -602,6 +663,11 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
             
             return new ResultListPublisher<>(Futures.transform(countFuture, toListFunction));
         }
+
+		@Override
+		public ListRead<Count, Count> withPagingState(PagingState pagingState) {
+			throw new IllegalArgumentException("Count readers cannot be configured with paging state.");
+		}
     }  
 }
     
