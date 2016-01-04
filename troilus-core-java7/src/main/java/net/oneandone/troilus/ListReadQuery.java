@@ -51,12 +51,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * The list read query implementation
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
- * 12-13-2015: pagination APIs - withPagingState(), added toStatementAsync() - to set fetchSize & pagingState properly
- * 				modified executeAsync() - calls toStatementAsync() to set up pagination properties, if needed
- *
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
     
@@ -130,7 +124,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     
     @Override
     public ListReadQuery columns(ColumnName<?>... names) {
-        List<String> ns = Lists.newArrayList();
+        final List<String> ns = Lists.newArrayList();
         for (ColumnName<?> name : names) {
             ns.add(name.getName());
         }
@@ -192,10 +186,10 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     @Override
     public ListenableFuture<ResultList<Record>> executeAsync() {
         // perform request executors
-        ListenableFuture<ReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ReadQueryData>immediateFuture(data));  
+        final ListenableFuture<ReadQueryData> queryDataFuture = executeRequestInterceptorsAsync(Futures.<ReadQueryData>immediateFuture(data));  
 
         // execute query asnyc
-        Function<ReadQueryData, ListenableFuture<ResultList<Record>>> queryExecutor = new Function<ReadQueryData, ListenableFuture<ResultList<Record>>>() {
+        final Function<ReadQueryData, ListenableFuture<ResultList<Record>>> queryExecutor = new Function<ReadQueryData, ListenableFuture<ResultList<Record>>>() {
             @Override
             public ListenableFuture<ResultList<Record>> apply(ReadQueryData querData) {
                 return executeAsync(querData, getDefaultDbSession());
@@ -206,22 +200,17 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
     
     private ListenableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData, DBSession dbSession) {
-        // 12-11-2015: jwestra - pagination support. Calls toStatementAsync() to perform
-    	// extra post-processing on the Statement to do pagination correctly
-    	// perform query
-    	ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, toStatementAsync(queryData, getUDTValueMapper(), dbSession));
+        final ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, toStatementAsync(queryData, getUDTValueMapper(), dbSession));
     	
-        //ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, ReadQueryDataImpl.toStatementAsync(queryData, getUDTValueMapper(), dbSession));        
-        
         // result set to record list mapper
-        Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
+        final Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
             
             @Override
             public ResultList<Record> apply(ResultSet resultSet) {
                 return new RecordListImpl(getContext(), queryData, resultSet);
             }
         };
-        ListenableFuture<ResultList<Record>> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
+        final ListenableFuture<ResultList<Record>> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
         
         // running interceptors within dedicated threads!
         return executeResponseInterceptorsAsync(queryData, recordListFuture);
@@ -233,7 +222,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         for (ReadQueryRequestInterceptor interceptor : getInterceptorRegistry().getInterceptors(ReadQueryRequestInterceptor.class).reverse()) {
             final ReadQueryRequestInterceptor icptor = interceptor;
             
-            Function<ReadQueryData, ListenableFuture<ReadQueryData>> mapperFunction = new Function<ReadQueryData, ListenableFuture<ReadQueryData>>() {
+            final Function<ReadQueryData, ListenableFuture<ReadQueryData>> mapperFunction = new Function<ReadQueryData, ListenableFuture<ReadQueryData>>() {
                 @Override
                 public ListenableFuture<ReadQueryData> apply(ReadQueryData queryData) {
                     return icptor.onReadRequestAsync(queryData);
@@ -253,7 +242,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         for (ReadQueryResponseInterceptor interceptor : getInterceptorRegistry().getInterceptors(ReadQueryResponseInterceptor.class).reverse()) {
             final ReadQueryResponseInterceptor icptor = interceptor;
             
-            Function<ResultList<Record>, ListenableFuture<ResultList<Record>>> mapperFunction = new Function<ResultList<Record>, ListenableFuture<ResultList<Record>>>() {
+            final Function<ResultList<Record>, ListenableFuture<ResultList<Record>>> mapperFunction = new Function<ResultList<Record>, ListenableFuture<ResultList<Record>>>() {
                 @Override
                 public ListenableFuture<ResultList<Record>> apply(ResultList<Record> recordList) {
                     return icptor.onReadResponseAsync(queryData, recordList);
@@ -268,8 +257,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     }
     
     /**
-     * 12-11-2015: jwestra
-     * 
      * Prepares the Statement for Pagination, if fetchSize is set. Otherwise, it simply  
      * returns ReadQueryDataImpl.toStatementAsync(data, udtValueMapper, dbSession)
      * as in the original code did in executeAsync().
@@ -281,9 +268,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
      * @return ListenableFuture<Statement>
      */
     private ListenableFuture<Statement> toStatementAsync(final ReadQueryData queryData, UDTValueMapper udtValueMapper, DBSession dbSession) {
-    	ListenableFuture<Statement> lfs = ReadQueryDataImpl.toStatementAsync(data, udtValueMapper, dbSession);
+        final ListenableFuture<Statement> lfs = ReadQueryDataImpl.toStatementAsync(data, udtValueMapper, dbSession);
     	
-    	Integer fetchSize = data.getFetchSize();
+    	final  Integer fetchSize = data.getFetchSize();
     	if (fetchSize != null) {
     		Statement statement = null;
     		try {
@@ -357,9 +344,9 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 
         @Override
         public ListenableFuture<ResultList<E>> executeAsync() {
-            ListenableFuture<ResultList<Record>> future = query.executeAsync();
+            final ListenableFuture<ResultList<Record>> future = query.executeAsync();
             
-            Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
+            final Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
                 @Override
                 public ResultList<E> apply(ResultList<Record> recordList) {
                     return new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getCatalog(), recordList, clazz);
@@ -371,13 +358,12 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public Publisher<E> executeRx() {
-            ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
+            final ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
             return new ResultListPublisher<>(recordsFuture);
         }
 
 		@Override
-		public ListEntityReadQuery<E> withPagingState(
-				PagingState pagingState) {
+		public ListEntityReadQuery<E> withPagingState(PagingState pagingState) {
 			return query.withPagingState(pagingState).asEntity(clazz);
 		}
 

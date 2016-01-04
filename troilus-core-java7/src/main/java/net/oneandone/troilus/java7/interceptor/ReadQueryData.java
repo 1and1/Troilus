@@ -29,9 +29,6 @@ import com.google.common.collect.ImmutableSet;
  
 /**
  * list read query data 
- * 
- * @author Jason Westra - edited original
- * 12-13-2015: pagination APIs - getPagingState(), pagingState()
  */
 public interface ReadQueryData {
     
@@ -46,7 +43,6 @@ public interface ReadQueryData {
      * @return the new read query data
      */
     ReadQueryData keys(ImmutableMap<String, ImmutableList<Object>> keys);
-
 
     
     /**

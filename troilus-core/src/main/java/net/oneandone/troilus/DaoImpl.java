@@ -56,9 +56,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * DaoImpl
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - CompletableFuture<Void> to CompletableFuture<ResultSet>
  */
 public class DaoImpl implements Dao {
     
@@ -118,7 +115,6 @@ public class DaoImpl implements Dao {
     
     @Override
     public Dao withInterceptor(QueryInterceptor queryInterceptor) {
-         
         Context context = ctx.withInterceptor(queryInterceptor);
         
         if (ReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
@@ -151,7 +147,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public Insertion writeEntity(Object entity) {
-        ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getCatalog().getColumnNames(tablename));
+        final ImmutableMap<String, com.google.common.base.Optional<Object>> values = ctx.getBeanMapper().toValues(entity, ctx.getCatalog().getColumnNames(tablename));
         return new InsertQueryAdapter(ctx, new InsertQuery(ctx, new WriteQueryDataImpl(tablename).valuesToMutate(values)));
     }
     
@@ -267,7 +263,7 @@ public class DaoImpl implements Dao {
     
     @Override
     public SingleReadWithUnit<Optional<Record>, Record> readWithKey(ImmutableMap<String, Object> composedkey) {
-        Map<String, ImmutableList<Object>> keys = Maps.newHashMap();
+        final Map<String, ImmutableList<Object>> keys = Maps.newHashMap();
         for (Entry<String, Object> entry : composedkey.entrySet()) {
             keys.put(entry.getKey(), ImmutableList.of(entry.getValue()));
         }
@@ -1033,7 +1029,7 @@ public class DaoImpl implements Dao {
 
         @Override
         public ImmutableMap<String, ImmutableMap<Object, Optional<Object>>> getMapValuesToMutate() {
-            Map<String, ImmutableMap<Object, Optional<Object>>> result = Maps.newHashMap();
+            final Map<String, ImmutableMap<Object, Optional<Object>>> result = Maps.newHashMap();
             for (Entry<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 Map<Object, Optional<Object>> iresult = Maps.newHashMap();
                 for (Entry<Object, com.google.common.base.Optional<Object>> entry2 : entry.getValue().entrySet()) {
@@ -1076,7 +1072,7 @@ public class DaoImpl implements Dao {
         }
 
         private static <T, V> ImmutableMap<T, Optional<V>> fromGuavaOptional(ImmutableMap<T, com.google.common.base.Optional<V>> map) {
-            Map<T, Optional<V>> result = Maps.newHashMap();
+            final Map<T, Optional<V>> result = Maps.newHashMap();
             for (Entry<T, com.google.common.base.Optional<V>> entry : map.entrySet()) {
                 result.put(entry.getKey(), Optional.ofNullable(entry.getValue().orNull()));
             }
@@ -1086,7 +1082,7 @@ public class DaoImpl implements Dao {
 
         
         private static <T,V> ImmutableMap<T, com.google.common.base.Optional<V>> toGuavaOptional(ImmutableMap<T, Optional<V>> map) {
-            Map<T, com.google.common.base.Optional<V>> result = Maps.newHashMap();
+            final Map<T, com.google.common.base.Optional<V>> result = Maps.newHashMap();
             for (Entry<T, Optional<V>> entry : map.entrySet()) {
                 result.put(entry.getKey(), com.google.common.base.Optional.fromNullable(entry.getValue().orElse(null)));
             }
@@ -1096,7 +1092,7 @@ public class DaoImpl implements Dao {
         
 
         private static ImmutableMap<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> toGuavaOptional(Map<String, ImmutableMap<Object, Optional<Object>>> map) {
-            Map<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> result = Maps.newHashMap();
+            final Map<String, ImmutableMap<Object, com.google.common.base.Optional<Object>>> result = Maps.newHashMap();
             for (Entry<String, ImmutableMap<Object, Optional<Object>>> entry : map.entrySet()) {
                 Map<Object, com.google.common.base.Optional<Object>> iresult = Maps.newHashMap();
                 for (Entry<Object, Optional<Object>> entry2 : entry.getValue().entrySet()) {

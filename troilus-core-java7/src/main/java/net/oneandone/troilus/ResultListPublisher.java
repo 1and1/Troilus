@@ -34,9 +34,6 @@ import com.google.common.util.concurrent.MoreExecutors;
  * ResultList-based publisher
  *
  * @param <R> the element type
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class ResultListPublisher<R> implements Publisher<R> {
     
@@ -163,6 +160,4 @@ class ResultListPublisher<R> implements Publisher<R> {
             return false;
         }
     }
-}        
-    
-
+}      

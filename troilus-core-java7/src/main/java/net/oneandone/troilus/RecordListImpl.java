@@ -30,17 +30,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: ListenableFuture<Void> to ListenableFuture<ResultSet>
- * 12-13-2015: PaginationBasedResultsIterator
- *
+ * RecordList implementation
  */
 class RecordListImpl implements ResultList<Record> {
     private final Context ctx;
     private final ReadQueryData queryData;
     private final ResultSet rs;
-
     
     private final Iterator<Row> iterator;
     
@@ -107,7 +102,7 @@ class RecordListImpl implements ResultList<Record> {
     
     private class PaginationBasedResultsIterator implements FetchingIterator<Record> {
 
-    	int limit;
+    	private int limit;
     	
     	PaginationBasedResultsIterator() {
     		limit = rs.getAvailableWithoutFetching();
@@ -140,5 +135,4 @@ class RecordListImpl implements ResultList<Record> {
 		}
     	
     }
-    
 }     

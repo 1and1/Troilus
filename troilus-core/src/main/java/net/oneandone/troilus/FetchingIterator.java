@@ -26,9 +26,6 @@ import com.datastax.driver.core.ResultSet;
  * Iterator which supports fetching methods
  * 
  * @param <E> the element type
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - CompletableFuture<Void> to CompletableFuture<ResultSet>
  */
 public interface FetchingIterator<E> extends Iterator<E> {
 

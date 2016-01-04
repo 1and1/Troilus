@@ -41,9 +41,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * DBSession
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API changes - getProtocolVersion()
  */
 public class DBSession  {
     private static final Logger LOG = LoggerFactory.getLogger(DBSession.class);
@@ -98,9 +95,6 @@ public class DBSession  {
      * @return the protocol version
      */
     ProtocolVersion getProtocolVersion() {
-        //return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
-        //return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersionEnum();
-        
         return getSession().getCluster().getConfiguration().getProtocolOptions().getProtocolVersion();
     }
     
@@ -119,7 +113,7 @@ public class DBSession  {
      * @return the statement future
      */
     public ListenableFuture<Statement> bindAsync(ListenableFuture<PreparedStatement> preparedStatementFuture, final Object[] values) {
-        Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
+        final Function<PreparedStatement, Statement> bindStatementFunction = new Function<PreparedStatement, Statement>() {
             @Override
             public Statement apply(PreparedStatement preparedStatement) {
                 return preparedStatement.bind(values);
@@ -176,11 +170,11 @@ public class DBSession  {
         
         
         ListenableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
-            PreparedStatement preparedStatment = preparedStatementCache.getIfPresent(statement.getQueryString());
+            final PreparedStatement preparedStatment = preparedStatementCache.getIfPresent(statement.getQueryString());
             if (preparedStatment == null) {
-                ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
+                final ListenableFuture<PreparedStatement> future = session.prepareAsync(statement);
                 
-                Function<PreparedStatement, PreparedStatement> addToCacheFunction = new Function<PreparedStatement, PreparedStatement>() {
+                final Function<PreparedStatement, PreparedStatement> addToCacheFunction = new Function<PreparedStatement, PreparedStatement>() {
                     
                     public PreparedStatement apply(PreparedStatement preparedStatment) {
                         preparedStatementCache.put(statement.getQueryString(), preparedStatment);

@@ -24,9 +24,6 @@ import com.datastax.driver.core.PagingState;
  * List read query
  *
  * @param <T> the result type
- * 
- * @author Jason Westra - edited original
- * 12-13-2015: pagination APIs - withPagingState()
  */
 public interface ListRead<T, R> extends SingleRead<T, R> {
     

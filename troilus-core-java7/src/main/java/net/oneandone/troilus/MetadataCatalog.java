@@ -36,12 +36,6 @@ import com.google.common.collect.Sets;
 /**
  * MetadataCatalog including database metadata 
  * 
- * @author grro
- * 
- * @author Jason Westra - edited original
- * 12-13-2015: isPrimaryKey() - used to generate Update Statement properly
- * @see WriteQueryDataImpl.toUpdateStatementAsync()
- * 
  */
 class MetadataCatalog  {
 
@@ -90,8 +84,8 @@ class MetadataCatalog  {
      * @return true if pk, false otherwise
      */
     public boolean isPrimaryKey(Tablename tablename, String columnName) {
-    	List<ColumnMetadata> primaryKeys = tableMetadataCache.getMetadata(tablename).tableMetadata.getPrimaryKey();
-    	ColumnMetadata columnMetadata = getColumnMetadata(tablename, columnName);
+    	final List<ColumnMetadata> primaryKeys = tableMetadataCache.getMetadata(tablename).tableMetadata.getPrimaryKey();
+    	final ColumnMetadata columnMetadata = getColumnMetadata(tablename, columnName);
     	return primaryKeys.contains(columnMetadata);
     }
     
@@ -127,21 +121,21 @@ class MetadataCatalog  {
         
         
         private Metadata loadMetadata(Tablename tablename) {
-            TableMetadata tableMetadata = loadTableMetadata(session, tablename);
-            ImmutableSet<String> columnNames = loadColumnNames(tableMetadata);
-            Metadata metadata = new Metadata(tablename, tableMetadata, columnNames);
-            
-            return metadata;
+            final TableMetadata tableMetadata = loadTableMetadata(session, tablename);
+            final ImmutableSet<String> columnNames = loadColumnNames(tableMetadata);
+            return new Metadata(tablename, tableMetadata, columnNames);
         }
         
         
         private static TableMetadata loadTableMetadata(Session session, Tablename tablename) {
-            String keyspacename = tablename.getKeyspacename();
+            
+            final String keyspacename = tablename.getKeyspacename();
+            
             if (keyspacename == null) {
                 throw new IllegalStateException("no keyspacename assigned for " + tablename);
+            
             } else {
-                
-                TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getTable(tablename.getTablename());
+                final TableMetadata tableMetadata = session.getCluster().getMetadata().getKeyspace(tablename.getKeyspacename()).getTable(tablename.getTablename());
                 if (tableMetadata == null) {
                     throw new RuntimeException("table " + tablename + " is not defined");
                 }
@@ -151,7 +145,7 @@ class MetadataCatalog  {
         }
 
         private static ImmutableSet<String> loadColumnNames(TableMetadata tableMetadata) {
-            Set<String> columnNames = Sets.newHashSet();
+            final Set<String> columnNames = Sets.newHashSet();
             for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
                 columnNames.add(columnMetadata.getName());
             }
@@ -177,7 +171,7 @@ class MetadataCatalog  {
         }
         
         ColumnMetadata getColumnMetadata(String columnName) {
-            ColumnMetadata metadata = tableMetadata.getColumn(columnName);
+            final ColumnMetadata metadata = tableMetadata.getColumn(columnName);
             if (metadata == null) {
                 throw new RuntimeException("table " + tablename + " does not support column '" + columnName + "'");
             }
@@ -198,7 +192,7 @@ class MetadataCatalog  {
 
         
         public UserType get(Tablename tablename, String usertypeName) {
-            String key = tablename.getKeyspacename() + "." + usertypeName;
+            final String key = tablename.getKeyspacename() + "." + usertypeName;
             
             UserType userType = userTypeCache.getIfPresent(key);
             if (userType == null) {

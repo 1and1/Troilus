@@ -42,11 +42,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  
 /**
  * List query data implementation
- * 
- * @author Jason Westra - edited original
- * 12-13-2015: pagination APIs - pagingState(), getPagingState() 
- * 			   Explicit comment about NOT setting PagingState in toStatementAsync() 
- * 			   because of issues with DataStax driver hash() check
  */
 class ReadQueryDataImpl implements ReadQueryData {
     
@@ -248,7 +243,7 @@ class ReadQueryDataImpl implements ReadQueryData {
      * @return  the query as statement
      */
     static ListenableFuture<Statement> toStatementAsync(ReadQueryData data, UDTValueMapper udtValueMapper, DBSession dbSession) {
-        Select.Selection selection = select();
+        final Select.Selection selection = select();
 
         if ((data.getDistinct() != null) && data.getDistinct()) {
             selection.distinct(); 
@@ -279,8 +274,8 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
         }
         
-        Select select = (data.getTablename().getKeyspacename() == null) ? selection.from(data.getTablename().getTablename())
-                                                                        : selection.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
+        final Select select = (data.getTablename().getKeyspacename() == null) ? selection.from(data.getTablename().getTablename())
+                                                                              : selection.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
   
         if (data.getLimit() != null) {
             select.limit(data.getLimit());
@@ -294,7 +289,6 @@ class ReadQueryDataImpl implements ReadQueryData {
             select.setFetchSize(data.getFetchSize());
         }
         
-        // begin: jwestra: 12-10-2015 - Pagination
         // NOTE:
         // This results in a PagingStateException because a Select is a RegularStatement
         // while the ResultSet.getPagingState() has the final BoundStatement in it.
@@ -303,7 +297,6 @@ class ReadQueryDataImpl implements ReadQueryData {
     	//if (data.getPagingState() != null) {
     	//	select.setPagingState(data.getPagingState());
     	//}
-    	// end: changes for Pagination
         
         // where-based selection
         if (data.getKeys().isEmpty()) {
@@ -316,7 +309,7 @@ class ReadQueryDataImpl implements ReadQueryData {
             
         // key-based selection    
         } else {
-            List<Object> values = Lists.newArrayList();
+            final List<Object> values = Lists.newArrayList();
             
             for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
                 if (entry.getValue().size() == 1) {
@@ -330,7 +323,7 @@ class ReadQueryDataImpl implements ReadQueryData {
             }
             
 
-            ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(select);
+            final ListenableFuture<PreparedStatement> preparedStatementFuture = dbSession.prepareAsync(select);
             return dbSession.bindAsync(preparedStatementFuture, values.toArray());
         }
     }   

@@ -26,9 +26,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  * Iterator which supports fetching methods
  * 
  * @param <E> the element type
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 public interface FetchingIterator<E> extends Iterator<E> {
 
@@ -49,6 +46,5 @@ public interface FetchingIterator<E> extends Iterator<E> {
      *         will be thrown (you should thus call isFullyFetched() to know if calling this method can be of any use).
      */
     ListenableFuture<ResultSet> fetchMoreResultsAsync();
-    //ListenableFuture<Void> fetchMoreResultsAsync();
 }
 

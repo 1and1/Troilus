@@ -39,9 +39,6 @@ import net.oneandone.troilus.ListReadQuery.ListEntityReadQuery;
 
 /**
  * Java8 adapter of a ListReadQuery
- * 
- * @author Jason Westra - edited original
- * 12-13-2015: pagination APIs - withPagingState()
  */
 class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implements ListReadWithUnit<ResultList<Record>, Record> {
 
@@ -158,7 +155,7 @@ class ListReadQueryAdapter extends AbstractQuery<ListReadQueryAdapter> implement
     
     @Override
     public Publisher<Record> executeRx() {
-        Publisher<net.oneandone.troilus.java7.Record> publisher = query.executeRx();
+        final Publisher<net.oneandone.troilus.java7.Record> publisher = query.executeRx();
         return new RecordMappingPublisher(publisher);
     }
     

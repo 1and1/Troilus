@@ -46,10 +46,7 @@ import com.google.common.io.Resources;
 
 
 /**
- * 
  * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change
- *
  */
 public class CassandraDB {
 
@@ -209,7 +206,7 @@ public class CassandraDB {
     
     private static void start() {
         
-        if (nativePort == 0) {
+        if (nativePort == 0) {  // if already started port is not 0 
             nativePort = prepare();
     
             cassandraDaemon = new CassandraDaemon();
@@ -219,9 +216,7 @@ public class CassandraDB {
             long maxWaiting = System.currentTimeMillis() + 10000;
             
             while (System.currentTimeMillis() < maxWaiting) {
-            	// jwestra: 3.x API change
             	if (cassandraDaemon.isNativeTransportRunning()) {
-                //if (cassandraDaemon.nativeServer.isRunning()) {
                     init();
                     return;
                 }
@@ -267,10 +262,7 @@ public class CassandraDB {
     private static void shutdown() {
         try {
             cassandraDaemon.thriftServer.stop();
-            
-            // jwestra: 3.x API change
             cassandraDaemon.stop();
-            //cassandraDaemon.nativeServer.stop();
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -325,16 +317,13 @@ public class CassandraDB {
             cassandraConfiguration.put("commitlog_directory", new File(cassandraDir, "commitlog").getAbsolutePath());
             cassandraConfiguration.put("saved_caches_directory", new File(cassandraDir, "saved_caches").getAbsolutePath());
             
-            // jwestra: 3.x API change: resolve error on start of 'hints_directory' is missing
             cassandraConfiguration.put("hints_directory", new File(cassandraDir, "hints_directory").getAbsolutePath());
                       
             cassandraConfigurationOutput =
               new OutputStreamWriter(new FileOutputStream(cassandraDirName + File.separator + CASSANDRA_YAML_FILE), Charsets.UTF_8);
 
-            // jwestra: 3.x API change: resolve error on start of -Dcassandra.storage_dir is not set
             String storageDir = new File(cassandraDir, "storageDir").getAbsolutePath();
             System.setProperty("cassandra.storage_dir", storageDir);
-            // end: 3.x API change
             
             yaml.dump(cassandraConfiguration, cassandraConfigurationOutput);
             

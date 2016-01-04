@@ -29,9 +29,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 /**
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
+ * SingleEntryResultListAdapter
  *
  * @param <T>
  */

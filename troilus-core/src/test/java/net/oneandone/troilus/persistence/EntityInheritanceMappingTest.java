@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 
-import junit.framework.TestCase;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
@@ -18,8 +17,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.BlockJUnit4ClassRunner;
+import static org.junit.Assert.*;
 
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -33,29 +31,22 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
  * 
  *
  */
-@RunWith(value=BlockJUnit4ClassRunner.class)
-public class EntityInheritanceMappingTest extends TestCase {
+public class EntityInheritanceMappingTest {
 
-	
 	private static CassandraDB cassandra;
 	 
 	Session session;
 	
-	public static final String keyspace = "ks_"+System.currentTimeMillis();
 	public static final String TABLE_MOCK_WITH_INHERITANCE = "mock_with_inheritance";
 		
 	@BeforeClass
     public static void beforeClass() throws IOException {
         cassandra = CassandraDB.newInstance();
-        
-        dropKeyspace();
-		createKeyspace();
 		createTables();	
     }
         
     @AfterClass
     public static void afterClass() throws IOException {
-    	dropKeyspace();
         cassandra.close();
     }
 	    
@@ -64,30 +55,16 @@ public class EntityInheritanceMappingTest extends TestCase {
 		session = cassandra.getSession();
 	}
 		
-	private static void createKeyspace() {
-		cassandra.getSession().execute("CREATE KEYSPACE "+keyspace+" with replication={'class': 'SimpleStrategy', 'replication_factor' : 1};");
-	}
-
 	private static void createTables() {
 		Session session = cassandra.getSession();
 		
-		session.execute("CREATE TABLE "+keyspace+"."+TABLE_MOCK_WITH_INHERITANCE+" (id text, version bigint, create_date timestamp, latitude decimal, PRIMARY KEY (id));");
+		session.execute("CREATE TABLE " + TABLE_MOCK_WITH_INHERITANCE + " (id text, version bigint, create_date timestamp, latitude decimal, PRIMARY KEY (id));");
 	}
-	
-	private static void dropKeyspace() {
-		try {
-			Session session = cassandra.getSession();
-			session.execute("DROP KEYSPACE "+keyspace+";");
-		} catch(Exception e) {
-			
-		}
-	}
-	
-		
+
 	@Test
 	public void testEntityWithInheritance() {
 		
-		Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_INHERITANCE);
+		Dao dao = new DaoImpl(session, TABLE_MOCK_WITH_INHERITANCE);
 				
 		MockDOWithInheritance mockDOWithInheritance = new MockDOWithInheritance();
 		mockDOWithInheritance.setCreateDate(new Date());
@@ -100,7 +77,7 @@ public class EntityInheritanceMappingTest extends TestCase {
 			.ifNotExists()
 			.execute();
 		
-		com.datastax.driver.core.ResultSet rs =session.execute("select * from "+keyspace+"."+TABLE_MOCK_WITH_INHERITANCE);
+		com.datastax.driver.core.ResultSet rs =session.execute("select * from " + TABLE_MOCK_WITH_INHERITANCE);
 		if (rs.one() == null) fail("Failed to insert the row");
 		
 		mockDOWithInheritance.setLatitude(new BigDecimal(44));

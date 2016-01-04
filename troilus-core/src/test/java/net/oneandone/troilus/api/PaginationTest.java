@@ -4,13 +4,13 @@
 package net.oneandone.troilus.api;
 
 import java.io.IOException;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Iterator;
 
-import junit.framework.TestCase;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Count;
 import net.oneandone.troilus.Dao;
@@ -24,11 +24,10 @@ import net.oneandone.troilus.ResultList;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.BlockJUnit4ClassRunner;
+import static org.junit.Assert.*;
 
 import com.datastax.driver.core.PagingState;
-import com.datastax.driver.core.Session;
+
 
 /**
  * Checks pagination API, verifying paging works and sorts
@@ -42,13 +41,10 @@ import com.datastax.driver.core.Session;
  * 12-14-2015: Maps LocalDateTime field to Entity without need to convert(date)
  *
  */
-@RunWith(value=BlockJUnit4ClassRunner.class)
-public class PaginationTest extends TestCase implements PaginationInvites {
+public class PaginationTest implements PaginationInvites {
 
 	private static CassandraDB cassandra;
 	 
-	public static final String keyspace = "ks_"+System.currentTimeMillis();
-	
 	public static final String TABLE_NAME = "invites_by_group";
 	
 	private static int ROW_COUNT = 100;
@@ -57,8 +53,6 @@ public class PaginationTest extends TestCase implements PaginationInvites {
 	@BeforeClass
     public static void beforeClass() throws IOException {
         cassandra = CassandraDB.newInstance();
-        dropKeyspace();
-		createKeyspace();
 		
 		cassandra.tryExecuteCqlFile(PaginationInvites.DDL);
         loadInvites();
@@ -66,21 +60,9 @@ public class PaginationTest extends TestCase implements PaginationInvites {
         
     @AfterClass
     public static void afterClass() throws IOException {
-    	dropKeyspace();
         cassandra.close();
     }
 	
-    private static void createKeyspace() {
-    	cassandra.getSession().execute("CREATE KEYSPACE "+keyspace+" with replication={'class': 'SimpleStrategy', 'replication_factor' : 1};");
-		cassandra.executeCql("USE "+keyspace+";");
-	}
-
-	private static void dropKeyspace() {
-		try {
-			Session session = cassandra.getSession();
-			session.execute("DROP KEYSPACE "+keyspace+";");
-		} catch(Exception e) {}
-	}
 	
 	// Loads 100 invites, they should be .x seconds apart and an ordered fetch
 	// should being back the rows in order

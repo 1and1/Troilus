@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 
@@ -43,9 +44,6 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Java8 adapter of a Record
- * 
- * @author Jason Westra - edited original
- * 12-14-2015: added getLocalDateTime()
  */
 class RecordAdapter implements Record {
     
@@ -81,7 +79,7 @@ class RecordAdapter implements Record {
   
     @Override       
     public Duration getTtl(String name) {
-        Integer ttlSec = record.getTtl(name);
+        final Integer ttlSec = record.getTtl(name);
         if (ttlSec == null) {
             return null;
         } else {
@@ -136,7 +134,8 @@ class RecordAdapter implements Record {
     
     @Override
     public LocalDateTime getLocalDateTime(String name) {
-    	return record.getLocalDateTime(name);
+        final Instant instant = Instant.ofEpochMilli(getTime(name));
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
      
     @Override
@@ -176,7 +175,7 @@ class RecordAdapter implements Record {
     
     @Override
     public Instant getInstant(String name) {
-       Long millis = getLong(name);
+        final Long millis = getLong(name);
        if (millis == 0) {
            return null;
        } else {
@@ -288,7 +287,7 @@ class RecordAdapter implements Record {
          
             @Override
             public Integer getTtl(String name) {
-                Duration ttl = record.getTtl(name);
+                final Duration ttl = record.getTtl(name);
                 if (ttl == null) {
                     return null;
                 } else {
@@ -375,13 +374,6 @@ class RecordAdapter implements Record {
             public boolean getBool(String name) {
                 return record.getBool(name);
             }
-
-			@Override
-			public LocalDateTime getLocalDateTime(String name) {
-				return record.getLocalDateTime(name);
-			}
         };
     }
 }
-
-    

@@ -38,10 +38,6 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * record result
- *
- * @author grro
- * @author Jason Westra - edited original
- * 12-14-2015: added getLocalDateTime()
  */
 public interface Record extends Result {
    

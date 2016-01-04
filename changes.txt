@@ -1,8 +1,8 @@
 
-0.17 - Kritek Fork
+0.17  
  * Pagination Support - ListRead.withPagingState(), ListReadQuery.toStatementAsync()
  * Inheritance of @Field mappings for entities in BeanMapper
- * Upgrade from Cassandra Datastax 2.2.0-rc2 driver to 3.0.0-beta1 driver
+ * Upgrade from Cassandra Datastax 2.2.0-rc2 driver to 3.0.0-rc1 driver
  * Upgrade tests from Cassandra 2.x to Cassandra 3.0.0 (see pom.xml dependency and CassandraDB.java)
  * LocalDateTime Support - Record.java interfaces and implementations
  * bugfix: WriteQueryDataImpl.java toUpdateStatementAsync() no longer maps primary keys into Update SET

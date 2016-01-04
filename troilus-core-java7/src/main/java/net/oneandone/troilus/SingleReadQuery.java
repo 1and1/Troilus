@@ -41,9 +41,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Read query implementation
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleReadWithUnit<Record, Record> {
 
@@ -118,7 +115,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     @Override
     public SingleReadQuery columns(ColumnName<?>... names) {
-        List<String> ns = Lists.newArrayList();
+        final List<String> ns = Lists.newArrayList();
         for (ColumnName<?> name : names) {
             ns.add(name.getName());
         }
@@ -140,7 +137,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
         recordsFuture = toSingleEntryResultList(recordsFuture);
         
-        Function<ResultList<Record>, Record> fetchRecordFunction = new Function<ResultList<Record>, Record>() {
+        final Function<ResultList<Record>, Record> fetchRecordFunction = new Function<ResultList<Record>, Record>() {
             
             @Override
             public Record apply(ResultList<Record> records) {
@@ -204,9 +201,9 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         
         @Override
         public ListenableFuture<E> executeAsync() {
-            ListenableFuture<Record> future = query.executeAsync();
+            final ListenableFuture<Record> future = query.executeAsync();
             
-            Function<Record, E> mapEntity = new Function<Record, E>() {
+            final Function<Record, E> mapEntity = new Function<Record, E>() {
                 @Override
                 public E apply(Record record) {
                     if (record == null) {
@@ -233,7 +230,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
     
     private static <T> ListenableFuture<ResultList<T>> toSingleEntryResultList(ListenableFuture<ResultList<T>> list) {
         
-        Function<ResultList<T>, ResultList<T>> mapperFunction = new Function<ResultList<T>, ResultList<T>>() {
+        final Function<ResultList<T>, ResultList<T>> mapperFunction = new Function<ResultList<T>, ResultList<T>>() {
             
             @Override
             public ResultList<T> apply(ResultList<T> list) {

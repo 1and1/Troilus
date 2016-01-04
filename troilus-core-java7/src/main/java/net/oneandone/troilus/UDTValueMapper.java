@@ -47,11 +47,7 @@ import com.google.common.collect.Sets;
 
 
 /**
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API changes. 
- * 12-12-2015: New - serialize(), deserialize(), getCodecRegistry(), getMetadataCatalog()
- *
+ * UDTValueMapper
  */
 class UDTValueMapper {
 
@@ -96,47 +92,27 @@ class UDTValueMapper {
                                Class<?> fieldtype1, 
                                Class<?> fieldtype2,
                                String fieldname) {
-    	CodecRegistry codecRegistry = getCodecRegistry();
+    	final CodecRegistry codecRegistry = getCodecRegistry();
     	
         // build-in type 
         if (isBuildInType(datatype)) {
-        	TypeCodec<T> typeCodec = codecRegistry.codecFor(datatype);
+            final TypeCodec<T> typeCodec = codecRegistry.codecFor(datatype);
         	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
-        	// jwestra: 3.x API change
-           // return datatype.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
-        
             
         // udt collection    
         } else if (datatype.isCollection()) {
-            //Class<?> type = datatype.getName().asJavaClass();
            
             // set
         	 if (DataType.Name.SET == datatype.getName()) {
-        		// jwestra: 3.x API change
-            //if (Set.class.isAssignableFrom(type)) {
-            //    return fromUdtValues(datatype.getTypeArguments().get(0), 
-            //                        ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
-            //                         fieldtype1); 
-        		 
-        		// New API passes fieldtype2, which is the elements class
                 return fromUdtValues(datatype.getTypeArguments().get(0), 
-                        ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
-                        fieldtype2); 
+                                     ImmutableSet.copyOf(udtValue.getSet(fieldname, UDTValue.class)), 
+                                     fieldtype2); 
                 
             // list
         	 } else if (DataType.Name.LIST == datatype.getName()) {
-        		// jwestra: 3.x API change
-             //} else if (List.class.isAssignableFrom(type)) {
-             //   return fromUdtValues(datatype.getTypeArguments().get(0), 
-             //                        ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
-             //                        fieldtype1); 
-        		 
-        		 
-        		// New API passes fieldtype2, which is the elements class
                 return fromUdtValues(datatype.getTypeArguments().get(0), 
-                        ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
-                        fieldtype2); 
-                
+                                     ImmutableList.copyOf(udtValue.getList(fieldname, UDTValue.class)),
+                                     fieldtype2); 
                 
             // map
             } else {
@@ -205,10 +181,9 @@ class UDTValueMapper {
         List<T> elements = Lists.newArrayList();
         
         for (UDTValue elementUdtValue : udtValues) {
-            
             final UDTValue elementUdtVal = elementUdtValue;
             
-            PropertiesSource propsSource = new PropertiesSource() {
+            final PropertiesSource propsSource = new PropertiesSource() {
                 
                 @Override
                 public <E> Optional<E> read(String name, Class<?> clazz1) {
@@ -235,7 +210,7 @@ class UDTValueMapper {
     @SuppressWarnings("unchecked")
     public <K, V> ImmutableMap<K, V> fromUdtValues(final DataType keyDatatype, final DataType valueDatatype, ImmutableMap<?, ?> udtValues, Class<K> keystype, Class<V> valuesType) {
         
-        Map<K, V> elements = Maps.newHashMap();
+        final Map<K, V> elements = Maps.newHashMap();
 
         for (Entry<?, ?> entry : udtValues.entrySet()) {
         
@@ -246,7 +221,7 @@ class UDTValueMapper {
             } else {
                 final UDTValue keyUdtValue = (UDTValue) entry.getKey();
                 
-                PropertiesSource propsSource = new PropertiesSource() {
+                final PropertiesSource propsSource = new PropertiesSource() {
                     
                     @Override
                     public <E> Optional<E> read(String name, Class<?> clazz1) {
@@ -271,7 +246,7 @@ class UDTValueMapper {
             } else {
                 final UDTValue valueUdtValue = (UDTValue) entry.getValue();
 
-                PropertiesSource propsSource = new PropertiesSource() {
+                final PropertiesSource propsSource = new PropertiesSource() {
                     
                     @Override
                     public <E> Optional<E> read(String name, Class<?> clazz1) {
@@ -309,11 +284,9 @@ class UDTValueMapper {
            
            // set
         	if (DataType.Name.SET == datatype.getName()) {
-        		// jwestra: 3.x API change
-           //if (Set.class.isAssignableFrom(datatype.getName().asJavaClass())) {
-               DataType elementDataType = datatype.getTypeArguments().get(0);
+        	   final DataType elementDataType = datatype.getTypeArguments().get(0);
                
-               Set<Object> udt = Sets.newHashSet();
+               final Set<Object> udt = Sets.newHashSet();
                if (value != null) {
                    for (Object element : (Set<Object>) value) {
                        udt.add(toUdtValue(tablename, catalog, elementDataType, element));
@@ -324,11 +297,9 @@ class UDTValueMapper {
                
            // list 
         	 } else if (DataType.Name.LIST == datatype.getName()) {    
-        		 // jwestra: 3.x API change
-          // } else if (List.class.isAssignableFrom(datatype.getName().asJavaClass())) {
-               DataType elementDataType = datatype.getTypeArguments().get(0);
+        	     final DataType elementDataType = datatype.getTypeArguments().get(0);
                
-               List<Object> udt = Lists.newArrayList();
+        	     final List<Object> udt = Lists.newArrayList();
                if (value != null) {
                    for (Object element : (List<Object>) value) {
                        udt.add(toUdtValue(tablename, catalog, elementDataType, element));
@@ -339,10 +310,10 @@ class UDTValueMapper {
               
            // map
            } else {
-               DataType keyDataType = datatype.getTypeArguments().get(0);
-               DataType valueDataType = datatype.getTypeArguments().get(1);
+               final DataType keyDataType = datatype.getTypeArguments().get(0);
+               final DataType valueDataType = datatype.getTypeArguments().get(1);
                
-               Map<Object, Object> udt = Maps.newHashMap();
+               final Map<Object, Object> udt = Maps.newHashMap();
                if (value != null) {
                    for (Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
                          udt.put(toUdtValue(tablename, catalog, keyDataType, entry.getKey()), 
@@ -360,26 +331,23 @@ class UDTValueMapper {
                 return value;
                 
             } else {
-                UserType usertype = catalog.getUserType(tablename, ((UserType) datatype).getTypeName());
-                UDTValue udtValue = usertype.newValue();
+                final UserType usertype = catalog.getUserType(tablename, ((UserType) datatype).getTypeName());
+                final UDTValue udtValue = usertype.newValue();
                 
                 for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value, ImmutableSet.<String>of()).entrySet()) {
                     if (!entry.getValue().isPresent()) {
                         return null;
                     }
 
-                    DataType fieldType = usertype.getFieldType(entry.getKey());
+                    final DataType fieldType = usertype.getFieldType(entry.getKey());
                     Object vl = entry.getValue().get();
                     
                     if (!isBuildInType(usertype.getFieldType(entry.getKey()))) {
                         vl = toUdtValue(tablename, catalog, fieldType, vl);
                     }
                     
-                    String key = entry.getKey();
+                    final String key = entry.getKey();
                     udtValue.setBytesUnsafe(key, serialize(fieldType, vl));
-                    
-                  //  fieldType.
-                  //  udtValue.setBytesUnsafe(entry.getKey(), fieldType.serialize(vl, protocolVersion));
                 }
                 
                 return udtValue;
@@ -399,7 +367,7 @@ class UDTValueMapper {
             return null;
         } 
         
-        DataType dataType = catalog.getColumnMetadata(tablename, name).getType();
+        final DataType dataType = catalog.getColumnMetadata(tablename, name).getType();
         
         // build in
         if (UDTValueMapper.isBuildInType(dataType)) {
@@ -413,7 +381,6 @@ class UDTValueMapper {
             if (dataType.equals(DataType.blob()) && byte[].class.isAssignableFrom(value.getClass())) {
                 return ByteBuffer.wrap((byte[]) value);
             }
-
             
             return value;
          
@@ -423,6 +390,7 @@ class UDTValueMapper {
         }
     }
     
+    
     /**
      * @param tablename   the tablename
      * @param name        the columnname
@@ -430,7 +398,7 @@ class UDTValueMapper {
      * @return            the mapped values
      */
     ImmutableList<Object> toStatementValues(Tablename tablename, String name, ImmutableList<Object> values) {
-        List<Object> result = Lists.newArrayList(); 
+        final List<Object> result = Lists.newArrayList(); 
 
         for (Object value : values) {
             result.add(toStatementValue(tablename, name, value));
@@ -445,13 +413,8 @@ class UDTValueMapper {
                (Collection.class.isAssignableFrom(value.getClass()) && ((Collection<?>) value).isEmpty()) || 
                (Map.class.isAssignableFrom(value.getClass()) && ((Map<?, ?>) value).isEmpty());
     }
-
-    ///////////////////////////////////////////////////////////////////////////////////
-    //
-    // NEW
-    //
-    ///////////////////////////////////////////////////////////////////////////////////
     
+        
     /**
 	 * Get the CodecRegistry this uses to serialize/deserialize
 	 * @return the codecRegistry
@@ -476,8 +439,8 @@ class UDTValueMapper {
      */
     @SuppressWarnings("unchecked")
 	public <T> ByteBuffer serialize(DataType dataType, Object value) {
-    	CodecRegistry codecRegistry = getCodecRegistry();
-    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+        final CodecRegistry codecRegistry = getCodecRegistry();
+        final TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
     	return typeCodec.serialize((T)value, protocolVersion);
     }
     
@@ -488,8 +451,8 @@ class UDTValueMapper {
      * @return
      */
     public <T> ByteBuffer serialize(T value) {
-    	CodecRegistry codecRegistry = getCodecRegistry();
-    	TypeCodec<T> typeCodec = codecRegistry.codecFor(value);
+        final CodecRegistry codecRegistry = getCodecRegistry();
+        final TypeCodec<T> typeCodec = codecRegistry.codecFor(value);
     	return typeCodec.serialize((T)value, protocolVersion);
     }
     
@@ -502,8 +465,8 @@ class UDTValueMapper {
      * @return
      */
     public <T> T deserialize(DataType dataType, UDTValue udtValue, String fieldname) {
-    	CodecRegistry codecRegistry = getCodecRegistry();
-    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+        final CodecRegistry codecRegistry = getCodecRegistry();
+        final TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
     	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
     }
     
@@ -514,10 +477,8 @@ class UDTValueMapper {
      * @return
      */
     public <T> T deserialize(DataType dataType, ByteBuffer byteBuffer) {
-    	CodecRegistry codecRegistry = getCodecRegistry();
-    	TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
+        final CodecRegistry codecRegistry = getCodecRegistry();
+        final TypeCodec<T> typeCodec = codecRegistry.codecFor(dataType);
     	return typeCodec.deserialize(byteBuffer, protocolVersion);
     }
-    
-
 }   

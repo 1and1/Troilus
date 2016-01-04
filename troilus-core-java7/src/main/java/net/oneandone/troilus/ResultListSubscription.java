@@ -39,23 +39,18 @@ import com.google.common.util.concurrent.ListenableFuture;
  * ResultListSubscription
  * 
  * @param <T> the element type
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: ListenableFuture<Void> to ListenableFuture<ResultSet>
  */
 class ResultListSubscription<T> implements Subscription {
-    
     private final DatabaseSource<T> databaseSource;
     private final SubscriberNotifier<T> subscriberNotifier;
   
-
 
     /**
      * @param subscriber  the subscriber 
      * @param iterator    the underlying iterator
      */
     public ResultListSubscription(Subscriber<? super T> subscriber, FetchingIterator<T> iterator) {
-        Executor executor = Executors.newCachedThreadPool();
+        final Executor executor = Executors.newCachedThreadPool();
 
         this.subscriberNotifier = new SubscriberNotifier<>(executor, subscriber);
         this.databaseSource = new DatabaseSource<>(executor, subscriberNotifier, iterator);
@@ -186,10 +181,9 @@ class ResultListSubscription<T> implements Subscription {
                 synchronized (dbQueryLock) {
                     // submit an async database query (if not already running) 
                     if (runningDatabaseQuery == null) {
-                    	// 3.x API change
-                        ListenableFuture<ResultSet> future = iterator.fetchMoreResultsAsync();
+                        final ListenableFuture<ResultSet> future = iterator.fetchMoreResultsAsync();
                         
-                        Runnable databaseRequest = new Runnable() {
+                        final Runnable databaseRequest = new Runnable() {
                                                             @Override
                                                             public void run() {
                                                                 synchronized (dbQueryLock) {
