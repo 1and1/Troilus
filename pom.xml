@@ -9,9 +9,6 @@
 	</parent>
 
 	<!-- 
-	  This is the Kritek fork of Troilus .17-SNAPSHOT
-	  See changes.txt for what was added to Kritek fork.
-	  
 	  NOTE: To build in Eclipse IDE, just delete this Problems 'Marker', whenever it shows up:
 	  
 	  Description	Resource	Path	Location	Type
@@ -21,11 +18,10 @@
 	-->
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
-	<version>0.17-RELEASE</version>
+	<version>0.17-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
         <properties>
-                <!-- later versions -->
                 <surefire.version>2.15</surefire.version>
                 <reactivestreams.version>1.0.0</reactivestreams.version>
                 <cassandra.driver.core.version>3.0.0-rc1</cassandra.driver.core.version>
@@ -104,7 +100,6 @@
                               <!-- Set this to "true" to redirect the unit test standard output to a file 
                                     (found in reportsDirectory/testName-output.txt). -->
                                        <threadCount>1</threadCount>
-				
                               </configuration>
                        </plugin>
                 </plugins>

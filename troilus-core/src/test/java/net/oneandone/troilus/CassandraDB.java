@@ -37,6 +37,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -49,7 +50,6 @@ import com.google.common.io.Resources;
  * @author Jason Westra - edited original
  */
 public class CassandraDB {
-
     private static final String CASSANDRA_YAML_FILE = "cassandra.yaml";
 
     private static CassandraDaemon cassandraDaemon;
@@ -183,15 +183,15 @@ public class CassandraDB {
     public void tryExecuteCql(String cql) {
         try {
             session.execute(cql);
-        } catch (RuntimeException e) { 
-            e.printStackTrace();
-        }
+        } catch (RuntimeException ignore) {  }
     }
  
     
     public void tryExecuteCqls(Iterable<String> cqls) {
         for (String cql : cqls) {
-            tryExecuteCql(cql);
+            if (!Strings.isNullOrEmpty(cql))  {
+                tryExecuteCql(cql);
+            }
         }
     }
     
