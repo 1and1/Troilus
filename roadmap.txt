@@ -1,4 +1,0 @@
-
-[Q1/Q2 2016] Support all Cassandra 3.x features (udf, …)
-[Q2 or Q3 2016] remove Java 7 support. This makes the implementation code much more simpler
-[Q3] Version 1.0
