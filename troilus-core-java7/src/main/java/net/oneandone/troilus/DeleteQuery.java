@@ -17,21 +17,25 @@ package net.oneandone.troilus;
 
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-
-
 import net.oneandone.troilus.interceptor.DeleteQueryData;
-import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.Batchable;
+import net.oneandone.troilus.java7.Deletion;
 import net.oneandone.troilus.java7.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.java7.interceptor.DeleteQueryRequestInterceptor;
 
-import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -86,7 +90,43 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     public DeleteQuery ifExists() {
         return newQuery(data.ifExists(true));
     }
-        
+    
+    /**
+     * this method builds DeleteQuery of map entries to be removed from 
+     * a map column or map columns
+     * 
+     * @param columnName
+     * @param mapKey
+     * @return
+     */
+    @Override
+    public DeleteQuery removeMapValue(String columnName, Object mapKey) {
+    	
+    	Map<String, List<Object>> persistentMap = data.getMapValuesToRemove() !=null ? 
+    			Maps.newHashMap(data.getMapValuesToRemove()) : new HashMap<String, List<Object>>();
+    			
+    	//if map value exists, get existing values and add the new one if not a duplicate
+    	if(mapKey!=null) {
+    		List<Object> list = new ArrayList<Object>();
+    		if(data.getMapValuesToRemove() !=null) {
+    			List<Object> existingList = data.getMapValuesToRemove().get(columnName);
+    			if(existingList !=null) {
+    				list.addAll(existingList);
+    			}
+    		}
+    		if(!list.contains(mapKey)) {
+    			list.add(mapKey);
+    		}
+    		persistentMap.put(columnName, list);
+    	}
+    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(persistentMap);
+    	return newQuery(data.mapValuesToRemove(map));
+    }
+    
+    
+    
+    
+    
     @Override
     public ListenableFuture<Result> executeAsync() {
         ListenableFuture<Result> future = super.executeAsync();

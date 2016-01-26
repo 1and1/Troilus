@@ -14,10 +14,13 @@ import java.util.Map;
 import java.util.Set;
 
 import junit.framework.TestCase;
+import net.oneandone.troilus.BatchableWithTime;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.Deletion;
 import net.oneandone.troilus.Field;
+import net.oneandone.troilus.Write;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -258,10 +261,204 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		
 	}
 	
+	/**
+	 * this method tests that the change to add an entry into a map 
+	 * succeeds
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testAddObjectsToMap() throws Exception {
+		MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		dataObject.setCreateDate(new Date());
+		dataObject.setId(System.currentTimeMillis()+"");
+		dataObject.setVersion(1);
+		
+		DescriptionUDT description1 = new DescriptionUDT();
+		description1.name = "someName1";
+		description1.time = new Date();
+		
+		DescriptionUDT description2 = new DescriptionUDT();
+		description2.name = "someName2";
+		description2.time = new Date();
+		
+		Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		descriptions.put("1", description1);
+		descriptions.put("2", description2);
+		
+		dataObject.setDescriptions(descriptions);
+		
+		Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		dao.writeEntity(dataObject)
+		.ifNotExists()
+		.execute();
+		
+		DescriptionUDT description3 = new DescriptionUDT();
+		description3.name = "someName3";
+		description3.time = new Date();
+		
+		DescriptionUDT description4 = new DescriptionUDT();
+		description4.name = "someName4";
+		description4.time = new Date();
+		
+		dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		BatchableWithTime<Write> update = dao
+				.writeWithKey("id", dataObject.getId())
+				.putMapValue("descriptions", "3", description3)
+				.putMapValue("descriptions", "4", description4);
+		update.execute();
+		
+		MockDOWithUDTMap entity = null;
+		
+		try {
+			dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+			entity = dao.readWithKey("id", dataObject.getId())
+					.asEntity(MockDOWithUDTMap.class)
+					.execute().get();
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		
+		assertNotNull(entity);
+		assertTrue(entity.getDescriptions().size() ==4);
+	}
 	
-	
+	/**
+	 * this method tests whether or not an update to a map entry
+	 * succeeds
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testUpdateObjectInMap() throws Exception {
+		MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		dataObject.setCreateDate(new Date());
+		dataObject.setId(System.currentTimeMillis()+"");
+		dataObject.setVersion(1);
+		
+		DescriptionUDT description1 = new DescriptionUDT();
+		description1.name = "someName1";
+		description1.time = new Date();
+		
+		DescriptionUDT description2 = new DescriptionUDT();
+		description2.name = "someName2";
+		description2.time = new Date();
+		
+		Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		descriptions.put("1", description1);
+		descriptions.put("2", description2);
+		
+		dataObject.setDescriptions(descriptions);
+		
+		Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		dao.writeEntity(dataObject)
+		.ifNotExists()
+		.execute();
+		
+		DescriptionUDT descriptionUpdate = new DescriptionUDT();
+		descriptionUpdate.name = "updatedDescription2";
+		descriptionUpdate.time = new Date();
+		
+		
+		dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		BatchableWithTime<Write> update = dao
+				.writeWithKey("id", dataObject.getId())
+				.putMapValue("descriptions", "2", descriptionUpdate);
+		update.execute();
+		
+		MockDOWithUDTMap entity = null;
+		
+		try {
+			dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+			entity = dao.readWithKey("id", dataObject.getId())
+					.asEntity(MockDOWithUDTMap.class)
+					.execute().get();
+			
+			DescriptionUDT desc = entity.getDescriptions().get("2");
+			assertTrue("update was unsuccessful", "updatedDescription2".equals(desc.getName()));
+		}catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		
+		assertNotNull(entity);
 
+	}
 	
+	/**
+	 * this method tests whether the new removeMapValue functionality 
+	 * succeeds
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testRemoveObjectsFromMap() throws Exception {
+		MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		dataObject.setCreateDate(new Date());
+		dataObject.setId(System.currentTimeMillis()+"");
+		dataObject.setVersion(1);
+		
+		DescriptionUDT description1 = new DescriptionUDT();
+		description1.name = "someName1";
+		description1.time = new Date();
+		
+		DescriptionUDT description2 = new DescriptionUDT();
+		description2.name = "someName2";
+		description2.time = new Date();
+		
+		DescriptionUDT description3 = new DescriptionUDT();
+		description3.name = "someName3";
+		description3.time = new Date();
+		
+		DescriptionUDT description4 = new DescriptionUDT();
+		description4.name = "someName4";
+		description4.time = new Date();
+		
+		Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		descriptions.put("1", description1);
+		descriptions.put("2", description2);
+		descriptions.put("3", description3);
+		descriptions.put("4", description4);
+		
+		dataObject.setDescriptions(descriptions);
+		
+		Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		dao.writeEntity(dataObject)
+		.ifNotExists()
+		.execute();
+
+		
+		dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		
+		Deletion deletion = dao
+				.deleteWithKey("id", dataObject.getId())
+				.removeMapValue("descriptions", "2")
+				.removeMapValue("descriptions", "4");
+		deletion.execute();
+		
+		MockDOWithUDTMap entity = null;
+		
+		try {
+			dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+			entity = dao.readWithKey("id", dataObject.getId())
+					.asEntity(MockDOWithUDTMap.class)
+					.execute().get();
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		
+		assertNotNull(entity);
+		assertTrue(entity.getDescriptions().size() ==2);
+	}
 	
 	// Tests @Field shows up on subclasses
 	abstract public static class AbstractDO {
