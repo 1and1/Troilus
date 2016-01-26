@@ -444,7 +444,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		deletion.execute();
 		
 		MockDOWithUDTMap entity = null;
-		
+		//test change
 		try {
 			dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
 			entity = dao.readWithKey("id", dataObject.getId())
