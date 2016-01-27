@@ -261,6 +261,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 	 	
 	 }
 	
+	 
 	 /**
 	  * this method tests that the change to add an entry into a map 
 	  * succeeds
@@ -460,6 +461,8 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertTrue(entity.getDescriptions().size() ==2);
 	 }
 	
+	 
+	 
 	// Tests @Field shows up on subclasses
 	abstract public static class AbstractDO {
 		

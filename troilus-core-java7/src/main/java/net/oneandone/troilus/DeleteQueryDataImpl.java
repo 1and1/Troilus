@@ -49,7 +49,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
     private final Boolean ifExists;
-     
+    private final ImmutableMap<String, List<Object>> mapValuesToRemove;
 
     /**
      * constructor 
@@ -59,6 +59,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
              ImmutableMap.<String, Object>of(), 
              ImmutableList.<Clause>of(), 
              ImmutableList.<Clause>of(),
+             null, 
              null);
     }
     
@@ -66,12 +67,14 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                 ImmutableMap<String, Object> keyNameValuePairs, 
                                 ImmutableList<Clause> whereConditions, 
                                 ImmutableList<Clause> onlyIfConditions,
-                                Boolean ifExists) {
+                                Boolean ifExists,
+                                ImmutableMap<String, List<Object>> mapValuesToRemove) {
         this.tablename = tablename;
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.onlyIfConditions = onlyIfConditions;
         this.ifExists = ifExists;
+        this.mapValuesToRemove = mapValuesToRemove;
     }
     
     @Override
@@ -80,7 +83,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        keyNameValuePairs, 
                                        this.whereConditions, 
                                        this.onlyIfConditions,
-                                       this.ifExists);  
+                                       this.ifExists,
+                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -89,7 +93,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.keyNameValuePairs, 
                                        whereConditions, 
                                        this.onlyIfConditions,
-                                       this.ifExists);  
+                                       this.ifExists,
+                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -98,7 +103,8 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.keyNameValuePairs, 
                                        this.whereConditions, 
                                        onlyIfConditions,
-                                       this.ifExists);  
+                                       this.ifExists,
+                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -107,7 +113,18 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.keyNameValuePairs, 
                                        this.whereConditions, 
                                        this.onlyIfConditions,
-                                       ifExists);  
+                                       ifExists,
+                                       this.mapValuesToRemove);  
+    }
+    
+    @Override
+    public DeleteQueryDataImpl mapValuesToRemove(ImmutableMap<String, List<Object>> mapValuesToRemove) {
+    	return new DeleteQueryDataImpl(this.tablename,
+    									this.keyNameValuePairs,
+    									this.whereConditions,
+    									onlyIfConditions,
+    									this.ifExists,
+    									mapValuesToRemove);
     }
     
     @Override
@@ -135,7 +152,11 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         return ifExists;
     }
     
-
+    @Override
+    public ImmutableMap<String, List<Object>> getMapValuesToRemove() {
+    	return mapValuesToRemove;
+    }
+    
     /**
      * @param data  the data 
      * @param ctx   the context
@@ -143,8 +164,9 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      */
     static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         
-        Delete delete = (data.getTablename().getKeyspacename() == null) ? delete().from(data.getTablename().getTablename())
-                                                                        : delete().from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
+    	Delete.Selection deletion = delete();
+        Delete delete = (data.getTablename().getKeyspacename() == null) ? deletion.from(data.getTablename().getTablename())
+                                                                        : deletion.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
@@ -152,6 +174,14 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         
         if ((data.getIfExists() != null) && data.getIfExists()) {
             delete.ifExists();
+        }
+        
+        if(data.getMapValuesToRemove() !=null) {
+        	for(Entry<String, List<Object>> entry : data.getMapValuesToRemove().entrySet()) {
+        		for(Object object : entry.getValue()) {
+        			deletion.mapElt(entry.getKey(), object);
+        		}
+        	}
         }
         
         // key-based delete    

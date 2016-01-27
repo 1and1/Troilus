@@ -29,10 +29,11 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.ttl;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
 
@@ -733,7 +734,22 @@ class WriteQueryDataImpl implements WriteQueryData {
 
             for(Entry<String, ImmutableMap<Object, Optional<Object>>> entry : data.getMapValuesToMutate().entrySet()) {
                 update.with(putAll(entry.getKey(), bindMarker())); 
-                values.add(toStatementValue(udtValueMapper, data.getTablename(), entry.getKey(), entry.getValue()));
+                
+                /**
+                 * Mike Wislocki - change 1/26/16
+                 * this change iterates through the map mutations and rebuids the map of objects 
+                 * in order to effectively create UDTValue.  Prior code was passing in the map key as 
+                 * opposed to the actual Map of objects to be converted into a UDT in the 
+                 * UDTValueMapper.toUdtValue method.  Otherwise a ClassCastException will be thrown at line 378
+                 */
+                Map<Object, Object> map = new HashMap<Object, Object>();
+                for(Entry<Object, Optional<Object>> thisEntry : entry.getValue().entrySet()) {
+                	Object object = thisEntry.getValue().isPresent() ? thisEntry.getValue().get() : null;
+                	if(object !=null) {
+                		map.put(thisEntry.getKey(), object);
+                	}
+                }
+                values.add(udtValueMapper.toStatementValue(data.getTablename(), entry.getKey(), map));
             }
             
             
