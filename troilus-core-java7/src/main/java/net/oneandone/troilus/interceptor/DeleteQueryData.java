@@ -17,11 +17,11 @@ package net.oneandone.troilus.interceptor;
 
 
 
-import java.util.List;
-
 import net.oneandone.troilus.Tablename;
 
 import com.datastax.driver.core.querybuilder.Clause;
+
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -44,21 +44,6 @@ public interface DeleteQueryData {
      * @return the new delete query data
      */
     DeleteQueryData key(ImmutableMap<String, Object> key);
-    
-    /**
-     * returns map of values to remove from column family
-     * @return
-     */
-    ImmutableMap<String, List<Object>> getMapValuesToRemove();
-    
-    /**
-     * this method's purpose is to populate the list of map 
-     * values to remove
-     * 
-     * @param removedMapValues
-     * @return
-     */
-    DeleteQueryData mapValuesToRemove(ImmutableMap<String, List<Object>> removedMapValues);
 
     /**
      * @param whereConditions the where conditions
