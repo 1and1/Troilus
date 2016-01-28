@@ -56,6 +56,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 	public static final String TABLE_MOCK_WITH_UDT_SET = "mock_with_udt_set";
 	public static final String TABLE_MOCK_WITH_UDT_MAP = "mock_with_udt_map";
 	public static final String TABLE_MOCK_WITH_UDT = "mock_with_udt_single";
+	public static final String TABLE_MOCK_WITH_MULTI_UDT_MAP = "mock_with_multi_udt_map";
 	
 	@BeforeClass
     public static void beforeClass() throws IOException {
@@ -90,6 +91,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		session.execute("CREATE TABLE "+keyspace+"."+TABLE_MOCK_WITH_UDT_SET+" (id text, version bigint, create_date timestamp, descriptions set<frozen<description>>, PRIMARY KEY (id));");
 		session.execute("CREATE TABLE "+keyspace+"."+TABLE_MOCK_WITH_UDT_MAP+" (id text, version bigint, create_date timestamp, descriptions map<text,frozen<description>>, PRIMARY KEY (id));");
 		session.execute("CREATE TABLE "+keyspace+"."+TABLE_MOCK_WITH_UDT+" (id text, version bigint, create_date timestamp, description frozen<description>, PRIMARY KEY (id));");
+		session.execute("CREATE TABLE "+keyspace+"."+TABLE_MOCK_WITH_MULTI_UDT_MAP+" (id text, version bigint, create_date timestamp, descriptions map<text,frozen<description>>, other_descriptions map<text,frozen<description>>, PRIMARY KEY (id));");
 	}
 	
 	
@@ -327,7 +329,90 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertNotNull(entity);
 		 assertTrue(entity.getDescriptions().size() ==4);
 	 }
-	
+	 
+		/**
+		 * this test will prove that you can update multiple map columns with different
+		 * entries in both and it all works as expected
+		 * @throws Exception
+		 */
+	 @Test
+	 public void testUpdateMapsForTwoDifferentColumns() throws Exception {
+	     MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		 dataObject.setCreateDate(new Date());
+		 dataObject.setId(System.currentTimeMillis()+"");
+		 dataObject.setVersion(1);
+		 
+		 DescriptionUDT description1 = new DescriptionUDT();
+		 description1.name = "someName1";
+		 description1.time = new Date();
+		 
+		 DescriptionUDT description2 = new DescriptionUDT();
+		 description2.name = "someName2";
+		 description2.time = new Date();
+		 
+		 Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		 descriptions.put("1", description1);
+		 descriptions.put("2", description2);
+		
+		 dataObject.setDescriptions(descriptions);
+		
+		 Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_MULTI_UDT_MAP);
+		 
+		 dao.writeEntity(dataObject)
+		 .ifNotExists()
+		 .execute();
+		 
+		 DescriptionUDT description3 = new DescriptionUDT();
+		 description3.name = "someName3";
+		 description3.time = new Date();
+		 
+		 DescriptionUDT description4 = new DescriptionUDT();
+		 description4.name = "someName4";
+		 description4.time = new Date();
+		 
+		 Map<String, Object> objectMap = new HashMap<String, Object>();
+		 objectMap.put("3", description3);
+		 objectMap.put("4", description4);
+		 
+		 DescriptionUDT description5 = new DescriptionUDT();
+		 description5.name = "someName5";
+		 description5.time = new Date();
+		 
+		 DescriptionUDT description6 = new DescriptionUDT();
+		 description6.name = "someName6";
+		 description6.time = new Date();
+		 
+		 Map<String, Object> objectMap2 = new HashMap<String, Object>();
+		 
+		 objectMap2.put("5", description5);
+		 objectMap2.put("6", description6);
+		 
+		 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_MULTI_UDT_MAP);
+		 
+		 BatchableWithTime<Write> update = dao
+		 		 .writeWithKey("id", dataObject.getId())
+		 		 .putMapValues("descriptions", objectMap)
+		 		 .putMapValues("other_descriptions", objectMap2);
+		 update.execute();
+		
+		 MockDOWithUDTMap entity = null;
+		 
+		 try {
+			 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_MULTI_UDT_MAP);
+			 entity = dao.readWithKey("id", dataObject.getId())
+					 .asEntity(MockDOWithUDTMap.class)
+					 .execute().get();
+		 	
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 throw e;
+		 }
+		
+		 assertNotNull(entity);
+		 assertTrue(entity.getDescriptions().size() ==4);
+		 assertTrue(entity.getOtherDescriptions().size() ==2);
+	 }
+	 
 	 @Test
 	 public void testAddMultipleObjectsInMapToMap() throws Exception {
 	     MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
@@ -1091,6 +1176,19 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		
 		@Field(name="descriptions")
 		private Map<String, DescriptionUDT> descriptions;
+		
+		@Field(name="other_descriptions")
+		private Map<String, DescriptionUDT> otherDescriptions;
+
+		
+		
+		public Map<String, DescriptionUDT> getOtherDescriptions() {
+			return otherDescriptions;
+		}
+
+		public void setOtherDescriptions(Map<String, DescriptionUDT> otherDescriptions) {
+			this.otherDescriptions = otherDescriptions;
+		}
 
 		/**
 		 * @return the descriptions
