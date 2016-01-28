@@ -166,6 +166,11 @@ class UpdateQueryAdapter extends AbstractQueryAdapter<UpdateQueryAdapter> implem
     public <T, V> UpdateWithUnitAndCounter putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
         return putMapValue(name.getName(), key, value);
     }
+    
+	@Override
+	public <T, V> UpdateWithUnitAndCounter putMapValues(String columnName, Map<T, V> map) {
+		return newQuery(getQuery().putMapValues(columnName, map));
+	}
         
     @Override
     public CounterMutationQueryAdapter incr(String name) {
@@ -186,5 +191,6 @@ class UpdateQueryAdapter extends AbstractQueryAdapter<UpdateQueryAdapter> implem
     public CounterMutationQueryAdapter decr(String name, long value) {
         return new CounterMutationQueryAdapter(getContext(), getQuery().decr(name, value));
     }
+
 }
 

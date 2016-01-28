@@ -164,6 +164,12 @@ class WriteWithCounterQueryAdapter extends AbstractQueryAdapter<WriteWithCounter
         return putMapValue(name.getName(), key, value);
     }
         
+
+	@Override
+	public <T, V> WriteWithCounterQueryAdapter putMapValues(String columnName, Map<T, V> map) {
+		return newQuery(getQuery().putMapValues(columnName, map));
+	}
+    
     @Override
     public CounterMutationQueryAdapter incr(String name) {
         return new CounterMutationQueryAdapter(getContext(), getQuery().incr(name));
@@ -183,5 +189,6 @@ class WriteWithCounterQueryAdapter extends AbstractQueryAdapter<WriteWithCounter
     public CounterMutationQueryAdapter decr(String name, long value) {
         return new CounterMutationQueryAdapter(getContext(), getQuery().decr(name, value));
     }
+
 }
 

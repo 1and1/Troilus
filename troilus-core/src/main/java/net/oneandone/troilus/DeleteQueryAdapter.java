@@ -18,6 +18,8 @@ package net.oneandone.troilus;
 
 
 
+import java.util.List;
+
 import com.datastax.driver.core.querybuilder.Clause;
 
 
@@ -77,4 +79,9 @@ class DeleteQueryAdapter extends AbstractQueryAdapter<Deletion> implements Delet
     public Deletion removeMapValue(String columnName, Object mapKey) {
     	return newQuery(query.removeMapValue(columnName, mapKey));
     }
+
+	@Override
+	public Deletion removeMapValues(String columnName, List<Object> mapKeys) {
+		return newQuery(query.removeMapValues(columnName, mapKeys));
+	}
 }
