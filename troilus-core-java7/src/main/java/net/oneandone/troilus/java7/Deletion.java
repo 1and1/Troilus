@@ -15,8 +15,6 @@
  */
 package net.oneandone.troilus.java7;
 
-import java.util.List;
-
 import net.oneandone.troilus.Result;
 
 import com.datastax.driver.core.querybuilder.Clause;
@@ -47,7 +45,4 @@ public interface Deletion extends Batchable<Deletion> {
      * @return
      */
     Deletion removeMapValue(String columnName, Object mapKey);
-    
-    Deletion removeMapValues(String columnName, List<Object> mapKeys);
-    
 }

@@ -329,6 +329,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertNotNull(entity);
 		 assertTrue(entity.getDescriptions().size() ==4);
 	 }
+<<<<<<< master
 	 
 		/**
 		 * this test will prove that you can update multiple map columns with different
@@ -927,6 +928,9 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertNotNull(entity);
 		 assertTrue(entity.getDescriptions().size() ==5);
 	 }
+=======
+	
+>>>>>>> c5b3f97 added support to add map of values to update/remove
 	 /**
 	  * this method tests whether or not an update to a map entry
 	  * succeeds
@@ -1060,142 +1064,8 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertTrue(entity.getDescriptions().size() ==2);
 	 }
 	
-	 @Test
-	 public void testRemoveMultipleObjectsInMapFromMap() throws Exception {
-		 MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
-		 dataObject.setCreateDate(new Date());
-		 dataObject.setId(System.currentTimeMillis()+"");
-		 dataObject.setVersion(1);
-		 
-		 DescriptionUDT description1 = new DescriptionUDT();
-		 description1.name = "someName1";
-		 description1.time = new Date();
-		
-		 DescriptionUDT description2 = new DescriptionUDT();
-		 description2.name = "someName2";
-		 description2.time = new Date();
-		
-		 DescriptionUDT description3 = new DescriptionUDT();
-		 description3.name = "someName3";
-		 description3.time = new Date();
-		
-		 DescriptionUDT description4 = new DescriptionUDT();
-		 description4.name = "someName4";
-		 description4.time = new Date();
-		
-		 Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
-		 descriptions.put("1", description1);
-		 descriptions.put("2", description2);
-		 descriptions.put("3", description3);
-		 descriptions.put("4", description4);
-		
-		 dataObject.setDescriptions(descriptions);
-		
-		 Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-		
-		 dao.writeEntity(dataObject)
-		 .ifNotExists()
-		 .execute();
-
-		
-		 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-		
-		 
-		 List<Object> objectMap = new ArrayList<Object>();
-		 objectMap.add("2");
-		 objectMap.add("3");
-		 
-		 Deletion deletion = dao
-				 .deleteWithKey("id", dataObject.getId())
-				 .removeMapValues("descriptions", objectMap);
-		 deletion.execute();
-		
-		 MockDOWithUDTMap entity = null;
-		
-		 try {
-			 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-			 entity = dao.readWithKey("id", dataObject.getId())
-					 .asEntity(MockDOWithUDTMap.class)
-					 .execute().get();
-			
-		 }catch(Exception e) {
-			 e.printStackTrace();
-			 throw e;
-		 }
-		
-		 assertNotNull(entity);
-		 assertTrue(entity.getDescriptions().size() ==2);
-	 }
 	 
-	 @Test
-	 public void testRemoveMultiplesCombinationFromMap() throws Exception {
-		 MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
-		 dataObject.setCreateDate(new Date());
-		 dataObject.setId(System.currentTimeMillis()+"");
-		 dataObject.setVersion(1);
-		 
-		 DescriptionUDT description1 = new DescriptionUDT();
-		 description1.name = "someName1";
-		 description1.time = new Date();
-		
-		 DescriptionUDT description2 = new DescriptionUDT();
-		 description2.name = "someName2";
-		 description2.time = new Date();
-		
-		 DescriptionUDT description3 = new DescriptionUDT();
-		 description3.name = "someName3";
-		 description3.time = new Date();
-		
-		 DescriptionUDT description4 = new DescriptionUDT();
-		 description4.name = "someName4";
-		 description4.time = new Date();
-		
-		 Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
-		 descriptions.put("1", description1);
-		 descriptions.put("2", description2);
-		 descriptions.put("3", description3);
-		 descriptions.put("4", description4);
-		
-		 dataObject.setDescriptions(descriptions);
-		
-		 Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-		
-		 dao.writeEntity(dataObject)
-		 .ifNotExists()
-		 .execute();
-
-		
-		 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-		
-		 
-		 List<Object> objectMap = new ArrayList<Object>();
-		 objectMap.add("2");
-		 objectMap.add("3");
-		 
-		 Deletion deletion = dao
-				 .deleteWithKey("id", dataObject.getId())
-				 .removeMapValues("descriptions", objectMap)
-				 .removeMapValue("descriptions", "1");
-		 deletion.execute();
-		
-		 MockDOWithUDTMap entity = null;
-		
-		 try {
-			 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
-			 entity = dao.readWithKey("id", dataObject.getId())
-					 .asEntity(MockDOWithUDTMap.class)
-					 .execute().get();
-			
-		 }catch(Exception e) {
-			 e.printStackTrace();
-			 throw e;
-		 }
-		
-		 assertNotNull(entity);
-		 assertTrue(entity.getDescriptions().size() ==1);
-	 }
 	 
-	
 	// Tests @Field shows up on subclasses
 	abstract public static class AbstractDO {
 		

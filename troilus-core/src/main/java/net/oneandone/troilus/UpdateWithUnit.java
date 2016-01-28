@@ -148,14 +148,4 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @return a cloned query instance with the modified behavior
      */
     <T, V> U putMapValue(ColumnName<Map<T, V>> name, T key, V value);
-    
-    /**
-     * @param name   the map column name 
-     * @param key    the map key name
-     * @param value  the map value
-     * @param <T>    the key type
-     * @param <V>    the value type
-     * @return a cloned query instance with the modified behavior
-     */
-    <T, V> U putMapValues(String columnName, Map<T, V> map);
 }

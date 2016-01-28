@@ -104,32 +104,12 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     	
     	Map<String, List<Object>> persistentMap = data.getMapValuesToRemove() !=null ? 
     			Maps.newHashMap(data.getMapValuesToRemove()) : new HashMap<String, List<Object>>();
-    	
-    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(buildMap(persistentMap, columnName, mapKey));
-
-    	return newQuery(data.mapValuesToRemove(map));
-    }
-    
-    @Override
-    public DeleteQuery removeMapValues(String columnName, List<Object> mapKeys) {
-    	
-    	Map<String, List<Object>> persistentMap = data.getMapValuesToRemove() !=null ? 
-    			Maps.newHashMap(data.getMapValuesToRemove()) : new HashMap<String, List<Object>>();
-  
-    	for(Object key : mapKeys) {
-    		persistentMap = buildMap(persistentMap, columnName, key);
-    	}
-    	
-    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(persistentMap);	
-    	return newQuery(data.mapValuesToRemove(map));
-    }
-    
-    private Map<String, List<Object>> buildMap(Map<String, List<Object>> persistentMap, String columnName, Object mapKey) {
+    			
     	//if map value exists, get existing values and add the new one if not a duplicate
     	if(mapKey!=null) {
     		List<Object> list = new ArrayList<Object>();
-    		if(persistentMap !=null) {
-    			List<Object> existingList = persistentMap.get(columnName);
+    		if(data.getMapValuesToRemove() !=null) {
+    			List<Object> existingList = data.getMapValuesToRemove().get(columnName);
     			if(existingList !=null) {
     				list.addAll(existingList);
     			}
@@ -139,8 +119,8 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     		}
     		persistentMap.put(columnName, list);
     	}
-
-    	return persistentMap;
+    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(persistentMap);
+    	return newQuery(data.mapValuesToRemove(map));
     }
     
     @Override
