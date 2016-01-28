@@ -180,11 +180,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
 
     public <T, V> WriteWithCounterQuery putMapValues(String columnName, Map<T, V> map) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(columnName);
-        for(Map.Entry<T, V> entry : map.entrySet()) {
-        	values = addToMap(columnName, entry.getKey(), entry.getValue(), values);
+        if(map!=null) {
+	        for(Map.Entry<T, V> entry : map.entrySet()) {
+	        	values = addToMap(columnName, entry.getKey(), entry.getValue(), values);
+	        }
         }
-       
-        return newQuery(getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), columnName, values)));
+        return values==null ? this : newQuery(getData().mapValuesToMutate(Immutables.join(getData().getMapValuesToMutate(), columnName, values)));
     }
     
     

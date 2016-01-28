@@ -476,6 +476,145 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 assertTrue(entity.getDescriptions().size() ==4);
 	 }
 	 
+	 
+	 @Test
+	 public void testAddEmptyMap() throws Exception {
+	     MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		 dataObject.setCreateDate(new Date());
+		 dataObject.setId(System.currentTimeMillis()+"");
+		 dataObject.setVersion(1);
+		 
+		 DescriptionUDT description1 = new DescriptionUDT();
+		 description1.name = "someName1";
+		 description1.time = new Date();
+		 
+		 DescriptionUDT description2 = new DescriptionUDT();
+		 description2.name = "someName2";
+		 description2.time = new Date();
+		 
+		 Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		 descriptions.put("1", description1);
+		 descriptions.put("2", description2);
+		
+		 dataObject.setDescriptions(descriptions);
+		
+		 Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		 
+		 dao.writeEntity(dataObject)
+		 .ifNotExists()
+		 .execute();
+		 
+		 DescriptionUDT description3 = new DescriptionUDT();
+		 description3.name = "someName3";
+		 description3.time = new Date();
+		 
+		 DescriptionUDT description4 = new DescriptionUDT();
+		 description4.name = "someName4";
+		 description4.time = new Date();
+
+		 Map<String, Object> objectMap = new HashMap<String, Object>();
+
+		 
+		 Map<String, Object> objectMap2 = new HashMap<String, Object>();
+		 description3.setName("myTest3");
+		 description4.setName("myTest4");
+		 
+		 objectMap2.put("3", description3);
+		 objectMap2.put("4", description4);
+		 
+		 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		 
+		 BatchableWithTime<Write> update = dao
+		 		 .writeWithKey("id", dataObject.getId())
+		 		 .putMapValues("descriptions", objectMap)
+		 		 .putMapValues("descriptions", objectMap2);
+		 update.execute();
+		
+		 MockDOWithUDTMap entity = null;
+		 
+		 try {
+			 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+			 entity = dao.readWithKey("id", dataObject.getId())
+					 .asEntity(MockDOWithUDTMap.class)
+					 .execute().get();
+		 	
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 throw e;
+		 }
+		
+		 assertNotNull(entity);
+		 assertTrue(entity.getDescriptions().size() ==4);
+	 }
+	 
+	 @Test
+	 public void testAddNullMap() throws Exception {
+	     MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
+		 dataObject.setCreateDate(new Date());
+		 dataObject.setId(System.currentTimeMillis()+"");
+		 dataObject.setVersion(1);
+		 
+		 DescriptionUDT description1 = new DescriptionUDT();
+		 description1.name = "someName1";
+		 description1.time = new Date();
+		 
+		 DescriptionUDT description2 = new DescriptionUDT();
+		 description2.name = "someName2";
+		 description2.time = new Date();
+		 
+		 Map<String, DescriptionUDT> descriptions = new HashMap<String, DescriptionUDT>();
+		 descriptions.put("1", description1);
+		 descriptions.put("2", description2);
+		
+		 dataObject.setDescriptions(descriptions);
+		
+		 Dao dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		 
+		 dao.writeEntity(dataObject)
+		 .ifNotExists()
+		 .execute();
+		 
+		 DescriptionUDT description3 = new DescriptionUDT();
+		 description3.name = "someName3";
+		 description3.time = new Date();
+		 
+		 DescriptionUDT description4 = new DescriptionUDT();
+		 description4.name = "someName4";
+		 description4.time = new Date();
+
+		 
+		 Map<String, Object> objectMap2 = new HashMap<String, Object>();
+		 description3.setName("myTest3");
+		 description4.setName("myTest4");
+		 
+		 objectMap2.put("3", description3);
+		 objectMap2.put("4", description4);
+		 
+		 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+		 
+		 BatchableWithTime<Write> update = dao
+		 		 .writeWithKey("id", dataObject.getId())
+		 		 .putMapValues("descriptions", null)
+		 		 .putMapValues("descriptions", objectMap2);
+		 update.execute();
+		
+		 MockDOWithUDTMap entity = null;
+		 
+		 try {
+			 dao = new DaoImpl(session, keyspace, TABLE_MOCK_WITH_UDT_MAP);
+			 entity = dao.readWithKey("id", dataObject.getId())
+					 .asEntity(MockDOWithUDTMap.class)
+					 .execute().get();
+		 	
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 throw e;
+		 }
+		
+		 assertNotNull(entity);
+		 assertTrue(entity.getDescriptions().size() ==4);
+	 }
+	 
 	 /**
 	  * the purpose of this test is to verify that if someone attempts to add 
 	  * the same map with identical keys and values that the framework will 
