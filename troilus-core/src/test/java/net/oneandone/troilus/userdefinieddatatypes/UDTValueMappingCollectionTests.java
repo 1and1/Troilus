@@ -629,7 +629,12 @@ public class UDTValueMappingCollectionTests extends TestCase {
 	 }
 	 
 	 
-	 
+	 /**
+	  * this method proves that we can use the putMapValues and putMapValue methods in conjunction 
+	  * and they will not step on each other
+	  * 
+	  * @throws Exception
+	  */
 	 @Test
 	 public void testAddMultipleObjectsWithMapAndSingleToMap() throws Exception {
 	     MockDOWithUDTMap dataObject = new MockDOWithUDTMap();
