@@ -12,7 +12,7 @@
   </root>
   
 
-  <logger name="net.oneandone.troilus" level="debug" additivity="false">
+  <logger name="net.oneandone.troilus" level="debug">
     <appender-ref ref="STDOUT" />
   </logger>
 </configuration>
