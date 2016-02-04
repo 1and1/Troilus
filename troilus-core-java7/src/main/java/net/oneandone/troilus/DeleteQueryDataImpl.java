@@ -49,7 +49,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
     private final ImmutableList<Clause> whereConditions;
     private final ImmutableList<Clause> onlyIfConditions;
     private final Boolean ifExists;
-    private final ImmutableMap<String, List<Object>> mapValuesToRemove;
+//    private final ImmutableMap<String, List<Object>> mapValuesToRemove;
 
     /**
      * constructor 
@@ -60,7 +60,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
              ImmutableList.<Clause>of(), 
              ImmutableList.<Clause>of(),
              null, 
-             null);
+//             null);
     }
     
     private DeleteQueryDataImpl(Tablename tablename,
@@ -68,13 +68,13 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                 ImmutableList<Clause> whereConditions, 
                                 ImmutableList<Clause> onlyIfConditions,
                                 Boolean ifExists,
-                                ImmutableMap<String, List<Object>> mapValuesToRemove) {
+//                                ImmutableMap<String, List<Object>> mapValuesToRemove) {
         this.tablename = tablename;
         this.keyNameValuePairs = keyNameValuePairs;
         this.whereConditions = whereConditions;
         this.onlyIfConditions = onlyIfConditions;
         this.ifExists = ifExists;
-        this.mapValuesToRemove = mapValuesToRemove;
+//        this.mapValuesToRemove = mapValuesToRemove;
     }
     
     @Override
@@ -84,7 +84,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.whereConditions, 
                                        this.onlyIfConditions,
                                        this.ifExists,
-                                       this.mapValuesToRemove);  
+//                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -94,7 +94,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        whereConditions, 
                                        this.onlyIfConditions,
                                        this.ifExists,
-                                       this.mapValuesToRemove);  
+//                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -104,7 +104,7 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.whereConditions, 
                                        onlyIfConditions,
                                        this.ifExists,
-                                       this.mapValuesToRemove);  
+//                                       this.mapValuesToRemove);  
     }
     
     @Override
@@ -114,18 +114,18 @@ class DeleteQueryDataImpl implements DeleteQueryData {
                                        this.whereConditions, 
                                        this.onlyIfConditions,
                                        ifExists,
-                                       this.mapValuesToRemove);  
+//                                       this.mapValuesToRemove);  
     }
     
-    @Override
-    public DeleteQueryDataImpl mapValuesToRemove(ImmutableMap<String, List<Object>> mapValuesToRemove) {
-    	return new DeleteQueryDataImpl(this.tablename,
-    									this.keyNameValuePairs,
-    									this.whereConditions,
-    									onlyIfConditions,
-    									this.ifExists,
-    									mapValuesToRemove);
-    }
+//    @Override
+//    public DeleteQueryDataImpl mapValuesToRemove(ImmutableMap<String, List<Object>> mapValuesToRemove) {
+//    	return new DeleteQueryDataImpl(this.tablename,
+//    									this.keyNameValuePairs,
+//    									this.whereConditions,
+//    									onlyIfConditions,
+//    									this.ifExists,
+//    									mapValuesToRemove);
+//    }
     
     @Override
     public Tablename getTablename() {
@@ -152,10 +152,10 @@ class DeleteQueryDataImpl implements DeleteQueryData {
         return ifExists;
     }
     
-    @Override
-    public ImmutableMap<String, List<Object>> getMapValuesToRemove() {
-    	return mapValuesToRemove;
-    }
+//    @Override
+//    public ImmutableMap<String, List<Object>> getMapValuesToRemove() {
+//    	return mapValuesToRemove;
+//    }
     
     /**
      * @param data  the data 
@@ -164,9 +164,9 @@ class DeleteQueryDataImpl implements DeleteQueryData {
      */
     static ListenableFuture<Statement> toStatementAsync(DeleteQueryData data, ExecutionSpec executionSpec, UDTValueMapper udtValueMapper, DBSession dbSession) {
         
-    	Delete.Selection deletion = delete();
-        Delete delete = (data.getTablename().getKeyspacename() == null) ? deletion.from(data.getTablename().getTablename())
-                                                                        : deletion.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
+//    	Delete.Selection deletion = delete();
+//        Delete delete = (data.getTablename().getKeyspacename() == null) ? deletion.from(data.getTablename().getTablename())
+//                                                                        : deletion.from(data.getTablename().getKeyspacename(), data.getTablename().getTablename());
 
         for (Clause onlyIfCondition : data.getOnlyIfConditions()) {
             delete.onlyIf(onlyIfCondition);
@@ -176,13 +176,13 @@ class DeleteQueryDataImpl implements DeleteQueryData {
             delete.ifExists();
         }
         
-        if(data.getMapValuesToRemove() !=null) {
-        	for(Entry<String, List<Object>> entry : data.getMapValuesToRemove().entrySet()) {
-        		for(Object object : entry.getValue()) {
-        			deletion.mapElt(entry.getKey(), object);
-        		}
-        	}
-        }
+//        if(data.getMapValuesToRemove() !=null) {
+//        	for(Entry<String, List<Object>> entry : data.getMapValuesToRemove().entrySet()) {
+//        		for(Object object : entry.getValue()) {
+//        			deletion.mapElt(entry.getKey(), object);
+//        		}
+//        	}
+//        }
         
         // key-based delete    
         if (data.getWhereConditions().isEmpty()) {

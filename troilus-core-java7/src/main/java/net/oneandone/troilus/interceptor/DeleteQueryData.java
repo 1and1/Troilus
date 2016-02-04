@@ -45,20 +45,20 @@ public interface DeleteQueryData {
      */
     DeleteQueryData key(ImmutableMap<String, Object> key);
 
-    /**
-     * returns map of values to remove from column family
-     * @return
-     */
-    ImmutableMap<String, List<Object>> getMapValuesToRemove();
+//    /**
+//     * returns map of values to remove from column family
+//     * @return
+//     */
+//    ImmutableMap<String, List<Object>> getMapValuesToRemove();
     
-    /**
-     * this method's purpose is to populate the list of map 
-     * values to remove
-     * 
-     * @param removedMapValues
-     * @return
-     */
-    DeleteQueryData mapValuesToRemove(ImmutableMap<String, List<Object>> removedMapValues);
+//    /**
+//     * this method's purpose is to populate the list of map 
+//     * values to remove
+//     * 
+//     * @param removedMapValues
+//     * @return
+//     */
+//    DeleteQueryData mapValuesToRemove(ImmutableMap<String, List<Object>> removedMapValues);
     /**
      * @param whereConditions the where conditions
      * @return the new delete query data

@@ -91,48 +91,48 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
         return newQuery(data.ifExists(true));
     }
         
-    /**
-     * this method builds DeleteQuery of map entries to be removed from 
-     * a map column or map columns
-     * 
-     * @param columnName
-     * @param mapKey
-     * @return
-     */
-    @Override
-    public DeleteQuery removeMapValue(String columnName, Object mapKey) {
-    	
-    	Map<String, List<Object>> persistentMap = data.getMapValuesToRemove() !=null ? 
-    			Maps.newHashMap(data.getMapValuesToRemove()) : new HashMap<String, List<Object>>();
-    			
-    	//if map value exists, get existing values and add the new one if not a duplicate
-    	if(mapKey!=null) {
-    		List<Object> list = new ArrayList<Object>();
-    		if(data.getMapValuesToRemove() !=null) {
-    			List<Object> existingList = data.getMapValuesToRemove().get(columnName);
-    			if(existingList !=null) {
-    				list.addAll(existingList);
-    			}
-    		}
-    		if(!list.contains(mapKey)) {
-    			list.add(mapKey);
-    		}
-    		persistentMap.put(columnName, list);
-    	}
-    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(persistentMap);
-    	return newQuery(data.mapValuesToRemove(map));
-    }
-    
-    
-    /**
-     * this method allows the caller to provide a ColumnName object 
-     * and a mapKey to remove a map entry
-     * 
-     */
-    @Override
-    public <T,V> Deletion removeMapValue(ColumnName<Map<T, V>> column, Object mapKey) {
-    	return removeMapValue(column.getName(), mapKey);
-    }
+//    /**
+//     * this method builds DeleteQuery of map entries to be removed from 
+//     * a map column or map columns
+//     * 
+//     * @param columnName
+//     * @param mapKey
+//     * @return
+//     */
+//    @Override
+//    public DeleteQuery removeMapValue(String columnName, Object mapKey) {
+//    	
+//    	Map<String, List<Object>> persistentMap = data.getMapValuesToRemove() !=null ? 
+//    			Maps.newHashMap(data.getMapValuesToRemove()) : new HashMap<String, List<Object>>();
+//    			
+//    	//if map value exists, get existing values and add the new one if not a duplicate
+//    	if(mapKey!=null) {
+//    		List<Object> list = new ArrayList<Object>();
+//    		if(data.getMapValuesToRemove() !=null) {
+//    			List<Object> existingList = data.getMapValuesToRemove().get(columnName);
+//    			if(existingList !=null) {
+//    				list.addAll(existingList);
+//    			}
+//    		}
+//    		if(!list.contains(mapKey)) {
+//    			list.add(mapKey);
+//    		}
+//    		persistentMap.put(columnName, list);
+//    	}
+//    	ImmutableMap<String, List<Object>> map = ImmutableMap.copyOf(persistentMap);
+//    	return newQuery(data.mapValuesToRemove(map));
+//    }
+//    
+//    
+//    /**
+//     * this method allows the caller to provide a ColumnName object 
+//     * and a mapKey to remove a map entry
+//     * 
+//     */
+//    @Override
+//    public <T,V> Deletion removeMapValue(ColumnName<Map<T, V>> column, Object mapKey) {
+//    	return removeMapValue(column.getName(), mapKey);
+//    }
     
     @Override
     public ListenableFuture<Result> executeAsync() {

@@ -188,13 +188,13 @@ public class PaginationTest implements PaginationInvites {
 	 * @return number of rows iterated over
 	 */
 	private int assertSortOrder(Iterator<Record> i) {
-		Date previousInviteDate = null;
+//		Date previousInviteDate = null;
 		int cnt = 0;
 		while(i.hasNext()) {
 			Record record = i.next();
-			Date inviteDate = record.getValue(INVITE_DATE, Date.class);
+//			Date inviteDate = record.getValue(INVITE_DATE, Date.class);
 			if (previousInviteDate != null) {
-				if (previousInviteDate.after(inviteDate)) {
+//				if (previousInviteDate.after(inviteDate)) {
 					fail("Fetched out of order of the invite date");
 				}
 			}
@@ -211,15 +211,15 @@ public class PaginationTest implements PaginationInvites {
 	 */
 	private int assertSortOrder(ResultList<InvitesByMonthAndInviteDate> results) {
 		Iterator<InvitesByMonthAndInviteDate> i = results.iterator();
-		Date previousInviteDate = null;
+//		Date previousInviteDate = null;
 		int cnt = 0;
 		while(i.hasNext()) {
 			InvitesByMonthAndInviteDate invite = i.next();
 			
-			Date inviteDate = invite.getInviteDate();
+//			Date inviteDate = invite.getInviteDate();
 			if (previousInviteDate != null) {
 
-				if (previousInviteDate.after(inviteDate)) {
+//				if (previousInviteDate.after(inviteDate)) {
 					fail("Fetched out of order of the invite date");
 				}
 			}
@@ -274,14 +274,14 @@ public class PaginationTest implements PaginationInvites {
 		/**
 		 * @return the inviteDate
 		 */
-		public Date getInviteDate() {
+//		public Date getInviteDate() {
 			return inviteDate;
 		}
 
 		/**
 		 * @param inviteDate the inviteDate to set
 		 */
-		public void setInviteDate(Date inviteDate) {
+//		public void setInviteDate(Date inviteDate) {
 			this.inviteDate = inviteDate;
 		}
 		
