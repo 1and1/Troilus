@@ -75,15 +75,15 @@ class DeleteQueryAdapter extends AbstractQueryAdapter<Deletion> implements Delet
         return newQuery(query.ifExists());
     }
     
-//    @Override
-//    public Deletion removeMapValue(String columnName, Object mapKey) {
-//    	return newQuery(query.removeMapValue(columnName, mapKey));
-//    }
-//
-//
-//	@Override
-//	public <T, V> Deletion removeMapValue(ColumnName<Map<T, V>> column,
-//			Object mapKey) {
-//		return removeMapValue(column.getName(), mapKey);
-//	}
+    @Override
+    public Deletion removeMapValue(String columnName, Object mapKey) {
+    	return newQuery(query.removeMapValue(columnName, mapKey));
+    }
+
+
+	@Override
+	public <T, V> Deletion removeMapValue(ColumnName<Map<T, V>> column,
+			Object mapKey) {
+		return removeMapValue(column.getName(), mapKey);
+	}
 }
