@@ -16,6 +16,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 import net.oneandone.troilus.CassandraDB;
+import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Deletion;
@@ -45,6 +46,7 @@ import com.datastax.driver.core.Session;
 @RunWith(value=BlockJUnit4ClassRunner.class)
 public class UDTValueMappingCollectionTests extends TestCase {
 
+	public static final ColumnName<Map<String, DescriptionUDT>> DESCRIPTIONS = ColumnName.defineMap("descriptions", String.class, DescriptionUDT.class);
 	
 	private static CassandraDB cassandra;
 	 
@@ -318,7 +320,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 		 .writeWithKey("id", dataObject.getId());
 		 
 		 for(Entry<String, DescriptionUDT> entry : objectMap.entrySet()) {
-			 update = update.putMapValue("descriptions", entry.getKey(), entry.getValue());
+			 update = update.putMapValue(DESCRIPTIONS, entry.getKey(), entry.getValue());
 		 }
 
 		 update.execute();
@@ -393,7 +395,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 		 		 .writeWithKey("id", dataObject.getId());
 		 
 		 for(Entry<String, DescriptionUDT> entry : objectMap.entrySet()) {
-			 update = update.putMapValue("descriptions", entry.getKey(), entry.getValue());
+			 update = update.putMapValue(DESCRIPTIONS, entry.getKey(), entry.getValue());
 		 }
 
 		 update.execute();
@@ -646,7 +648,7 @@ public class UDTValueMappingCollectionTests extends TestCase {
 				 .deleteWithKey("id", dataObject.getId());
 		 
 		 for(Object o : descriptionsToRemove) {
-			 deletion = deletion.removeMapValue("descriptions", o);
+			 deletion = deletion.removeMapValue(DESCRIPTIONS, o);
 		 }
 
 		 deletion.execute();

@@ -123,6 +123,17 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
     	return newQuery(data.mapValuesToRemove(map));
     }
     
+    
+    /**
+     * this method allows the caller to provide a ColumnName object 
+     * and a mapKey to remove a map entry
+     * 
+     */
+    @Override
+    public <T,V> Deletion removeMapValue(ColumnName<Map<T, V>> column, Object mapKey) {
+    	return removeMapValue(column.getName(), mapKey);
+    }
+    
     @Override
     public ListenableFuture<Result> executeAsync() {
         ListenableFuture<Result> future = super.executeAsync();
