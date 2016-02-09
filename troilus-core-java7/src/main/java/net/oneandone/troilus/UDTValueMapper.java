@@ -97,7 +97,13 @@ class UDTValueMapper {
         // build-in type 
         if (isBuildInType(datatype)) {
             final TypeCodec<T> typeCodec = codecRegistry.codecFor(datatype);
-        	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
+            
+            try {
+            	if (udtValue.isNull(fieldname)) return null;
+            	return typeCodec.deserialize(udtValue.getBytesUnsafe(fieldname), protocolVersion);
+            } catch(IllegalArgumentException ex) {
+            	return null;
+            }
             
         // udt collection    
         } else if (datatype.isCollection()) {
@@ -336,7 +342,9 @@ class UDTValueMapper {
                 
                 for (Entry<String, Optional<Object>> entry : beanMapper.toValues(value, ImmutableSet.<String>of()).entrySet()) {
                     if (!entry.getValue().isPresent()) {
-                        return null;
+                        //return null;
+                    	udtValue.setToNull(entry.getKey());
+                    	continue;
                     }
 
                     final DataType fieldType = usertype.getFieldType(entry.getKey());
