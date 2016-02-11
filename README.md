@@ -65,6 +65,12 @@ Dao hotelsDao = new DaoImpl(session, "hotels")
                           .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
 ```
 
+Please consider that creating the initial `DaoImpl` instance is a relatively expensive operation. For instance the underlying table structure will be loaded to get some meta data. Furthermore internal caches such as the prepared statement cache will be fresh. This is not true by calling the `with...` methods which returns a `Dao` instance. In this case the meta data, caches, etc. of the initially Dao will be inherited. 
+ 
+For this reason avoid creating the `DaoImpl` instance again and again. Typically a new `DaoImpl` instance will be created within the initialization phase of the program (may be in a lazy manner). 
+     
+
+
 ##Write
 Write a row in a column-oriented way
 ``` java

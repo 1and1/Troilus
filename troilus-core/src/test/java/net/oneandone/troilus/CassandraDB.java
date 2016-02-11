@@ -89,7 +89,7 @@ public class CassandraDB {
                 running.remove(id);
                 
                 try {
-                    Thread.sleep(1 * 60 * 1000);
+                    Thread.sleep(2 * 60 * 1000);
                 } catch (InterruptedException ignore) { }
 
                 if (running.isEmpty()) {
