@@ -3,11 +3,11 @@
  */
 package net.oneandone.troilus.api;
 
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -24,7 +24,6 @@ import net.oneandone.troilus.ResultList;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import com.datastax.driver.core.PagingState;
 
@@ -189,13 +188,13 @@ public class PaginationTest implements PaginationInvites {
 	 * @return number of rows iterated over
 	 */
 	private int assertSortOrder(Iterator<Record> i) {
-		LocalDateTime previousInviteDate = null;
+		Date previousInviteDate = null;
 		int cnt = 0;
 		while(i.hasNext()) {
 			Record record = i.next();
-			LocalDateTime inviteDate = convert(record.getValue(INVITE_DATE, Date.class));
+			Date inviteDate = record.getValue(INVITE_DATE, Date.class);
 			if (previousInviteDate != null) {
-				if (previousInviteDate.isAfter(inviteDate)) {
+				if (previousInviteDate.after(inviteDate)) {
 					fail("Fetched out of order of the invite date");
 				}
 			}
@@ -212,14 +211,15 @@ public class PaginationTest implements PaginationInvites {
 	 */
 	private int assertSortOrder(ResultList<InvitesByMonthAndInviteDate> results) {
 		Iterator<InvitesByMonthAndInviteDate> i = results.iterator();
-		LocalDateTime previousInviteDate = null;
+		Date previousInviteDate = null;
 		int cnt = 0;
 		while(i.hasNext()) {
 			InvitesByMonthAndInviteDate invite = i.next();
 			
-			LocalDateTime inviteDate = invite.getInviteDate();
+			Date inviteDate = invite.getInviteDate();
 			if (previousInviteDate != null) {
-				if (previousInviteDate.isAfter(inviteDate)) {
+
+				if (previousInviteDate.after(inviteDate)) {
 					fail("Fetched out of order of the invite date");
 				}
 			}
@@ -240,7 +240,7 @@ public class PaginationTest implements PaginationInvites {
 		private String emailAddress;
 		
 		@Field(name="invite_date")
-		private LocalDateTime inviteDate;
+		private Date inviteDate;
 
 
 		/**
@@ -274,25 +274,17 @@ public class PaginationTest implements PaginationInvites {
 		/**
 		 * @return the inviteDate
 		 */
-		public LocalDateTime getInviteDate() {
+		public Date getInviteDate() {
 			return inviteDate;
 		}
 
 		/**
 		 * @param inviteDate the inviteDate to set
 		 */
-		public void setInviteDate(LocalDateTime inviteDate) {
+		public void setInviteDate(Date inviteDate) {
 			this.inviteDate = inviteDate;
 		}
 		
-	}
-	
-	
-	
-	private LocalDateTime convert(Date date) {
-		Instant instant = Instant.ofEpochMilli(date.getTime());
-		LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-		return ldt;
 	}
 
 }

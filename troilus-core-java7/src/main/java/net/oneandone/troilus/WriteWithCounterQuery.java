@@ -1,3 +1,4 @@
+
 /*
  * Copyright 1&1 Internet AG, https://github.com/1and1/
  * 
@@ -190,4 +191,3 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
                                                                                              .ifNotExists(true));
     }
 }
-

@@ -16,6 +16,8 @@
 package net.oneandone.troilus;
 
 
+import java.util.Map;
+
 import com.datastax.driver.core.querybuilder.Clause;
 
 
@@ -35,4 +37,21 @@ public interface Deletion extends Batchable<Deletion> {
      * @return a cloned query instance with lwt (if-exits)
      */
     Mutation<Deletion, Result> ifExists();
+    
+    /**
+     * this method will remove a provided map entry for a column 
+     * of type "map" in repository
+     * 
+     * @param columnName
+     * @param mapKey
+     * @return
+     */
+    Deletion removeMapValue(String columnName, Object mapKey);
+    
+    /**
+     * this method allows the caller to provide a ColumnName object 
+     * and a mapKey to remove a map entry
+     * 
+     */
+    <T,V> Deletion removeMapValue(ColumnName<Map<T, V>> column, Object mapKey);
 }
