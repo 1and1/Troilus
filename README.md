@@ -184,6 +184,56 @@ hotelsDao.writeWithKey("id","BUP932432")
          .execute();
 ```  
 
+### Collections support
+add an entry to a set
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .addSetValue("emails", "me@example.org")           
+        .execute();
+```               
+
+remove an entry from a set
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .removeSetValue("emails", "you@example.org")           
+        .execute();
+```         
+
+append an entry to the end of the list
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .appendListValue("top_places", "london")           
+        .execute();
+```               
+
+prepend an entry to the top of the list
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .prependListValue("top_places", "paris")           
+        .execute();
+```               
+
+delete an entry from a list
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .removeListValue("top_places", "london")           
+        .execute();
+```               
+
+put an entry to a map
+``` java
+usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .putMapValue("todo", "2015-9-24" : "fix bug")           
+        .execute();
+```               
+
+remove an entry from a set (delete has to be used instead of write)
+``` java
+usersDao.deleteWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
+        .removeMapValue("todo", "2015-9-24")           
+        .execute();
+```         
+
 
 ### value update based on where conditions
 ``` java
