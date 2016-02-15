@@ -25,7 +25,7 @@ Java8-based
 <dependency>
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core</artifactId>
-	<version>0.17</version>
+	<version>0.18</version>
 </dependency>
 ```
 
@@ -35,7 +35,7 @@ Java7-based
 <dependency>
 	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-core-java7</artifactId>
-	<version>0.17</version>
+	<version>0.18</version>
 </dependency>
 ```
 
