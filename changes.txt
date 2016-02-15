@@ -1,4 +1,8 @@
 
+0.18  
+ * Fixed the putMapValue(...) method(s) in Write API to successfully add/update User Defined Type's into a datatype of map
+ * Introduced a new Deletion API to remove a map value (ie: Deletion.removeMapValue(...))
+
 0.17  
  * Pagination Support - ListRead.withPagingState(), ListReadQuery.toStatementAsync()
  * Inheritance of @Field mappings for entities in BeanMapper
