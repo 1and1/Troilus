@@ -184,7 +184,15 @@ hotelsDao.writeWithKey("id","BUP932432")
          .execute();
 ```  
 
-### Collections support
+
+### value update based on where conditions
+``` java
+hotelsDao.writeWhere(QueryBuilder.in("id", "BUP932432", "BUP233544", "BUP2433"))
+         .value("classification", ClassifierEnum.FOUR)
+         .execute();
+```               
+
+## Collections support
 add an entry to a set
 ``` java
 usersDao.writeWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
@@ -232,16 +240,7 @@ remove an entry from a set (delete has to be used instead of write)
 usersDao.deleteWithKey(UsersTable.USER_ID, "3f9ac8c0-d3aa-11e5-ab30-625662870761")
         .removeMapValue("todo", "2015-9-24")           
         .execute();
-```         
-
-
-### value update based on where conditions
-``` java
-hotelsDao.writeWhere(QueryBuilder.in("id", "BUP932432", "BUP233544", "BUP2433"))
-         .value("classification", ClassifierEnum.FOUR)
-         .execute();
-```               
-                
+```                         
         
 ##Delete
 
