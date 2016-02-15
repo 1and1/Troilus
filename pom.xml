@@ -16,9 +16,9 @@
 	  Plugin execution not covered by lifecycle configuration: org.jacoco:jacoco-maven-plugin:0.7.2.201409121644:prepare-agent (execution: default-prepare-agent, phase: initialize)	pom.xml	/troilus-core	line 5	Maven Project Build Lifecycle Mapping Problem
 	  
 	-->
-	<groupId>org.kritek.troilus</groupId>
+	<groupId>net.oneandone.troilus</groupId>
 	<artifactId>troilus-parent</artifactId>
-	<version>0.18</version>
+	<version>0.18-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
         <properties>
@@ -30,8 +30,8 @@
 
 	<name>troilus-parent multimodule</name>
 	<modules>
-		<module>troilus-core</module>
 		<module>troilus-core-java7</module>
+		<module>troilus-core</module>
 	</modules>
 
 

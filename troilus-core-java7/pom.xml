@@ -3,9 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.kritek.troilus</groupId>
+		<groupId>net.oneandone.troilus</groupId>
 		<artifactId>troilus-parent</artifactId>
-		<version>0.18</version>
+		<version>0.18-SNAPSHOT</version>
 	</parent>
 	<artifactId>troilus-core-java7</artifactId>
 	<packaging>jar</packaging>
