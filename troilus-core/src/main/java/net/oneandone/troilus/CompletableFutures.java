@@ -19,11 +19,10 @@ package net.oneandone.troilus;
 
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
-import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
@@ -32,7 +31,7 @@ class CompletableFutures {
     
     private CompletableFutures() { }
     
-    public static <T> T getUninterruptibly(CompletableFuture<T> future) {
+    public static <T> T getUninterruptibly(final CompletableFuture<T> future) {
         try {
             return future.get();
         } catch (ExecutionException | InterruptedException | RuntimeException e) {
@@ -40,8 +39,13 @@ class CompletableFutures {
         }
     }
     
+    public static <V> CompletableFuture<V> failedFuture(final Throwable throwable) {
+        final CompletableFuture<V> future = new CompletableFuture<>();
+        future.completeExceptionally(throwable);
+        return future;
+    }
     
-    public static <T> CompletableFuture<T> toCompletableFuture(ListenableFuture<T> future) {
+    public static <T> CompletableFuture<T> toCompletableFuture(final ListenableFuture<T> future) {
         return new ListenableToCompletableFutureAdapter<>(future);
     }
     
@@ -54,51 +58,18 @@ class CompletableFutures {
         /**
          * @param rsFuture the underlying ResultSetFuture
          */
-        public ListenableToCompletableFutureAdapter(ListenableFuture<T> future) {
-            
+        public ListenableToCompletableFutureAdapter(final ListenableFuture<T> future) {
             Runnable resultHandler = () -> { 
                 try {
                     complete(future.get());
-                    
                 } catch (ExecutionException ee) {
                     completeExceptionally((ee.getCause() == null) ? ee : ee.getCause());
-                    
                 } catch (InterruptedException | RuntimeException e) {
                     completeExceptionally(e);
                 }
             };
             
             future.addListener(resultHandler, ForkJoinPool.commonPool());
-        }
-    }   
-    
-    
-    
-    public static <T> ListenableFuture<T> toListenableFuture(CompletableFuture<T> future) {
-        return new CompletableToListenableFutureAdapter<>(future);
-    }
-    
-   
-    
-    /**
-     * Adapter which maps a CompletableFuture into a ListenableFuture  
-     */
-    private static class CompletableToListenableFutureAdapter<T> extends AbstractFuture<T> {
-        
-        /**
-         * @param rsFuture the underlying ResultSetFuture
-         */
-        public CompletableToListenableFutureAdapter(CompletableFuture<T> future) {
-            future.whenComplete((result, throwable) -> {
-                                                          if (throwable == null) {
-                                                              set(result);
-                                                          } else {
-                                                              if (CompletionException.class.isAssignableFrom(throwable.getClass())) {
-                                                                  throwable = throwable.getCause();
-                                                              }
-                                                              setException(throwable);
-                                                          }
-                                                       });
         }
     }   
 }
