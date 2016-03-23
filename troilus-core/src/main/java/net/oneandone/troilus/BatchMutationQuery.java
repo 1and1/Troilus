@@ -16,15 +16,14 @@
 package net.oneandone.troilus;
 
 
-
-
 import java.util.concurrent.CompletableFuture;
 
+
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BatchStatement.Type;
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
+
 
 
  
@@ -88,22 +87,14 @@ class BatchMutationQuery extends MutationQuery<BatchMutation> implements BatchMu
 
     @Override
     public BatchMutationQuery combinedWith(final Batchable<?> other) {
-        if (other == null) {
-            return this;
-        } else {
-            return newQuery(type, Immutables.join(batchables, other));
-        }
+        return (other == null) ? this : newQuery(type, Immutables.join(batchables, other));
     }
-
 
     @Override
     public CompletableFuture<Statement> getStatementAsync(final DBSession dbSession) {
-        
-        Function<Batchable<?>, ListenableFuture<Statement>> statementFetcher = new Function<Batchable<?>, ListenableFuture<Statement>>() {
-            public ListenableFuture<Statement> apply(Batchable<?> batchable) {
-                return batchable.getStatementAsync(dbSession);
-            };
-        };
-        return mergeToBatch(type, batchables.iterator(), statementFetcher);
+        return CompletableFutures.join(batchables.stream()
+                                                 .map(batchable -> batchable.getStatementAsync(dbSession))
+                                                 .collect(Immutables.toList()))
+                                 .thenApply(stmts -> new BatchStatement(type).addAll(stmts));
     }
 }

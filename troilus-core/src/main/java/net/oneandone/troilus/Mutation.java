@@ -43,7 +43,6 @@ public interface Mutation<Q, R> extends Query<R> {
      */
     Q withSerialConsistency(ConsistencyLevel consistencyLevel);
 
-
     /**
      * @return a cloned query instance with activated tracking
      */ 

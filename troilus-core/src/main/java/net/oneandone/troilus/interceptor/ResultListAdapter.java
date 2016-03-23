@@ -13,42 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.interceptor;
 
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.google.common.collect.ImmutableList;
 
+import net.oneandone.troilus.FetchingIterator;
+import net.oneandone.troilus.ResultList;
 
-/**
- * query result adapter
- */
-abstract class ResultAdapter implements Result {
 
-    private final Result result;
-
-    /**
-     * @param result the underlying result
-     */
-    ResultAdapter(Result result) {
-        this.result = result;
+ 
+public class ResultListAdapter<T> implements ResultList<T> {
+    private final ResultList<T> recordList;
+    
+    public ResultListAdapter(ResultList<T> recordList) {
+        this.recordList = recordList;
     }
     
     @Override
     public ExecutionInfo getExecutionInfo() {
-        return result.getExecutionInfo();
+        return recordList.getExecutionInfo();
     }
-
+    
     @Override
     public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
-        return result.getAllExecutionInfo();
+        return recordList.getAllExecutionInfo();
     }
 
     @Override
     public boolean wasApplied() {
-        return result.wasApplied();
+        return recordList.wasApplied();
     }
-}
 
-
-
+    @Override
+    public FetchingIterator<T> iterator() {
+        return recordList.iterator();
+    }
+}     

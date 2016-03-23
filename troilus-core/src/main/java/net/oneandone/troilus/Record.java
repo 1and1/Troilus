@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import net.oneandone.troilus.ColumnName;
@@ -41,18 +42,29 @@ import com.google.common.collect.ImmutableSet;
  */
 public interface Record extends Result {
    
-
     /**
      * @param name  the column name 
      * @return the write time of this column or empty if no write time was requested
      */
-    Long getWritetime(String name);
+    default Long getWritetime(final String name) {
+        try {
+            return getLong("WRITETIME(" + name + ")");
+        } catch (IllegalArgumentException iae) {
+            return null;
+        }
+    }
     
     /**
      * @param name  the column name 
      * @return the ttl of this column or empty if no ttl was requested or <code>null</code>
      */
-    Duration getTtl(String name);
+    default Duration getTtl(final String name) {
+        try {
+            return Duration.ofSeconds(getInt("TTL(" + name + ")"));
+        } catch (IllegalArgumentException iae) {
+            return null;
+        }
+    }
     
     /**
      * @param name  the column name 
@@ -112,7 +124,10 @@ public interface Record extends Result {
      * @param name
      * @return LocalDateTime
      */
-    LocalDateTime getLocalDateTime(String name);
+    default LocalDateTime getLocalDateTime(final String name) {
+        final Instant instant = Instant.ofEpochMilli(getTime(name));
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    }
     
     /**
      * @param name the column name 
@@ -162,7 +177,16 @@ public interface Record extends Result {
      * @param name the column name 
      * @return the value for column name as an Instant value. If the value is NULL, then null will be returned.
      */
-    Instant getInstant(String name);
+    default Instant getInstant(final String name) {
+        final Long millis = getLong(name);
+        if (millis == 0) {
+            return null;
+        } else {
+            return Instant.ofEpochMilli(millis);
+        }
+    }
+    
+
     
     /**
      * @param name      the column name 

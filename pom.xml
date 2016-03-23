@@ -30,7 +30,6 @@
 
 	<name>troilus-parent multimodule</name>
 	<modules>
-		<module>troilus-core-java7</module>
 		<module>troilus-core</module>
 	</modules>
 

@@ -674,7 +674,7 @@ class WriteQueryDataImpl implements WriteQueryData {
 
         
         return dbSession.prepareAsync(insert)
-                        .thenApply(statement -> statement.bind(values.toArray()));
+                        .thenApply(statement ->   statement.bind(values.toArray()));
     }
     
     

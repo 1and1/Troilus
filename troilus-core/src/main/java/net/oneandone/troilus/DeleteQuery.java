@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.interceptor.DeleteQueryData;
-
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;

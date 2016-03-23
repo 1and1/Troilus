@@ -15,6 +15,12 @@
  */
 package net.oneandone.troilus;
 
+import java.util.List;
+
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * column-ware list read
@@ -22,13 +28,21 @@ package net.oneandone.troilus;
  * @param <T>  the result type
  */
 public interface ListReadWithColumns<T, R> extends ListRead<T, R> {
+    
+    /**
+     * @param namesToRead  the names to read
+     * @return  a cloned query instance with the modified behavior
+     */
+    ListReadWithColumns<T, R> columns(ImmutableCollection<String> namesToRead);
 
+    
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
     ListReadWithColumns<T, R> column(String name);
 
+    
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
@@ -39,23 +53,35 @@ public interface ListReadWithColumns<T, R> extends ListRead<T, R> {
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T, R> columns(String... names);
-
+    default ListReadWithColumns<T, R> columns(final String... names) {
+        return columns(ImmutableSet.copyOf(names));
+    }
+    
     /**
      * @param name  the column name to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T, R> column(ColumnName<?> name);
-
+    default ListReadWithColumns<T, R> column(final ColumnName<?> name) {
+        return column(name.getName());
+    }
+    
     /**
      * @param name  the column name incl. meta data to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T, R> columnWithMetadata(ColumnName<?> name);
-
+    default ListReadWithColumns<T, R> columnWithMetadata(final ColumnName<?> name) {
+        return columnWithMetadata(name.getName());
+    }
+    
     /**
      * @param names  the column names to read 
      * @return  a cloned query instance with the modified behavior
      */
-    ListReadWithColumns<T, R> columns(ColumnName<?>... names);
+    default ListReadWithColumns<T, R> columns(final ColumnName<?>... names) {
+        final List<String> ns = Lists.newArrayList();
+        for (ColumnName<?> name : names) {
+            ns.add(name.getName());
+        }
+        return columns(ImmutableList.copyOf(ns));
+    }
 }

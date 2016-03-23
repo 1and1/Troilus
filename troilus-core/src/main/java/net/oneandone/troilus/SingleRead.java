@@ -16,6 +16,8 @@
 package net.oneandone.troilus;
 
 
+import java.util.Optional;
+
 import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.ConsistencyLevel;
@@ -28,7 +30,7 @@ import com.datastax.driver.core.ConsistencyLevel;
  *
  * @param <T>  the result type
  */
-public interface SingleRead<T, R> extends Query<T> {
+public interface SingleRead<T, R> extends Query<Optional<T>> {
     
     /**
      * @return the publisher

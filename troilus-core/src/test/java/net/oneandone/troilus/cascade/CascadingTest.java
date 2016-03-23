@@ -29,10 +29,10 @@ import net.oneandone.troilus.Batchable;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.DeleteQueryData;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
 import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
-import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.interceptor.WriteQueryData;
 
 import org.junit.AfterClass;

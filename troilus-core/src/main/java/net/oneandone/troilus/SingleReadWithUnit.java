@@ -15,10 +15,6 @@
  */
 package net.oneandone.troilus;
 
-import java.util.Optional;
-
-
-
 
 /**
  * Single read query 
@@ -35,7 +31,7 @@ public interface SingleReadWithUnit<T, R> extends SingleReadWithColumns<T, R> {
     /**
      * @param objectClass  the entity type
      * @param <E> the type
-     * @return  a cloned query instance with the modified behavior 
+     * @return a cloned query instance with the modified behavior 
      */
-    <E> SingleRead<Optional<E>, E> asEntity(Class<E> objectClass);
+    <E> SingleRead<E, E> asEntity(Class<E> objectClass);
 }

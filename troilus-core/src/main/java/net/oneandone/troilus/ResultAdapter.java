@@ -16,27 +16,36 @@
 package net.oneandone.troilus;
 
 
-import java.util.concurrent.CompletableFuture;
-
-import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.ExecutionInfo;
+import com.google.common.collect.ImmutableList;
 
 
 /**
- * abstract mutation query implementation
+ * query result adapter
  */
-abstract class MutationQuery<Q> extends AbstractQuery<Q> {
-    
+abstract class ResultAdapter implements Result {
+
+    private final Result result;
+
     /**
-     * @param ctx   the context
+     * @param result the underlying result
      */
-    MutationQuery(final Context ctx) {
-        super(ctx);
+    ResultAdapter(Result result) {
+        this.result = result;
     }
     
-    public CompletableFuture<Result> executeAsync() {
-        return performAsync(getDefaultDbSession(), getStatementAsync(getDefaultDbSession()))
-                    .thenApply(resultSet -> newResult(resultSet));
+    @Override
+    public ExecutionInfo getExecutionInfo() {
+        return result.getExecutionInfo();
     }
-    
-    public abstract CompletableFuture<Statement> getStatementAsync(DBSession dbSession);
- }
+
+    @Override
+    public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+        return result.getAllExecutionInfo();
+    }
+
+    @Override
+    public boolean wasApplied() {
+        return result.wasApplied();
+    }
+}

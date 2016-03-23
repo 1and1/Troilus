@@ -102,11 +102,15 @@ class DBSession  {
      */
     public CompletableFuture<ResultSet> executeAsync(final Statement statement) {
         try {
-            return CompletableFutures.toCompletableFuture(getSession().executeAsync(statement));
+            LOG.debug("executing " + statement);
+            return CompletableFutures.toCompletableFuture(getSession().executeAsync(statement))
+                                     .thenApply(resultSet -> {
+                                                                 LOG.debug("got " + resultSet);
+                                                                 return resultSet;
+                                                             });
         } catch (InvalidQueryException | DriverInternalError e) {
             cleanUp();
             LOG.warn("could not execute statement", e);
-            
             return CompletableFutures.failedFuture(e);
         }
     }
@@ -140,10 +144,12 @@ class DBSession  {
         CompletableFuture<PreparedStatement> prepareAsync(final BuiltStatement statement) {
             final PreparedStatement preparedStatment = preparedStatementCache.getIfPresent(statement.getQueryString());
             if (preparedStatment == null) {
+                LOG.debug("statement " + statement + " not found in prepared statement cache. perparing it");
                 return CompletableFutures.toCompletableFuture(session.prepareAsync(statement))
                                          .thenApply(stmt -> {
                                                              preparedStatementCache.put(statement.getQueryString(), stmt);
-                                                             return preparedStatment;
+                                                             LOG.debug("statement " + statement + " prepared and added to cache");
+                                                             return stmt;
                                                             });
             } else {
                 return CompletableFuture.completedFuture(preparedStatment);

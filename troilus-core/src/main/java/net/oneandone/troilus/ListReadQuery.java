@@ -19,11 +19,13 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.reactivestreams.Publisher;
 
+import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
@@ -38,6 +40,8 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import net.oneandone.troilus.interceptor.ResultListAdapter;
+
 
 
 
@@ -46,9 +50,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * The list read query implementation
  */
 class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWithUnit<ResultList<Record>, Record> {
-    
     private final ReadQueryData data;
-  
     
     /**
      * @param ctx   the context 
@@ -81,15 +83,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     public ListReadQuery all() {
         return newQuery(data.columnsToFetch(ImmutableMap.<String, Boolean>of()));
     }
-    
-    private ListReadQuery columns(ImmutableCollection<String> namesToRead) {
-        ListReadQuery read = this;
-        for (String columnName : namesToRead) {
-            read = read.column(columnName);
-        }
-        return read;
-    }
-    
+
     @Override
     public ListReadQuery column(String name) {
         return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, false)));
@@ -99,29 +93,14 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
     public ListReadQuery columnWithMetadata(String name) {
         return newQuery(data.columnsToFetch(Immutables.join(data.getColumnsToFetch(), name, true)));
     }
-    
+
     @Override
-    public ListReadQuery columns(String... names) {
-        return columns(ImmutableSet.copyOf(names));
-    }
-    
-    @Override
-    public ListReadQuery column(ColumnName<?> name) {
-        return column(name.getName());
-    }
-    
-    @Override
-    public ListReadQuery columnWithMetadata(ColumnName<?> name) {
-        return columnWithMetadata(name.getName());
-    }
-    
-    @Override
-    public ListReadQuery columns(ColumnName<?>... names) {
-        final List<String> ns = Lists.newArrayList();
-        for (ColumnName<?> name : names) {
-            ns.add(name.getName());
+    public ListReadQuery columns(ImmutableCollection<String> namesToRead) {
+        ListReadQuery read = this;
+        for (String columnName : namesToRead) {
+            read = read.column(columnName);
         }
-        return columns(ImmutableList.copyOf(ns));
+        return read;
     }
 
     @Override
@@ -170,35 +149,16 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         CompletableFuture<ResultList<Record>> recordsFuture = executeAsync();
         return new ResultListPublisher<>(recordsFuture);
     }
-    
-    @Override
-    public ResultList<Record> execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
-    
+   
     @Override
     public CompletableFuture<ResultList<Record>> executeAsync() {
         return executeAsync(data, getDefaultDbSession());
     }
-
     
     private CompletableFuture<ResultList<Record>> executeAsync(final ReadQueryData queryData, DBSession dbSession) {
-        final ListenableFuture<ResultSet> resultSetFuture = performAsync(dbSession, toStatementAsync(queryData, getUDTValueMapper(), dbSession));
-    	
-        // result set to record list mapper
-        final Function<ResultSet, ResultList<Record>> resultSetToRecordList = new Function<ResultSet, ResultList<Record>>() {
-            
-            @Override
-            public ResultList<Record> apply(ResultSet resultSet) {
-                return new RecordListImpl(getContext(), queryData, resultSet);
-            }
-        };
-        final ListenableFuture<ResultList<Record>> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
-        
-        // running interceptors within dedicated threads!
-        return executeResponseInterceptorsAsync(queryData, recordListFuture);
+        return performAsync(dbSession, toStatementAsync(queryData, getUDTValueMapper(), dbSession))
+                            .thenApply(resultSet -> new RecordListImpl(getContext(), queryData, resultSet));
     }
-
 
     /**
      * Prepares the Statement for Pagination, if fetchSize is set. Otherwise, it simply  
@@ -282,27 +242,13 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
         
         @Override
-        public ResultList<E> execute() {
-            return ListenableFutures.getUninterruptibly(executeAsync());
-        }
-
-        @Override
         public CompletableFuture<ResultList<E>> executeAsync() {
-            return query.executeAsync();
-            
-            final Function<ResultList<Record>, ResultList<E>> mapEntity = new Function<ResultList<Record>, ResultList<E>>() {
-                @Override
-                public ResultList<E> apply(ResultList<Record> recordList) {
-                    return new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getCatalog(), recordList, clazz);
-                }
-            };
-            
-            return Futures.transform(future, mapEntity);
+            return query.executeAsync().thenApply(recordList -> new EntityListImpl<>(query.data.getTablename(), getBeanMapper(), getCatalog(), recordList, clazz));
         }
         
         @Override
         public Publisher<E> executeRx() {
-            final ListenableFuture<ResultList<E>> recordsFuture = executeAsync();
+            final CompletableFuture<ResultList<E>> recordsFuture = executeAsync();
             return new ResultListPublisher<>(recordsFuture);
         }
 
@@ -560,11 +506,6 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
 
 
-        @Override
-        public Count execute() {
-            return ListenableFutures.getUninterruptibly(executeAsync());
-        }      
-        
         
         @Override
         public CompletableFuture<Count> executeAsync() {
@@ -573,7 +514,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public Publisher<Count> executeRx() {
-            return executeAsync().thenApply(count -> new SingleEntryResultList(count));
+            return executeAsync().thenApply(count -> new SingleEntryResultListAdapter(count));
         }
 
 		@Override
@@ -581,5 +522,87 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
 			throw new IllegalArgumentException("Count readers cannot be configured with paging state.");
 		}
     }  
+    
+    private static class SingleEntryResultListAdapter<T extends Result> extends ResultListAdapter<T> {
+
+        public SingleEntryResultListAdapter(T element) {
+            super(new ResultListImpl<>(element));
+        }
+        
+        private static final class ResultListImpl<T extends Result> implements ResultList<T> {
+            
+            private final FetchingIterator<T> it; 
+            private final Result result;
+            
+            public ResultListImpl(T element) {
+                this.result = element;
+                this.it = new FetchingIteratorImpl<T>(element);
+            }
+            
+            @Override
+            public boolean wasApplied() {
+                return result.wasApplied();
+            }
+            
+            @Override
+            public ImmutableList<ExecutionInfo> getAllExecutionInfo() {
+                return result.getAllExecutionInfo();
+            }
+            
+            @Override
+            public ExecutionInfo getExecutionInfo() {
+                return result.getExecutionInfo();
+            }
+            
+            @Override
+            public FetchingIterator<T> iterator() {
+                return it;
+            }
+            
+            
+            private static final class FetchingIteratorImpl<T> implements FetchingIterator<T> {
+                private T element;
+                
+                public FetchingIteratorImpl(T element) {
+                    this.element = element;
+                }
+                
+                @Override
+                public boolean hasNext() {
+                    synchronized (this) {
+                        return element != null;
+                    }
+                }
+                
+                @Override
+                public int getAvailableWithoutFetching() {
+                    return hasNext() ? 1 : 0;
+                }
+                
+                @Override
+                public T next() throws NoSuchElementException {
+                    synchronized (this) {
+                        if (element == null) {
+                            throw new NoSuchElementException();
+                        } else {
+                            T e = element;
+                            element = null;
+                            return e;
+                        }
+                    }
+                }
+
+                @Override
+                public boolean isFullyFetched() {
+                    return true;
+                }
+                
+                @Override
+                public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
+                    return CompletableFuture.completedFuture(null);
+                }
+            }
+        }
+    }    
 }
     

@@ -17,8 +17,8 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Counter mutation query implementation 
@@ -48,11 +48,6 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
         return new CounterBatchMutationQuery(getContext(), ImmutableList.of(this, other));
     }
 
-    @Override
-    public Result execute() {
-        return ListenableFutures.getUninterruptibly(executeAsync());
-    }
-    
     @Override
     public CompletableFuture<Result> executeAsync() {
         return performAsync(getDefaultDbSession(), getStatementAsync(getDefaultDbSession())).thenApply(rs -> newResult(rs));

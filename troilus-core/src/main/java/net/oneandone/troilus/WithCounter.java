@@ -27,7 +27,9 @@ public interface WithCounter {
      * @param name the name of the value to decrement
      * @return a cloned query instance with the modified behavior
      */
-    CounterMutation decr(String name); 
+    default CounterMutation decr(final String name) {
+        return decr(name, 1);
+    }
     
     /**
      * @param name  the name of the value to decrement
@@ -36,12 +38,15 @@ public interface WithCounter {
      */
     CounterMutation decr(String name, long value); 
 
+    
     /**
      * @param name the name of the value to increment
      * @return a cloned query instance with the modified behavior 
      */
-    CounterMutation incr(String name);  
-
+    default CounterMutation incr(final String name) {  
+        return incr(name, 1);
+    }
+    
     /**
      * @param name   the name  of the value to increment
      * @param value  the value

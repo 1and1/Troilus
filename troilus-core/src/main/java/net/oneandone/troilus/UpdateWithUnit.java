@@ -54,7 +54,9 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T> the name type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U value(ColumnName<T> name, T value);
+    default <T> U value(final ColumnName<T> name, final T value) {
+        return value(name.getName(), value);
+    }
     
     /**
      * @param name   the set column name
@@ -69,7 +71,9 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T>    the type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U removeSetValue(ColumnName<Set<T>> name, T value);
+    default <T> U removeSetValue(final ColumnName<Set<T>> name, final T value) {
+        return removeSetValue(name.getName(), value);
+    }
     
     /**
      * @param name    the set column name
@@ -84,7 +88,10 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T>     the type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U addSetValue(ColumnName<Set<T>> name, T value);
+    default <T> U addSetValue(final ColumnName<Set<T>> name, final T value) {
+        return addSetValue(name.getName(), value);
+    }
+   
 
     /**
      * @param name   the list column name
@@ -99,7 +106,9 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T>    the type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U appendListValue(ColumnName<List<T>> name, T value);
+    default <T> U appendListValue(final ColumnName<List<T>> name, final T value) {
+        return appendListValue(name.getName(), value);
+    }
 
     /**
      * @param name   the list column name
@@ -114,7 +123,9 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T>    the type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U prependListValue(ColumnName<List<T>> name, T value);
+    default <T> U prependListValue(final ColumnName<List<T>> name, final T value) {
+        return prependListValue(name.getName(), value);
+    }
     
     /**
      * @param name   the list column name
@@ -129,8 +140,10 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <T>    the type
      * @return a cloned query instance with the modified behavior
      */
-    <T> U removeListValue(ColumnName<List<T>> name, T value);
-    
+    default <T> U removeListValue(final ColumnName<List<T>> name, final T value) {
+        return removeListValue(name.getName(), value);
+    }
+       
     /**
      * @param name   the map column name 
      * @param key    the map key name
@@ -147,5 +160,7 @@ public interface UpdateWithUnit<U extends Update<U>> extends Update<U> {
      * @param <V>    the value type
      * @return a cloned query instance with the modified behavior
      */
-    <T, V> U putMapValue(ColumnName<Map<T, V>> name, T key, V value);
+    default <T, V> U putMapValue(final ColumnName<Map<T, V>> name, final T key, final V value) {
+       return putMapValue(name.getName(), key, value);
+    }
 }

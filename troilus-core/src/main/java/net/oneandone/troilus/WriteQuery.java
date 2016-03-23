@@ -17,32 +17,24 @@ package net.oneandone.troilus;
 
 
 import java.util.Optional;
-import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-
 
 
 /**
  * abstract write query implementation
  */
 abstract class WriteQuery<Q> extends MutationQuery<Q> {
-    
     private final WriteQueryData data;
   
-    
     /**
      * @param ctx   the context
      * @param data  the data
      */
-    WriteQuery(Context ctx, WriteQueryData data) {
+    WriteQuery(final Context ctx, final WriteQueryData data) {
         super(ctx);
         this.data = data;
     }
@@ -51,12 +43,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
         return data;
     }
     
-    
-    public CounterMutationQuery incr(String name) {
-        return incr(name, 1);
-    }
-    
-    public CounterMutationQuery incr(String name, long value) {
+    public CounterMutationQuery incr(final String name, final long value) {
         return new CounterMutationQuery(getContext(), 
                                         new CounterMutationQueryData(data.getTablename()).keys(getData().getKeys())
                                                                                          .whereConditions(getData().getWhereConditions())
@@ -64,11 +51,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                                                                                          .diff(value));  
     }
     
-    public CounterMutationQuery decr(String name) {
-        return decr(name, 1);
-    }
-    
-    public CounterMutationQuery decr(String name, long value) {
+    public CounterMutationQuery decr(final String name, final long value) {
         return new CounterMutationQuery(getContext(), 
                                         new CounterMutationQueryData(data.getTablename()).keys(getData().getKeys())
                                                                                          .whereConditions(getData().getWhereConditions())
@@ -76,8 +59,12 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                                                                                          .diff(0 - value));  
     }
     
-    protected ImmutableMap<Object, Optional<Object>> addToMap(String name, Object key, Object value, ImmutableMap<Object, Optional<Object>> values) {
-        return (values == null) ? ImmutableMap.of(key, Optionals.toGuavaOptional(value)) : Immutables.join(values, key, Optionals.toGuavaOptional(value));
+    protected ImmutableMap<Object, Optional<Object>> addToMap(final String name, 
+                                                              final Object key, 
+                                                              final Object value, 
+                                                              final ImmutableMap<Object, Optional<Object>> values) {
+        return (values == null) ? ImmutableMap.of(key, Optionals.toOptional(value)) 
+                                : Immutables.join(values, key, Optionals.toOptional((value)));
     }
     
     @Override
@@ -90,15 +77,9 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                                                         });
     }
 
-    
-    
     private boolean isLwt() {
         return ((data.getIfNotExits() != null) && (data.getIfNotExits()) || !data.getOnlyIfConditions().isEmpty());                
     }
-    
-
-
-    
     
     public CompletableFuture<Statement> getStatementAsync(final DBSession dbSession) {
         return WriteQueryDataImpl.toStatementAsync(data, getExecutionSpec(), getUDTValueMapper(), dbSession);

@@ -15,9 +15,6 @@
  */
 package net.oneandone.troilus;
 
-
-import java.util.Optional;
-
 import net.oneandone.troilus.ColumnName;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
@@ -99,7 +96,9 @@ public interface Dao {
      * @param keyValue  the key value
      * @return the write query 
      */
-    WriteWithCounter writeWithKey(String keyName, Object keyValue);
+    default WriteWithCounter writeWithKey(final String keyName, final Object keyValue) {
+        return writeWithKey(ImmutableMap.of(keyName, keyValue));
+    }
 
     /**
      * @param composedKeyNamePart1   the composed key name 1
@@ -108,9 +107,12 @@ public interface Dao {
      * @param composedKeyValuePart2  the composed key value 2
      * @return the write query
      */
-    WriteWithCounter writeWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                  String composedKeyNamePart2, Object composedKeyValuePart2);
-
+    default WriteWithCounter writeWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1,
+                                          final String composedKeyNamePart2, final Object composedKeyValuePart2) {
+        return writeWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1,
+                                            composedKeyNamePart2, composedKeyValuePart2));
+    }
+    
     /**
      * @param composedKeyNamePart1   the composed key name 1
      * @param composedKeyValuePart1  the composed key value 1
@@ -120,18 +122,24 @@ public interface Dao {
      * @param composedKeyValuePart3  the composed key value 3
      * @return the write query
      */
-    WriteWithCounter writeWithKey(String composedKeyNamePart1, Object composedKeyValuePart1,
-                                  String composedKeyNamePart2, Object composedKeyValuePart2, 
-                                  String composedKeyNamePart3, Object composedKeyValuePart3);
-
+    default WriteWithCounter writeWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1,
+                                          final String composedKeyNamePart2, final Object composedKeyValuePart2, 
+                                          final String composedKeyNamePart3, final Object composedKeyValuePart3) {
+        return writeWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1, 
+                                            composedKeyNamePart2, composedKeyValuePart2, 
+                                            composedKeyNamePart3, composedKeyValuePart3));
+    }
+        
     /**
      * @param keyName   the key name 
      * @param keyValue  the key value
      * @param <T> the name type
      * @return the write query 
      */
-    <T> WriteWithCounter writeWithKey(ColumnName<T> keyName, T keyValue);
-
+    default <T> WriteWithCounter writeWithKey(final ColumnName<T> keyName, final T keyValue) {
+        return writeWithKey(keyName.getName(), (Object) keyValue); 
+    }
+        
     /**
      * @param composedKeyNamePart1   the composed key name 1
      * @param composedKeyValuePart1  the composed key value 1
@@ -141,8 +149,12 @@ public interface Dao {
      * @param <E> the name 2 type 
      * @return the write query
      */
-    <T, E> WriteWithCounter writeWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1,
-                                         ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
+    default <T, E> WriteWithCounter writeWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1,
+                                                 final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2) {
+        return writeWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                            composedKeyNamePart2.getName(), (Object) composedKeyValuePart2); 
+    }
+
 
     /**
      * @param composedKeyNamePart1   the composed key name 1
@@ -156,12 +168,14 @@ public interface Dao {
      * @param <F> the name 3 type
      * @return the write query
      */
-    <T, E, F> WriteWithCounter writeWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                            ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                            ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
-
-
-
+    default <T, E, F> WriteWithCounter writeWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                    final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2, 
+                                                    final ColumnName<F> composedKeyNamePart3, final F composedKeyValuePart3) {
+        return writeWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                            composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
+                            composedKeyNamePart3.getName(), (Object) composedKeyValuePart3); 
+    }
+    
     /**
      * @param composedKeyParts  the composed key
      * @return the delete query 
@@ -173,7 +187,9 @@ public interface Dao {
      * @param keyValue  the key value
      * @return the delete query 
      */
-    Deletion deleteWithKey(String keyname, Object keyValue);
+    default Deletion deleteWithKey(final String keyname, final Object keyValue) {
+        return deleteWithKey(ImmutableMap.of(keyname, keyValue));
+    }
 
     /**
      * @param composedKeyNamePart1   the key name 1
@@ -182,9 +198,12 @@ public interface Dao {
      * @param composedKeyValuePart2  the key value 2
      * @return the delete query
      */
-    Deletion deleteWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                           String composedKeyNamePart2, Object composedKeyValuePart2);
-
+    default Deletion deleteWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                   final String composedKeyNamePart2, final Object composedKeyValuePart2) {
+        return deleteWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1, 
+                                             composedKeyNamePart2, composedKeyValuePart2));
+    }
+        
     /**
      * @param composedKeyNamePart1    the key name 1
      * @param composedKeyValuePart1   the key value 1
@@ -194,18 +213,24 @@ public interface Dao {
      * @param composedKeyValuePart3   the key value 3
      * @return the delete query 
      */
-    Deletion deleteWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                           String composedKeyNamePart2, Object composedKeyValuePart2, 
-                           String composedKeyNamePart3, Object composedKeyValuePart3);
-
+    default Deletion deleteWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                   final String composedKeyNamePart2, final Object composedKeyValuePart2, 
+                                   final String composedKeyNamePart3, final Object composedKeyValuePart3) {
+        return deleteWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1,
+                                             composedKeyNamePart2, composedKeyValuePart2, 
+                                             composedKeyNamePart3, composedKeyValuePart3));
+    }
+    
     /**
      * @param keyName  the key name 
      * @param keyValue the key value 
      * @param <T> the name type
      * @return the delete query
      */
-    <T> Deletion deleteWithKey(ColumnName<T> keyName, T keyValue);
-
+    default <T> Deletion deleteWithKey(final ColumnName<T> keyName, final T keyValue) {
+        return deleteWithKey(keyName.getName(), (Object) keyValue);
+    }
+        
     /**
      * @param composedKeyNamePart1   the key name 1
      * @param composedKeyValuePart1  the key value 1
@@ -215,9 +240,12 @@ public interface Dao {
      * @param <E> the name 2 type 
      * @return the delete query 
      */
-    <T, E> Deletion deleteWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                  ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
-
+    default <T, E> Deletion deleteWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                          final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2) {
+        return deleteWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                             composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
+    }
+    
     /**
      * @param composedKeyNamePart1   the key name 1
      * @param composedKeyValuePart1  the key value 1
@@ -230,10 +258,14 @@ public interface Dao {
      * @param <F> the name 3 type  
      * @return the delete query
      */
-    <T, E, F> Deletion deleteWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                     ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                     ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
-
+    default <T, E, F> Deletion deleteWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                             final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2, 
+                                             final ColumnName<F> composedKeyNamePart3, final F composedKeyValuePart3) {
+        return deleteWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                             composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
+                             composedKeyNamePart3.getName(), (Object) composedKeyValuePart3);
+    }
+    
     /**
      * @param whereConditions  the where conditions
      * @return the delete query
@@ -249,58 +281,235 @@ public interface Dao {
     ////////////////////////////////
     // READ
 
-    SingleReadWithUnit<Optional<Record>, Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+    /**
+     * @param composedKeyParts the key parts
+     * @return the read query
+     */
+    SingleReadWithUnit<Record, Record> readWithKey(ImmutableMap<String, Object> composedKeyParts);
+        
+    /**
+     * @param keyName   the key
+     * @param keyValue  the key value
+     * @return the read query
+     */
+    default SingleReadWithUnit<Record, Record> readWithKey(final String keyName, final Object keyValue) {
+        return readWithKey(ImmutableMap.of(keyName, keyValue));
+    }
     
-    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String keyName, Object keyValue);
-
-    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                             String composedKeyNamePart2, Object composedKeyValuePart2);
-
-    SingleReadWithUnit<Optional<Record>, Record> readWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                             String composedKeyNamePart2, Object composedKeyValuePart2,
-                                                             String composedKeyNamePart3, Object composedKeyValuePart3);
-
-
-    <T> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> keyName, T keyValue);
-
-    <T, E> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                                    ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
-
-    <T, E, F> SingleReadWithUnit<Optional<Record>, Record> readWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                                       ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2, 
-                                                                       ColumnName<F> composedKeyNamePart3, F composedKeyValuePart3);
+    /**
+     * @param composedKeyNamePart1   the key name 1
+     * @param composedKeyValuePart1  the value 1
+     * @param composedKeyNamePart2   the key name 2
+     * @param composedKeyValuePart2  the value 2
+     * @return the read query
+     */
+    default SingleReadWithUnit<Record, Record> readWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                                           final String composedKeyNamePart2, final Object composedKeyValuePart2) {
+        return readWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1, 
+                                           composedKeyNamePart2, composedKeyValuePart2));
+    }
     
-    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String name, ImmutableList<Object> values);
+    /**
+     * @param composedKeyNamePart1   the key name 1
+     * @param composedKeyValuePart1  the key value 1
+     * @param composedKeyNamePart2   the key name 2
+     * @param composedKeyValuePart2  the key value 2
+     * @param composedKeyNamePart3   the key name 3
+     * @param composedKeyValuePart3  the key value 3
+     * @return the read query
+     */
+    default SingleReadWithUnit<Record, Record> readWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                                           final String composedKeyNamePart2, final Object composedKeyValuePart2,
+                                                           final String composedKeyNamePart3, final Object composedKeyValuePart3) {
+        return readWithKey(ImmutableMap.of(composedKeyNamePart1, composedKeyValuePart1, 
+                                           composedKeyNamePart2, composedKeyValuePart2, 
+                                           composedKeyNamePart3, composedKeyValuePart3));
+    }
 
-    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                      String composedKeyNamePart2, ImmutableList<Object> composedKeyValuesPart2);
-
-    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                      String composedKeyNamePart2, Object composedKeyValuePart2,
-                                                      String composedKeyNamePart3, ImmutableList<Object> composedKeyValuesPart3);
-
+    /**
+     * @param keyName   the key name
+     * @param keyValue  the key value
+     * @return the read query
+     */
+    default <T> SingleReadWithUnit<Record, Record> readWithKey(final ColumnName<T> keyName, final T keyValue) {
+        return readWithKey(keyName.getName(), (Object) keyValue);
+    }
     
-    <T> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(ColumnName<T> name, ImmutableList<T> values);
-
-    <T, E> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                             ColumnName<E> composedKeyNamePart2, ImmutableList<E> composedKeyValuesPart2);
-
-    <T, E, F> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                                ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2,
-                                                                ColumnName<F> composedKeyNamePart3, ImmutableList<F> composedKeyValuesPart3);
+    /**
+     * @param composedKeyNamePart1   the key name 1
+     * @param composedKeyValuePart1  the value 1
+     * @param composedKeyNamePart2   the key name 2
+     * @param composedKeyValuePart2  the value 2
+     * @return the read query
+     */
+    default <T, E> SingleReadWithUnit<Record, Record> readWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                                  final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2) {
+        return readWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                           composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
+    }
     
-    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1);
-
-    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(String composedKeyNamePart1, Object composedKeyValuePart1, 
-                                                     String composedKeyNamePart2, Object composedKeyValuePart2);
-
-    <T> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(ColumnName<T> name, T value);
-
-    <T, E> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(ColumnName<T> composedKeyNamePart1, T composedKeyValuePart1, 
-                                                        ColumnName<E> composedKeyNamePart2, E composedKeyValuePart2);
-
+    /**
+     * @param composedKeyNamePart1   the key name 1
+     * @param composedKeyValuePart1  the key value 1
+     * @param composedKeyNamePart2   the key name 2
+     * @param composedKeyValuePart2  the key value 2
+     * @param composedKeyNamePart3   the key name 3
+     * @param composedKeyValuePart3  the key value 3
+     * @return the read query
+     */
+    default <T, E, F> SingleReadWithUnit<Record, Record> readWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                                     final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2, 
+                                                                     final ColumnName<F> composedKeyNamePart3, final F composedKeyValuePart3) {
+        return readWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                           composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,                         
+                           composedKeyNamePart3.getName(), (Object) composedKeyValuePart3);
+    }
     
+    /**
+     * @param keys the keys
+     * @return the read query
+     */
+    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final ImmutableMap<String, ImmutableList<Object>> keys);    
+
+    /**
+     * @param name    the key name 
+     * @param values  the key values
+     * @return the read query
+     */
+    default ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final String name, final ImmutableList<Object> values) {
+        return readSequenceWithKeys(ImmutableMap.of(name, values));
+    }
+   
+    /**
+     * @param composedKeyNamePart1   the key name 1
+     * @param composedKeyValuePart1  the key value 1 
+     * @param composedKeyNamePart2   the key name 2
+     * @param composedKeyValuesPart2 the key values 2
+     * @return the read query
+     */
+    default ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                                                              final String composedKeyNamePart2, final ImmutableList<Object> composedKeyValuesPart2) {
+        return readSequenceWithKeys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                    composedKeyNamePart2, composedKeyValuesPart2));
+    }
+   
+    /**
+     * @param composedKeyNamePart1    the key name 1
+     * @param composedKeyValuePart1   the key value 1
+     * @param composedKeyNamePart2    the key name 2
+     * @param composedKeyValuePart2   the key value 2
+     * @param composedKeyNamePart3    the key name 3
+     * @param composedKeyValuesPart3  the key values 3
+     * @return
+     */
+    default ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                                                              final String composedKeyNamePart2, final Object composedKeyValuePart2,
+                                                                              final String composedKeyNamePart3, final ImmutableList<Object> composedKeyValuesPart3) {
+        return readSequenceWithKeys(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                    composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2),
+                                                    composedKeyNamePart3, composedKeyValuesPart3));        
+    }
+    
+    /**
+     * @param name    the key name 
+     * @param values  the values
+     * @return the read query
+     */
+    @SuppressWarnings("unchecked")
+    default <T> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final ColumnName<T> name, final ImmutableList<T> values) {
+        return readSequenceWithKeys(name.getName(), (ImmutableList<Object>) values);
+    }
+
+    /**
+     * @param composedKeyNamePart1      key name 1 
+     * @param composedKeyValuePart1     key value 1
+     * @param composedKeyNamePart2      key name 2 
+     * @param composedKeyValuesPart2    key value 2
+     * @return the read query
+     */
+    @SuppressWarnings("unchecked")
+    default <T, E> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                                                     final ColumnName<E> composedKeyNamePart2, final ImmutableList<E> composedKeyValuesPart2) {
+        return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                    composedKeyNamePart2.getName(), (ImmutableList<Object>) composedKeyValuesPart2);
+    }
+
+    /**
+     * @param composedKeyNamePart1      key name 1 
+     * @param composedKeyValuePart1     key value 1
+     * @param composedKeyNamePart2      key name 2 
+     * @param composedKeyValuesPart2    key value 2
+     * @param composedKeyNamePart2      key name 3 
+     * @param composedKeyValuesPart2    key value 3
+     * @return the read query
+     */
+    @SuppressWarnings("unchecked")
+    default <T, E, F> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKeys(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                                                        final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2,
+                                                                                        final ColumnName<F> composedKeyNamePart3, final ImmutableList<F> composedKeyValuesPart3) {
+        return readSequenceWithKeys(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                    composedKeyNamePart2.getName(), (Object) composedKeyValuePart2,
+                                    composedKeyNamePart3.getName(), (ImmutableList<Object>) composedKeyValuesPart3);
+    }
+
+    /**
+     * @param key   the key
+     * @return the read query
+     */
+    ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(ImmutableMap<String, ImmutableList<Object>> key);
+    
+    /**
+     * @param composedKeyNamePart1  the key name 
+     * @param composedKeyValuePart1 the key values
+     * @return the read query
+     */
+    default ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1) {
+        return readSequenceWithKey(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1)));
+    }
+    
+    /**
+     * @param composedKeyNamePart1  the key name part 1 
+     * @param composedKeyValuePart1 the key part value 1
+     * @param composedKeyNamePart2  the key name part 2 
+     * @param composedKeyValuePart2 the key part value 2
+     * @return the read query
+     */
+    default ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(final String composedKeyNamePart1, final Object composedKeyValuePart1, 
+                                                                             final String composedKeyNamePart2, final Object composedKeyValuePart2) {
+        return readSequenceWithKey(ImmutableMap.of(composedKeyNamePart1, ImmutableList.of(composedKeyValuePart1),
+                                                   composedKeyNamePart2, ImmutableList.of(composedKeyValuePart2)));
+    }
+
+    /**
+     * @param name   the key name
+     * @param value  the key value
+     * @return
+     */
+    default <T> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(final ColumnName<T> name, final T value) {
+        return readSequenceWithKey(name.getName(), (Object) value);
+    }
+    
+    /**
+     * @param composedKeyNamePart1    the key name 1
+     * @param composedKeyValuePart1   the key value 1
+     * @param composedKeyNamePart2    the key name 2
+     * @param composedKeyValuePart2   the key value 2
+     * @return the read query
+     */
+    default <T, E> ListReadWithUnit<ResultList<Record>, Record> readSequenceWithKey(final ColumnName<T> composedKeyNamePart1, final T composedKeyValuePart1, 
+                                                                                    final ColumnName<E> composedKeyNamePart2, final E composedKeyValuePart2) {
+        return readSequenceWithKey(composedKeyNamePart1.getName(), (Object) composedKeyValuePart1,
+                                   composedKeyNamePart2.getName(), (Object) composedKeyValuePart2);
+    }
+    
+    /**
+     * @return the read query
+     */
     ListReadWithUnit<ResultList<Record>, Record> readSequence();
 
+    /**
+     * @param clauses  the clauses
+     * @return the read query
+     */
     ListReadWithUnit<ResultList<Record>, Record> readSequenceWhere(Clause... clauses);
 }

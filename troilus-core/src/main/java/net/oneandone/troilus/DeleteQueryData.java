@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus;
 
 
 
 import java.util.List;
 
-import net.oneandone.troilus.Tablename;
 
 import com.datastax.driver.core.querybuilder.Clause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 
-  
+   
 
  
 /**

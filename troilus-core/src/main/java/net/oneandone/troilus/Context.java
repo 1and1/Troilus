@@ -194,9 +194,6 @@ public class Context  {
                            executor);
     }
     
-
-    
-    
     DBSession getDefaultDbSession() {
         return dbSession;
     }
@@ -224,7 +221,6 @@ public class Context  {
     InterceptorRegistry getInterceptorRegistry() {
         return interceptorRegistry;
     }
-        
   
     @Override
     public String toString() {
@@ -238,7 +234,6 @@ public class Context  {
     
      
     private static class ExecutionSpecImpl implements ExecutionSpec {
-        
         private final ConsistencyLevel consistencyLevel;
         private final ConsistencyLevel serialConsistencyLevel;
         private final Duration ttl;

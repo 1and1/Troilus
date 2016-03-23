@@ -17,7 +17,7 @@ package net.oneandone.troilus.interceptor;
 
 import java.util.concurrent.CompletableFuture;
 
-import net.oneandone.troilus.interceptor.DeleteQueryData;
+import net.oneandone.troilus.DeleteQueryData;
 import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 

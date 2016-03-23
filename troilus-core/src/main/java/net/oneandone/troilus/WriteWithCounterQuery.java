@@ -36,13 +36,12 @@ import com.google.common.collect.ImmutableSet;
  * update query implementation
  */
 class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements WriteWithCounter  {
-     
     
     /**
      * @param ctx   the context 
      * @param data  the query data
      */
-    WriteWithCounterQuery(Context ctx, WriteQueryData data) {
+    WriteWithCounterQuery(final Context ctx, final WriteQueryData data) {
         super(ctx, data);
     }
 
@@ -51,11 +50,11 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     // factory methods
     
     @Override
-    protected WriteWithCounterQuery newQuery(Context newContext) {
+    protected WriteWithCounterQuery newQuery(final Context newContext) {
         return new WriteWithCounterQuery(newContext, getData());
     }
     
-    private WriteWithCounterQuery newQuery(WriteQueryData data) {
+    private WriteWithCounterQuery newQuery(final WriteQueryData data) {
         return new WriteWithCounterQuery(getContext(), data);
     }
 
@@ -65,7 +64,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     
 
     @Override
-    public BatchMutationQuery combinedWith(Batchable<?> other) {
+    public BatchMutationQuery combinedWith(final Batchable<?> other) {
         return new BatchMutationQuery(getContext(), this, other);
     }
     
@@ -73,33 +72,33 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
      * @param entity   the entity to insert
      * @return the new insert query
      */@Override
-     public WriteWithCounterQuery entity(Object entity) {
+     public WriteWithCounterQuery entity(final Object entity) {
         ImmutableMap<String, Optional<Object>> values = getBeanMapper().toValues(entity, getCatalog().getColumnNames(getData().getTablename()));
         return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), values)));
     }
     
     @Override
-    public WriteWithCounterQuery withTtl(Duration ttlSec) {
+    public WriteWithCounterQuery withTtl(final Duration ttlSec) {
         return newQuery(getContext().withTtl(ttlSec));
     }
     
     @Override
-    public WriteWithCounterQuery value(String name, Object value) {
-        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toGuavaOptional(value))));
+    public WriteWithCounterQuery value(final String name, final Object value) {
+        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), name, Optionals.toOptional(value))));
     }
     
     @Override
-    public <T> WriteWithCounterQuery value(ColumnName<T> name, T value) {
+    public <T> WriteWithCounterQuery value(final ColumnName<T> name, final T value) {
         return value(name.getName(), value);
     }
     
     @Override
-    public WriteWithCounterQuery values(ImmutableMap<String, Object> nameValuePairsToAdd) {
-        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(nameValuePairsToAdd))));
+    public WriteWithCounterQuery values(final ImmutableMap<String, Object> nameValuePairsToAdd) {
+        return newQuery(getData().valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toOptional(nameValuePairsToAdd))));
     }
 
     @Override
-    public WriteWithCounterQuery removeSetValue(String name, Object value) {
+    public WriteWithCounterQuery removeSetValue(final String name, final Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToRemove().get(name);
         values = (values == null) ? ImmutableSet.of(value) : Immutables.join(values, value);
 
@@ -107,12 +106,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> WriteWithCounterQuery removeSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQuery removeSetValue(final ColumnName<Set<T>> name, final T value) {
         return removeSetValue(name.getName(), value);
     }
 
     @Override
-    public WriteWithCounterQuery addSetValue(String name, Object value) {
+    public WriteWithCounterQuery addSetValue(final String name, final Object value) {
         ImmutableSet<Object> values = getData().getSetValuesToAdd().get(name);
         values = (values == null) ? ImmutableSet.of(value): Immutables.join(values, value);
 
@@ -120,12 +119,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> WriteWithCounterQuery addSetValue(ColumnName<Set<T>> name, T value) {
+    public <T> WriteWithCounterQuery addSetValue(final ColumnName<Set<T>> name, final T value) {
         return addSetValue(name.getName(), value);
     }
    
     @Override
-    public WriteWithCounterQuery prependListValue(String name, Object value) {
+    public WriteWithCounterQuery prependListValue(final String name, final Object value) {
         ImmutableList<Object> values = getData().getListValuesToPrepend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(value, values);
 
@@ -133,12 +132,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     } 
     
     @Override
-    public <T> WriteWithCounterQuery prependListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery prependListValue(final ColumnName<List<T>> name, final T value) {
         return prependListValue(name.getName(), value);
     }
     
     @Override
-    public WriteWithCounterQuery appendListValue(String name, Object value) {
+    public WriteWithCounterQuery appendListValue(final String name, final Object value) {
         ImmutableList<Object> values = getData().getListValuesToAppend().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
@@ -146,12 +145,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> WriteWithCounterQuery appendListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery appendListValue(final ColumnName<List<T>> name, final T value) {
         return appendListValue(name.getName(), value);
     }
     
     @Override
-    public WriteWithCounterQuery removeListValue(String name, Object value) {
+    public WriteWithCounterQuery removeListValue(final String name, final Object value) {
         ImmutableList<Object> values = getData().getListValuesToRemove().get(name);
         values = (values == null) ? ImmutableList.of(value) : Immutables.join(values, value);
 
@@ -159,12 +158,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
     }
     
     @Override
-    public <T> WriteWithCounterQuery removeListValue(ColumnName<List<T>> name, T value) {
+    public <T> WriteWithCounterQuery removeListValue(final ColumnName<List<T>> name, final T value) {
         return removeListValue(name.getName(), value);
     }
    
     @Override
-    public WriteWithCounterQuery putMapValue(String name, Object key, Object value) {
+    public WriteWithCounterQuery putMapValue(final String name, final Object key, final Object value) {
         ImmutableMap<Object, Optional<Object>> values = getData().getMapValuesToMutate().get(name);
         values = addToMap(name, key, value, values);
 
@@ -173,12 +172,12 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
 
     
     @Override
-    public <T, V> WriteWithCounterQuery putMapValue(ColumnName<Map<T, V>> name, T key, V value) {
+    public <T, V> WriteWithCounterQuery putMapValue(final ColumnName<Map<T, V>> name, final T key, final V value) {
         return putMapValue(name.getName(), key, value);
     }
     
     @Override
-    public WriteWithCounterQuery onlyIf(Clause... conditions) {
+    public WriteWithCounterQuery onlyIf(final Clause... conditions) {
         return newQuery(getData().onlyIfConditions(ImmutableList.<Clause>builder().addAll(getData().getOnlyIfConditions())
                                                                                   .addAll(ImmutableList.copyOf(conditions))
                                                                                   .build()));
@@ -186,7 +185,7 @@ class WriteWithCounterQuery extends WriteQuery<WriteWithCounter> implements Writ
 
     @Override
     public InsertQuery ifNotExists() {
-        return new InsertQuery(getContext(), new WriteQueryDataImpl(getData().getTablename()).valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toGuavaOptional(getData().getKeys())))
+        return new InsertQuery(getContext(), new WriteQueryDataImpl(getData().getTablename()).valuesToMutate(Immutables.join(getData().getValuesToMutate(), Optionals.toOptional(getData().getKeys())))
                                                                                              .ifNotExists(true));
     }
 }

@@ -22,7 +22,6 @@ import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
 /**
@@ -81,7 +80,7 @@ class RecordListImpl implements ResultList<Record> {
            
            @Override
            public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
-               return rs.fetchMoreResults();
+               return CompletableFutures.toCompletableFuture(rs.fetchMoreResults());
            }
            
            @Override
@@ -126,9 +125,8 @@ class RecordListImpl implements ResultList<Record> {
 		}
 
 		@Override
-		public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
-			return rs.fetchMoreResults();
+		public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
+			return CompletableFutures.toCompletableFuture(rs.fetchMoreResults());
 		}
-    	
     }
 }     

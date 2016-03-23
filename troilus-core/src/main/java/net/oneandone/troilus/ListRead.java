@@ -15,6 +15,10 @@
  */
 package net.oneandone.troilus;
 
+
+import org.reactivestreams.Publisher;
+
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PagingState;
 
 
@@ -25,7 +29,28 @@ import com.datastax.driver.core.PagingState;
  *
  * @param <T> the result type
  */
-public interface ListRead<T, R> extends SingleRead<T, R> {
+public interface ListRead<T, R> extends Query<T> {
+    
+    /**
+     * @return the publisher
+     */
+    Publisher<R> executeRx();
+
+    /**
+     * @return a cloned query instance with deactivated tracking 
+     */
+    ListRead<T, R> withTracking();
+
+    /**
+     * @return a cloned query instance with deactivated tracking 
+     */
+    ListRead<T, R> withoutTracking();
+    
+    /**
+     * @param consistencyLevel   the  consistency level to use
+     * @return a cloned query instance with the modified behavior
+     */
+    ListRead<T, R> withConsistency(ConsistencyLevel consistencyLevel);
     
     
     /**

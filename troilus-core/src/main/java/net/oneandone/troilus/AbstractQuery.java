@@ -36,9 +36,7 @@ import com.google.common.collect.ImmutableList;
  * @param <Q> the query type
  */
 abstract class AbstractQuery<Q> {
-    
-    private final Context ctx;
-    
+    private final Context ctx;    
     
     /**
      * constructor
@@ -222,8 +220,6 @@ abstract class AbstractQuery<Q> {
     Result newResult(final ResultSet rs) {
         return new ResultImpl(rs);
     }
-    
-    
     
     private static class ResultImpl implements Result {
         private final ResultSet rs;

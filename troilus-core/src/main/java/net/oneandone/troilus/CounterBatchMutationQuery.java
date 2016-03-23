@@ -19,10 +19,10 @@ package net.oneandone.troilus;
 import java.util.concurrent.CompletableFuture;
 
 import com.datastax.driver.core.BatchStatement.Type;
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Statement;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
+
 
 
  
@@ -37,7 +37,7 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
      * @param ctx         the context to use
      * @param batchables  the statements to be performed within the batch
      */
-    CounterBatchMutationQuery(Context ctx, ImmutableList<CounterMutation> batchables) {
+    CounterBatchMutationQuery(final Context ctx, final ImmutableList<CounterMutation> batchables) {
         super(ctx);
         this.batchables = batchables;
     }
@@ -47,11 +47,11 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
     // factory methods
     
     @Override
-    protected CounterBatchMutationQuery newQuery(Context newContext) {
+    protected CounterBatchMutationQuery newQuery(final Context newContext) {
         return new CounterBatchMutationQuery(newContext, batchables);
     }
     
-    private CounterBatchMutationQuery newQuery(ImmutableList<CounterMutation> batchables) {
+    private CounterBatchMutationQuery newQuery(final ImmutableList<CounterMutation> batchables) {
         return new CounterBatchMutationQuery(getContext(), batchables);
     }
 
@@ -60,18 +60,15 @@ class CounterBatchMutationQuery extends MutationQuery<CounterMutation> implement
 
     
     @Override
-    public CounterBatchMutationQuery combinedWith(CounterMutation other) {
+    public CounterBatchMutationQuery combinedWith(final CounterMutation other) {
         return newQuery(Immutables.join(batchables, other));
     }
     
     @Override
     public CompletableFuture<Statement> getStatementAsync(final DBSession dbSession) {
-        
-        Function<CounterMutation, ListenableFuture<Statement>> statementFetcher = new Function<CounterMutation, ListenableFuture<Statement>>() {
-            public ListenableFuture<Statement> apply(CounterMutation batchable) {
-                return batchable.getStatementAsync(dbSession);
-            };
-        };
-        return mergeToBatch(Type.COUNTER, batchables.iterator(), statementFetcher);
+        return CompletableFutures.join(batchables.stream()
+                                                 .map(batchable -> batchable.getStatementAsync(dbSession))
+                                                 .collect(Immutables.toList()))
+                                 .thenApply(stmts -> new BatchStatement(Type.COUNTER).addAll(stmts));
     }
 }

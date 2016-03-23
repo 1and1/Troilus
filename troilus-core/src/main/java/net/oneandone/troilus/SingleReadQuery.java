@@ -18,17 +18,17 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import org.reactivestreams.Publisher;
 
 import com.datastax.driver.core.ResultSet;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+
+import net.oneandone.troilus.interceptor.ResultListAdapter;
 
 
 
@@ -115,51 +115,39 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         }
         return columns(ImmutableList.copyOf(ns));
     }
-    
+  
+
     @Override
     public <E> SingleEntityReadQuery<E> asEntity(Class<E> objectClass) {
         return new SingleEntityReadQuery<E>(getContext(), this, objectClass);
     }
-    
+  
+  
     @Override
-    public Record execute() {
-        return CompletableFutures.getUninterruptibly(executeAsync());
-    }
-    
-    @Override
-    public CompletableFuture<Record> executeAsync() {
-        ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
-        recordsFuture = toSingleEntryResultList(recordsFuture);
-        
-        final Function<ResultList<Record>, Record> fetchRecordFunction = new Function<ResultList<Record>, Record>() {
-            
-            @Override
-            public Record apply(ResultList<Record> records) {
-                Iterator<Record> it = records.iterator();
-                if (it.hasNext()) {
-                    Record record = it.next();
-                    
-                    if (it.hasNext()) {
-                        throw new TooManyResultsException(records, "more than one record exists");
-                    }
-                    
-                    return record;
-                } else {
-                    return null;
-                }
-            }
-        };
-        
-        return Futures.transform(recordsFuture, fetchRecordFunction);
+    public CompletableFuture<Optional<Record>> executeAsync() {
+        return new ListReadQuery(getContext(), data).executeAsync()
+                                                    .thenApply(resultList -> new SingleEntryResultList<>(resultList))
+                                                    .thenApply(records -> {
+                                                                            Iterator<Record> it = records.iterator();
+                                                                            if (it.hasNext()) {
+                                                                                Record record = it.next();
+                                                                                 
+                                                                                if (it.hasNext()) {
+                                                                                    throw new TooManyResultsException(records, "more than one record exists");
+                                                                                }
+                                                                                                                               
+                                                                                return Optional.of(record);
+                                                                            } else {
+                                                                                return Optional.empty();
+                                                                            }                                                                                                       
+                                                                           });
     }
     
     
     @Override
     public Publisher<Record> executeRx() {
-        ListenableFuture<ResultList<Record>> recordsFuture = new ListReadQuery(getContext(), data).executeAsync();
-        recordsFuture = toSingleEntryResultList(recordsFuture);
-        
-        return new ResultListPublisher<Record>(recordsFuture);
+        return new ResultListPublisher<Record>(new ListReadQuery(getContext(), data).executeAsync()
+                                                                                    .thenApply(resultList -> new SingleEntryResultList<>(resultList)));
     }
     
     
@@ -187,57 +175,24 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
         protected SingleEntityReadQuery<E> newQuery(Context newContext) {
             return new SingleReadQuery(newContext, query.data).<E>asEntity(clazz); 
         }
-        
+                
         @Override
-        public E execute() {
-            return ListenableFutures.getUninterruptibly(executeAsync());
-        }
-        
-        @Override
-        public ListenableFuture<E> executeAsync() {
-            final ListenableFuture<Record> future = query.executeAsync();
-            
-            final Function<Record, E> mapEntity = new Function<Record, E>() {
-                @Override
-                public E apply(Record record) {
-                    if (record == null) {
-                        return null;
-                    } else {
-                        return getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getCatalog().getColumnNames(query.data.getTablename()));
-                    }
-                }
-            };
-            
-            return Futures.transform(future, mapEntity);
+        public CompletableFuture<Optional<E>> executeAsync() {
+            return query.executeAsync()
+                        .thenApply(optionalRecord -> optionalRecord.map(record -> getBeanMapper().fromValues(clazz, RecordImpl.toPropertiesSource(record), getCatalog().getColumnNames(query.data.getTablename())))); 
         }
         
         @Override
         public Publisher<E> executeRx() {
-            ListenableFuture<ResultList<E>> recordsFuture = new ListReadQuery(getContext(), query.data).asEntity(clazz).executeAsync();
-            recordsFuture = toSingleEntryResultList(recordsFuture);
-                
-            return new ResultListPublisher<E>(recordsFuture);
+            return new ResultListPublisher<E>(new ListReadQuery(getContext(), query.data).asEntity(clazz)
+                                                                                         .executeAsync()
+                                                                                         .thenApply(resultList -> new SingleEntryResultList<>(resultList)));
         }
     }
     
     
     
-    private static <T> ListenableFuture<ResultList<T>> toSingleEntryResultList(ListenableFuture<ResultList<T>> list) {
-        
-        final Function<ResultList<T>, ResultList<T>> mapperFunction = new Function<ResultList<T>, ResultList<T>>() {
-            
-            @Override
-            public ResultList<T> apply(ResultList<T> list) {
-                return new SingleEntryResultList<>(list);
-            }
-        };
-        
-        return Futures.transform(list, mapperFunction);
-    }
-    
-    
-    
-    private static final class SingleEntryResultList<T>  {
+    private static final class SingleEntryResultList<T> extends ResultListAdapter<T> {
         
         public SingleEntryResultList(ResultList<T> list) {
            super(list);

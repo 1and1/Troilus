@@ -20,10 +20,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -53,9 +50,7 @@ import com.google.common.collect.ImmutableSet;
  * The record implementation
  */
 class RecordImpl implements Record {
-    
     private static final Logger LOG = LoggerFactory.getLogger(RecordImpl.class);
-
     private final Tablename tablename;
     private final Context ctx;
     private final Result result;
@@ -66,7 +61,7 @@ class RecordImpl implements Record {
      * @param result  the result
      * @param row     the underlying row
      */
-    RecordImpl(Context ctx, ReadQueryData queryData, Result result, Row row) {
+    RecordImpl(final Context ctx, final ReadQueryData queryData, final Result result, final Row row) {
         this.ctx = ctx;
         this.result = result;
         this.row = row;
@@ -76,18 +71,15 @@ class RecordImpl implements Record {
     }
 
     
-    private static void paranoiaCheck(Context ctx, Record record, ReadQueryData data) {
+    private static void paranoiaCheck(final Context ctx, final Record record, final ReadQueryData data) {
         
-        for (Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
-           
+        for (final Entry<String, ImmutableList<Object>> entry : data.getKeys().entrySet()) {
             if (record.isNull(entry.getKey())) {
                 // response does not include key
                 return;
             }
-
             
             final ByteBuffer responseKeyValue = record.getBytesUnsafe(entry.getKey());
-
             
             // check if response key matches with any of the request keys
             for (Object value : entry.getValue()) {
@@ -107,10 +99,6 @@ class RecordImpl implements Record {
             throw new ProtocolErrorException("Dataswap error for " + entry.getKey()); 
         }
     }
-    
-    
-    
-    
     
     /**
      * @return the underlying row
@@ -142,132 +130,98 @@ class RecordImpl implements Record {
     }
 
     @Override
-    public Long getWritetime(String name) {
-        try {
-            return row.getLong("WRITETIME(" + name + ")");
-        } catch (IllegalArgumentException iae) {
-            return null;
-        }
-    }
-    
-    @Override       
-    public Duration getTtl(String name) {
-        try {
-            return Duration.ofSeconds(row.getInt("TTL(" + name + ")"));
-        } catch (IllegalArgumentException iae) {
-            return null;
-        }
-    }
-    
-    @Override
-    public boolean isNull(String name) {
+    public boolean isNull(final String name) {
         return row.isNull(name);
     }
 
     @Override
-    public long getLong(String name) {
+    public long getLong(final String name) {
         return row.getLong(name);
     }
     
     @Override
-    public String getString(String name) {
+    public String getString(final String name) {
         return row.getString(name);
     }
     
     @Override
-    public Instant getInstant(String name) {
-        final Long millis = getLong(name);
-        if (millis == 0) {
-            return null;
-        } else {
-            return Instant.ofEpochMilli(millis);
-        }
-    }
-    
-    @Override
-    public LocalDateTime getLocalDateTime(String name) {
-        final Instant instant = Instant.ofEpochMilli(getTime(name));
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-    
-    @Override
-    public long getTime(String name) {
+    public long getTime(final String name) {
     	return row.getTime(name);
     }
     
     @Override
-    public boolean getBool(String name) {
+    public boolean getBool(final String name) {
         return row.getBool(name);
     }
     
     @Override
-    public ByteBuffer getBytes(String name) {
+    public ByteBuffer getBytes(final String name) {
         return row.getBytes(name);
     }
 
     @Override
-    public ByteBuffer getBytesUnsafe(String name) {
+    public ByteBuffer getBytesUnsafe(final String name) {
         return row.getBytesUnsafe(name);
     }
 
     @Override
-    public float getFloat(String name) {
+    public float getFloat(final String name) {
         return row.getFloat(name);
     }
 
     @Override
-    public Instant getDate(String name) {
+    public Instant getDate(final String name) {
     	return row.getTimestamp(name).toInstant();
     }
 
     @Override
-    public BigDecimal getDecimal(String name) {
+    public BigDecimal getDecimal(final String name) {
         return row.getDecimal(name);
     }
 
     @Override
-    public int getInt(String name) {
+    public int getInt(final String name) {
         return row.getInt(name);
     }
 
     @Override
-    public InetAddress getInet(String name) {
+    public InetAddress getInet(final String name) {
         return row.getInet(name);
     }
 
     @Override
-    public BigInteger getVarint(String name) {
+    public BigInteger getVarint(final String name) {
         return row.getVarint(name);
     }
   
     @Override
-    public UUID getUUID(String name) {
+    public UUID getUUID(final String name) {
         return row.getUUID(name);
     }
     
     @Override
-    public TupleValue getTupleValue(String name) {
+    public TupleValue getTupleValue(final String name) {
         return row.getTupleValue(name);
     }
 
     @Override
-    public UDTValue getUDTValue(String name) {
+    public UDTValue getUDTValue(final String name) {
         return row.getUDTValue(name);
     }
         
     @Override
-    public <T extends Enum<T>> T getEnum(String name, Class<T> enumType) {
+    public <T extends Enum<T>> T getEnum(final String name, final Class<T> enumType) {
         return getValue(name, enumType);
     }
     
     @Override
-    public <T> T getValue(ColumnName<T> name) {
+    public <T> T getValue(final ColumnName<T> name) {
         return name.read(this);
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public <T> T getValue(String name, Class<T> elementsClass) {
+    public <T> T getValue(final String name, final Class<T> elementsClass) {
         final DataType datatype = getColumnDefinitions().getType(name);
         
         if (datatype != null) {

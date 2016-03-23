@@ -16,6 +16,8 @@
 package net.oneandone.troilus;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 
 
 
@@ -35,6 +37,11 @@ public interface Query<T> {
      * performs the query in a sync way 
      * @return the result
      */
-    T execute();
+    default T execute() {
+        try {
+            return executeAsync().get();
+        } catch (ExecutionException | InterruptedException | RuntimeException e) {
+            throw CompletableFutures.propagate(e);
+        }
+    }    
 }
-

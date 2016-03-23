@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus;
 
 import com.google.common.collect.ImmutableMap;
 

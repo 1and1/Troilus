@@ -19,7 +19,7 @@ import com.datastax.driver.core.Session;
 import com.google.common.base.Objects;
 
 
-
+ 
 /**
  * Tablename
  */
