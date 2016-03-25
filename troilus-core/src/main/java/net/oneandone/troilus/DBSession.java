@@ -22,11 +22,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.TypeCodec;
+import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import com.datastax.driver.core.exceptions.DriverInternalError;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
@@ -59,7 +62,20 @@ class DBSession  {
         this.keyspacename = session.getLoggedKeyspace();
         this.isKeyspacenameAssigned = (keyspacename != null);
         this.preparedStatementCache = new PreparedStatementCache(session);
+        
+        final CodecRegistry codecRegistry = session.getCluster().getConfiguration().getCodecRegistry();
+        registerCodeIfNotPresent(codecRegistry, InstantCodec.instance);
+        registerCodeIfNotPresent(codecRegistry, LocalDateCodec.instance);
     }
+
+    private static void registerCodeIfNotPresent(final CodecRegistry codecRegistry, final TypeCodec<?> codec) {
+        try {
+            codecRegistry.codecFor(codec.getJavaType().getType());
+        } catch (CodecNotFoundException nfe) {
+            codecRegistry.register(codec);
+        }
+    }
+    
 
 
   

@@ -30,7 +30,6 @@ import com.datastax.driver.core.ResultSet;
  * @param <R> the element type
  */
 class ResultListPublisher<R> implements Publisher<R> {
-    
     private boolean subscribed = false; // true after first subscribe
     private LazyInitializer lazyInitializer;
     
@@ -38,12 +37,12 @@ class ResultListPublisher<R> implements Publisher<R> {
     /**
      * @param resultlistFuture  the future result list
      */
-    public ResultListPublisher(CompletableFuture<ResultList<R>> resultlistFuture) {
+    public ResultListPublisher(final CompletableFuture<ResultList<R>> resultlistFuture) {
         this.lazyInitializer = new LazyInitializer(resultlistFuture);
     }
     
     @Override
-    public void subscribe(Subscriber<? super R> subscriber) {
+    public void subscribe(final Subscriber<? super R> subscriber) {
         
         synchronized (this) {
             // https://github.com/reactive-streams/reactive-streams-jvm#1.9
@@ -77,16 +76,16 @@ class ResultListPublisher<R> implements Publisher<R> {
         /**
          * @param resultlistFuture the resultlist future
          */
-        public LazyInitializer(CompletableFuture<ResultList<R>> resultlistFuture) {
+        public LazyInitializer(final CompletableFuture<ResultList<R>> resultlistFuture) {
             resultlistFuture.thenApplyAsync(resultList -> resultList.iterator())
                             .exceptionally(error -> new ErrorIterator<R>(error))
-                            .thenAccept(iterator -> LazyInitializer.this.iterator = iterator);
+                            .thenAccept(iterator -> init(iterator));
         }
         
         /**
          * @param subscriber the subscriber to subscribe
          */
-        public void subscribe(Subscriber<? super R> subscriber) {
+        public void subscribe(final Subscriber<? super R> subscriber) {
             synchronized (this) {
                 if (isInitialized) {
                     subscriber.onError(new IllegalStateException("subscription already exists. Multi-subscribe is not supported"));  // only one allowed
@@ -94,6 +93,13 @@ class ResultListPublisher<R> implements Publisher<R> {
                 }
                 this.subscriber = subscriber;
                 
+                init();
+            }
+        }
+        
+        private void init(final FetchingIterator<R> iterator) {
+            synchronized (this) {
+                this.iterator = iterator;
                 init();
             }
         }
@@ -113,7 +119,7 @@ class ResultListPublisher<R> implements Publisher<R> {
     private static final class ErrorIterator<R> implements FetchingIterator<R> {
         private final Throwable error;
         
-        public ErrorIterator(Throwable error) {
+        public ErrorIterator(final Throwable error) {
             this.error = error;
         }
         

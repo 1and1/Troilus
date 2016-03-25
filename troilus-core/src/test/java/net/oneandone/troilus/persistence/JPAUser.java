@@ -17,6 +17,7 @@ package net.oneandone.troilus.persistence;
 
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Optional;
 
 
@@ -44,7 +45,7 @@ public class JPAUser {
     private Optional<ByteBuffer> picture;  
     
     @Column(name = "modified")
-    private Long modified;
+    private Date modified;
     
     @Column(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
@@ -59,7 +60,7 @@ public class JPAUser {
     
     
     
-    public JPAUser(String userId, String name, boolean isCustomer, ByteBuffer picture, long modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
+    public JPAUser(String userId, String name, boolean isCustomer, ByteBuffer picture, Date modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
         this.userId = userId;
         this.name = name;
         this.isCustomer = Optional.of(isCustomer);
@@ -92,7 +93,7 @@ public class JPAUser {
         this.picture = data;
     }
 
-    public Optional<Long> getModified() {
+    public Optional<Date> getModified() {
         return Optional.ofNullable(modified);
     }
 

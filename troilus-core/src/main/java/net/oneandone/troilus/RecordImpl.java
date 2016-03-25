@@ -20,9 +20,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -35,15 +36,18 @@ import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.QueryTrace.Event;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.TupleValue;
+import com.datastax.driver.core.TypeCodec;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 
  
 /**
@@ -128,12 +132,17 @@ class RecordImpl implements Record {
     public boolean wasApplied() {
         return result.wasApplied();
     }
-
+    
     @Override
     public boolean isNull(final String name) {
         return row.isNull(name);
     }
 
+    @Override
+    public byte getByte(String name) {
+        return row.getByte(name);
+    }
+    
     @Override
     public long getLong(final String name) {
         return row.getLong(name);
@@ -168,10 +177,20 @@ class RecordImpl implements Record {
     public float getFloat(final String name) {
         return row.getFloat(name);
     }
+    
+    @Override
+    public double getDouble(final String name) {
+        return row.getDouble(name);
+    }
 
     @Override
-    public Instant getDate(final String name) {
-    	return row.getTimestamp(name).toInstant();
+    public Date getTimestamp(String name) {
+        return row.getTimestamp(name);
+    }
+    
+    @Override
+    public LocalDate getDate(final String name) {
+    	return row.getDate(name);
     }
 
     @Override
@@ -195,6 +214,11 @@ class RecordImpl implements Record {
     }
   
     @Override
+    public short getShort(String name) {
+        return row.getShort(name);
+    }
+    
+    @Override
     public UUID getUUID(final String name) {
         return row.getUUID(name);
     }
@@ -215,8 +239,29 @@ class RecordImpl implements Record {
     }
     
     @Override
+    public <T> T get(final String name, final Class<T> targetClass) {
+        return row.get(name, targetClass);
+    }
+    
+    @Override
+    public <T> T get(final String name, final TypeToken<T> targetType) {
+        return row.get(name, targetType);
+    }
+    
+    @Override
+    public <T> T get(final String name, final TypeCodec<T> codec) {
+        return row.get(name, codec);
+    }
+    
+    @Override
     public <T> T getValue(final ColumnName<T> name) {
         return name.read(this);
+    }
+    
+    @Override
+    public Object getObject(String name) {
+        // TODO Auto-generated method stub
+        return null;
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -245,7 +290,7 @@ class RecordImpl implements Record {
                 // bytebuffer (byte[])
                 if (datatype.equals(DataType.blob()) && byte[].class.isAssignableFrom(elementsClass)) {
                     if (obj == null) {
-                        return (T) new byte[0];
+                        return null;
                     } else {
                         final ByteBuffer bb = (ByteBuffer) obj;
                         byte[] bytes = new byte[bb.remaining()];
@@ -316,6 +361,21 @@ class RecordImpl implements Record {
                 return ctx.getUDTValueMapper().fromUdtValues(datatype.getTypeArguments().get(0), datatype.getTypeArguments().get(1), ImmutableMap.copyOf(getRow().getMap(name, UDTValue.class, UDTValue.class)), keysClass, valuesClass);
             }
         }
+    }
+
+    @Override
+    public <T> List<T> getList(String name, TypeToken<T> elementsType) {
+        return row.getList(name, elementsType);
+    }
+    
+    @Override
+    public <K, V> Map<K, V> getMap(String name, TypeToken<K> keysType, TypeToken<V> valuesType) {
+        return row.getMap(name, keysType,  valuesType);
+    }
+    
+    @Override
+    public <T> Set<T> getSet(String name, TypeToken<T> elementsType) {
+        return row.getSet(name, elementsType);
     }
     
     @Override
@@ -412,5 +472,3 @@ class RecordImpl implements Record {
         }
     }
 }
-
-    

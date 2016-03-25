@@ -22,33 +22,30 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
-
-import net.oneandone.troilus.java7.FetchingIterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.testng.collections.Lists;
 
 import com.datastax.driver.core.ExecutionInfo;
+import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.TupleValue;
+import com.datastax.driver.core.TypeCodec;
 import com.datastax.driver.core.UDTValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.reflect.TypeToken;
 
 
-/**
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API change - ListenableFuture<Void> to ListenableFuture<ResultSet>
- * 12-14-2015: added getLocalDateTime()
- */
-public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<Record> {
+public class SimpleResultList implements ResultList<Record> {
     private final long elements;
     private final int fetchDelayMillis;
     
@@ -62,8 +59,8 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
     }
 
     public static ResultListPublisher<Record> newResultListPublisher(long elements, int fetchDelayMillis) {
-        return new ResultListPublisher<Record>(Futures.immediateFuture(new SimpleResultList(elements, fetchDelayMillis)));
-    }
+        return new ResultListPublisher<Record>(CompletableFuture.completedFuture(new SimpleResultList(elements, fetchDelayMillis)));
+    } 
     
     @Override
     public boolean wasApplied() {
@@ -134,9 +131,9 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
         }
         
         @Override
-        public ListenableFuture<ResultSet> fetchMoreResultsAsync() {
+        public CompletableFuture<ResultSet> fetchMoreResultsAsync() {
 
-            return new AbstractFuture<ResultSet>() {
+            return new CompletableFuture<ResultSet>() {
                 
                 {
                     new Thread() {
@@ -150,7 +147,7 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                             }
 
                             loadNextChunk();
-                            set(null);
+                            complete(null);
                         };
                         
                     }.start();
@@ -185,7 +182,11 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                 if (remainingChunks.isEmpty()) {
                     throw new NoSuchElementException();
                 } else {
-                    ListenableFutures.getUninterruptibly(fetchMoreResultsAsync());
+                    try {
+                        fetchMoreResultsAsync().get();
+                    } catch (ExecutionException | InterruptedException | RuntimeException e) {
+                        throw CompletableFutures.propagate(e);
+                    }
                 }
             }
             
@@ -251,16 +252,16 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                     }
                     
                     @Override
-                    public Long getWritetime(String name) {
+                    public long getWritetime(String name) {
                         // TODO Auto-generated method stub
-                        return null;
+                        return -1;
                     }
                     
                     @Override
                     public BigInteger getVarint(String name) {
                         return null;
                     }
-                    
+                     
                     @Override
                     public <T> T getValue(String name, Class<T> type) {
                         return null;
@@ -347,11 +348,6 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                     }
                     
                     @Override
-                    public Instant getDate(String name) {
-                        return null;
-                    }
-                    
-                    @Override
                     public long getTime(String name) {
                         return 0;
                     }
@@ -372,11 +368,77 @@ public class SimpleResultList implements net.oneandone.troilus.java7.ResultList<
                         return false;
                     }
 
-					@Override
-					public LocalDateTime getLocalDateTime(String name) {
-						// TODO Auto-generated method stub
-						return null;
-					}
+                    @Override
+                    public byte getByte(String name) {
+                        // TODO Auto-generated method stub
+                        return 0;
+                    }
+
+                    @Override
+                    public short getShort(String name) {
+                        // TODO Auto-generated method stub
+                        return 0;
+                    }
+
+                    @Override
+                    public Date getTimestamp(String name) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public LocalDate getDate(String name) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public double getDouble(String name) {
+                        // TODO Auto-generated method stub
+                        return 0;
+                    }
+
+                    @Override
+                    public <T> List<T> getList(String name, TypeToken<T> elementsType) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public <T> Set<T> getSet(String name, TypeToken<T> elementsType) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public <K, V> Map<K, V> getMap(String name, TypeToken<K> keysType, TypeToken<V> valuesType) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public Object getObject(String name) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T get(String name, Class<T> targetClass) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T get(String name, TypeToken<T> targetType) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
+
+                    @Override
+                    public <T> T get(String name, TypeCodec<T> codec) {
+                        // TODO Auto-generated method stub
+                        return null;
+                    }
                 };
             }   
         }

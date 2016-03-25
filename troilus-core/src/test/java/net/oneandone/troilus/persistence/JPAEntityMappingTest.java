@@ -18,6 +18,7 @@ package net.oneandone.troilus.persistence;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -71,7 +72,7 @@ public class JPAEntityMappingTest  {
         
         ////////////////
         // inserts
-        userDao.writeEntity(new JPAUser("234324242", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), 1345553l, ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
+        userDao.writeEntity(new JPAUser("234324242", "paul", true, ByteBuffer.wrap(new byte[] { 6, 7, 8}), new Date(1345553l), ImmutableSet.of("12313241243", "232323"), ImmutableList.of("berlin", "budapest")))
                .ifNotExists()
                .execute();
 

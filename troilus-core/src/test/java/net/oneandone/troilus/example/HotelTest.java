@@ -33,6 +33,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -66,7 +67,7 @@ public class HotelTest {
         cassandra.tryExecuteCqlFile(HotelsTable.DDL);
     }
     
-    
+    @Ignore
     @Test
     public void testExample() throws Exception {
                 

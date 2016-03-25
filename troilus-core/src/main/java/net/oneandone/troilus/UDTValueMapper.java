@@ -43,7 +43,9 @@ import com.google.common.collect.Sets;
 
 /**
  * UDTValueMapper
+ * @deprecated will be removed by codec support?
  */
+@Deprecated
 class UDTValueMapper {
 
     private final ProtocolVersion protocolVersion;

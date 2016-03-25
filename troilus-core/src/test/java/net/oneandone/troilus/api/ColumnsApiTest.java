@@ -730,6 +730,8 @@ public class ColumnsApiTest{
 
         Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).isEmpty());
         Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).isEmpty());
+        Assert.assertTrue(record.getValue(UsersTableFields.IS_CUSTOMER));
+        Assert.assertTrue(record.getValue(UsersTableFields.NAME).isEmpty());
         Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE));
         Assert.assertNull(record.getValue(UsersTableFields.USER_TYPE));
         

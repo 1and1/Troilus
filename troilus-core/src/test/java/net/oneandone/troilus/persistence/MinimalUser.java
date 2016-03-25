@@ -17,6 +17,7 @@ package net.oneandone.troilus.persistence;
 
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.Optional;
 
 
@@ -42,7 +43,7 @@ public class MinimalUser {
     private Optional<byte[]> secId;  
     
     @Field(name = "modified")
-    private Long modified;
+    private Date modified;
     
     @Field(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
@@ -60,7 +61,7 @@ public class MinimalUser {
     
     
     
-    public MinimalUser(String name, boolean isCustomer, ByteBuffer picture, byte[] secId, long modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
+    public MinimalUser(String name, boolean isCustomer, ByteBuffer picture, byte[] secId, Date modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
         this.name = name;
         this.isCustomer = Optional.of(isCustomer);
         this.picture = Optional.of(picture);
@@ -92,7 +93,7 @@ public class MinimalUser {
         this.picture = data;
     }
 
-    public Optional<Long> getModified() {
+    public Optional<Date> getModified() {
         return Optional.ofNullable(modified);
     }
 

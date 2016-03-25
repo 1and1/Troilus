@@ -19,10 +19,11 @@ import net.oneandone.troilus.BeanMapper;
 import net.oneandone.troilus.Field;
 import net.oneandone.troilus.PropertiesSource;
 
+import java.util.Optional;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -38,7 +39,7 @@ public class BeanMapperWriteTest {
         MyBean bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getS());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.absent())), ImmutableSet.of());
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("s", Optional.empty())), ImmutableSet.of());
         Assert.assertNull(bean.getS());
         
         
@@ -46,7 +47,7 @@ public class BeanMapperWriteTest {
         bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getSo().get());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.absent())), ImmutableSet.of());
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("so", Optional.empty())), ImmutableSet.of());
         Assert.assertFalse(bean.getSo().isPresent());
         
         
@@ -54,7 +55,7 @@ public class BeanMapperWriteTest {
         bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.of("test"))), ImmutableSet.of());
         Assert.assertEquals("test", bean.getSj().get());
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.absent())), ImmutableSet.of());
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("sj", Optional.empty())), ImmutableSet.of());
         Assert.assertFalse(bean.getSj().isPresent());
         
         
@@ -62,7 +63,7 @@ public class BeanMapperWriteTest {
         bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.of(ImmutableSet.of("set1", "set2")))), ImmutableSet.of());
         Assert.assertTrue(bean.getSet().contains("set1"));
         
-        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.absent())), ImmutableSet.of());
+        bean = mapper.fromValues(MyBean.class, SimplePropertySource.newSource(ImmutableMap.of("set", Optional.empty())), ImmutableSet.of());
         Assert.assertNull(bean.getSet());
         
         
@@ -147,7 +148,7 @@ public class BeanMapperWriteTest {
         @Override
         public <T> Optional<T> read(String name, Class<?> clazz1, Class<?> clazz2) {
             if (properties.get(name) == null) {
-                return Optional.absent();
+                return Optional.empty();
             }
             
             return (Optional<T>) properties.get(name);

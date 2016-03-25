@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ResultSet;
 import com.google.common.collect.Queues;
-import com.google.common.util.concurrent.ListenableFuture;
-
 
 
 /**
@@ -40,6 +38,8 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @param <T> the element type
  */
 class ResultListSubscription<T> implements Subscription {
+    private static final Logger LOG = LoggerFactory.getLogger(ResultListSubscription.class);
+    
     private final DatabaseSource<T> databaseSource;
     private final SubscriberNotifier<T> subscriberNotifier;
   
@@ -48,12 +48,12 @@ class ResultListSubscription<T> implements Subscription {
      * @param subscriber  the subscriber 
      * @param iterator    the underlying iterator
      */
-    public ResultListSubscription(Subscriber<? super T> subscriber, FetchingIterator<T> iterator) {
+    public ResultListSubscription(final Subscriber<? super T> subscriber, FetchingIterator<T> iterator) {
         final Executor executor = Executors.newCachedThreadPool();
 
         this.subscriberNotifier = new SubscriberNotifier<>(executor, subscriber);
-        this.databaseSource = new DatabaseSource<>(executor, subscriberNotifier, iterator);
-        
+        this.databaseSource = new DatabaseSource<>(subscriberNotifier, iterator);
+       
         subscriberNotifier.emitNotification(new OnSubscribe());
     }
 
@@ -61,7 +61,7 @@ class ResultListSubscription<T> implements Subscription {
     private class OnSubscribe extends SubscriberNotifier.Notification<T> {
         
         @Override
-        public void signalTo(Subscriber<? super T> subscriber) {
+        public void signalTo(final Subscriber<? super T> subscriber) {
             subscriber.onSubscribe(ResultListSubscription.this);
         }
     }
@@ -75,7 +75,7 @@ class ResultListSubscription<T> implements Subscription {
     
     
     @Override
-    public void request(long n) {                
+    public void request(final long n) {                
         if(n <= 0) {
             // https://github.com/reactive-streams/reactive-streams#3.9
             subscriberNotifier.emitNotification(new OnError<T>(new IllegalArgumentException("Non-negative number of elements must be requested: https://github.com/reactive-streams/reactive-streams#3.9")));
@@ -95,7 +95,7 @@ class ResultListSubscription<T> implements Subscription {
         }
         
         @Override
-        public void signalTo(Subscriber<? super R> subscriber) {
+        public void signalTo(final Subscriber<? super R> subscriber) {
             LOG.debug("processing error occured", error);
             try {
                 subscriber.onError(error);
@@ -111,18 +111,13 @@ class ResultListSubscription<T> implements Subscription {
     private static final class DatabaseSource<R> implements Closeable {
         private final Object dbQueryLock = new Object();
         private final AtomicBoolean isOpen = new AtomicBoolean(true);
-
         private final AtomicLong numRequestedReads = new AtomicLong();
-        
-        private final Executor executor;
         private final SubscriberNotifier<R> notifier;
         private final FetchingIterator<R> iterator;
-        
-        private Runnable runningDatabaseQuery = null;
+        private CompletableFuture<ResultSet> runningDatabaseQuery = null;
 
 
-        DatabaseSource(Executor executor, SubscriberNotifier<R> notifier, FetchingIterator<R> iterator) {
-            this.executor = executor;
+        DatabaseSource(final SubscriberNotifier<R> notifier, final FetchingIterator<R> iterator) {
             this.notifier = notifier;
             this.iterator = iterator;
         }
@@ -133,7 +128,7 @@ class ResultListSubscription<T> implements Subscription {
         }
           
         
-        void request(long num) {
+        void request(final long num) {
             if (isOpen.get()) {
                 numRequestedReads.addAndGet(num);
                 processReadRequests();
@@ -147,6 +142,8 @@ class ResultListSubscription<T> implements Subscription {
         
                 // more db records required? 
                 if (numRequestedReads.get() > 0) {
+                    LOG.debug("no record available. Requesting database for more records");
+
                     // [synchronization note] under some circumstances the method requestDatabaseForMoreRecords()
                     // will be executed without the need of more records. However, it does not matter
                     requestDatabaseForMoreRecords();
@@ -169,9 +166,11 @@ class ResultListSubscription<T> implements Subscription {
         
         
         void requestDatabaseForMoreRecords() {
-            
+
             // more data to fetch available?
             if (iterator.isFullyFetched()) {
+                LOG.debug("database is already fully fetched");
+
                 // no, all data has been read
                 notifier.emitNotification(new OnComplete());
                 
@@ -180,20 +179,20 @@ class ResultListSubscription<T> implements Subscription {
                 synchronized (dbQueryLock) {
                     // submit an async database query (if not already running) 
                     if (runningDatabaseQuery == null) {
-                        final CompletableFuture<ResultSet> future = iterator.fetchMoreResultsAsync();
-                        
-                        final Runnable databaseRequest = new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                synchronized (dbQueryLock) {
-                                                                    runningDatabaseQuery = null; 
-                                                                }
-                                                                processReadRequests();
-                                                            }                                                                           
-                                                   };
-                        future.addListener(databaseRequest, executor);
-                        
-                        runningDatabaseQuery = databaseRequest;
+                        this.runningDatabaseQuery = iterator.fetchMoreResultsAsync();
+                        runningDatabaseQuery.whenComplete((resultSet, error) -> {
+                                                                                    synchronized (dbQueryLock) {
+                                                                                        runningDatabaseQuery = null; 
+                                                                                    }
+
+                                                                                    if (error == null) {
+                                                                                        processReadRequests();
+                                                                                    } else {
+                                                                                        close();
+                                                                                    }
+                                                                                });
+                    } else {
+                        LOG.debug("a database request is already running");
                     }
                 }
             }

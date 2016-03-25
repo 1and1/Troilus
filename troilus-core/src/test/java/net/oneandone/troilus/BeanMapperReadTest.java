@@ -19,10 +19,11 @@ package net.oneandone.troilus;
 import net.oneandone.troilus.BeanMapper;
 import net.oneandone.troilus.Field;
 
+import java.util.Optional;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -38,14 +39,12 @@ public class BeanMapperReadTest {
         BeanMapper mapper = new BeanMapper();
         
         ImmutableMap<String, Optional<Object>> result = mapper.toValues(new MyBean("test", 
-                                                                                   Optional.fromNullable("guavaOptional"), 
-                                                                                   java.util.Optional.of("javaOptional"), 
+                                                                                   Optional.of("javaOptional"), 
                                                                                    ImmutableSet.of("s1", "s2"), 
                                                                                    Optional.of(ImmutableSet.of("so1", "so2")),
                                                                                    UserType.GOLD,
                                                                                    Optional.of(UserType.SILVER)), ImmutableSet.<String>of());
         Assert.assertEquals("test", result.get("s").get());
-        Assert.assertEquals("guavaOptional", result.get("s2").get());
         Assert.assertEquals("javaOptional", result.get("s3").get());
         Assert.assertFalse(result.get("s01").isPresent());
         Assert.assertFalse(result.get("s02").isPresent());
@@ -64,13 +63,8 @@ public class BeanMapperReadTest {
         @Field(name="s")
         private final String s;
     
-        
-        @Field(name="s2")
-        private final Optional<String> s2;
-    
-        
         @Field(name="s3")
-        private final java.util.Optional<String> s3;
+        private final Optional<String> s3;
 
         @Field(name="s01")
         private final String s01;
@@ -91,9 +85,8 @@ public class BeanMapperReadTest {
         @Field(name="oe")
         private final Optional<UserType> oe;
 
-        public MyBean(String s, Optional<String> s2, java.util.Optional<String> s3, ImmutableSet<String> set, Optional<ImmutableSet<String>> seto, UserType e, Optional<UserType> oe) {
+        public MyBean(String s, Optional<String> s3, ImmutableSet<String> set, Optional<ImmutableSet<String>> seto, UserType e, Optional<UserType> oe) {
             this.s = s;
-            this.s2 = s2;
             this.s3 = s3;
             this.s01 = null;
             this.s02 = null;
@@ -104,5 +97,3 @@ public class BeanMapperReadTest {
         }
     }
 }
-
-

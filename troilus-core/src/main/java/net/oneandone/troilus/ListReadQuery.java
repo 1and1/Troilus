@@ -17,8 +17,6 @@ package net.oneandone.troilus;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
-
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -31,18 +29,12 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.Select;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 
 import net.oneandone.troilus.interceptor.ResultListAdapter;
-
-
 
 
  
@@ -514,7 +506,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         
         @Override
         public Publisher<Count> executeRx() {
-            return executeAsync().thenApply(count -> new SingleEntryResultListAdapter(count));
+            return new ResultListPublisher<>(executeAsync().thenApply(count -> new SingleEntryResultListAdapter<>(count)));
         }
 
 		@Override
@@ -605,4 +597,3 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
         }
     }    
 }
-    

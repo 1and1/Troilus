@@ -39,6 +39,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.CodecRegistry;
@@ -51,12 +52,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.collect.ImmutableSet;
 
 
-/**
- * 
- * @author Jason Westra - edited original
- * 12-12-2015: 3.x API changes
- *
- */
+@Ignore
 public class CascadingTest {
 
     private static CassandraDB cassandra;

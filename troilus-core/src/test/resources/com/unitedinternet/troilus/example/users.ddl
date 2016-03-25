@@ -9,7 +9,7 @@ CREATE TABLE users (
                     is_customer boolean,
                     picture blob,
                     sec_id blob,
-                    modified bigint, 
+                    modified timestamp, 
                     phone_numbers set<text>,
                     addresses list<text>,
                     roles map<text, text>,

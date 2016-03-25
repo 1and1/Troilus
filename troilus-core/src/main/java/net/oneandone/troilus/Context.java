@@ -68,11 +68,10 @@ public class Context  {
                     final BeanMapper beanMapper,
                     final Executor executor,
                     final MetadataCatalog catalog) {
-        this(session, beanMapper, executor, catalog, new DBSession(session, catalog, beanMapper));
+        this(beanMapper, executor, catalog, new DBSession(session, catalog, beanMapper));
     }
     
-    private Context(final Session session, 
-                    final BeanMapper beanMapper, 
+    private Context(final BeanMapper beanMapper, 
                     final Executor executor,
                     final MetadataCatalog catalog,
                     final DBSession dbSession) {
@@ -101,8 +100,6 @@ public class Context  {
         this.udtValueMapper = udtValueMapper;
     }
  
-  
-    
     private static Executor newTaskExecutor() {
         try {
             Method commonPoolMeth = ForkJoinPool.class.getMethod("commonPool");  // Java8 method

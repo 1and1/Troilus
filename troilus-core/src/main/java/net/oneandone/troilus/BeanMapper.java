@@ -20,7 +20,6 @@ package net.oneandone.troilus;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -393,13 +392,7 @@ class BeanMapper {
             AccessController.doPrivileged(new SetFieldAccessible(field));
             
             if (Optional.class.isAssignableFrom(field.getType())) {
-                this.optionalWrapper = new GuavaOptionalWrapper();
-                
-            } else if (field.getType().getName().equals("java.util.Optional")) {
-                getActualTypeArgument(field.getType(), 0);
-
                 this.optionalWrapper = new JavaOptionalWrapper();
-                
             } else {
                 this.optionalWrapper = new NonOptionalWrapper();
             }
@@ -432,7 +425,7 @@ class BeanMapper {
         }
         
         
-        private static final class GuavaOptionalWrapper implements OptionalWrapper {
+        private static final class JavaOptionalWrapper implements OptionalWrapper {
             
             @SuppressWarnings("unchecked")
             public Optional<Object> wrap(Object obj) {
@@ -443,32 +436,9 @@ class BeanMapper {
                 }
             }
         }
-
-        
-        
-        private static final class JavaOptionalWrapper implements OptionalWrapper {
-            
-            private final Method meth;
-            
-            public JavaOptionalWrapper() {
-                try {
-                    meth = Class.forName("java.util.Optional").getMethod("get");
-                } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            
-            public Optional<Object> wrap(Object obj) {
-                try {
-                    final Object o = meth.invoke(obj);
-                    return Optional.ofNullable(o);
-                } catch (InvocationTargetException | IllegalAccessException |  SecurityException e) {
-                    return Optional.empty();
-                }
-            }
-        }
     }
-    
+        
+            
 
     
     private static Type getActualTypeArgument(Type type, int argIndex) {
