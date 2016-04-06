@@ -13,14 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.userdefinieddatatypes;
+package net.oneandone.troilus.udt;
 
 
+import net.oneandone.troilus.Field;
 
 
-public interface ScoreType  {
-   
-    public static final String TYPE = "score";
+public class Score {
+
+    @Field(name = "score")
+    private Integer score;
+        
     
-    public static final String DDL = "com/unitedinternet/troilus/example/score.ddl";
+    @SuppressWarnings("unused")
+    private Score() {  }
+    
+    public Score(Integer score) {
+        this.score = score;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
 }

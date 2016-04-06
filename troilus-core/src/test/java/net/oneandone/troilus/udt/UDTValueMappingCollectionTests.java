@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.oneandone.troilus.userdefinieddatatypes;
+package net.oneandone.troilus.udt;
 
 import java.io.IOException;
 import java.math.BigDecimal;

@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.userdefinieddatatypes;
+package net.oneandone.troilus.udt;
 
 
 
-
-public interface ClassifierType  {
+public interface AddrType  {
    
-    public static final String TYPE = "type";
+    public static final String ADDRESS_LINES = "lines";
+    public static final String ZIP_CODE = "zip_code";
+   
     
-    public static final String DDL = "com/unitedinternet/troilus/example/classifier.ddl";
+    public static final String DDL = "com/unitedinternet/troilus/example/addr.ddl";
 }

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.userdefinieddatatypes;
+package net.oneandone.troilus.udt;
 
 
 
 
-public interface AddresslineType  {
+public interface ScoreType  {
    
-    public static final String ADDRESS_LINE = "line";
+    public static final String TYPE = "score";
     
-    
-    public static final String DDL = "com/unitedinternet/troilus/example/addressline.ddl";
+    public static final String DDL = "com/unitedinternet/troilus/example/score.ddl";
 }

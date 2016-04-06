@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.userdefinieddatatypes;
+package net.oneandone.troilus.udt;
 
 
-import net.oneandone.troilus.Field;
 
 
-public class Score {
-
-    @Field(name = "score")
-    private Integer score;
-        
+public interface AddresslineType  {
+   
+    public static final String ADDRESS_LINE = "line";
     
-    @SuppressWarnings("unused")
-    private Score() {  }
     
-    public Score(Integer score) {
-        this.score = score;
-    }
-
-    public Integer getScore() {
-        return score;
-    }
+    public static final String DDL = "com/unitedinternet/troilus/example/addressline.ddl";
 }
