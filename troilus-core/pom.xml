@@ -39,14 +39,6 @@
 			<version>${reactivestreams.version}</version>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>com.datastax.cassandra</groupId>
-			<artifactId>cassandra-driver-extras</artifactId>
-			<version>3.0.0-alpha5</version>
-			<scope>test</scope>
-		</dependency>
-
 	</dependencies>
 
 

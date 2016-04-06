@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import com.datastax.driver.core.TypeCodec;
-import com.datastax.driver.extras.codecs.MappingCodec;
 import com.google.common.reflect.TypeToken;
 import com.google.common.reflect.TypeParameter;;
 
