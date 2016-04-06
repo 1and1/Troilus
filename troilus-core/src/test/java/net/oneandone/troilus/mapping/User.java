@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.persistence;
+package net.oneandone.troilus.mapping;
 
 
 import java.nio.ByteBuffer;

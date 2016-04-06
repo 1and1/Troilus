@@ -10,13 +10,12 @@ Troilus
 It supports synchronous programming and asynchronous programming.
 
 The main features of Troilus are 
-* providing a Java8-based Interface as well as a Java7-based interface (module troilus-core-java7)
+* providing a Java8-based Interface
 * Supporting sync as well as async programming
 * [reactive streams](http://www.reactive-streams.org) support
 * (Entity) Bean-Mapping support for tables and user defined data types (incl. mapping support of generic artefacts such as Java8/Guava Optional and Guava ImmutableCollections)
 * Build-in data swap check 
 * Build-in prepared statement management 
-* Implementation support for data-related constraint checks (mandatory fields, more complex data swap validation checks, …)          
 
 #Maven
 -------
@@ -29,15 +28,6 @@ Java8-based
 </dependency>
 ```
 
-
-Java7-based
-``` java
-<dependency>
-	<groupId>net.oneandone.troilus</groupId>
-	<artifactId>troilus-core-java7</artifactId>
-	<version>0.18</version>
-</dependency>
-```
 
 
 #Examples
@@ -704,189 +694,3 @@ public class ConsoleSubscriber implements Subscriber<Hotel> {
 
 
 
-
-#Interceptor Examples
-The interceptor support can be used to implement (more complex) constraint checks on the client-side  (Cassandra also supports server-side [trigger](http://www.datastax.com/documentation/cql/3.1/cql/cql_reference/trigger_r.html) which can also be used to implement contraints). To register interceptors the `Dao` supports the `withInterceptor(...)` method.
-
-``` java
-Dao phoneNumbersDao = new DaoImpl(getSession(), "phone_numbers");
-       
-Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(new PhonenumbersConstraints(deviceDao))
-												    .withInterceptor(ConstraintsInterceptor.newConstraints()
-                                                                                           .withNotNullColumn("device_id")
-                                                                                           .withImmutableColumn("device_id"));
-```
-
-##ConstraintsInterceptor Examples
-To implement simple constraints the  `ConstraintsInterceptor` can be used 
-``` java
-Dao phoneNumbersDaoWithConstraints = phoneNumbersDao.withInterceptor(ConstraintsInterceptor.newConstraints()
-                                                                                           .withNotNullColumn("device_id"));
-```
-
-##More Complexe Interceptor Examples
-The interceptor below implements a back relation check regarding the [phone_numbers](troilus-core/src/test/resources/com/unitedinternet/troilus/example/phone_numbers.ddl) table. 
-``` java
-class PhonenumbersConstraints implements ReadQueryRequestInterceptor,
-                                         ReadQueryResponseInterceptor {
-    
-    private final Dao deviceDao;
-    
-    public PhonenumbersConstraints(Dao deviceDao) {
-        this.deviceDao = deviceDao.withConsistency(ConsistencyLevel.QUORUM);
-    }
-        
-    
-    @Override
-    public CompletableFuture<ReadQueryData> onReadRequestAsync(ReadQueryData queryData) {
-        // force that device_id will be fetched 
-        if (!queryData.getColumnsToFetch().containsKey("device_id")) {
-            queryData = queryData.columnsToFetch(Immutables.merge(queryData.getColumnsToFetch(), "device_id", false));
-        }
-        return CompletableFuture.completedFuture(queryData);
-    }
-    
-
-    @Override
-    public CompletableFuture<ResultList<Record>> onReadResponseAsync(ReadQueryData queryData, ResultList<Record> recordList) {
-        return CompletableFuture.completedFuture(new VaildatingRecordList(recordList, deviceDao));
-    }
-    
-    
-    private static final class VaildatingRecordList extends RecordListAdapter {
-     
-        private final Dao deviceDao;
-
-        
-        public VaildatingRecordList(RecordList recordList, Dao deviceDao) {
-            super(recordList);
-            this.deviceDao = deviceDao;
-        }
-        
-        @Override
-        public Iterator<Record> iterator() {
-            return new ValidatingIterator(super.iterator());
-        }
-
-        
-        private final class ValidatingIterator implements Iterator<Record> {
-            private Iterator<Record> it;
-            
-            public ValidatingIterator(Iterator<Record> it) {
-                this.it = it;
-            }
-            
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-            
-            
-            @Override
-            public Record next() {
-                
-                Record record = it.next();
-                
-                Optional<Record> deviceRecord = deviceDao.readWithKey("device_id", record.getString("device_id"))
-                                                         .column("phone_numbers")
-                                                         .withConsistency(ConsistencyLevel.ONE)
-                                                         .execute();
-                
-                deviceRecord.ifPresent(rec -> {
-                                                ImmutableSet<String> set = rec.getSet("phone_numbers", String.class);
-                                                if (!set.isEmpty() && !set.contains(record.getString("number"))) {
-                                                    throw new ConstraintException("reverse reference devices table -> phone_numbers table does not exit");
-                                                }
-                                              });
-                
-                return record;
-            }
-        }
-    }
-}
-```
-
-
-##OnCascade Interceptor Examples
-To add cascading queries to the current queries the `CascadeOnWriteInterceptor` and `CascadeOnDeleteInterceptor` can be used. Please consider that in this case the current queries becomes a write ahead logged batch query. For this reason the CascadeOn interceptors works for non if-conditional mutate operations (insert, update, delete) only   
- 
-``` java
-Dao keyByAccountDao = new DaoImpl(session, KeyByAccountColumns.TABLE);
-Dao keyByEmailDao = new DaoImpl(session, KeyByEmailColumns.TABLE);
-        
-keyByAccountDao = keyByAccountDao.withInterceptor(new KeyByAccountColumns.CascadeToByEmailDao(keyByAccountDao, keyByEmailDao));
-//...
-
-
-
-public interface KeyByAccountColumns  {
-   
-    public static final String TABLE = "key_by_accountid";
-    
-    public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
-    public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
-    public static final ColumnName<Set<TupleValue>> EMAIL_IDX = ColumnName.defineSet("email_idx", TupleValue.class);
-    
-    
-    
-    public static final class CascadeToByEmailDao implements CascadeOnWriteInterceptor, CascadeOnDeleteInterceptor {
-        private final Dao keyByAccountDao;
-        private final Dao keyByEmailDao;
-        
-        public CascadeToByEmailDao(Dao keyByAccountDao, Dao keyByEmailDao) {
-            this.keyByAccountDao = keyByAccountDao;
-            this.keyByEmailDao = keyByEmailDao;
-        }
-
-        @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable<?>>> onWrite(WriteQueryData queryData) {
-            
-            // this interceptor does not support where condition based queries
-            if (!queryData.getWhereConditions().isEmpty()) {
-                throw new InvalidQueryException("where condition based queries are not supported");
-            }
-            
-            if (queryData.hasKey(ACCOUNT_ID) && queryData.hasValueToMutate(KEY) && queryData.hasSetValuesToAddOrSet(EMAIL_IDX)) {
-                List<Write> writes = Lists.newArrayList();
-                for (TupleValue tupleValue : queryData.getSetValuesToAddOrSet(EMAIL_IDX)) {
-                    writes.add(keyByEmailDao.writeWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
-                                            .value(KeyByEmailColumns.KEY, queryData.getValueToMutate(KEY))
-                                            .value(KeyByEmailColumns.ACCOUNT_ID, queryData.getKey(ACCOUNT_ID))
-                                            .withConsistency(ConsistencyLevel.QUORUM));
-                }
-                return CompletableFuture.completedFuture(ImmutableSet.copyOf(writes));
-                
-            } else {
-                return CompletableFuture.completedFuture(ImmutableSet.of());
-            }
-        }
-        
-        
-        @Override
-        public CompletableFuture<ImmutableSet<? extends Batchable<?>>> onDelete(DeleteQueryData queryData) {
-
-            // this interceptor does not support where condition based queries
-            if (!queryData.getWhereConditions().isEmpty()) {
-                throw new InvalidQueryException("where condition based queries are not supported");
-            }
-                
-            // resolve dependent records
-            return keyByAccountDao.readWithKey(queryData.getKey())
-                                  .withConsistency(ConsistencyLevel.QUORUM)
-                                  .executeAsync()
-                                  .thenApply(optionalRecord -> optionalRecord.map(record -> getDeletions(record)).orElse(ImmutableSet.of()));
-        }
-        
-        
-        private ImmutableSet<Deletion> getDeletions(Record record) {
-            List<Deletion> deletions = Lists.newArrayList();
-            for (TupleValue tupleValue : record.getValue(KeyByAccountColumns.EMAIL_IDX)) {
-                deletions.add(keyByEmailDao.deleteWithKey(KeyByEmailColumns.EMAIL, tupleValue.getString(0), KeyByEmailColumns.CREATED, tupleValue.getLong(1))
-                                           .withConsistency(ConsistencyLevel.QUORUM));
-            }
-            
-            return ImmutableSet.copyOf(deletions);
-        }
-    }
-}
-```

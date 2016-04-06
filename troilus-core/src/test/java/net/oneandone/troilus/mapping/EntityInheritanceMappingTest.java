@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.oneandone.troilus.persistence;
+package net.oneandone.troilus.mapping;
 
 import java.io.IOException;
 import java.math.BigDecimal;

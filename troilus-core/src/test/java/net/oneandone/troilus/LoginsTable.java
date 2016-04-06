@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.cascade;
-
-
-import net.oneandone.troilus.ColumnName;
+package net.oneandone.troilus;
 
 
 
-public interface KeyByEmailColumns  {
+
+public interface LoginsTable  {
    
-    public static final String TABLE = "key_by_email";
+    public static final String TABLE = "logins";
     
-    public static final ColumnName<String> EMAIL = ColumnName.defineString("email");
-    public static final ColumnName<Long> CREATED = ColumnName.defineLong("created");
-    public static final ColumnName<byte[]> KEY = ColumnName.defineBytes("key");
-    public static final ColumnName<String> ACCOUNT_ID = ColumnName.defineString("account_id");
-        
-    public static final String DDL = "com/unitedinternet/troilus/example/key_by_email.ddl";
-}
+    public static final String USER_ID = "user_id";
+    public static final String LOGINS = "logins";
+    
+    public static final String DDL = "com/unitedinternet/troilus/example/logins.ddl";
+ }
+

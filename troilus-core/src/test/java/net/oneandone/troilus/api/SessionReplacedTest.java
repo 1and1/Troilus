@@ -94,8 +94,7 @@ public class SessionReplacedTest {
         
         // create dao
         Dao hotelsDao = new DaoImpl(session, HotelsTable.TABLE)
-                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                                  .withInterceptor(HotelsTable.CONSTRAINTS);
+                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
         ////////////////

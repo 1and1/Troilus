@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.api;
+package net.oneandone.troilus.udf;
 
 
 
@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.FeesTable;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.example.Address;

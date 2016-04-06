@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.persistence;
+package net.oneandone.troilus.mapping;
 
 
 import java.nio.ByteBuffer;
@@ -23,53 +23,58 @@ import java.util.Optional;
 
 
 
-import net.oneandone.troilus.Field;
+
+import javax.persistence.Column;
+
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-public class MinimalUser {
+public class JPAUser {
 
-    @Field(name = "name")
+    @Column(name = "user_id")
+    private String userId;
+    
+    @Column(name = "name")
     private String name;
  
-    @Field(name = "is_customer")
+    @Column(name = "is_customer")
     private Optional<Boolean> isCustomer;
     
-    @Field(name = "picture")
+    @Column(name = "picture")
     private Optional<ByteBuffer> picture;  
-
-    @Field(name = "sec_id")
-    private Optional<byte[]> secId;  
     
-    @Field(name = "modified")
+    @Column(name = "modified")
     private Date modified;
     
-    @Field(name = "phone_numbers")
+    @Column(name = "phone_numbers")
     private ImmutableSet<String> phoneNumbers;
     
-    @Field(name = "addresses")
+    @Column(name = "addresses")
     private ImmutableList<String> addresses;
 
-    @Field(name = "not_existing")
-    private ImmutableList<String> notExisting;
-
     
-    public MinimalUser() {
+    public JPAUser() {
         
     }
     
     
     
-    public MinimalUser(String name, boolean isCustomer, ByteBuffer picture, byte[] secId, Date modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
+    public JPAUser(String userId, String name, boolean isCustomer, ByteBuffer picture, Date modified, ImmutableSet<String> phoneNumbers, ImmutableList<String> addresses) {
+        this.userId = userId;
         this.name = name;
         this.isCustomer = Optional.of(isCustomer);
         this.picture = Optional.of(picture);
-        this.secId = Optional.of(secId);
         this.modified = modified;
         this.phoneNumbers = phoneNumbers;
         this.addresses = addresses;
     }
+
+
+    public String getUserId() {
+        return userId;
+    }
+
 
     public String getName() {
         return name;
@@ -80,15 +85,10 @@ public class MinimalUser {
         return isCustomer;
     }
 
-    public Optional<byte[]> getSecId() {
-        return secId;
-    }
-
     public ByteBuffer getPicture() {
         return picture.get();
     }
 
-    
     public void setPicture(Optional<ByteBuffer> data) {
         this.picture = data;
     }

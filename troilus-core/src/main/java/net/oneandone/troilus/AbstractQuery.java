@@ -166,11 +166,6 @@ abstract class AbstractQuery<Q> {
         return ctx.getUDTValueMapper(); 
     }
     
-    
-    InterceptorRegistry getInterceptorRegistry() {
-        return ctx.getInterceptorRegistry();
-    }
-    
     BeanMapper getBeanMapper() {
         return ctx.getBeanMapper();
     }

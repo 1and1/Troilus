@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.api;
+package net.oneandone.troilus;
+
+import net.oneandone.troilus.ColumnName;
 
 
 
-public interface FeesTable  {
+public interface HistoryTable  {
    
-    public static final String TABLE = "fees";
+    public static final String TABLE = "history";
     
-    public static final String CUSTOMER_ID = "customer_id";
-    public static final String YEAR = "year";
-    public static final String AMOUNT = "amount";
- 
-    public static final String DDL = "com/unitedinternet/troilus/example/fees.ddl";
-}
+    public static final ColumnName<String> SENDER_EMAIL = ColumnName.defineString("sender_email");
+    public static final ColumnName<String> RECEIVER_EMAIL = ColumnName.defineString("receiver_email");
+    
+    public static final String DDL = "com/unitedinternet/troilus/example/history.ddl";
+ }
+

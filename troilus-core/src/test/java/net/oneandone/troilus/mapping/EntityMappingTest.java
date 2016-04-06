@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.persistence;
+package net.oneandone.troilus.mapping;
 
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.api.UsersTable;
+import net.oneandone.troilus.UsersTable;
 
 import org.junit.AfterClass;
 import org.junit.Assert;

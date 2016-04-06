@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
+package net.oneandone.troilus;
 
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.google.common.collect.ImmutableList;
-
-import net.oneandone.troilus.FetchingIterator;
-import net.oneandone.troilus.ResultList;
 
 
  

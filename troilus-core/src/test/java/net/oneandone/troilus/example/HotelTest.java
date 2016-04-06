@@ -73,8 +73,7 @@ public class HotelTest {
                 
         // create dao
         Dao hotelsDao = new DaoImpl(cassandra.getSession(), HotelsTable.TABLE)
-                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM)
-                                  .withInterceptor(HotelsTable.CONSTRAINTS);
+                                  .withConsistency(ConsistencyLevel.LOCAL_QUORUM);
         
         
         ////////////////
@@ -118,8 +117,7 @@ public class HotelTest {
         Assert.assertNull(record.getWritetime(HotelsTable.NAME));
         Assert.assertNotNull(record.getTtl(HotelsTable.DESCRIPTION));
         Assert.assertNull(record.getTtl(HotelsTable.NAME));
-        
-        
+         
         
       
         

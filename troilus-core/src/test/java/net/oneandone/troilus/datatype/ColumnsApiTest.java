@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.api;
+package net.oneandone.troilus.datatype;
 
 
 
@@ -32,7 +32,12 @@ import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.IfConditionException;
+import net.oneandone.troilus.LoginsTable;
+import net.oneandone.troilus.PlusLoginsTable;
 import net.oneandone.troilus.Record;
+import net.oneandone.troilus.UserType;
+import net.oneandone.troilus.UsersTable;
+import net.oneandone.troilus.UsersTableFields;
 import net.oneandone.troilus.CounterMutation;
 
 import org.junit.AfterClass;
@@ -731,8 +736,8 @@ public class ColumnsApiTest{
         Assert.assertTrue(record.getValue(UsersTableFields.PHONE_NUMBERS).isEmpty());
         Assert.assertTrue(record.getValue(UsersTableFields.ADDRESSES).isEmpty());
         Assert.assertTrue(record.getValue(UsersTableFields.IS_CUSTOMER));
-        Assert.assertTrue(record.getValue(UsersTableFields.NAME).isEmpty());
-        Assert.assertArrayEquals(new byte[0], record.getValue(UsersTableFields.PICTURE));
+        Assert.assertNull(record.getValue(UsersTableFields.NAME));
+        Assert.assertNull(record.getValue(UsersTableFields.PICTURE));
         Assert.assertNull(record.getValue(UsersTableFields.USER_TYPE));
         
         

@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.interceptor;
-
-import java.util.concurrent.CompletableFuture;
-
-import net.oneandone.troilus.interceptor.QueryInterceptor;
+package net.oneandone.troilus;
 
 
 
-
-
-
-
-/**
- * Interceptor which will be executed before performing a list read query   
- */ 
-public interface ReadQueryRequestInterceptor extends QueryInterceptor {
+public interface PlusLoginsTable  {
+   
+    public static final String TABLE = "plus_logins";
     
+    public static final String USER_ID = "user_id";
+    public static final String LOGINS = "logins";
     
-    /**
-     * @param queryData   the request data
-     * @return  the (modified) request data
-     */
-    CompletableFuture<ReadQueryData> onReadRequestAsync(ReadQueryData queryData);
-}
- 
+    public static final String DDL = "com/unitedinternet/troilus/example/plus_logins.ddl";
+ }
+

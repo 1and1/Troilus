@@ -25,8 +25,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 
-import net.oneandone.troilus.interceptor.QueryInterceptor;
-
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -41,7 +39,6 @@ import com.google.common.base.MoreObjects;
  */
 public class Context  {
     private final ExecutionSpec executionSpec;
-    private final InterceptorRegistry interceptorRegistry;
     private final UDTValueMapper udtValueMapper;
     private final BeanMapper beanMapper;
     private final Executor executor;
@@ -78,7 +75,6 @@ public class Context  {
         this(dbSession, 
              catalog,
              new ExecutionSpecImpl(), 
-             new InterceptorRegistry(),
              beanMapper,
              new UDTValueMapper(dbSession.getProtocolVersion(), catalog, beanMapper),
              executor);
@@ -87,14 +83,12 @@ public class Context  {
     private Context(final DBSession dbSession, 
                     final MetadataCatalog catalog,
                     final ExecutionSpec executionSpec,
-                    final InterceptorRegistry interceptorRegistry,
                     final BeanMapper beanMapper,
                     final UDTValueMapper udtValueMapper,
                     final Executor executors) {
         this.dbSession = dbSession;
         this.catalog = catalog;
         this.executionSpec = executionSpec;
-        this.interceptorRegistry = interceptorRegistry;
         this.executor = executors;
         this.beanMapper = beanMapper;
         this.udtValueMapper = udtValueMapper;
@@ -109,7 +103,7 @@ public class Context  {
         }
     }
     
-    
+    /*
     Context withInterceptor(final QueryInterceptor interceptor) {
         return new Context(dbSession,
                            catalog,
@@ -120,12 +114,11 @@ public class Context  {
                            executor);
 
     }
-    
+    */
     Context withSerialConsistency(final ConsistencyLevel consistencyLevel) {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withSerialConsistency(consistencyLevel),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);
@@ -135,7 +128,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withTtl(ttlSec),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);        
@@ -145,7 +137,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withWritetime(microsSinceEpoch),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);        
@@ -155,7 +146,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withTracking(),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);        
@@ -165,7 +155,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withoutTracking(),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);        
@@ -175,7 +164,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withRetryPolicy(policy),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);        
@@ -185,7 +173,6 @@ public class Context  {
         return new Context(dbSession,
                            catalog,
                            executionSpec.withConsistency(consistencyLevel),
-                           interceptorRegistry,
                            beanMapper,
                            udtValueMapper,
                            executor);
@@ -215,16 +202,11 @@ public class Context  {
         return beanMapper;
     }
      
-    InterceptorRegistry getInterceptorRegistry() {
-        return interceptorRegistry;
-    }
-  
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                           .add("dsession", dbSession)
                           .add("execution-spec", executionSpec)
-                          .add("interceptorRegistry", interceptorRegistry)
                           .toString();
     }
    

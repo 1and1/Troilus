@@ -16,8 +16,6 @@
 package net.oneandone.troilus.example;
 
 
-import net.oneandone.troilus.interceptor.ConstraintsInterceptor;
-
 
 
 public interface HotelsTable  {
@@ -33,7 +31,4 @@ public interface HotelsTable  {
     
     
     public static final String DDL = "com/unitedinternet/troilus/example/hotels.ddl";
-    
-    public static ConstraintsInterceptor CONSTRAINTS = ConstraintsInterceptor.newConstraints()
-                                                                             .withNotNullColumn(NAME);
 }

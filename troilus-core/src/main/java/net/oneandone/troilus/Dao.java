@@ -16,7 +16,6 @@
 package net.oneandone.troilus;
 
 import net.oneandone.troilus.ColumnName;
-import net.oneandone.troilus.interceptor.QueryInterceptor;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -59,14 +58,6 @@ public interface Dao {
      */
     Dao withRetryPolicy(RetryPolicy policy);
 
-    /**
-     * @param queryInterceptor   the interceptor
-     * @return a cloned Dao instance with the modified behavior
-     */
-    Dao withInterceptor(QueryInterceptor queryInterceptor);
-    
-    
-   
     
     
     ////////////////////////////////

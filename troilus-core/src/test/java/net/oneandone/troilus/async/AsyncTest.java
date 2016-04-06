@@ -24,10 +24,10 @@ import java.util.concurrent.ExecutionException;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
+import net.oneandone.troilus.FeesTable;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.TooManyResultsException;
-import net.oneandone.troilus.api.FeesTable;
 
 import org.junit.AfterClass;
 import org.junit.Assert;

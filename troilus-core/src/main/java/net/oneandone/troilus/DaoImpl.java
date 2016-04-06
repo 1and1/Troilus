@@ -20,14 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import net.oneandone.troilus.interceptor.CascadeOnDeleteInterceptor;
-import net.oneandone.troilus.interceptor.CascadeOnWriteInterceptor;
-import net.oneandone.troilus.interceptor.DeleteQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.QueryInterceptor;
-import net.oneandone.troilus.interceptor.ReadQueryRequestInterceptor;
-import net.oneandone.troilus.interceptor.ReadQueryResponseInterceptor;
-import net.oneandone.troilus.interceptor.WriteQueryRequestInterceptor;
-
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.policies.RetryPolicy;
@@ -92,37 +84,6 @@ public class DaoImpl implements Dao {
     @Override
     public Dao withRetryPolicy(RetryPolicy policy) {
         return new DaoImpl(ctx.withRetryPolicy(policy), this.tablename);
-    }
-
-    @Override
-    public Dao withInterceptor(QueryInterceptor queryInterceptor) {
-        Context context = ctx.withInterceptor(queryInterceptor);
-        
-        if (ReadQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        }
-
-        if (ReadQueryResponseInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        } 
-
-        if (WriteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        } 
-
-        if (DeleteQueryRequestInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        } 
-
-        if (CascadeOnWriteInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        }
-
-        if (CascadeOnDeleteInterceptor.class.isAssignableFrom(queryInterceptor.getClass())) {
-            context = context.withInterceptor(queryInterceptor);
-        }
-
-        return new DaoImpl(context, this.tablename);
     }
     
     @Override

@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus.api;
-
-import net.oneandone.troilus.ColumnName;
+package net.oneandone.troilus;
 
 
 
-public interface HistoryTable  {
+import com.google.common.collect.ImmutableSet;
+
+
+
+public interface IdsTable  {
    
-    public static final String TABLE = "history";
+    public static final String TABLE = "ids";
     
-    public static final ColumnName<String> SENDER_EMAIL = ColumnName.defineString("sender_email");
-    public static final ColumnName<String> RECEIVER_EMAIL = ColumnName.defineString("receiver_email");
+    public static final String ID = "id";
+    public static final String IDS = "ids";
     
-    public static final String DDL = "com/unitedinternet/troilus/example/history.ddl";
- }
-
+    public static final ImmutableSet<String> ALL = ImmutableSet.of(ID, IDS);
+    
+    public static final String DDL = "com/unitedinternet/troilus/example/ids.ddl";
+}

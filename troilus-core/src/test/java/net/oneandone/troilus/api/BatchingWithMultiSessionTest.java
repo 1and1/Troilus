@@ -26,6 +26,7 @@ import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Insertion;
 import net.oneandone.troilus.Record;
+import net.oneandone.troilus.UsersTable;
 import net.oneandone.troilus.Write;
 import net.oneandone.troilus.example.Address;
 import net.oneandone.troilus.example.AddressType;
