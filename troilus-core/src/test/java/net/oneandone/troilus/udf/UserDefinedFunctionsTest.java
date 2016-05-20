@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.FeesTable;
 import net.oneandone.troilus.Record;
 import net.oneandone.troilus.Result;
 import net.oneandone.troilus.example.Address;
@@ -33,6 +32,7 @@ import net.oneandone.troilus.example.ClassifierEnum;
 import net.oneandone.troilus.example.Functions;
 import net.oneandone.troilus.example.Hotel;
 import net.oneandone.troilus.example.HotelsTable;
+import net.oneandone.troilus.testtables.FeesTable;
 
 import org.junit.AfterClass;
 import org.junit.Before;

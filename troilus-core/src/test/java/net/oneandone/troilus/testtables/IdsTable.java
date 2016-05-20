@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.testtables;
 
 
 
+import com.google.common.collect.ImmutableSet;
 
-public interface LoginsTable  {
+
+
+public interface IdsTable  {
    
-    public static final String TABLE = "logins";
+    public static final String TABLE = "ids";
     
-    public static final String USER_ID = "user_id";
-    public static final String LOGINS = "logins";
+    public static final String ID = "id";
+    public static final String IDS = "ids";
     
-    public static final String DDL = "com/unitedinternet/troilus/example/logins.ddl";
- }
-
+    public static final ImmutableSet<String> ALL = ImmutableSet.of(ID, IDS);
+    
+    public static final String DDL = "com/unitedinternet/troilus/example/ids.ddl";
+}

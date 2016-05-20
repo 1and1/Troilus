@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 import net.oneandone.troilus.BeanMapper;
 import net.oneandone.troilus.Field;
+import net.oneandone.troilus.testtables.UserType;
 
 import java.util.Optional;
 

@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.testtables;
 
 
 
-public interface PlusLoginsTable  {
+
+public interface LoginsTable  {
    
-    public static final String TABLE = "plus_logins";
+    public static final String TABLE = "logins";
     
     public static final String USER_ID = "user_id";
     public static final String LOGINS = "logins";
     
-    public static final String DDL = "com/unitedinternet/troilus/example/plus_logins.ddl";
+    public static final String DDL = "com/unitedinternet/troilus/example/logins.ddl";
  }
 

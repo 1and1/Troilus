@@ -25,7 +25,7 @@ import java.util.Optional;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.UsersTable;
+import net.oneandone.troilus.testtables.UsersTable;
 
 import org.junit.AfterClass;
 import org.junit.Assert;

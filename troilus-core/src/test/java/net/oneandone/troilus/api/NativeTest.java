@@ -21,9 +21,9 @@ package net.oneandone.troilus.api;
 import java.io.IOException;
 
 import net.oneandone.troilus.CassandraDB;
-import net.oneandone.troilus.LoginsTable;
-import net.oneandone.troilus.PlusLoginsTable;
-import net.oneandone.troilus.UsersTable;
+import net.oneandone.troilus.testtables.LoginsTable;
+import net.oneandone.troilus.testtables.PlusLoginsTable;
+import net.oneandone.troilus.testtables.UsersTable;
 
 import org.junit.AfterClass;
 import org.junit.Assert;

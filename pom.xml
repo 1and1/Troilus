@@ -24,8 +24,8 @@
         <properties>
                 <surefire.version>2.15</surefire.version>
                 <reactivestreams.version>1.0.0</reactivestreams.version>
-                <cassandra.driver.core.version>3.0.0</cassandra.driver.core.version>
-                <cassandra.version>3.4</cassandra.version>
+                <cassandra.driver.core.version>3.0.1</cassandra.driver.core.version>
+                <cassandra.version>3.5</cassandra.version>
         </properties>
 
 	<name>troilus-parent multimodule</name>

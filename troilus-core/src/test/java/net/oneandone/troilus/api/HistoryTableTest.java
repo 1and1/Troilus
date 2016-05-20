@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
-import net.oneandone.troilus.HistoryTable;
+import net.oneandone.troilus.testtables.HistoryTable;
 import net.oneandone.troilus.CassandraDB;
 
 import org.junit.AfterClass;

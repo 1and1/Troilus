@@ -32,12 +32,12 @@ import net.oneandone.troilus.Dao;
 import net.oneandone.troilus.DaoImpl;
 import net.oneandone.troilus.CassandraDB;
 import net.oneandone.troilus.IfConditionException;
-import net.oneandone.troilus.LoginsTable;
-import net.oneandone.troilus.PlusLoginsTable;
 import net.oneandone.troilus.Record;
-import net.oneandone.troilus.UserType;
-import net.oneandone.troilus.UsersTable;
-import net.oneandone.troilus.UsersTableFields;
+import net.oneandone.troilus.testtables.LoginsTable;
+import net.oneandone.troilus.testtables.PlusLoginsTable;
+import net.oneandone.troilus.testtables.UserType;
+import net.oneandone.troilus.testtables.UsersTable;
+import net.oneandone.troilus.testtables.UsersTableFields;
 import net.oneandone.troilus.CounterMutation;
 
 import org.junit.AfterClass;

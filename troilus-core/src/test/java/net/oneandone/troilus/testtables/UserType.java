@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
-
-import net.oneandone.troilus.ColumnName;
+package net.oneandone.troilus.testtables;
 
 
 
-public interface HistoryTable  {
-   
-    public static final String TABLE = "history";
-    
-    public static final ColumnName<String> SENDER_EMAIL = ColumnName.defineString("sender_email");
-    public static final ColumnName<String> RECEIVER_EMAIL = ColumnName.defineString("receiver_email");
-    
-    public static final String DDL = "com/unitedinternet/troilus/example/history.ddl";
+
+public enum UserType {
+    GOLD, SILVER, METAL 
  }
 

@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.oneandone.troilus;
+package net.oneandone.troilus.testtables;
 
 
 
-
-public enum UserType {
-    GOLD, SILVER, METAL 
- }
-
+public interface FeesTable  {
+   
+    public static final String TABLE = "fees";
+    
+    public static final String CUSTOMER_ID = "customer_id";
+    public static final String YEAR = "year";
+    public static final String AMOUNT = "amount";
+ 
+    public static final String DDL = "com/unitedinternet/troilus/example/fees.ddl";
+}
