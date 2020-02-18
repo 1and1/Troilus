@@ -2,6 +2,8 @@
 Troilus
 ======
 
+PLEASE NOTE that the development has been stopped. This project will be removed
+
 [![Build Status](https://travis-ci.org/1and1/Troilus.svg)](https://travis-ci.org/1and1/Troilus)
 
 **Discussion group**: [Troilus discussion group](https://groups.google.com/forum/#!forum/troilus)
