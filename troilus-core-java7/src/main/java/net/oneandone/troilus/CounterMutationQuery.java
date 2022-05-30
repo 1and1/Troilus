@@ -15,6 +15,7 @@
  */
 package net.oneandone.troilus;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import net.oneandone.troilus.java7.CounterMutation;
 
 import com.datastax.driver.core.ResultSet;
@@ -69,7 +70,7 @@ class CounterMutationQuery extends AbstractQuery<CounterMutation> implements Cou
             }
         };
         
-        return Futures.transform(future, mapEntity);
+        return Futures.transform(future, mapEntity, MoreExecutors.directExecutor());
     }
     
     

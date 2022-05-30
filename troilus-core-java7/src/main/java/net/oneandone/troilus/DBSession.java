@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +120,7 @@ public class DBSession  {
                 return preparedStatement.bind(values);
             }
         };
-        return Futures.transform(preparedStatementFuture, bindStatementFunction);
+        return Futures.transform(preparedStatementFuture, bindStatementFunction, MoreExecutors.directExecutor());
     }
     
     
@@ -182,7 +183,7 @@ public class DBSession  {
                     }
                 };
                 
-                return Futures.transform(future, addToCacheFunction);
+                return Futures.transform(future, addToCacheFunction, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(preparedStatment);
             }

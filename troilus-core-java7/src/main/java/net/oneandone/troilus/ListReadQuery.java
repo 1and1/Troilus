@@ -20,6 +20,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.ListRead;
 import net.oneandone.troilus.java7.ListReadWithUnit;
@@ -210,7 +211,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 return new RecordListImpl(getContext(), queryData, resultSet);
             }
         };
-        final ListenableFuture<ResultList<Record>> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList); 
+        final ListenableFuture<ResultList<Record>> recordListFuture =  Futures.transform(resultSetFuture, resultSetToRecordList, MoreExecutors.directExecutor());
         
         // running interceptors within dedicated threads!
         return executeResponseInterceptorsAsync(queryData, recordListFuture);
@@ -353,7 +354,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            return Futures.transform(future, mapEntity);
+            return Futures.transform(future, mapEntity, MoreExecutors.directExecutor());
         }
         
         @Override
@@ -633,7 +634,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            return Futures.transform(future, mapEntity);
+            return Futures.transform(future, mapEntity, MoreExecutors.directExecutor());
         }
         
         @Override
@@ -647,7 +648,7 @@ class ListReadQuery extends AbstractQuery<ListReadQuery> implements ListReadWith
                 }
             };
             
-            return new ResultListPublisher<>(Futures.transform(countFuture, toListFunction));
+            return new ResultListPublisher<>(Futures.transform(countFuture, toListFunction, MoreExecutors.directExecutor()));
         }
 
 		@Override

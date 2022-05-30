@@ -138,7 +138,7 @@ public class CassandraDB {
     public void executeCqlFile(String cqlFile) throws IOException {
         File file = new File(cqlFile);
         if (file.exists()) {
-            executeCql(Files.toString(new File(cqlFile), Charsets.UTF_8));
+            executeCql(Files.asCharSource(new File(cqlFile), Charsets.UTF_8).read());
         } else {
             executeCql(Resources.toString(Resources.getResource(cqlFile), Charsets.UTF_8));
         }
@@ -155,7 +155,7 @@ public class CassandraDB {
         try {
             File file = new File(cqlFile);
             if (file.exists()) {
-                tryExecuteCqls(Splitter.on(";").split(Files.toString(new File(cqlFile), Charsets.UTF_8)));
+                tryExecuteCqls(Splitter.on(";").split(Files.asCharSource(new File(cqlFile), Charsets.UTF_8).read()));
             } else {
                 tryExecuteCqls(Splitter.on(";").split(Resources.toString(Resources.getResource(cqlFile), Charsets.UTF_8)));
             }
