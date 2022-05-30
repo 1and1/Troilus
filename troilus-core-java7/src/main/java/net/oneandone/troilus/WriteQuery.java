@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 
 import java.util.Set;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.interceptor.CascadeOnWriteInterceptor;
 import net.oneandone.troilus.java7.interceptor.WriteQueryData;
@@ -97,7 +98,7 @@ abstract class WriteQuery<Q> extends MutationQuery<Q> {
                 return result;
             }
         };
-        return Futures.transform(future, validateLwtIfFunction);
+        return Futures.transform(future, validateLwtIfFunction, MoreExecutors.directExecutor());
     }
 
     

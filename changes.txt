@@ -1,3 +1,5 @@
+0.19
+ * Update Guava to 30.0-jre
 
 0.18  
  * Fixed the putMapValue(...) method(s) in Write API to successfully add/update User Defined Type's into a datatype of map

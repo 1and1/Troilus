@@ -18,6 +18,7 @@ package net.oneandone.troilus;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import net.oneandone.troilus.java7.FetchingIterator;
 import net.oneandone.troilus.java7.Record;
 import net.oneandone.troilus.java7.ResultList;
@@ -156,7 +157,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             }
         };
         
-        return Futures.transform(recordsFuture, fetchRecordFunction);
+        return Futures.transform(recordsFuture, fetchRecordFunction, MoreExecutors.directExecutor());
     }
     
     
@@ -214,7 +215,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
                 }
             };
             
-            return Futures.transform(future, mapEntity);
+            return Futures.transform(future, mapEntity, MoreExecutors.directExecutor());
         }
         
         @Override
@@ -238,7 +239,7 @@ class SingleReadQuery extends AbstractQuery<SingleReadQuery> implements SingleRe
             }
         };
         
-        return Futures.transform(list, mapperFunction);
+        return Futures.transform(list, mapperFunction, MoreExecutors.directExecutor());
     }
     
     

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import net.oneandone.troilus.interceptor.DeleteQueryData;
 import net.oneandone.troilus.java7.Batchable;
 import net.oneandone.troilus.java7.Deletion;
@@ -147,7 +148,7 @@ class DeleteQuery extends MutationQuery<Deletion> implements Deletion {
                 return result;
             }
         };
-        return Futures.transform(future, validateOnlyIfFunction);
+        return Futures.transform(future, validateOnlyIfFunction, MoreExecutors.directExecutor());
     }
     
 

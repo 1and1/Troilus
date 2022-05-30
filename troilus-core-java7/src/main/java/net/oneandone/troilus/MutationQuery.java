@@ -65,7 +65,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
             }
         };
         
-        return Futures.transform(future, mapEntity);
+        return Futures.transform(future, mapEntity, MoreExecutors.directExecutor());
     }
     
     
@@ -85,7 +85,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
                 return batchStatement;
             };
         };
-        return Futures.transform(statementsFuture, statementsBatcher);
+        return Futures.transform(statementsFuture, statementsBatcher, MoreExecutors.directExecutor());
     }
     
     
@@ -101,7 +101,7 @@ abstract class MutationQuery<Q> extends AbstractQuery<Q> {
                 return ImmutableSet.copyOf(statementFutureSet);                    
             }
         };            
-        ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement);
+        ListenableFuture<ImmutableSet<ListenableFuture<Statement>>> statementFutureSet = Futures.transform(batchablesFutureSet, batchablesToStatement, MoreExecutors.directExecutor());
         return ListenableFutures.flat(statementFutureSet, getExecutor());
     }
     
